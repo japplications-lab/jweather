@@ -3,11 +3,13 @@
 <meta charset="utf-8"/>
 <meta charset="utf-8"/>
 <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 <title>The jWeather</title>
 <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- PapaParse library for CSV parsing -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style type="text/tailwindcss">
         :root {
             --primary-color: #f10914;
@@ -30,7 +32,20 @@
 <div class="hidden md:flex flex-1 items-center justify-center">
 <div class="relative w-full max-w-lg">
 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
-<input class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search"/>
+<!-- ADDED location search input and suggestions dropdown -->
+<input
+  id="location-search"
+  class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white"
+  type="text"
+  placeholder="Search city, state, or zip..."
+  autocomplete="off"
+  spellcheck="false"
+/>
+<ul
+  id="location-suggestions"
+  class="absolute left-0 right-0 top-full mt-2 z-50 bg-white text-gray-900 rounded-lg shadow-lg max-h-72 overflow-y-auto hidden"
+></ul>
+<!-- END ADDED location search input and suggestions dropdown -->
 </div>
 </div>
 <div class="flex items-center gap-4">
@@ -53,7 +68,7 @@
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 <div class="space-y-8">
-<div class="bg-white rounded-lg shadow-lg p-6">
+<div class="bg-white rounded-lg shadow-lg p-6" id="weather-current">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">New York, NY - Current Conditions</h2>
 <div class="flex items-start justify-between gap-6">
 <div class="flex-1">
@@ -67,11 +82,11 @@
 </div>
 <div class="flex-shrink-0">
 <!-- If you add any local images, move them to elements/images and update src accordingly -->
-<img alt="Sunny weather graphic" class="w-48 h-48 object-cover rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g"/>
+<img alt="Sunny weather graphic" class="w-48 h-48 object-cover rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUN8n3Fl0Qw=w600-h600-p-l90-rj"/>
 </div>
 </div>
 </div>
-<div class="bg-white rounded-lg shadow-lg p-6">
+<div class="bg-white rounded-lg shadow-lg p-6" id="weather-alerts">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
 <div class="flex items-center gap-4">
 <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
@@ -83,12 +98,11 @@
 </div>
 <div class="bg-white rounded-lg shadow-lg p-6">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
-<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg object-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8gHOZEutcV-_tfLApcVXDP0rknrecRspofXDyJimKllBO7ZqjLoIiYZB_QXEEEXaIZ1qF6IFpNWgLLgNdtqO1NpmjAm2F-dhkCIXBYvMt9LT5jHYFu1f7NDK8OJ-PKn4Lq1N8f1QXWHFzYgX5nqBTmBedVo5gFnoyMVWxKNFYKwNMkDZRKB6giYChNomblInwzSQysBWPYpXLGqxO_dOv_ZKIs4pujc6nosh_02KK33Z1qNXKrt3UpnHWcA3QfDQgfRxOiZyl2s0");'></div>
-</div>
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg object-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8gHOZEutcV-_tfLApcVXDP0rXj7vnYgHPbN0kQw=w600-h337-p-l90-rj")'></div>
 </div>
 <div class="bg-white rounded-lg shadow-lg p-6">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">7-Day Forecast</h2>
-<div class="divide-y divide-gray-200">
+<div class="divide-y divide-gray-200" id="weather-forecast">
 <!-- Forecast grid remains unchanged -->
 <!-- ...content omitted for brevity... -->
 <div class="grid grid-cols-4 items-center py-3">
@@ -107,4 +121,6 @@
 </div>
 </main>
 </div>
+<!-- location-search.js should be loaded after the DOM is ready -->
+<script src="elements/scripts/location-search.js" defer></script>
 </body></html>
