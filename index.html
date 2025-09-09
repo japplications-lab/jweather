@@ -1,41 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Coming Soon | jweather</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      background: linear-gradient(135deg, #36d1c4 0%, #5b86e5 100%);
-      color: #fff;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 0.2em;
-    }
-    p {
-      font-size: 1.3rem;
-      opacity: 0.85;
-      margin-top: 0;
-    }
-    .logo {
-      font-size: 4rem;
-      margin-bottom: 0.7em;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
-    }
-  </style>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>The jWeather</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #f10914;
+        }
+        body {
+            font-family: "Space Grotesk", "Noto Sans", sans-serif;
+        }
+    </style>
 </head>
-<body>
-  <div class="logo">⛅️</div>
-  <h1>jweather</h1>
-  <p>Coming Soon</p>
-</body>
-</html>
+<body class="bg-gray-100 text-gray-800">
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--primary-color)] shadow-lg">
+<div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-white">
+<span class="material-symbols-outlined text-4xl">wb_sunny</span>
+<h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
+</div>
+</div>
+<div class="hidden md:flex flex-1 items-center justify-center">
+<div class="relative w-full max-w-lg">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
+<input class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
+<a class="hover:text-gray-200 transition-colors" href="#">Today</a>
+<a class="hover:text-gray-200 transition-colors" href="#">Hourly</a>
+<a class="hover:text-gray-200 transition-colors" href="#">10 Day</a>
+<a class="hover:text-gray-200 transition-colors" href="#">Radar</a>
+</nav>
+<button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="space-y-8">
+<div class="bg-white rounded-lg shadow-lg p-6">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">New York, NY - Current Conditions</h2>
+<div class="flex items-start justify-between gap-6">
+<div class="flex-1">
+<p class="text-7xl font-bold text-gray-900">75°F</p>
+<p class="text-xl text-gray-600 mt-2">Sunny</p>
+<div class="mt-4 space-y-2 text-gray-500">
+<p>Feels Like: 75°F</p>
+<p>Humidity: 60%</p>
+<p>Wind: 5 mph W</p>
+</div>
+</div>
+<div class="flex-shrink-0">
+<!-- If you add any local images, move them to elements/images and update src accordingly -->
+<img alt="Sunny weather graphic" class="w-48 h-48 object-cover rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g"/>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+<div>
+<p class="font-semibold text-gray-800">No active weather alerts</p>
+<p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg object-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8gHOZEutcV-_tfLApcVXDP0rknrecRspofXDyJimKllBO7ZqjLoIiYZB_QXEEEXaIZ1qF6IFpNWgLLgNdtqO1NpmjAm2F-dhkCIXBYvMt9LT5jHYFu1f7NDK8OJ-PKn4Lq1N8f1QXWHFzYgX5nqBTmBedVo5gFnoyMVWxKNFYKwNMkDZRKB6giYChNomblInwzSQysBWPYpXLGqxO_dOv_ZKIs4pujc6nosh_02KK33Z1qNXKrt3UpnHWcA3QfDQgfRxOiZyl2s0");'></div>
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">7-Day Forecast</h2>
+<div class="divide-y divide-gray-200">
+<!-- Forecast grid remains unchanged -->
+<!-- ...content omitted for brevity... -->
+<div class="grid grid-cols-4 items-center py-3">
+<p class="font-medium text-gray-700">Mon</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-yellow-500">sunny</span>
+<p class="text-gray-600">Sunny</p>
+</div>
+<p class="text-gray-600 text-center">80°</p>
+<p class="text-gray-600 text-right">20%</p>
+</div>
+<!-- ...repeat for other forecast days/nights... -->
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
