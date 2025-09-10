@@ -447,13 +447,51 @@ function updateForecast(periods) {
     });
 }
 
-// ALERTS
+function getLocationTimeZone() {
+    if (latestLocation && latestLocation.tz) return latestLocation.tz;
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+        return undefined;
+    }
+}
+
+function formatExpiresWithZone(dt, tz) {
+    if (!dt) return 'N/A';
+    try {
+        const d = new Date(dt);
+        const opts = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: tz
+        };
+        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
+        let [date, time] = str.split(',');
+        let abbr = '';
+        try {
+            abbr = d.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop();
+        } catch {}
+        abbr = abbr ? abbr.replace(/^GMT/, 'UTC') : (tz ? tz.replace("_", " ") : "");
+        if (date && time) {
+            return `${date.replace(/\//g, "/")} ${time.trim()} ${abbr}`;
+        }
+        return str;
+    } catch(e) {
+        return dt;
+    }
+}
+
 function updateAlerts(alertsData) {
     latestAlerts = alertsData.features || [];
     const content = document.getElementById('alerts-content');
     content.innerHTML = '';
+    const tz = getLocationTimeZone();
+
     if (!latestAlerts.length) {
-        // Horizontal align: checkmark and text
         content.innerHTML = `
         <div class="flex items-center gap-4">
           <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
@@ -466,13 +504,13 @@ function updateAlerts(alertsData) {
     } else {
         latestAlerts.forEach((alertFeature, idx) => {
             const alert = alertFeature.properties;
+            const expires = alert.expires ? formatExpiresWithZone(alert.expires, tz) : "N/A";
             content.innerHTML += `
             <div class="flex items-start mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
                 <span class="material-symbols-outlined text-red-500 text-3xl mr-3 mt-1">warning</span>
                 <div class="flex-1">
                     <p class="font-semibold text-gray-800">${alert.event}</p>
-                    <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
-                    <p class="text-gray-400 text-xs">${alert.effective ? ('Effective: ' + alert.effective) : ''}</p>
+                    <p class="text-gray-700 text-sm mb-1">Expires: ${expires}</p>
                     <button class="view-alert-detail mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--primary-color)] text-white text-xs font-medium hover:bg-red-700 focus:outline-none" data-alert-idx="${idx}">
                         View Detail
                     </button>
@@ -512,15 +550,6 @@ function formatDateTimeWithZone(dt, tz) {
         return str;
     } catch(e) {
         return dt;
-    }
-}
-
-function getLocationTimeZone() {
-    if (latestLocation && latestLocation.tz) return latestLocation.tz;
-    try {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone;
-    } catch {
-        return undefined;
     }
 }
 
