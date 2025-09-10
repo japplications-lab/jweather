@@ -97,10 +97,9 @@ function getSPCImageUrls(day, hazard) {
       times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
       times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
       times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
-    } else {
-      // hazard is torn/wind/hail
-      times1.forEach(t => urls.push(`${base}day1otlk_${hazard}${t}.png`));
-      times1.forEach(t => urls.push(`${base}day1otlk_${hazard}${t}.gif`));
+    } else if (["torn","wind","hail"].includes(hazard)) {
+      times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.gif`));
+      times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.png`));
     }
   }
   if (day === 2) {
@@ -110,9 +109,9 @@ function getSPCImageUrls(day, hazard) {
       times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
       times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
       times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
-    } else {
-      times2.forEach(t => urls.push(`${base}day2probotlk_${hazard}${t}.png`));
-      times2.forEach(t => urls.push(`${base}day2probotlk_${hazard}${t}.gif`));
+    } else if (["torn","wind","hail"].includes(hazard)) {
+      times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.gif`));
+      times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.png`));
     }
   }
   if (day === 3) {
@@ -126,7 +125,6 @@ function getSPCImageUrls(day, hazard) {
       times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
       times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
     } else {
-      // For torn/wind/hail, fallback to prob images
       times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
       times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
     }
