@@ -180,7 +180,7 @@
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
-let latestAlerts = []; // store currently shown alerts
+let latestAlerts = [];
 
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
@@ -208,7 +208,6 @@ window.addEventListener('DOMContentLoaded', () => {
                         ignoreLocation: true,
                         includeScore: true,
                     });
-                    // Default to Baconton, GA (31716)
                     const defaultLoc = locationsData.find(loc =>
                         loc.city && loc.city.trim().toLowerCase() === 'baconton'
                         && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
@@ -224,7 +223,6 @@ window.addEventListener('DOMContentLoaded', () => {
         });
 });
 
-// Spinner overlay helpers
 function showSpinner() {
     spinnerOverlay.style.display = 'flex';
 }
@@ -232,7 +230,6 @@ function hideSpinner() {
     spinnerOverlay.style.display = 'none';
 }
 
-// Debounce
 function debounce(fn, delay) {
     let timeout;
     return function(...args) {
@@ -241,7 +238,6 @@ function debounce(fn, delay) {
     };
 }
 
-// Fuzzy suggestions
 function getSuggestions(query) {
     query = query.trim();
     if (!query || !fuse) return [];
@@ -249,7 +245,6 @@ function getSuggestions(query) {
     return results.map(r => r.item);
 }
 
-// Autosuggest dropdown
 function renderSuggestions(suggestions) {
     suggestionsBox.innerHTML = '';
     if (!suggestions.length) {
@@ -267,14 +262,12 @@ function renderSuggestions(suggestions) {
     suggestionsBox.classList.remove('hidden');
 }
 
-// Search input
 searchBar.addEventListener('input', debounce(function(e) {
     const val = e.target.value;
     suggestions = getSuggestions(val);
     renderSuggestions(suggestions);
 }, 200));
 
-// Keyboard navigation for suggestions
 let selectedSuggestion = -1;
 searchBar.addEventListener('keydown', function(e) {
     if (suggestions.length === 0) return;
@@ -319,7 +312,6 @@ function selectSuggestion(loc) {
     updateRadar(loc.lat, loc.lng);
 }
 
-// Use Location
 useLocationBtn.addEventListener('click', function() {
     if (!navigator.geolocation) {
         alert('Geolocation is not supported by your browser.');
@@ -455,7 +447,6 @@ function updateForecast(periods) {
     });
 }
 
-// Alerts with View Detail modal
 function updateAlerts(alertsData) {
     latestAlerts = alertsData.features || [];
     const content = document.getElementById('alerts-content');
@@ -486,7 +477,6 @@ function updateAlerts(alertsData) {
             `;
         });
     }
-    // Attach click handlers for View Detail
     Array.from(content.getElementsByClassName('view-alert-detail')).forEach(btn => {
         btn.addEventListener('click', function() {
             const idx = btn.getAttribute('data-alert-idx');
@@ -495,22 +485,38 @@ function updateAlerts(alertsData) {
     });
 }
 
-// ALERT DETAIL OVERLAY LOGIC
+function formatDateTime(dt) {
+    if (!dt) return 'N/A';
+    const d = new Date(dt);
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12; if (hours === 0) hours = 12;
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${mm}-${dd}-${yyyy} ${hours}:${minutes} ${ampm}`;
+}
+
 function showAlertDetail(idx) {
     const overlay = document.getElementById('alert-detail-overlay');
     const content = document.getElementById('alert-detail-content');
     const alert = latestAlerts[idx]?.properties;
     if (!alert) return;
-    // Build detail HTML
+
+    const issued = alert.effective ? formatDateTime(alert.effective) : "N/A";
+    const expires = alert.expires ? formatDateTime(alert.expires) : "N/A";
+    const issuedBy = alert.senderName || "NWS Office";
+
     content.innerHTML = `
-        <h3 class="text-xl font-bold text-red-700 mb-2">${alert.event}</h3>
-        <p class="text-gray-700 mb-2"><b>Status:</b> ${alert.status || 'N/A'}</p>
-        <p class="text-gray-700 mb-2"><b>Effective:</b> ${alert.effective || 'N/A'}</p>
-        <p class="text-gray-700 mb-2"><b>Expires:</b> ${alert.expires || 'N/A'}</p>
-        <p class="text-gray-700 mb-2"><b>Severity:</b> ${alert.severity || 'N/A'}</p>
-        <p class="text-gray-700 mb-2"><b>Urgency:</b> ${alert.urgency || 'N/A'}</p>
-        <p class="text-gray-700 mb-2"><b>Certainty:</b> ${alert.certainty || 'N/A'}</p>
-        <p class="text-gray-700 mb-2"><b>Sender:</b> ${alert.senderName || 'N/A'}</p>
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-red-700 mb-1">${alert.event}</h3>
+          <div class="text-gray-700 text-sm">
+            <span class="block"><b>Issued:</b> ${issued}</span>
+            <span class="block"><b>Expires:</b> ${expires}</span>
+            <span class="block"><b>Issued By:</b> ${issuedBy}</span>
+          </div>
+        </div>
         <hr class="my-3"/>
         <pre class="whitespace-pre-wrap text-gray-900 text-sm">${alert.description || ''}</pre>
         ${alert.instruction ? `<hr class="my-3"/><div class="text-gray-900 text-sm"><b>Instruction:</b><br>${alert.instruction}</div>` : ''}
@@ -529,6 +535,14 @@ document.getElementById('alert-detail-overlay').addEventListener('click', functi
         document.body.classList.remove('overflow-hidden');
     }
 });
+function updateRadar(lat, lng) {
+    lat = Number(lat);
+    lng = Number(lng);
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
+    }
+}
 </script>
 </body>
 </html>
