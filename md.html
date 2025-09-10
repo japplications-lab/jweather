@@ -12,7 +12,6 @@
     body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
     .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
     .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
-    .justify-left { justify-content: flex-start; }
   </style>
   <style>
     .outlook-btn-active {
@@ -71,7 +70,7 @@
           </div>
           <div id="day3-section" class="flex flex-col items-center">
             <h3 class="text-xl font-bold mb-2">Day 3</h3>
-            <div class="flex gap-2 mb-2 justify-left w-full">
+            <div class="flex gap-2 mb-2">
               <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="cat">Overall</button>
               <button class="outlook-btn" data-day="3" data-hazard="prob">Probabilistic</button>
             </div>
