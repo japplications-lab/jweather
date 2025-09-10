@@ -97,7 +97,7 @@
   </main>
 </div>
 <script>
-// Autocomplete/search/location logic (same as index.html)
+/* --- Search/autocomplete/location logic (same as index.html) --- */
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
@@ -251,7 +251,7 @@ useLocationBtn.addEventListener('click', function() {
   );
 });
 
-// ---- SPC Convective Outlooks Logic ----
+/* ---- SPC Convective Outlooks Logic with robust image loader ---- */
 const outlookDays = [
   { day: 1, label: "Today" },
   { day: 2, label: "Day 2" },
@@ -263,28 +263,55 @@ const threatTypes = [
   { threat: "wind", label: "Wind", caption: "SPC Damaging Wind Probability" },
   { threat: "hail", label: "Hail", caption: "SPC Large Hail Probability" }
 ];
-// Updated for current SPC image conventions
-function getSPCImageURL(day, threat) {
+
+function getSPCImageUrls(day, threat) {
+  const base = "https://www.spc.noaa.gov/products/outlook/";
+  let names = [];
   if (day === 1) {
-    if (threat === "outlook") return "https://www.spc.noaa.gov/products/outlook/day1otlk_cat.png";
-    if (threat === "torn")    return "https://www.spc.noaa.gov/products/outlook/day1otlk_torn.png";
-    if (threat === "wind")    return "https://www.spc.noaa.gov/products/outlook/day1otlk_wind.png";
-    if (threat === "hail")    return "https://www.spc.noaa.gov/products/outlook/day1otlk_hail.png";
+    if (threat === "outlook") names = ["day1otlk_catl"];
+    if (threat === "torn")    names = ["day1otlk_torn"];
+    if (threat === "wind")    names = ["day1otlk_wind"];
+    if (threat === "hail")    names = ["day1otlk_hail"];
+    return names.flatMap(n =>
+      ["_1630.png", "_1300.png", "_0600.png", "_0100.png"].map(t => base + n + t)
+    );
   }
   if (day === 2) {
-    if (threat === "outlook") return "https://www.spc.noaa.gov/products/outlook/day2otlk_cat.png";
-    if (threat === "torn")    return "https://www.spc.noaa.gov/products/outlook/day2probotlk_torn.png";
-    if (threat === "wind")    return "https://www.spc.noaa.gov/products/outlook/day2probotlk_wind.png";
-    if (threat === "hail")    return "https://www.spc.noaa.gov/products/outlook/day2probotlk_hail.png";
+    if (threat === "outlook") names = ["day2otlk_catl"];
+    if (threat === "torn")    names = ["day2probotlk_torn"];
+    if (threat === "wind")    names = ["day2probotlk_wind"];
+    if (threat === "hail")    names = ["day2probotlk_hail"];
+    return names.flatMap(n =>
+      ["_1730.png", "_1300.png", "_0600.png", "_0100.png"].map(t => base + n + t)
+    );
   }
   if (day === 3) {
-    if (threat === "outlook") return "https://www.spc.noaa.gov/products/outlook/day3otlk_cat.png";
-    // For Day 3, all threats show the same probabilistic image
-    return "https://www.spc.noaa.gov/products/outlook/day3otlk_prob.png";
+    if (threat === "outlook") names = ["day3otlk_catl"];
+    else                      names = ["day3otlk_prob"];
+    return names.flatMap(n =>
+      ["_0730.png", "_0100.png"].map(t => base + n + t)
+    );
   }
-  return "";
+  return [];
 }
 
+function trySPCImage(day, threat, callback) {
+  const urls = getSPCImageUrls(day, threat);
+  let idx = 0;
+  function tryNext() {
+    if (idx >= urls.length) {
+      callback(""); // Not found
+      return;
+    }
+    const img = new Image();
+    img.onload = () => callback(urls[idx]);
+    img.onerror = () => { idx++; tryNext(); };
+    img.src = urls[idx];
+  }
+  tryNext();
+}
+
+// UI setup
 const dayButtonsDiv = document.getElementById("day-buttons");
 const threatButtonsDiv = document.getElementById("threat-buttons");
 const outlookImage = document.getElementById("outlook-image");
@@ -312,11 +339,11 @@ function renderThreatButtons() {
   threatButtonsDiv.innerHTML = "";
   threatTypes.forEach(t => {
     let disabled = false;
-    if (selectedDay === 3 && t.threat !== "outlook") disabled = false; // all threats show same image
+    if (selectedDay === 3 && t.threat !== "outlook") disabled = false; // all threats show same Day 3 image
     const btn = document.createElement('button');
     btn.className = "outlook-btn" + (t.threat === selectedThreat ? " outlook-btn-active" : "");
     btn.textContent = t.label;
-    btn.disabled = (selectedDay === 3 && t.threat !== "outlook");
+    btn.disabled = false; // all options enabled, but Day 3 has only one image
     btn.onclick = () => {
       selectedThreat = t.threat;
       renderThreatButtons();
@@ -326,8 +353,17 @@ function renderThreatButtons() {
   });
 }
 function updateOutlookImage() {
-  const url = getSPCImageURL(selectedDay, selectedThreat);
-  outlookImage.src = url;
+  outlookImage.src = "";
+  outlookImage.alt = "Loading outlook image...";
+  trySPCImage(selectedDay, selectedThreat, function(imgUrl) {
+    if (imgUrl) {
+      outlookImage.src = imgUrl;
+      outlookImage.alt = "SPC Outlook";
+    } else {
+      outlookImage.src = "";
+      outlookImage.alt = "No outlook image available";
+    }
+  });
   const dayLabel = outlookDays.find(d => d.day === selectedDay)?.label || "";
   let threatLabel = threatTypes.find(t => t.threat === selectedThreat)?.caption || "";
   if (selectedDay === 3 && selectedThreat !== "outlook") {
