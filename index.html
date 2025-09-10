@@ -184,6 +184,7 @@ const suggestionsBox = document.getElementById('suggestions');
 const useLocationBtn = document.getElementById('use-location-btn');
 const spinnerOverlay = document.getElementById('spinner-overlay');
 
+// ---- On Page Load: load from localStorage if available ----
 window.addEventListener('DOMContentLoaded', () => {
     fetch('locations.csv')
         .then(res => res.text())
@@ -204,16 +205,27 @@ window.addEventListener('DOMContentLoaded', () => {
                         ignoreLocation: true,
                         includeScore: true,
                     });
-                    const defaultLoc = locationsData.find(loc =>
-                        loc.city && loc.city.trim().toLowerCase() === 'baconton'
-                        && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
-                        && loc.zip && loc.zip.trim() === '31716'
-                    );
-                    if (defaultLoc) {
-                        latestLocation = defaultLoc;
-                        searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
-                        fetchWeatherForLocation(defaultLoc);
-                        updateRadar(defaultLoc.lat, defaultLoc.lng);
+                    // 1. Check for last used location in localStorage
+                    const savedLoc = localStorage.getItem('jweather_last_location');
+                    if (savedLoc) {
+                        const locObj = JSON.parse(savedLoc);
+                        latestLocation = locObj;
+                        searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
+                        fetchWeatherForLocation(locObj);
+                        updateRadar(locObj.lat, locObj.lng);
+                    } else {
+                        // fallback to Baconton, GA (31716)
+                        const defaultLoc = locationsData.find(loc =>
+                            loc.city && loc.city.trim().toLowerCase() === 'baconton'
+                            && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
+                            && loc.zip && loc.zip.trim() === '31716'
+                        );
+                        if (defaultLoc) {
+                            latestLocation = defaultLoc;
+                            searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
+                            fetchWeatherForLocation(defaultLoc);
+                            updateRadar(defaultLoc.lat, defaultLoc.lng);
+                        }
                     }
                 }
             });
@@ -306,6 +318,8 @@ function selectSuggestion(loc) {
     searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
     suggestionsBox.classList.add('hidden');
     selectedSuggestion = -1;
+    // --- Save to localStorage
+    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
     fetchWeatherForLocation(loc);
     updateRadar(loc.lat, loc.lng);
 }
@@ -341,6 +355,8 @@ useLocationBtn.addEventListener('click', function() {
 
             latestLocation = locObj;
             searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
+            // --- Save to localStorage
+            localStorage.setItem('jweather_last_location', JSON.stringify(locObj));
             fetchWeatherForLocation(locObj);
             updateRadar(locObj.lat, locObj.lng);
             useLocationBtn.disabled = false;
@@ -356,6 +372,8 @@ useLocationBtn.addEventListener('click', function() {
 
 async function fetchWeatherForLocation(loc) {
     latestLocation = loc;
+    // --- Save to localStorage
+    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
     showSpinner();
     const lat = loc.lat;
     const lng = loc.lng;
@@ -443,7 +461,6 @@ function updateForecast(periods) {
         "Thursday": "Thu", "Friday": "Fri", "Saturday": "Sat", "Sunday": "Sun"
     };
     function abbrDayPeriod(name) {
-        // "Monday", "Monday Night", "Tuesday", etc
         for (const day in dayAbbr) {
             if (name.startsWith(day)) {
                 return name.replace(day, dayAbbr[day]);
