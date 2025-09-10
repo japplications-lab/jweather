@@ -12,7 +12,10 @@
     body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
     .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
     .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
-    /* Add any header-specific styles from index.html here */
+    @media (max-width: 767px) {
+      .nav-menu, .header-search { width: 100%; justify-content: center; }
+      .header-search { margin-top: 0.5rem; }
+    }
   </style>
   <style>
     .outlook-btn-active {
@@ -21,29 +24,32 @@
       box-shadow: 0 0 0 2px var(--primary-color);
       border-color: var(--primary-color) !important;
     }
-    /* Add any custom header CSS from index.html here */
+    .nav-link-active {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
 
-  <!-- BEGIN HEADER: Copy-paste your exact header from index.html below -->
+  <!-- BEGIN HEADER: Matches index.html style -->
   <header class="bg-[var(--primary-color)] shadow-lg">
-    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4 md:gap-0">
-      <!-- Left: Logo/Title -->
-      <div class="flex items-center gap-3 text-white flex-shrink-0">
+    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-2 md:gap-0">
+      <!-- Logo/Title -->
+      <div class="flex items-center gap-3 text-white flex-shrink-0 mb-2 md:mb-0">
         <span class="material-symbols-outlined text-4xl">wb_sunny</span>
         <a href="index.html" class="text-2xl font-bold tracking-tight hover:underline">The jWeather</a>
       </div>
-      <!-- Center: Nav Menu -->
-      <nav class="flex gap-4 md:gap-6 items-center justify-center flex-1 my-2 md:my-0">
-        <a href="index.html" class="text-white hover:text-gray-200 text-lg font-semibold transition">Home</a>
-        <a href="forecast.html" class="text-white hover:text-gray-200 text-lg font-semibold transition">Forecast</a>
-        <a href="radar.html" class="text-white hover:text-gray-200 text-lg font-semibold transition">Radar</a>
-        <a href="outlooks.html" class="text-white hover:text-gray-200 text-lg font-semibold transition">Outlooks</a>
+      <!-- Navigation Menu -->
+      <nav class="nav-menu flex flex-row gap-4 md:gap-6 items-center justify-center flex-1">
+        <a href="index.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link">Home</a>
+        <a href="forecast.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link">Forecast</a>
+        <a href="radar.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link">Radar</a>
+        <a href="outlooks.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link nav-link-active">Outlooks</a>
       </nav>
-      <!-- Right: Search Bar -->
-      <form class="flex items-center w-full md:w-auto max-w-xs md:max-w-none" action="search.html" method="get" autocomplete="off">
+      <!-- Search Bar -->
+      <form class="header-search flex items-center w-full md:w-auto max-w-xs md:max-w-none mt-2 md:mt-0" action="search.html" method="get" autocomplete="off">
         <input
           type="text"
           name="q"
@@ -56,7 +62,7 @@
       </form>
     </div>
   </header>
-  <!-- END HEADER: If you have a different header in index.html, replace this whole block with that code -->
+  <!-- END HEADER -->
 
   <main class="flex-1">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
