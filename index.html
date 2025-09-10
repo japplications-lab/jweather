@@ -80,7 +80,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 <div class="space-y-8">
 <div class="bg-white rounded-lg shadow-lg p-6" id="current-conditions-section">
-<h2 class="text-2xl font-bold mb-4 text-gray-900" id="current-location-label">New York, NY - Current Conditions</h2>
+<h2 class="text-2xl font-bold mb-4 text-gray-900" id="current-location-label">Baconton, GA - Current Conditions</h2>
 <div class="flex items-start justify-between gap-6">
 <div class="flex-1">
 <p class="text-7xl font-bold text-gray-900" id="current-temp">75°F</p>
@@ -110,7 +110,7 @@
 <h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
 <div id="radar-embed" class="w-full flex justify-center items-center">
     <iframe id="radar-iframe" width="650" height="450"
-        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=40.7128&lon=-74.0060"
+        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=31.3776&lon=-84.1607"
         frameborder="0"></iframe>
 </div>
 </div>
@@ -159,6 +159,18 @@ window.addEventListener('DOMContentLoaded', () => {
                         ignoreLocation: true,
                         includeScore: true,
                     });
+
+                    // --- Find Baconton, GA (31716) and load as default location ---
+                    const defaultLoc = locationsData.find(loc =>
+                        loc.city && loc.city.trim().toLowerCase() === 'baconton'
+                        && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
+                        && loc.zip && loc.zip.trim() === '31716'
+                    );
+                    if (defaultLoc) {
+                        searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
+                        fetchWeatherForLocation(defaultLoc);
+                        updateRadar(defaultLoc.lat, defaultLoc.lng);
+                    }
                 }
             });
         });
