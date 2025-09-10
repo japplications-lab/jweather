@@ -97,7 +97,7 @@
   </main>
 </div>
 <script>
-/* --- Search/autocomplete/location logic (same as index.html) --- */
+// --- Search/autocomplete/location logic (same as index.html) ---
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
@@ -303,7 +303,7 @@ function trySPCImage(day, threat, callback) {
       callback(""); // Not found
       return;
     }
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => callback(urls[idx]);
     img.onerror = () => { idx++; tryNext(); };
     img.src = urls[idx];
@@ -338,12 +338,10 @@ function renderDayButtons() {
 function renderThreatButtons() {
   threatButtonsDiv.innerHTML = "";
   threatTypes.forEach(t => {
-    let disabled = false;
-    if (selectedDay === 3 && t.threat !== "outlook") disabled = false; // all threats show same Day 3 image
     const btn = document.createElement('button');
     btn.className = "outlook-btn" + (t.threat === selectedThreat ? " outlook-btn-active" : "");
     btn.textContent = t.label;
-    btn.disabled = false; // all options enabled, but Day 3 has only one image
+    btn.disabled = false; // all options enabled, Day 3 always shows the only prob image
     btn.onclick = () => {
       selectedThreat = t.threat;
       renderThreatButtons();
