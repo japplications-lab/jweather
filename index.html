@@ -115,11 +115,7 @@
 <div class="bg-white rounded-lg shadow-lg p-6" id="alerts-section">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
 <div class="flex flex-col gap-4" id="alerts-content">
-<span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
-<div>
-<p class="font-semibold text-gray-800">No active weather alerts</p>
-<p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
-</div>
+<!-- content is rendered by JS -->
 </div>
 </div>
 <div class="bg-white rounded-lg shadow-lg p-6">
@@ -181,14 +177,13 @@ let locationsData = [];
 let suggestions = [];
 let fuse = null;
 let latestAlerts = [];
-let latestLocation = null; // used for timezone
+let latestLocation = null;
 
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
 const useLocationBtn = document.getElementById('use-location-btn');
 const spinnerOverlay = document.getElementById('spinner-overlay');
 
-// CSV load and default location on page load
 window.addEventListener('DOMContentLoaded', () => {
     fetch('locations.csv')
         .then(res => res.text())
@@ -452,16 +447,20 @@ function updateForecast(periods) {
     });
 }
 
+// ALERTS
 function updateAlerts(alertsData) {
     latestAlerts = alertsData.features || [];
     const content = document.getElementById('alerts-content');
     content.innerHTML = '';
     if (!latestAlerts.length) {
+        // Horizontal align: checkmark and text
         content.innerHTML = `
-        <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
-        <div>
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+          <div>
             <p class="font-semibold text-gray-800">No active weather alerts</p>
             <p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
+          </div>
         </div>
         `;
     } else {
@@ -490,7 +489,6 @@ function updateAlerts(alertsData) {
     });
 }
 
-// Use Intl.DateTimeFormat with timeZone argument
 function formatDateTimeWithZone(dt, tz) {
     if (!dt) return 'N/A';
     if (!tz) tz = undefined;
@@ -505,9 +503,7 @@ function formatDateTimeWithZone(dt, tz) {
             hour12: true,
             timeZone: tz
         };
-        // "MM/DD/YYYY, HH:MM AM/PM"
         let str = new Intl.DateTimeFormat('en-US', opts).format(d);
-        // Convert to MM-DD-YYYY HH:MM AM/PM for consistency
         let [date, time] = str.split(',');
         if (date && time) {
             const [mm, dd, yyyy] = date.split('/');
@@ -520,9 +516,7 @@ function formatDateTimeWithZone(dt, tz) {
 }
 
 function getLocationTimeZone() {
-    // Try to use latestLocation
     if (latestLocation && latestLocation.tz) return latestLocation.tz;
-    // fallback: try from alert (not available), or browser
     try {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;
     } catch {
