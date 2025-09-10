@@ -34,7 +34,6 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="bg-white rounded-lg shadow-lg p-6">
         <h2 class="text-2xl font-bold mb-8 text-gray-900">SPC Convective Outlooks</h2>
-        <!-- Day sections -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div id="day1-section" class="flex flex-col items-center">
             <h3 class="text-xl font-bold mb-2">Day 1 (Today)</h3>
@@ -84,7 +83,6 @@
   </main>
 </div>
 <script>
-// Filename/extension/time logic for each day/hazard
 function getSPCImageUrls(day, hazard) {
   const base = "https://www.spc.noaa.gov/products/outlook/";
   let times1 = ["_1630", "_1300", "_0600", "_0100"];
@@ -100,6 +98,7 @@ function getSPCImageUrls(day, hazard) {
       times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
       times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
     } else {
+      // hazard is torn/wind/hail
       times1.forEach(t => urls.push(`${base}day1otlk_${hazard}${t}.png`));
       times1.forEach(t => urls.push(`${base}day1otlk_${hazard}${t}.gif`));
     }
@@ -157,7 +156,6 @@ const daySections = [
   {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["prob", "torn", "wind", "hail"]}
 ];
 
-const hazardLabels = {cat: "Overall", prob: "Overall", torn: "Tornado", wind: "Wind", hail: "Hail"};
 const hazardCaptions = {
   cat: "SPC Categorical Outlook",
   prob: "SPC Probabilistic Outlook",
@@ -197,13 +195,10 @@ function updateDaySection(section, hazard) {
   captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
 }
 
-// Setup button actions and defaults on load
 daySections.forEach(section => {
-  // Set default (main) hazard for each day
   let defaultHazard = (section.day === 3) ? "prob" : "cat";
   updateDaySection(section, defaultHazard);
 
-  // Add click listeners to hazard buttons
   const btns = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
   btns.forEach(btn => {
     btn.addEventListener("click", function() {
