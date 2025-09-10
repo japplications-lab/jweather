@@ -22,6 +22,9 @@
     .outlook-btn {
       @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition;
     }
+    .outlook-btn[disabled] {
+      @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0;
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -260,26 +263,33 @@ const threatTypes = [
   { threat: "wind", label: "Wind", caption: "SPC Damaging Wind Probability" },
   { threat: "hail", label: "Hail", caption: "SPC Large Hail Probability" }
 ];
-
-// Functions to build SPC image URLs
+// Updated for current SPC image conventions
 function getSPCImageURL(day, threat) {
-  // Note: SPC image URLs are standardized as of 2024. If they change, adjust here.
-  // Example: https://www.spc.noaa.gov/products/outlook/day1otlk_cat.png
-  // For threats: torn = tornado, wind = wind, hail = hail
-  // For overall: outlook = cat
-  let base = "https://www.spc.noaa.gov/products/outlook/";
-  let dayStr = `day${day}`;
-  let code = threat === "outlook" ? "cat" : threat; // cat = categorical (overall)
-  return `${base}${dayStr}otlk_${code}.png`;
+  if (day === 1) {
+    if (threat === "outlook") return "https://www.spc.noaa.gov/products/outlook/day1otlk_cat.png";
+    if (threat === "torn")    return "https://www.spc.noaa.gov/products/outlook/day1otlk_torn.png";
+    if (threat === "wind")    return "https://www.spc.noaa.gov/products/outlook/day1otlk_wind.png";
+    if (threat === "hail")    return "https://www.spc.noaa.gov/products/outlook/day1otlk_hail.png";
+  }
+  if (day === 2) {
+    if (threat === "outlook") return "https://www.spc.noaa.gov/products/outlook/day2otlk_cat.png";
+    if (threat === "torn")    return "https://www.spc.noaa.gov/products/outlook/day2probotlk_torn.png";
+    if (threat === "wind")    return "https://www.spc.noaa.gov/products/outlook/day2probotlk_wind.png";
+    if (threat === "hail")    return "https://www.spc.noaa.gov/products/outlook/day2probotlk_hail.png";
+  }
+  if (day === 3) {
+    if (threat === "outlook") return "https://www.spc.noaa.gov/products/outlook/day3otlk_cat.png";
+    // For Day 3, all threats show the same probabilistic image
+    return "https://www.spc.noaa.gov/products/outlook/day3otlk_prob.png";
+  }
+  return "";
 }
 
-// UI setup
 const dayButtonsDiv = document.getElementById("day-buttons");
 const threatButtonsDiv = document.getElementById("threat-buttons");
 const outlookImage = document.getElementById("outlook-image");
 const outlookCaption = document.getElementById("outlook-caption");
 
-// State
 let selectedDay = 1;
 let selectedThreat = "outlook";
 function renderDayButtons() {
@@ -290,6 +300,7 @@ function renderDayButtons() {
     btn.textContent = d.label;
     btn.onclick = () => {
       selectedDay = d.day;
+      if (selectedDay === 3) selectedThreat = "outlook";
       renderDayButtons();
       renderThreatButtons();
       updateOutlookImage();
@@ -300,11 +311,12 @@ function renderDayButtons() {
 function renderThreatButtons() {
   threatButtonsDiv.innerHTML = "";
   threatTypes.forEach(t => {
-    // Day 3 only has overall, tornado, wind, hail. Days 1 and 2 have all.
-    // But in practice, all threats exist for days 1-3 in graphical.
+    let disabled = false;
+    if (selectedDay === 3 && t.threat !== "outlook") disabled = false; // all threats show same image
     const btn = document.createElement('button');
     btn.className = "outlook-btn" + (t.threat === selectedThreat ? " outlook-btn-active" : "");
     btn.textContent = t.label;
+    btn.disabled = (selectedDay === 3 && t.threat !== "outlook");
     btn.onclick = () => {
       selectedThreat = t.threat;
       renderThreatButtons();
@@ -317,7 +329,10 @@ function updateOutlookImage() {
   const url = getSPCImageURL(selectedDay, selectedThreat);
   outlookImage.src = url;
   const dayLabel = outlookDays.find(d => d.day === selectedDay)?.label || "";
-  const threatLabel = threatTypes.find(t => t.threat === selectedThreat)?.caption || "";
+  let threatLabel = threatTypes.find(t => t.threat === selectedThreat)?.caption || "";
+  if (selectedDay === 3 && selectedThreat !== "outlook") {
+    threatLabel = "SPC Day 3 Probabilistic Outlook";
+  }
   outlookCaption.textContent = `${dayLabel} • ${threatLabel}`;
 }
 renderDayButtons();
