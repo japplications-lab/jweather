@@ -9,6 +9,8 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <!-- PapaParse for CSV parsing -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!-- Fuse.js for fuzzy search -->
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 <style type="text/tailwindcss">
         :root {
             --primary-color: #f10914;
@@ -130,6 +132,8 @@
 <script>
 let locationsData = [];
 let suggestions = [];
+let fuse = null; // Fuse.js instance
+
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
 
@@ -143,6 +147,18 @@ window.addEventListener('DOMContentLoaded', () => {
                 skipEmptyLines: true,
                 complete: (results) => {
                     locationsData = results.data;
+                    // Initialize Fuse.js for fuzzy search after data loads
+                    fuse = new Fuse(locationsData, {
+                        keys: [
+                            { name: 'city', weight: 0.6 },
+                            { name: 'state_id', weight: 0.2 },
+                            { name: 'zip', weight: 0.2 },
+                        ],
+                        threshold: 0.35, // Lower is stricter (0.0 = exact, 1.0 = match all)
+                        minMatchCharLength: 2,
+                        ignoreLocation: true,
+                        includeScore: true,
+                    });
                 }
             });
         });
@@ -157,15 +173,14 @@ function debounce(fn, delay) {
     };
 }
 
-// Filter locations for autosuggest
+// Fuzzy filter locations for autosuggest
 function getSuggestions(query) {
-    query = query.trim().toLowerCase();
-    if (!query) return [];
-    return locationsData.filter(loc =>
-        (loc.city && loc.city.toLowerCase().startsWith(query)) ||
-        (loc.state_id && loc.state_id.toLowerCase().startsWith(query)) ||
-        (loc.zip && loc.zip.startsWith(query))
-    ).slice(0, 10); // top 10
+    query = query.trim();
+    if (!query || !fuse) return [];
+    // Use Fuse.js for typo-tolerant search
+    const results = fuse.search(query, { limit: 10 });
+    // Return ONLY the item, not the Fuse.js result object
+    return results.map(r => r.item);
 }
 
 // Render autosuggest dropdown
@@ -347,14 +362,17 @@ function updateAlerts(alertsData) {
         </div>
         `;
     } else {
-        const alert = alertsData.features[0].properties;
-        content.innerHTML = `
-        <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
-        <div>
-            <p class="font-semibold text-gray-800">${alert.event}</p>
-            <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
-        </div>
-        `;
+        alertsData.features.forEach(alertFeature => {
+            const alert = alertFeature.properties;
+            content.innerHTML += `
+            <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
+            <div class="mb-4">
+                <p class="font-semibold text-gray-800">${alert.event}</p>
+                <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
+                <p class="text-gray-400 text-xs">${alert.effective ? ('Effective: ' + alert.effective) : ''}</p>
+            </div>
+            `;
+        });
     }
 }
 // Windy radar embed update
