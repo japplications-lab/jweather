@@ -16,6 +16,12 @@
     .suggestions-scroll::-webkit-scrollbar { width: 6px; }
     .suggestions-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
     html { scroll-behavior: smooth; }
+    .outlook-btn-active {
+      @apply bg-[var(--primary-color)] text-white ring-2 ring-[var(--primary-color)];
+    }
+    .outlook-btn {
+      @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition;
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -69,25 +75,32 @@
     </div>
   </header>
   <main class="flex-1">
-    <!-- Severe Outlook page content goes here -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-white rounded-lg shadow-lg p-8">
-        <h2 class="text-2xl font-bold mb-4 text-gray-900">Severe Weather Outlook</h2>
-        <p class="text-gray-700">This is where your severe outlook content goes.</p>
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4 text-gray-900">Convective Outlooks (SPC)</h2>
+        <div class="mb-6 flex flex-wrap gap-4 items-center">
+          <div id="day-buttons" class="flex gap-2"></div>
+          <div id="threat-buttons" class="flex gap-2 ml-6"></div>
+        </div>
+        <div id="outlook-image-container" class="flex justify-center items-center min-h-[360px]">
+          <img id="outlook-image" src="" alt="SPC Outlook" class="rounded-lg shadow max-w-full h-[360px] object-contain bg-gray-100"/>
+        </div>
+        <div class="mt-4 text-gray-600 text-sm text-center">
+          <span id="outlook-caption"></span>
+          <span class="block mt-1"><a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: SPC</a></span>
+        </div>
       </div>
     </div>
   </main>
 </div>
 <script>
+// Autocomplete/search/location logic (same as index.html)
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
-
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
 const useLocationBtn = document.getElementById('use-location-btn');
-
-// Load locations data for suggestion search
 window.addEventListener('DOMContentLoaded', () => {
   fetch('locations.csv')
     .then(res => res.text())
@@ -114,7 +127,6 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
 });
-
 function debounce(fn, delay) {
   let timeout;
   return function(...args) {
@@ -235,6 +247,82 @@ useLocationBtn.addEventListener('click', function() {
     }
   );
 });
+
+// ---- SPC Convective Outlooks Logic ----
+const outlookDays = [
+  { day: 1, label: "Today" },
+  { day: 2, label: "Day 2" },
+  { day: 3, label: "Day 3" },
+];
+const threatTypes = [
+  { threat: "outlook", label: "Overall", caption: "SPC Categorical Convective Outlook" },
+  { threat: "torn", label: "Tornado", caption: "SPC Tornado Probability" },
+  { threat: "wind", label: "Wind", caption: "SPC Damaging Wind Probability" },
+  { threat: "hail", label: "Hail", caption: "SPC Large Hail Probability" }
+];
+
+// Functions to build SPC image URLs
+function getSPCImageURL(day, threat) {
+  // Note: SPC image URLs are standardized as of 2024. If they change, adjust here.
+  // Example: https://www.spc.noaa.gov/products/outlook/day1otlk_cat.png
+  // For threats: torn = tornado, wind = wind, hail = hail
+  // For overall: outlook = cat
+  let base = "https://www.spc.noaa.gov/products/outlook/";
+  let dayStr = `day${day}`;
+  let code = threat === "outlook" ? "cat" : threat; // cat = categorical (overall)
+  return `${base}${dayStr}otlk_${code}.png`;
+}
+
+// UI setup
+const dayButtonsDiv = document.getElementById("day-buttons");
+const threatButtonsDiv = document.getElementById("threat-buttons");
+const outlookImage = document.getElementById("outlook-image");
+const outlookCaption = document.getElementById("outlook-caption");
+
+// State
+let selectedDay = 1;
+let selectedThreat = "outlook";
+function renderDayButtons() {
+  dayButtonsDiv.innerHTML = "";
+  outlookDays.forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = "outlook-btn" + (d.day === selectedDay ? " outlook-btn-active" : "");
+    btn.textContent = d.label;
+    btn.onclick = () => {
+      selectedDay = d.day;
+      renderDayButtons();
+      renderThreatButtons();
+      updateOutlookImage();
+    };
+    dayButtonsDiv.appendChild(btn);
+  });
+}
+function renderThreatButtons() {
+  threatButtonsDiv.innerHTML = "";
+  threatTypes.forEach(t => {
+    // Day 3 only has overall, tornado, wind, hail. Days 1 and 2 have all.
+    // But in practice, all threats exist for days 1-3 in graphical.
+    const btn = document.createElement('button');
+    btn.className = "outlook-btn" + (t.threat === selectedThreat ? " outlook-btn-active" : "");
+    btn.textContent = t.label;
+    btn.onclick = () => {
+      selectedThreat = t.threat;
+      renderThreatButtons();
+      updateOutlookImage();
+    };
+    threatButtonsDiv.appendChild(btn);
+  });
+}
+function updateOutlookImage() {
+  const url = getSPCImageURL(selectedDay, selectedThreat);
+  outlookImage.src = url;
+  const dayLabel = outlookDays.find(d => d.day === selectedDay)?.label || "";
+  const threatLabel = threatTypes.find(t => t.threat === selectedThreat)?.caption || "";
+  outlookCaption.textContent = `${dayLabel} • ${threatLabel}`;
+}
+renderDayButtons();
+renderThreatButtons();
+updateOutlookImage();
 </script>
 </body>
 </html>
