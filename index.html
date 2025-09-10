@@ -7,9 +7,7 @@
 <title>The jWeather</title>
 <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- PapaParse for CSV parsing -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<!-- Fuse.js for fuzzy search -->
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 <style type="text/tailwindcss">
         :root {
@@ -28,7 +26,6 @@
             background: #e5e7eb;
             border-radius: 3px;
         }
-        /* Forecast Table Styling */
         #forecast-section table {
             border-collapse: separate;
             border-spacing: 0;
@@ -53,10 +50,15 @@
 </div>
 </div>
 <div class="hidden md:flex flex-1 items-center justify-center relative">
-<div class="relative w-full max-w-lg">
+<div class="relative w-full max-w-lg flex gap-2 items-center">
 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
 <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
 <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
+<!-- Use Location button -->
+<button id="use-location-btn" class="ml-2 flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
+  <span class="material-symbols-outlined align-middle">my_location</span>
+  <span>Use Location</span>
+</button>
 </div>
 </div>
 <div class="flex items-center gap-4">
@@ -136,6 +138,7 @@ let fuse = null; // Fuse.js instance
 
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
+const useLocationBtn = document.getElementById('use-location-btn');
 
 // Load and parse the CSV on page load
 window.addEventListener('DOMContentLoaded', () => {
@@ -189,9 +192,7 @@ function debounce(fn, delay) {
 function getSuggestions(query) {
     query = query.trim();
     if (!query || !fuse) return [];
-    // Use Fuse.js for typo-tolerant search
     const results = fuse.search(query, { limit: 10 });
-    // Return ONLY the item, not the Fuse.js result object
     return results.map(r => r.item);
 }
 
@@ -262,9 +263,7 @@ function selectSuggestion(loc) {
     searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
     suggestionsBox.classList.add('hidden');
     selectedSuggestion = -1;
-    // Fetch weather data for this location!
     fetchWeatherForLocation(loc);
-    // Update radar for this lat/lng
     updateRadar(loc.lat, loc.lng);
 }
 
@@ -273,11 +272,9 @@ async function fetchWeatherForLocation(loc) {
     const lat = loc.lat;
     const lng = loc.lng;
     try {
-        // 1. Get point metadata (office, gridX, gridY, etc)
         const pointsResp = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
         if (!pointsResp.ok) throw new Error('Unable to find NWS location for this point.');
         const pointsData = await pointsResp.json();
-        // 2. Get current conditions (observationStations then latest observation)
         const obsStationsUrl = pointsData.properties.observationStations;
         let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '';
         if (obsStationsUrl) {
@@ -302,19 +299,16 @@ async function fetchWeatherForLocation(loc) {
                 icon = props.icon || '';
             }
         }
-        // 3. Get forecast (7 day)
         const forecastUrl = pointsData.properties.forecast;
         let forecastPeriods = [];
         if (forecastUrl) {
             const forecastResp = await fetch(forecastUrl);
             const forecastData = await forecastResp.json();
-            forecastPeriods = forecastData.properties.periods; // Use all available periods for detailed forecast
+            forecastPeriods = forecastData.properties.periods;
         }
-        // 4. Get active alerts
         const alertsResp = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`);
         const alertsData = await alertsResp.json();
 
-        // Update UI
         updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, icon);
         updateForecast(forecastPeriods);
         updateAlerts(alertsData);
@@ -330,7 +324,7 @@ function degToCompass(num) {
     return arr[(val % 16)];
 }
 function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconUrl) {
-    document.getElementById('current-location-label').textContent = `${loc.city}, ${loc.state_id} - Current Conditions`;
+    document.getElementById('current-location-label').textContent = `${loc.city || ''}${loc.state_id ? ', ' + loc.state_id : ''} - Current Conditions`;
     document.getElementById('current-temp').textContent = temp;
     document.getElementById('current-desc').textContent = desc;
     document.getElementById('current-feels-like').textContent = feelsLike;
@@ -396,5 +390,50 @@ function updateRadar(lat, lng) {
         radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
     }
 }
+
+// Use Location feature
+useLocationBtn.addEventListener('click', function() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+    }
+    useLocationBtn.disabled = true;
+    useLocationBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Locating...';
+    navigator.geolocation.getCurrentPosition(
+        async position => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            // Try to find nearest location in CSV, else just use lat/lng for weather
+            let nearestLoc = null;
+            let minDist = Infinity;
+            if (locationsData && locationsData.length > 0) {
+                locationsData.forEach(loc => {
+                    if (!loc.lat || !loc.lng) return;
+                    const dlat = Number(loc.lat) - lat;
+                    const dlng = Number(loc.lng) - lng;
+                    const dist = Math.sqrt(dlat * dlat + dlng * dlng);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestLoc = loc;
+                    }
+                });
+            }
+            let locObj = nearestLoc && minDist < 0.2 // ~20km
+                ? nearestLoc
+                : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
+
+            searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
+            fetchWeatherForLocation(locObj);
+            updateRadar(locObj.lat, locObj.lng);
+            useLocationBtn.disabled = false;
+            useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+        },
+        error => {
+            alert('Unable to retrieve your location.');
+            useLocationBtn.disabled = false;
+            useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+        }
+    );
+});
 </script>
 </body></html>
