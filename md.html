@@ -64,13 +64,10 @@
           <div id="day3-section" class="flex flex-col items-center">
             <h3 class="text-xl font-bold mb-2">Day 3</h3>
             <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="prob">Overall</button>
-              <button class="outlook-btn" data-day="3" data-hazard="torn">Tornado</button>
-              <button class="outlook-btn" data-day="3" data-hazard="wind">Wind</button>
-              <button class="outlook-btn" data-day="3" data-hazard="hail">Hail</button>
+              <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="prob">Probabilistic</button>
             </div>
             <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+              <img id="img-day3" src="" alt="Day 3 Probabilistic Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
             </div>
             <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
           </div>
@@ -115,19 +112,12 @@ function getSPCImageUrls(day, hazard) {
     }
   }
   if (day === 3) {
-    // Day 3 only has probabilistic (prob), not separate hazards, but we allow toggling for UI consistency
-    if (hazard === "prob" || hazard === "cat") {
-      times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
-      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
-      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
-    } else {
-      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
-    }
+    // Day 3 only has probabilistic (prob), not separate hazards
+    times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+    times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+    // For completeness, you could also try:
+    times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
+    times3.forEach(t => urls.push(`${base}day3otlk${t}.png`));
   }
   return urls;
 }
@@ -151,7 +141,7 @@ function trySPCImage(day, hazard, callback) {
 const daySections = [
   {day: 1, imgId: "img-day1", captionId: "caption-day1", sectionId: "day1-section", hazards: ["cat", "torn", "wind", "hail"]},
   {day: 2, imgId: "img-day2", captionId: "caption-day2", sectionId: "day2-section", hazards: ["cat", "torn", "wind", "hail"]},
-  {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["prob", "torn", "wind", "hail"]}
+  {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["prob"]}
 ];
 
 const hazardCaptions = {
@@ -193,8 +183,9 @@ function updateDaySection(section, hazard) {
   captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
 }
 
+// Setup per day
 daySections.forEach(section => {
-  let defaultHazard = (section.day === 3) ? "prob" : "cat";
+  let defaultHazard = section.hazards[0];
   updateDaySection(section, defaultHazard);
 
   const btns = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
