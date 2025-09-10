@@ -7,24 +7,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <style type="text/tailwindcss">
     :root { --primary-color: #f10914; }
     body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
-    .suggestion-active { background-color: #f3f4f6; }
-    .suggestions-scroll::-webkit-scrollbar { width: 6px; }
-    .suggestions-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
-    html { scroll-behavior: smooth; }
-    .outlook-btn-active {
-      @apply bg-[var(--primary-color)] text-white ring-2 ring-[var(--primary-color)];
-    }
-    .outlook-btn {
-      @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition;
-    }
-    .outlook-btn[disabled] {
-      @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0;
-    }
+    .outlook-btn-active { @apply bg-[var(--primary-color)] text-white ring-2 ring-[var(--primary-color)]; }
+    .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
+    .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -37,43 +25,8 @@
           <h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
         </div>
       </div>
-      <div class="hidden md:flex flex-1 items-center justify-center relative">
-        <div class="flex w-full max-w-lg gap-2 items-center">
-          <div class="relative flex-1">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
-            <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
-            <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
-          </div>
-          <button id="use-location-btn" class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
-            <span class="material-symbols-outlined align-middle">my_location</span>
-            <span>Use Location</span>
-          </button>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
-          <a class="hover:text-gray-200 transition-colors" href="index.html">Home</a>
-          <div class="relative group">
-            <button class="flex items-center gap-1 hover:text-gray-200 transition-colors focus:outline-none">
-              Severe Weather
-              <span class="material-symbols-outlined text-base">expand_more</span>
-            </button>
-            <div class="absolute left-0 top-full w-56 bg-white rounded-lg shadow-lg py-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto z-50 transition">
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="md.html">Severe Outlook</a>
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="reports.html">Storm Reports</a>
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="parameters.html">Severe Parameters</a>
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="101.html">Severe Weather 101</a>
-            </div>
-          </div>
-          <a class="hover:text-gray-200 transition-colors" href="contact.html">Contact</a>
-          <a class="hover:text-gray-200 transition-colors" href="about.html">About jWeather</a>
-        </nav>
-        <button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
-          <span class="material-symbols-outlined">settings</span>
-        </button>
-        <button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
+      <div class="flex-1 text-right hidden md:block">
+        <a href="index.html" class="text-white hover:text-gray-200 font-bold text-lg">Back to Main</a>
       </div>
     </div>
   </header>
@@ -97,161 +50,6 @@
   </main>
 </div>
 <script>
-// --- Search/autocomplete/location logic (same as index.html) ---
-let locationsData = [];
-let suggestions = [];
-let fuse = null;
-const searchBar = document.getElementById('search-bar');
-const suggestionsBox = document.getElementById('suggestions');
-const useLocationBtn = document.getElementById('use-location-btn');
-window.addEventListener('DOMContentLoaded', () => {
-  fetch('locations.csv')
-    .then(res => res.text())
-    .then(csvText => {
-      if (window.Papa) {
-        Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            locationsData = results.data;
-            fuse = new Fuse(locationsData, {
-              keys: [
-                { name: 'city', weight: 0.6 },
-                { name: 'state_id', weight: 0.2 },
-                { name: 'zip', weight: 0.2 },
-              ],
-              threshold: 0.35,
-              minMatchCharLength: 2,
-              ignoreLocation: true,
-              includeScore: true,
-            });
-          }
-        });
-      }
-    });
-});
-function debounce(fn, delay) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fn.apply(this, args), delay);
-  };
-}
-function getSuggestions(query) {
-  query = query.trim();
-  if (!query || !fuse) return [];
-  const results = fuse.search(query, { limit: 10 });
-  return results.map(r => r.item);
-}
-function renderSuggestions(suggestions) {
-  suggestionsBox.innerHTML = '';
-  if (!suggestions.length) {
-    suggestionsBox.classList.add('hidden');
-    return;
-  }
-  suggestions.forEach((loc, idx) => {
-    const li = document.createElement('li');
-    li.className = "px-4 py-2 cursor-pointer hover:bg-gray-100";
-    li.tabIndex = 0;
-    li.dataset.idx = idx;
-    li.innerHTML = `<span class="font-semibold">${loc.city}, ${loc.state_id}</span> <span class="text-gray-400 text-sm">(${loc.zip})</span>`;
-    suggestionsBox.appendChild(li);
-  });
-  suggestionsBox.classList.remove('hidden');
-}
-searchBar.addEventListener('input', debounce(function(e) {
-  const val = e.target.value;
-  suggestions = getSuggestions(val);
-  renderSuggestions(suggestions);
-}, 200));
-let selectedSuggestion = -1;
-searchBar.addEventListener('keydown', function(e) {
-  if (suggestions.length === 0) return;
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    selectedSuggestion = (selectedSuggestion + 1) % suggestions.length;
-    highlightSuggestion();
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    selectedSuggestion = (selectedSuggestion - 1 + suggestions.length) % suggestions.length;
-    highlightSuggestion();
-  } else if (e.key === 'Enter') {
-    if (selectedSuggestion >= 0 && selectedSuggestion < suggestions.length) {
-      selectSuggestion(suggestions[selectedSuggestion]);
-    } else {
-      handleSearchBarRedirect();
-    }
-  }
-});
-function highlightSuggestion() {
-  Array.from(suggestionsBox.children).forEach((li, idx) => {
-    li.classList.toggle('suggestion-active', idx === selectedSuggestion);
-  });
-}
-suggestionsBox.addEventListener('mousedown', function(e) {
-  const li = e.target.closest('li');
-  if (!li) return;
-  const idx = li.dataset.idx;
-  if (suggestions[idx]) {
-    selectSuggestion(suggestions[idx]);
-  }
-});
-document.addEventListener('click', function(e) {
-  if (!suggestionsBox.contains(e.target) && e.target !== searchBar) {
-    suggestionsBox.classList.add('hidden');
-    selectedSuggestion = -1;
-  }
-});
-function selectSuggestion(loc) {
-  localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-  window.location.href = 'index.html';
-}
-function handleSearchBarRedirect() {
-  const val = searchBar.value.trim();
-  if (val.length === 0) return;
-  localStorage.setItem('jweather_search', val);
-  window.location.href = 'index.html';
-}
-useLocationBtn.addEventListener('click', function() {
-  if (!navigator.geolocation) {
-    alert('Geolocation is not supported by your browser.');
-    return;
-  }
-  useLocationBtn.disabled = true;
-  useLocationBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Locating...';
-  navigator.geolocation.getCurrentPosition(
-    async position => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      let nearestLoc = null;
-      let minDist = Infinity;
-      if (locationsData && locationsData.length > 0) {
-        locationsData.forEach(loc => {
-          if (!loc.lat || !loc.lng) return;
-          const dlat = Number(loc.lat) - lat;
-          const dlng = Number(loc.lng) - lng;
-          const dist = Math.sqrt(dlat * dlat + dlng * dlng);
-          if (dist < minDist) {
-            minDist = dist;
-            nearestLoc = loc;
-          }
-        });
-      }
-      let locObj = nearestLoc && minDist < 0.2
-        ? nearestLoc
-        : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
-      localStorage.setItem('jweather_last_location', JSON.stringify(locObj));
-      window.location.href = 'index.html';
-    },
-    error => {
-      alert('Unable to retrieve your location.');
-      useLocationBtn.disabled = false;
-      useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
-    }
-  );
-});
-
-/* ---- SPC Convective Outlooks Logic with robust image loader ---- */
 const outlookDays = [
   { day: 1, label: "Today" },
   { day: 2, label: "Day 2" },
@@ -264,35 +62,60 @@ const threatTypes = [
   { threat: "hail", label: "Hail", caption: "SPC Large Hail Probability" }
 ];
 
+// Returns all possible image URLs to try for a given day/threat, ordered by most likely to exist.
 function getSPCImageUrls(day, threat) {
   const base = "https://www.spc.noaa.gov/products/outlook/";
   let names = [];
+  let times = [];
+  let urls = [];
+  // .gif and .png for all
   if (day === 1) {
-    if (threat === "outlook") names = ["day1otlk_catl"];
-    if (threat === "torn")    names = ["day1otlk_torn"];
-    if (threat === "wind")    names = ["day1otlk_wind"];
-    if (threat === "hail")    names = ["day1otlk_hail"];
-    return names.flatMap(n =>
-      ["_1630.png", "_1300.png", "_0600.png", "_0100.png"].map(t => base + n + t)
-    );
+    times = ["_1630", "_1300", "_0600", "_0100"];
+    if (threat === "outlook") {
+      // Try the simplest (legacy) file first!
+      times.forEach(t => urls.push(`${base}day1otlk${t}.gif`));
+      times.forEach(t => urls.push(`${base}day1otlk_cat${t}.gif`));
+      times.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
+      times.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
+      times.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
+    } else {
+      // tornado, wind, hail
+      let key = {torn:"torn", wind:"wind", hail:"hail"}[threat];
+      times.forEach(t => urls.push(`${base}day1otlk_${key}${t}.png`));
+      times.forEach(t => urls.push(`${base}day1otlk_${key}${t}.gif`));
+    }
   }
   if (day === 2) {
-    if (threat === "outlook") names = ["day2otlk_catl"];
-    if (threat === "torn")    names = ["day2probotlk_torn"];
-    if (threat === "wind")    names = ["day2probotlk_wind"];
-    if (threat === "hail")    names = ["day2probotlk_hail"];
-    return names.flatMap(n =>
-      ["_1730.png", "_1300.png", "_0600.png", "_0100.png"].map(t => base + n + t)
-    );
+    times = ["_1730", "_1300", "_0600", "_0100"];
+    if (threat === "outlook") {
+      times.forEach(t => urls.push(`${base}day2otlk${t}.gif`));
+      times.forEach(t => urls.push(`${base}day2otlk_cat${t}.gif`));
+      times.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
+      times.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
+      times.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
+    } else {
+      let key = {torn:"torn", wind:"wind", hail:"hail"}[threat];
+      times.forEach(t => urls.push(`${base}day2probotlk_${key}${t}.png`));
+      times.forEach(t => urls.push(`${base}day2probotlk_${key}${t}.gif`));
+    }
   }
   if (day === 3) {
-    if (threat === "outlook") names = ["day3otlk_catl"];
-    else                      names = ["day3otlk_prob"];
-    return names.flatMap(n =>
-      ["_0730.png", "_0100.png"].map(t => base + n + t)
-    );
+    times = ["_0730", "_0100"];
+    if (threat === "outlook") {
+      times.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
+      times.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
+      times.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
+      times.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
+      times.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
+      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+    } else {
+      // No separate tornado/wind/hail for Day 3, use prob
+      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+    }
   }
-  return [];
+  return urls;
 }
 
 function trySPCImage(day, threat, callback) {
@@ -311,7 +134,6 @@ function trySPCImage(day, threat, callback) {
   tryNext();
 }
 
-// UI setup
 const dayButtonsDiv = document.getElementById("day-buttons");
 const threatButtonsDiv = document.getElementById("threat-buttons");
 const outlookImage = document.getElementById("outlook-image");
@@ -341,7 +163,7 @@ function renderThreatButtons() {
     const btn = document.createElement('button');
     btn.className = "outlook-btn" + (t.threat === selectedThreat ? " outlook-btn-active" : "");
     btn.textContent = t.label;
-    btn.disabled = false; // all options enabled, Day 3 always shows the only prob image
+    btn.disabled = false; // all options enabled, but Day 3 only has prob
     btn.onclick = () => {
       selectedThreat = t.threat;
       renderThreatButtons();
