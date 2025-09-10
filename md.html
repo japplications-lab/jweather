@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>The jWeather - Severe Outlook</title>
+  <title>The jWeather - SPC Convective Outlooks</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -33,93 +33,110 @@
   <main class="flex-1">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-2xl font-bold mb-4 text-gray-900">Convective Outlooks (SPC)</h2>
-        <div class="mb-6 flex flex-wrap gap-4 items-center">
-          <div id="day-buttons" class="flex gap-2"></div>
-          <div id="threat-buttons" class="flex gap-2 ml-6"></div>
+        <h2 class="text-2xl font-bold mb-8 text-gray-900">SPC Convective Outlooks</h2>
+        <!-- Day sections -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div id="day1-section" class="flex flex-col items-center">
+            <h3 class="text-xl font-bold mb-2">Day 1 (Today)</h3>
+            <div class="flex gap-2 mb-2">
+              <button class="outlook-btn outlook-btn-active" data-day="1" data-hazard="cat">Overall</button>
+              <button class="outlook-btn" data-day="1" data-hazard="torn">Tornado</button>
+              <button class="outlook-btn" data-day="1" data-hazard="wind">Wind</button>
+              <button class="outlook-btn" data-day="1" data-hazard="hail">Hail</button>
+            </div>
+            <div class="w-full flex justify-center items-center min-h-[240px]">
+              <img id="img-day1" src="" alt="Day 1 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+            </div>
+            <span id="caption-day1" class="mt-2 text-gray-600 text-sm block text-center"></span>
+          </div>
+          <div id="day2-section" class="flex flex-col items-center">
+            <h3 class="text-xl font-bold mb-2">Day 2 (Tomorrow)</h3>
+            <div class="flex gap-2 mb-2">
+              <button class="outlook-btn outlook-btn-active" data-day="2" data-hazard="cat">Overall</button>
+              <button class="outlook-btn" data-day="2" data-hazard="torn">Tornado</button>
+              <button class="outlook-btn" data-day="2" data-hazard="wind">Wind</button>
+              <button class="outlook-btn" data-day="2" data-hazard="hail">Hail</button>
+            </div>
+            <div class="w-full flex justify-center items-center min-h-[240px]">
+              <img id="img-day2" src="" alt="Day 2 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+            </div>
+            <span id="caption-day2" class="mt-2 text-gray-600 text-sm block text-center"></span>
+          </div>
+          <div id="day3-section" class="flex flex-col items-center">
+            <h3 class="text-xl font-bold mb-2">Day 3</h3>
+            <div class="flex gap-2 mb-2">
+              <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="prob">Overall</button>
+              <button class="outlook-btn" data-day="3" data-hazard="torn">Tornado</button>
+              <button class="outlook-btn" data-day="3" data-hazard="wind">Wind</button>
+              <button class="outlook-btn" data-day="3" data-hazard="hail">Hail</button>
+            </div>
+            <div class="w-full flex justify-center items-center min-h-[240px]">
+              <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+            </div>
+            <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
+          </div>
         </div>
-        <div id="outlook-image-container" class="flex justify-center items-center min-h-[360px]">
-          <img id="outlook-image" src="" alt="SPC Outlook" class="rounded-lg shadow max-w-full h-[360px] object-contain bg-gray-100"/>
-        </div>
-        <div class="mt-4 text-gray-600 text-sm text-center">
-          <span id="outlook-caption"></span>
-          <span class="block mt-1"><a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: SPC</a></span>
+        <div class="mt-6 text-center text-gray-500 text-xs">
+          <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: NOAA/NWS Storm Prediction Center</a>
         </div>
       </div>
     </div>
   </main>
 </div>
 <script>
-const outlookDays = [
-  { day: 1, label: "Today" },
-  { day: 2, label: "Day 2" },
-  { day: 3, label: "Day 3" },
-];
-const threatTypes = [
-  { threat: "outlook", label: "Overall", caption: "SPC Categorical Convective Outlook" },
-  { threat: "torn", label: "Tornado", caption: "SPC Tornado Probability" },
-  { threat: "wind", label: "Wind", caption: "SPC Damaging Wind Probability" },
-  { threat: "hail", label: "Hail", caption: "SPC Large Hail Probability" }
-];
-
-// Returns all possible image URLs to try for a given day/threat, ordered by most likely to exist.
-function getSPCImageUrls(day, threat) {
+// Filename/extension/time logic for each day/hazard
+function getSPCImageUrls(day, hazard) {
   const base = "https://www.spc.noaa.gov/products/outlook/";
-  let names = [];
-  let times = [];
+  let times1 = ["_1630", "_1300", "_0600", "_0100"];
+  let times2 = ["_1730", "_1300", "_0600", "_0100"];
+  let times3 = ["_0730", "_0100"];
   let urls = [];
-  // .gif and .png for all
+
   if (day === 1) {
-    times = ["_1630", "_1300", "_0600", "_0100"];
-    if (threat === "outlook") {
-      // Try the simplest (legacy) file first!
-      times.forEach(t => urls.push(`${base}day1otlk${t}.gif`));
-      times.forEach(t => urls.push(`${base}day1otlk_cat${t}.gif`));
-      times.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
-      times.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
-      times.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
+    if (hazard === "cat") {
+      times1.forEach(t => urls.push(`${base}day1otlk${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
+      times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
     } else {
-      // tornado, wind, hail
-      let key = {torn:"torn", wind:"wind", hail:"hail"}[threat];
-      times.forEach(t => urls.push(`${base}day1otlk_${key}${t}.png`));
-      times.forEach(t => urls.push(`${base}day1otlk_${key}${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_${hazard}${t}.png`));
+      times1.forEach(t => urls.push(`${base}day1otlk_${hazard}${t}.gif`));
     }
   }
   if (day === 2) {
-    times = ["_1730", "_1300", "_0600", "_0100"];
-    if (threat === "outlook") {
-      times.forEach(t => urls.push(`${base}day2otlk${t}.gif`));
-      times.forEach(t => urls.push(`${base}day2otlk_cat${t}.gif`));
-      times.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
-      times.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
-      times.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
+    if (hazard === "cat") {
+      times2.forEach(t => urls.push(`${base}day2otlk${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
+      times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
     } else {
-      let key = {torn:"torn", wind:"wind", hail:"hail"}[threat];
-      times.forEach(t => urls.push(`${base}day2probotlk_${key}${t}.png`));
-      times.forEach(t => urls.push(`${base}day2probotlk_${key}${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2probotlk_${hazard}${t}.png`));
+      times2.forEach(t => urls.push(`${base}day2probotlk_${hazard}${t}.gif`));
     }
   }
   if (day === 3) {
-    times = ["_0730", "_0100"];
-    if (threat === "outlook") {
-      times.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
-      times.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
-      times.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
-      times.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
-      times.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
-      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
-      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+    // Day 3 only has probabilistic (prob), not separate hazards, but we allow toggling for UI consistency
+    if (hazard === "prob" || hazard === "cat") {
+      times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
+      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
+      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
     } else {
-      // No separate tornado/wind/hail for Day 3, use prob
-      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
-      times.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+      // For torn/wind/hail, fallback to prob images
+      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
     }
   }
   return urls;
 }
 
-function trySPCImage(day, threat, callback) {
-  const urls = getSPCImageUrls(day, threat);
+function trySPCImage(day, hazard, callback) {
+  const urls = getSPCImageUrls(day, hazard);
   let idx = 0;
   function tryNext() {
     if (idx >= urls.length) {
@@ -134,66 +151,67 @@ function trySPCImage(day, threat, callback) {
   tryNext();
 }
 
-const dayButtonsDiv = document.getElementById("day-buttons");
-const threatButtonsDiv = document.getElementById("threat-buttons");
-const outlookImage = document.getElementById("outlook-image");
-const outlookCaption = document.getElementById("outlook-caption");
+const daySections = [
+  {day: 1, imgId: "img-day1", captionId: "caption-day1", sectionId: "day1-section", hazards: ["cat", "torn", "wind", "hail"]},
+  {day: 2, imgId: "img-day2", captionId: "caption-day2", sectionId: "day2-section", hazards: ["cat", "torn", "wind", "hail"]},
+  {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["prob", "torn", "wind", "hail"]}
+];
 
-let selectedDay = 1;
-let selectedThreat = "outlook";
-function renderDayButtons() {
-  dayButtonsDiv.innerHTML = "";
-  outlookDays.forEach(d => {
-    const btn = document.createElement('button');
-    btn.className = "outlook-btn" + (d.day === selectedDay ? " outlook-btn-active" : "");
-    btn.textContent = d.label;
-    btn.onclick = () => {
-      selectedDay = d.day;
-      if (selectedDay === 3) selectedThreat = "outlook";
-      renderDayButtons();
-      renderThreatButtons();
-      updateOutlookImage();
-    };
-    dayButtonsDiv.appendChild(btn);
-  });
-}
-function renderThreatButtons() {
-  threatButtonsDiv.innerHTML = "";
-  threatTypes.forEach(t => {
-    const btn = document.createElement('button');
-    btn.className = "outlook-btn" + (t.threat === selectedThreat ? " outlook-btn-active" : "");
-    btn.textContent = t.label;
-    btn.disabled = false; // all options enabled, but Day 3 only has prob
-    btn.onclick = () => {
-      selectedThreat = t.threat;
-      renderThreatButtons();
-      updateOutlookImage();
-    };
-    threatButtonsDiv.appendChild(btn);
-  });
-}
-function updateOutlookImage() {
-  outlookImage.src = "";
-  outlookImage.alt = "Loading outlook image...";
-  trySPCImage(selectedDay, selectedThreat, function(imgUrl) {
-    if (imgUrl) {
-      outlookImage.src = imgUrl;
-      outlookImage.alt = "SPC Outlook";
+const hazardLabels = {cat: "Overall", prob: "Overall", torn: "Tornado", wind: "Wind", hail: "Hail"};
+const hazardCaptions = {
+  cat: "SPC Categorical Outlook",
+  prob: "SPC Probabilistic Outlook",
+  torn: "SPC Tornado Probability",
+  wind: "SPC Damaging Wind Probability",
+  hail: "SPC Large Hail Probability"
+};
+
+function setActiveButton(section, activeHazard) {
+  const buttons = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
+  buttons.forEach(btn => {
+    if (btn.getAttribute("data-hazard") === activeHazard) {
+      btn.classList.add("outlook-btn-active");
     } else {
-      outlookImage.src = "";
-      outlookImage.alt = "No outlook image available";
+      btn.classList.remove("outlook-btn-active");
     }
   });
-  const dayLabel = outlookDays.find(d => d.day === selectedDay)?.label || "";
-  let threatLabel = threatTypes.find(t => t.threat === selectedThreat)?.caption || "";
-  if (selectedDay === 3 && selectedThreat !== "outlook") {
-    threatLabel = "SPC Day 3 Probabilistic Outlook";
-  }
-  outlookCaption.textContent = `${dayLabel} • ${threatLabel}`;
 }
-renderDayButtons();
-renderThreatButtons();
-updateOutlookImage();
+
+function updateDaySection(section, hazard) {
+  setActiveButton(section, hazard);
+  const imgEl = document.getElementById(section.imgId);
+  const captionEl = document.getElementById(section.captionId);
+  imgEl.src = "";
+  imgEl.alt = "Loading outlook image...";
+  trySPCImage(section.day, hazard, function(imgUrl) {
+    if (imgUrl) {
+      imgEl.src = imgUrl;
+      imgEl.alt = "SPC Outlook";
+    } else {
+      imgEl.src = "";
+      imgEl.alt = "No outlook image available";
+    }
+  });
+  let dayLabel = section.day === 1 ? "Today" : (section.day === 2 ? "Tomorrow" : "Day 3");
+  let hazardLabel = hazardCaptions[hazard] || "SPC Outlook";
+  captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
+}
+
+// Setup button actions and defaults on load
+daySections.forEach(section => {
+  // Set default (main) hazard for each day
+  let defaultHazard = (section.day === 3) ? "prob" : "cat";
+  updateDaySection(section, defaultHazard);
+
+  // Add click listeners to hazard buttons
+  const btns = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
+  btns.forEach(btn => {
+    btn.addEventListener("click", function() {
+      const hazard = btn.getAttribute("data-hazard");
+      updateDaySection(section, hazard);
+    });
+  });
+});
 </script>
 </body>
 </html>
