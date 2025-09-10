@@ -19,7 +19,6 @@
         .suggestion-active {
             background-color: #f3f4f6;
         }
-        /* Custom scrollbar for suggestions */
         .suggestions-scroll::-webkit-scrollbar {
             width: 6px;
         }
@@ -43,7 +42,6 @@
 <div class="relative w-full max-w-lg">
 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
 <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
-<!-- Autosuggest dropdown -->
 <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
 </div>
 </div>
@@ -96,7 +94,12 @@
 </div>
 <div class="bg-white rounded-lg shadow-lg p-6">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
-<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg object-cover" id="radar-img" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8gHOZEutcV-_tfLApcVXDP0rknrecRspofXDyJimKllBO7ZqjLoIiYZB_QXEEEXaIZ1qF6IFpNWgLLgNdtqO1NpmjAm2F-dhkCIXBYvMt9LT5jHYFu1f7NDK8OJ-PKn4Lq1N8f1QXWHFzYgX5nqBTmBedVo5gFnoyMVWxKNFYKwNMkDZRKB6giYChNomblInwzSQysBWPYpXLGqxO_dOv_ZKIs4pujc6nosh_02KK33Z1qNXKrt3UpnHWcA3QfDQgfRxOiZyl2s0");'></div>
+<div id="radar-embed" class="w-full flex justify-center items-center">
+    <!-- Radar iframe injected here -->
+    <iframe id="radar-iframe" width="650" height="450"
+        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=40.7128&lon=-74.0060"
+        frameborder="0"></iframe>
+</div>
 </div>
 </div>
 <div class="bg-white rounded-lg shadow-lg p-6" id="forecast-section">
@@ -219,6 +222,8 @@ function selectSuggestion(loc) {
     selectedSuggestion = -1;
     // Fetch weather data for this location!
     fetchWeatherForLocation(loc);
+    // Update radar for this lat/lng
+    updateRadar(loc.lat, loc.lng);
 }
 
 // NWS API helpers
@@ -292,7 +297,6 @@ function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, ico
     document.getElementById('current-icon').src = getWeatherIcon(iconUrl, desc);
 }
 function getWeatherIcon(iconUrl, desc) {
-    // Try to use NWS icon, fallback to sunny if not
     if (iconUrl) return iconUrl.split('?')[0];
     if (desc && desc.toLowerCase().includes('rain')) return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
     if (desc && desc.toLowerCase().includes('cloud')) return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
@@ -343,7 +347,6 @@ function updateAlerts(alertsData) {
         </div>
         `;
     } else {
-        // Just show the first alert for brevity
         const alert = alertsData.features[0].properties;
         content.innerHTML = `
         <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
@@ -352,6 +355,16 @@ function updateAlerts(alertsData) {
             <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
         </div>
         `;
+    }
+}
+// Windy radar embed update
+function updateRadar(lat, lng) {
+    // Windy expects decimal numbers
+    lat = Number(lat);
+    lng = Number(lng);
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
     }
 }
 </script>
