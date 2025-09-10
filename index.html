@@ -7,8 +7,7 @@
 <title>The jWeather</title>
 <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- PapaParse for CSV parsing -->
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!-- CSV parsing and fuzzy search functionality will be handled with native JavaScript -->
 <style type="text/tailwindcss">
         :root {
             --primary-color: #f10914;
@@ -133,18 +132,96 @@ let suggestions = [];
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
 
+// Levenshtein distance for fuzzy matching
+function levenshteinDistance(str1, str2) {
+    const matrix = [];
+    const len1 = str1.length;
+    const len2 = str2.length;
+
+    if (len1 === 0) return len2;
+    if (len2 === 0) return len1;
+
+    // Initialize matrix
+    for (let i = 0; i <= len2; i++) {
+        matrix[i] = [i];
+    }
+    for (let j = 0; j <= len1; j++) {
+        matrix[0][j] = j;
+    }
+
+    // Fill in the matrix
+    for (let i = 1; i <= len2; i++) {
+        for (let j = 1; j <= len1; j++) {
+            if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, // substitution
+                    matrix[i][j - 1] + 1,     // insertion
+                    matrix[i - 1][j] + 1      // deletion
+                );
+            }
+        }
+    }
+
+    return matrix[len2][len1];
+}
+
+// Calculate fuzzy match score (lower is better)
+function getFuzzyScore(query, target) {
+    const queryLower = query.toLowerCase();
+    const targetLower = target.toLowerCase();
+    
+    // Exact match gets highest priority (score 0)
+    if (targetLower === queryLower) return 0;
+    
+    // StartsWith gets second priority (score 0.1)
+    if (targetLower.startsWith(queryLower)) return 0.1;
+    
+    // Contains gets third priority (score 0.5)
+    if (targetLower.includes(queryLower)) return 0.5;
+    
+    // Calculate Levenshtein distance for fuzzy matching
+    const distance = levenshteinDistance(queryLower, targetLower);
+    const maxLength = Math.max(queryLower.length, targetLower.length);
+    
+    // Normalize distance to a score between 0.6 and 2.0
+    // Only accept if distance is reasonable (less than 50% of max length)
+    if (distance > maxLength * 0.5) return 999; // Too different
+    
+    return 0.6 + (distance / maxLength) * 1.4;
+}
+
+// Parse CSV manually
+function parseCSV(csvText) {
+    const lines = csvText.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/\r/g, ''));
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/\r/g, ''));
+        if (values.length === headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index];
+            });
+            data.push(row);
+        }
+    }
+    
+    return data;
+}
+
 // Load and parse the CSV on page load
 window.addEventListener('DOMContentLoaded', () => {
     fetch('locations.csv')
         .then(res => res.text())
         .then(csvText => {
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    locationsData = results.data;
-                }
-            });
+            locationsData = parseCSV(csvText);
+            console.log(`Loaded ${locationsData.length} locations`);
+        })
+        .catch(err => {
+            console.error('Failed to load locations:', err);
         });
 });
 
@@ -157,15 +234,60 @@ function debounce(fn, delay) {
     };
 }
 
-// Filter locations for autosuggest
+// Filter locations for autosuggest with fuzzy matching
 function getSuggestions(query) {
-    query = query.trim().toLowerCase();
-    if (!query) return [];
-    return locationsData.filter(loc =>
-        (loc.city && loc.city.toLowerCase().startsWith(query)) ||
-        (loc.state_id && loc.state_id.toLowerCase().startsWith(query)) ||
-        (loc.zip && loc.zip.startsWith(query))
-    ).slice(0, 10); // top 10
+    query = query.trim();
+    if (!query || !locationsData.length) return [];
+    
+    const matches = [];
+    
+    locationsData.forEach(loc => {
+        let bestScore = 999;
+        let matchedField = '';
+        
+        // Check city name
+        if (loc.city) {
+            const cityScore = getFuzzyScore(query, loc.city);
+            if (cityScore < bestScore) {
+                bestScore = cityScore;
+                matchedField = 'city';
+            }
+        }
+        
+        // Check state ID
+        if (loc.state_id) {
+            const stateScore = getFuzzyScore(query, loc.state_id);
+            if (stateScore < bestScore) {
+                bestScore = stateScore;
+                matchedField = 'state';
+            }
+        }
+        
+        // Check zip code (only for exact matches and startsWith)
+        if (loc.zip && (loc.zip === query || loc.zip.startsWith(query))) {
+            if (loc.zip === query) {
+                bestScore = 0;
+            } else {
+                bestScore = 0.1;
+            }
+            matchedField = 'zip';
+        }
+        
+        // Only include if score is reasonable (less than 2.0)
+        if (bestScore < 2.0) {
+            matches.push({
+                location: loc,
+                score: bestScore,
+                matchedField: matchedField
+            });
+        }
+    });
+    
+    // Sort by score (best matches first) and return top 10
+    return matches
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 10)
+        .map(match => match.location);
 }
 
 // Render autosuggest dropdown
