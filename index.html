@@ -37,7 +37,6 @@
         #forecast-section tr {
             transition: background 0.2s;
         }
-        /* Spinner overlay styles */
         #spinner-overlay .spinner-sun-rays line {
             stroke: #f10914;
         }
@@ -65,13 +64,11 @@
 </div>
 <div class="hidden md:flex flex-1 items-center justify-center relative">
   <div class="flex w-full max-w-lg gap-2 items-center">
-    <!-- Search bar and dropdown wrapper (relative) -->
     <div class="relative flex-1">
       <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
       <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
       <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
     </div>
-    <!-- Use Location button OUTSIDE the relative wrapper -->
     <button id="use-location-btn" class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
       <span class="material-symbols-outlined align-middle">my_location</span>
       <span>Use Location</span>
@@ -117,7 +114,7 @@
 </div>
 <div class="bg-white rounded-lg shadow-lg p-6" id="alerts-section">
 <h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
-<div class="flex items-center gap-4" id="alerts-content">
+<div class="flex flex-col gap-4" id="alerts-content">
 <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
 <div>
 <p class="font-semibold text-gray-800">No active weather alerts</p>
@@ -149,13 +146,11 @@
 </main>
 </div>
 
-<!-- Spinner overlay (centered, sun + loading, BOTH in a single white rounded box, overlay covers whole screen) -->
+<!-- Spinner overlay -->
 <div id="spinner-overlay" style="display:none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
   <div class="flex flex-col items-center bg-white/90 rounded-2xl px-8 py-8 shadow-lg">
     <svg class="animate-spin" width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1.1s linear infinite;">
-      <!-- Sun core -->
       <circle class="spinner-sun-core" cx="35" cy="35" r="16" stroke-width="2"/>
-      <!-- Sun rays -->
       <g class="spinner-sun-rays" stroke-width="4" stroke-linecap="round">
         <line x1="35" y1="6" x2="35" y2="20"/>
         <line x1="35" y1="50" x2="35" y2="64"/>
@@ -171,10 +166,21 @@
   </div>
 </div>
 
+<!-- ALERT DETAIL OVERLAY -->
+<div id="alert-detail-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+  <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto p-6">
+    <button id="alert-detail-close" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-3xl font-bold focus:outline-none" title="Close" aria-label="Close">
+      <span class="material-symbols-outlined text-3xl">close</span>
+    </button>
+    <div id="alert-detail-content" class="mt-2"></div>
+  </div>
+</div>
+
 <script>
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
+let latestAlerts = []; // store currently shown alerts
 
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
@@ -305,7 +311,6 @@ document.addEventListener('click', function(e) {
         selectedSuggestion = -1;
     }
 });
-// Pick suggestion
 function selectSuggestion(loc) {
     searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
     suggestionsBox.classList.add('hidden');
@@ -340,7 +345,7 @@ useLocationBtn.addEventListener('click', function() {
                     }
                 });
             }
-            let locObj = nearestLoc && minDist < 0.2 // ~20km
+            let locObj = nearestLoc && minDist < 0.2
                 ? nearestLoc
                 : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
 
@@ -358,7 +363,6 @@ useLocationBtn.addEventListener('click', function() {
     );
 });
 
-// Weather fetch
 async function fetchWeatherForLocation(loc) {
     showSpinner();
     const lat = loc.lat;
@@ -450,10 +454,13 @@ function updateForecast(periods) {
         `;
     });
 }
+
+// Alerts with View Detail modal
 function updateAlerts(alertsData) {
+    latestAlerts = alertsData.features || [];
     const content = document.getElementById('alerts-content');
     content.innerHTML = '';
-    if (!alertsData.features || alertsData.features.length === 0) {
+    if (!latestAlerts.length) {
         content.innerHTML = `
         <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
         <div>
@@ -462,27 +469,66 @@ function updateAlerts(alertsData) {
         </div>
         `;
     } else {
-        alertsData.features.forEach(alertFeature => {
+        latestAlerts.forEach((alertFeature, idx) => {
             const alert = alertFeature.properties;
             content.innerHTML += `
-            <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
-            <div class="mb-4">
-                <p class="font-semibold text-gray-800">${alert.event}</p>
-                <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
-                <p class="text-gray-400 text-xs">${alert.effective ? ('Effective: ' + alert.effective) : ''}</p>
+            <div class="flex items-start mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
+                <span class="material-symbols-outlined text-red-500 text-3xl mr-3 mt-1">warning</span>
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${alert.event}</p>
+                    <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
+                    <p class="text-gray-400 text-xs">${alert.effective ? ('Effective: ' + alert.effective) : ''}</p>
+                    <button class="view-alert-detail mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--primary-color)] text-white text-xs font-medium hover:bg-red-700 focus:outline-none" data-alert-idx="${idx}">
+                        View Detail
+                    </button>
+                </div>
             </div>
             `;
         });
     }
+    // Attach click handlers for View Detail
+    Array.from(content.getElementsByClassName('view-alert-detail')).forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = btn.getAttribute('data-alert-idx');
+            showAlertDetail(idx);
+        });
+    });
 }
-function updateRadar(lat, lng) {
-    lat = Number(lat);
-    lng = Number(lng);
-    const radarIframe = document.getElementById('radar-iframe');
-    if (radarIframe) {
-        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
+
+// ALERT DETAIL OVERLAY LOGIC
+function showAlertDetail(idx) {
+    const overlay = document.getElementById('alert-detail-overlay');
+    const content = document.getElementById('alert-detail-content');
+    const alert = latestAlerts[idx]?.properties;
+    if (!alert) return;
+    // Build detail HTML
+    content.innerHTML = `
+        <h3 class="text-xl font-bold text-red-700 mb-2">${alert.event}</h3>
+        <p class="text-gray-700 mb-2"><b>Status:</b> ${alert.status || 'N/A'}</p>
+        <p class="text-gray-700 mb-2"><b>Effective:</b> ${alert.effective || 'N/A'}</p>
+        <p class="text-gray-700 mb-2"><b>Expires:</b> ${alert.expires || 'N/A'}</p>
+        <p class="text-gray-700 mb-2"><b>Severity:</b> ${alert.severity || 'N/A'}</p>
+        <p class="text-gray-700 mb-2"><b>Urgency:</b> ${alert.urgency || 'N/A'}</p>
+        <p class="text-gray-700 mb-2"><b>Certainty:</b> ${alert.certainty || 'N/A'}</p>
+        <p class="text-gray-700 mb-2"><b>Sender:</b> ${alert.senderName || 'N/A'}</p>
+        <hr class="my-3"/>
+        <pre class="whitespace-pre-wrap text-gray-900 text-sm">${alert.description || ''}</pre>
+        ${alert.instruction ? `<hr class="my-3"/><div class="text-gray-900 text-sm"><b>Instruction:</b><br>${alert.instruction}</div>` : ''}
+        ${alert.web ? `<div class="mt-3"><a href="${alert.web}" target="_blank" class="text-blue-700 underline">More Info</a></div>` : ''}
+    `;
+    overlay.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+document.getElementById('alert-detail-close').addEventListener('click', function() {
+    document.getElementById('alert-detail-overlay').classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+});
+document.getElementById('alert-detail-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
     }
-}
+});
 </script>
 </body>
 </html>
