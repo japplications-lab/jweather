@@ -1,4 +1,118 @@
-<!-- ...above unchanged code... -->
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>The jWeather</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- PapaParse for CSV parsing -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #f10914;
+        }
+        body {
+            font-family: "Space Grotesk", "Noto Sans", sans-serif;
+        }
+        .suggestion-active {
+            background-color: #f3f4f6;
+        }
+        .suggestions-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .suggestions-scroll::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 3px;
+        }
+        /* Forecast Table Styling */
+        #forecast-section table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        #forecast-section th, #forecast-section td {
+            border: none;
+        }
+        #forecast-section tr {
+            transition: background 0.2s;
+        }
+</style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--primary-color)] shadow-lg">
+<div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-white">
+<span class="material-symbols-outlined text-4xl">wb_sunny</span>
+<h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
+</div>
+</div>
+<div class="hidden md:flex flex-1 items-center justify-center relative">
+<div class="relative w-full max-w-lg">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
+<input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
+<ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
+<a class="hover:text-gray-200 transition-colors" href="#">Today</a>
+<a class="hover:text-gray-200 transition-colors" href="#">Hourly</a>
+<a class="hover:text-gray-200 transition-colors" href="#">10 Day</a>
+<a class="hover:text-gray-200 transition-colors" href="#">Radar</a>
+</nav>
+<button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="space-y-8">
+<div class="bg-white rounded-lg shadow-lg p-6" id="current-conditions-section">
+<h2 class="text-2xl font-bold mb-4 text-gray-900" id="current-location-label">New York, NY - Current Conditions</h2>
+<div class="flex items-start justify-between gap-6">
+<div class="flex-1">
+<p class="text-7xl font-bold text-gray-900" id="current-temp">75°F</p>
+<p class="text-xl text-gray-600 mt-2" id="current-desc">Sunny</p>
+<div class="mt-4 space-y-2 text-gray-500">
+<p id="current-feels-like">Feels Like: 75°F</p>
+<p id="current-humidity">Humidity: 60%</p>
+<p id="current-wind">Wind: 5 mph W</p>
+</div>
+</div>
+<div class="flex-shrink-0">
+<img alt="Sunny weather graphic" class="w-48 h-48 object-cover rounded-lg" id="current-icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g"/>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6" id="alerts-section">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
+<div class="flex items-center gap-4" id="alerts-content">
+<span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+<div>
+<p class="font-semibold text-gray-800">No active weather alerts</p>
+<p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
+<div id="radar-embed" class="w-full flex justify-center items-center">
+    <iframe id="radar-iframe" width="650" height="450"
+        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=40.7128&lon=-74.0060"
+        frameborder="0"></iframe>
+</div>
+</div>
+</div>
 <div class="bg-white rounded-lg shadow-lg p-6" id="forecast-section">
   <h2 class="text-2xl font-bold mb-4 text-blue-800">Detailed Forecast</h2>
   <div class="overflow-x-auto">
@@ -9,9 +123,202 @@
     </table>
   </div>
 </div>
-<!-- ...below unchanged code... -->
+</div>
+</div>
+</main>
+</div>
 <script>
-/* ...other functions... */
+let locationsData = [];
+let suggestions = [];
+const searchBar = document.getElementById('search-bar');
+const suggestionsBox = document.getElementById('suggestions');
+
+// Load and parse the CSV on page load
+window.addEventListener('DOMContentLoaded', () => {
+    fetch('locations.csv')
+        .then(res => res.text())
+        .then(csvText => {
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    locationsData = results.data;
+                }
+            });
+        });
+});
+
+// Debounce utility
+function debounce(fn, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// Filter locations for autosuggest
+function getSuggestions(query) {
+    query = query.trim().toLowerCase();
+    if (!query) return [];
+    return locationsData.filter(loc =>
+        (loc.city && loc.city.toLowerCase().startsWith(query)) ||
+        (loc.state_id && loc.state_id.toLowerCase().startsWith(query)) ||
+        (loc.zip && loc.zip.startsWith(query))
+    ).slice(0, 10); // top 10
+}
+
+// Render autosuggest dropdown
+function renderSuggestions(suggestions) {
+    suggestionsBox.innerHTML = '';
+    if (!suggestions.length) {
+        suggestionsBox.classList.add('hidden');
+        return;
+    }
+    suggestions.forEach((loc, idx) => {
+        const li = document.createElement('li');
+        li.className = "px-4 py-2 cursor-pointer hover:bg-gray-100";
+        li.tabIndex = 0;
+        li.dataset.idx = idx;
+        li.innerHTML = `<span class="font-semibold">${loc.city}, ${loc.state_id}</span> <span class="text-gray-400 text-sm">(${loc.zip})</span>`;
+        suggestionsBox.appendChild(li);
+    });
+    suggestionsBox.classList.remove('hidden');
+}
+
+// Handle search input
+searchBar.addEventListener('input', debounce(function(e) {
+    const val = e.target.value;
+    suggestions = getSuggestions(val);
+    renderSuggestions(suggestions);
+}, 200));
+
+// Keyboard navigation for suggestions
+let selectedSuggestion = -1;
+searchBar.addEventListener('keydown', function(e) {
+    if (suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedSuggestion = (selectedSuggestion + 1) % suggestions.length;
+        highlightSuggestion();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedSuggestion = (selectedSuggestion - 1 + suggestions.length) % suggestions.length;
+        highlightSuggestion();
+    } else if (e.key === 'Enter') {
+        if (selectedSuggestion >= 0 && selectedSuggestion < suggestions.length) {
+            selectSuggestion(suggestions[selectedSuggestion]);
+        }
+    }
+});
+function highlightSuggestion() {
+    Array.from(suggestionsBox.children).forEach((li, idx) => {
+        li.classList.toggle('suggestion-active', idx === selectedSuggestion);
+    });
+}
+suggestionsBox.addEventListener('mousedown', function(e) {
+    const li = e.target.closest('li');
+    if (!li) return;
+    const idx = li.dataset.idx;
+    if (suggestions[idx]) {
+        selectSuggestion(suggestions[idx]);
+    }
+});
+document.addEventListener('click', function(e) {
+    if (!suggestionsBox.contains(e.target) && e.target !== searchBar) {
+        suggestionsBox.classList.add('hidden');
+        selectedSuggestion = -1;
+    }
+});
+// Select suggestion
+function selectSuggestion(loc) {
+    searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
+    suggestionsBox.classList.add('hidden');
+    selectedSuggestion = -1;
+    // Fetch weather data for this location!
+    fetchWeatherForLocation(loc);
+    // Update radar for this lat/lng
+    updateRadar(loc.lat, loc.lng);
+}
+
+// NWS API helpers
+async function fetchWeatherForLocation(loc) {
+    const lat = loc.lat;
+    const lng = loc.lng;
+    try {
+        // 1. Get point metadata (office, gridX, gridY, etc)
+        const pointsResp = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
+        if (!pointsResp.ok) throw new Error('Unable to find NWS location for this point.');
+        const pointsData = await pointsResp.json();
+        // 2. Get current conditions (observationStations then latest observation)
+        const obsStationsUrl = pointsData.properties.observationStations;
+        let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '';
+        if (obsStationsUrl) {
+            const stationsResp = await fetch(obsStationsUrl);
+            const stationsData = await stationsResp.json();
+            const firstStation = stationsData.features[0]?.properties?.stationIdentifier;
+            if (firstStation) {
+                const obsResp = await fetch(`https://api.weather.gov/stations/${firstStation}/observations/latest`);
+                const obsData = await obsResp.json();
+                const props = obsData.properties;
+                temp = props.temperature.value !== null ? `${Math.round((props.temperature.value * 9/5) + 32)}°F` : '--';
+                desc = props.textDescription || '--';
+                feelsLike = props.heatIndex.value !== null
+                    ? `Feels Like: ${Math.round((props.heatIndex.value * 9/5) + 32)}°F`
+                    : (props.windChill.value !== null
+                        ? `Feels Like: ${Math.round((props.windChill.value * 9/5) + 32)}°F`
+                        : `Feels Like: ${temp}`);
+                humidity = props.relativeHumidity.value !== null ? `Humidity: ${Math.round(props.relativeHumidity.value)}%` : 'Humidity: --';
+                wind = (props.windSpeed.value !== null && props.windDirection.value !== null)
+                    ? `Wind: ${Math.round(props.windSpeed.value * 2.237)} mph ${degToCompass(props.windDirection.value)}`
+                    : 'Wind: --';
+                icon = props.icon || '';
+            }
+        }
+        // 3. Get forecast (7 day)
+        const forecastUrl = pointsData.properties.forecast;
+        let forecastPeriods = [];
+        if (forecastUrl) {
+            const forecastResp = await fetch(forecastUrl);
+            const forecastData = await forecastResp.json();
+            forecastPeriods = forecastData.properties.periods; // Use all available periods for detailed forecast
+        }
+        // 4. Get active alerts
+        const alertsResp = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`);
+        const alertsData = await alertsResp.json();
+
+        // Update UI
+        updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, icon);
+        updateForecast(forecastPeriods);
+        updateAlerts(alertsData);
+    } catch (err) {
+        alert('Weather data could not be loaded for this location.');
+        console.error(err);
+    }
+}
+function degToCompass(num) {
+    const val = Math.floor((num / 22.5) + 0.5);
+    const arr = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+        "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+    return arr[(val % 16)];
+}
+function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconUrl) {
+    document.getElementById('current-location-label').textContent = `${loc.city}, ${loc.state_id} - Current Conditions`;
+    document.getElementById('current-temp').textContent = temp;
+    document.getElementById('current-desc').textContent = desc;
+    document.getElementById('current-feels-like').textContent = feelsLike;
+    document.getElementById('current-humidity').textContent = humidity;
+    document.getElementById('current-wind').textContent = wind;
+    document.getElementById('current-icon').src = getWeatherIcon(iconUrl, desc);
+}
+function getWeatherIcon(iconUrl, desc) {
+    if (iconUrl) return iconUrl.split('?')[0];
+    if (desc && desc.toLowerCase().includes('rain')) return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
+    if (desc && desc.toLowerCase().includes('cloud')) return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
+    if (desc && desc.toLowerCase().includes('clear')) return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
+    if (desc && desc.toLowerCase().includes('snow')) return "https://cdn-icons-png.flaticon.com/512/642/642102.png";
+    return "https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g";
+}
 function updateForecast(periods) {
     const content = document.getElementById('forecast-content');
     content.innerHTML = '';
@@ -28,4 +335,36 @@ function updateForecast(periods) {
         `;
     });
 }
+function updateAlerts(alertsData) {
+    const content = document.getElementById('alerts-content');
+    content.innerHTML = '';
+    if (!alertsData.features || alertsData.features.length === 0) {
+        content.innerHTML = `
+        <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+        <div>
+            <p class="font-semibold text-gray-800">No active weather alerts</p>
+            <p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
+        </div>
+        `;
+    } else {
+        const alert = alertsData.features[0].properties;
+        content.innerHTML = `
+        <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
+        <div>
+            <p class="font-semibold text-gray-800">${alert.event}</p>
+            <p class="text-gray-500 text-sm">${alert.headline || alert.description || ''}</p>
+        </div>
+        `;
+    }
+}
+// Windy radar embed update
+function updateRadar(lat, lng) {
+    lat = Number(lat);
+    lng = Number(lng);
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
+    }
+}
 </script>
+</body></html>
