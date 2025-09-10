@@ -1,5 +1,132 @@
-<!-- ...everything above is unchanged... -->
-
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Space+Grotesk%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>The jWeather</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #f10914;
+        }
+        body {
+            font-family: "Space Grotesk", "Noto Sans", sans-serif;
+        }
+        .suggestion-active {
+            background-color: #f3f4f6;
+        }
+        .suggestions-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .suggestions-scroll::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 3px;
+        }
+        #forecast-section table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        #forecast-section th, #forecast-section td {
+            border: none;
+        }
+        #forecast-section tr {
+            transition: background 0.2s;
+        }
+        #spinner-overlay .spinner-sun-rays line {
+            stroke: #f10914;
+        }
+        #spinner-overlay .spinner-sun-core {
+            fill: #f10914;
+            stroke: #f10914;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1.1s linear infinite;
+        }
+</style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--primary-color)] shadow-lg">
+<div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-white">
+<span class="material-symbols-outlined text-4xl">wb_sunny</span>
+<h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
+</div>
+</div>
+<div class="hidden md:flex flex-1 items-center justify-center relative">
+  <div class="flex w-full max-w-lg gap-2 items-center">
+    <div class="relative flex-1">
+      <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
+      <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
+      <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
+    </div>
+    <button id="use-location-btn" class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
+      <span class="material-symbols-outlined align-middle">my_location</span>
+      <span>Use Location</span>
+    </button>
+  </div>
+</div>
+<div class="flex items-center gap-4">
+<nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
+<a class="hover:text-gray-200 transition-colors" href="#">Today</a>
+<a class="hover:text-gray-200 transition-colors" href="#">Hourly</a>
+<a class="hover:text-gray-200 transition-colors" href="#">10 Day</a>
+<a class="hover:text-gray-200 transition-colors" href="#">Radar</a>
+</nav>
+<button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="space-y-8">
+<div class="bg-white rounded-lg shadow-lg p-6" id="current-conditions-section">
+<h2 class="text-2xl font-bold mb-4 text-gray-900" id="current-location-label">Baconton, GA - Current Conditions</h2>
+<div class="flex items-start justify-between gap-6">
+<div class="flex-1">
+<p class="text-7xl font-bold text-gray-900" id="current-temp">75°F</p>
+<p class="text-xl text-gray-600 mt-2" id="current-desc">Sunny</p>
+<div class="mt-4 space-y-2 text-gray-500">
+<p id="current-feels-like">Feels Like: 75°F</p>
+<p id="current-humidity">Humidity: 60%</p>
+<p id="current-wind">Wind: 5 mph W</p>
+</div>
+</div>
+<div class="flex-shrink-0">
+<img alt="Sunny weather graphic" class="w-48 h-48 object-cover rounded-lg" id="current-icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g"/>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6" id="alerts-section">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
+<div class="flex flex-col gap-4" id="alerts-content">
+<!-- content is rendered by JS -->
+</div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-6">
+<h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
+<div id="radar-embed" class="w-full flex justify-center items-center">
+    <iframe id="radar-iframe" width="650" height="450"
+        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=31.3776&lon=-84.1607"
+        frameborder="0"></iframe>
+</div>
+</div>
+</div>
 <div class="bg-white rounded-lg shadow-lg p-6" id="forecast-section">
   <h2 class="text-2xl font-bold mb-4 text-blue-800">Detailed Forecast</h2>
   <div class="overflow-x-auto">
@@ -10,13 +137,299 @@
     </table>
   </div>
 </div>
+</div>
+</div>
+</main>
+</div>
 
-<!-- ...rest of your HTML, overlays, etc... -->
+<!-- Spinner overlay -->
+<div id="spinner-overlay" style="display:none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+  <div class="flex flex-col items-center bg-white/90 rounded-2xl px-8 py-8 shadow-lg">
+    <svg class="animate-spin" width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1.1s linear infinite;">
+      <circle class="spinner-sun-core" cx="35" cy="35" r="16" stroke-width="2"/>
+      <g class="spinner-sun-rays" stroke-width="4" stroke-linecap="round">
+        <line x1="35" y1="6" x2="35" y2="20"/>
+        <line x1="35" y1="50" x2="35" y2="64"/>
+        <line x1="6" y1="35" x2="20" y2="35"/>
+        <line x1="50" y1="35" x2="64" y2="35"/>
+        <line x1="15" y1="15" x2="25" y2="25"/>
+        <line x1="45" y1="45" x2="55" y2="55"/>
+        <line x1="15" y1="55" x2="25" y2="45"/>
+        <line x1="45" y1="25" x2="55" y2="15"/>
+      </g>
+    </svg>
+    <span class="text-lg font-semibold text-gray-700 mt-4">Loading…</span>
+  </div>
+</div>
+
+<!-- ALERT DETAIL OVERLAY -->
+<div id="alert-detail-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+  <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto p-6">
+    <button id="alert-detail-close" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-3xl font-bold focus:outline-none" title="Close" aria-label="Close">
+      <span class="material-symbols-outlined text-3xl">close</span>
+    </button>
+    <div id="alert-detail-content" class="mt-2"></div>
+  </div>
+</div>
 
 <script>
-/* ...all previous JS above is unchanged... */
+let locationsData = [];
+let suggestions = [];
+let fuse = null;
+let latestAlerts = [];
+let latestLocation = null;
 
-// Update this function only:
+const searchBar = document.getElementById('search-bar');
+const suggestionsBox = document.getElementById('suggestions');
+const useLocationBtn = document.getElementById('use-location-btn');
+const spinnerOverlay = document.getElementById('spinner-overlay');
+
+window.addEventListener('DOMContentLoaded', () => {
+    fetch('locations.csv')
+        .then(res => res.text())
+        .then(csvText => {
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    locationsData = results.data;
+                    fuse = new Fuse(locationsData, {
+                        keys: [
+                            { name: 'city', weight: 0.6 },
+                            { name: 'state_id', weight: 0.2 },
+                            { name: 'zip', weight: 0.2 },
+                        ],
+                        threshold: 0.35,
+                        minMatchCharLength: 2,
+                        ignoreLocation: true,
+                        includeScore: true,
+                    });
+                    const defaultLoc = locationsData.find(loc =>
+                        loc.city && loc.city.trim().toLowerCase() === 'baconton'
+                        && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
+                        && loc.zip && loc.zip.trim() === '31716'
+                    );
+                    if (defaultLoc) {
+                        latestLocation = defaultLoc;
+                        searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
+                        fetchWeatherForLocation(defaultLoc);
+                        updateRadar(defaultLoc.lat, defaultLoc.lng);
+                    }
+                }
+            });
+        });
+});
+
+function showSpinner() {
+    spinnerOverlay.style.display = 'flex';
+}
+function hideSpinner() {
+    spinnerOverlay.style.display = 'none';
+}
+
+function debounce(fn, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+function getSuggestions(query) {
+    query = query.trim();
+    if (!query || !fuse) return [];
+    const results = fuse.search(query, { limit: 10 });
+    return results.map(r => r.item);
+}
+
+function renderSuggestions(suggestions) {
+    suggestionsBox.innerHTML = '';
+    if (!suggestions.length) {
+        suggestionsBox.classList.add('hidden');
+        return;
+    }
+    suggestions.forEach((loc, idx) => {
+        const li = document.createElement('li');
+        li.className = "px-4 py-2 cursor-pointer hover:bg-gray-100";
+        li.tabIndex = 0;
+        li.dataset.idx = idx;
+        li.innerHTML = `<span class="font-semibold">${loc.city}, ${loc.state_id}</span> <span class="text-gray-400 text-sm">(${loc.zip})</span>`;
+        suggestionsBox.appendChild(li);
+    });
+    suggestionsBox.classList.remove('hidden');
+}
+
+searchBar.addEventListener('input', debounce(function(e) {
+    const val = e.target.value;
+    suggestions = getSuggestions(val);
+    renderSuggestions(suggestions);
+}, 200));
+
+let selectedSuggestion = -1;
+searchBar.addEventListener('keydown', function(e) {
+    if (suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedSuggestion = (selectedSuggestion + 1) % suggestions.length;
+        highlightSuggestion();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedSuggestion = (selectedSuggestion - 1 + suggestions.length) % suggestions.length;
+        highlightSuggestion();
+    } else if (e.key === 'Enter') {
+        if (selectedSuggestion >= 0 && selectedSuggestion < suggestions.length) {
+            selectSuggestion(suggestions[selectedSuggestion]);
+        }
+    }
+});
+function highlightSuggestion() {
+    Array.from(suggestionsBox.children).forEach((li, idx) => {
+        li.classList.toggle('suggestion-active', idx === selectedSuggestion);
+    });
+}
+suggestionsBox.addEventListener('mousedown', function(e) {
+    const li = e.target.closest('li');
+    if (!li) return;
+    const idx = li.dataset.idx;
+    if (suggestions[idx]) {
+        selectSuggestion(suggestions[idx]);
+    }
+});
+document.addEventListener('click', function(e) {
+    if (!suggestionsBox.contains(e.target) && e.target !== searchBar) {
+        suggestionsBox.classList.add('hidden');
+        selectedSuggestion = -1;
+    }
+});
+function selectSuggestion(loc) {
+    latestLocation = loc;
+    searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
+    suggestionsBox.classList.add('hidden');
+    selectedSuggestion = -1;
+    fetchWeatherForLocation(loc);
+    updateRadar(loc.lat, loc.lng);
+}
+
+useLocationBtn.addEventListener('click', function() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+    }
+    useLocationBtn.disabled = true;
+    useLocationBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Locating...';
+    navigator.geolocation.getCurrentPosition(
+        async position => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            let nearestLoc = null;
+            let minDist = Infinity;
+            if (locationsData && locationsData.length > 0) {
+                locationsData.forEach(loc => {
+                    if (!loc.lat || !loc.lng) return;
+                    const dlat = Number(loc.lat) - lat;
+                    const dlng = Number(loc.lng) - lng;
+                    const dist = Math.sqrt(dlat * dlat + dlng * dlng);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestLoc = loc;
+                    }
+                });
+            }
+            let locObj = nearestLoc && minDist < 0.2
+                ? nearestLoc
+                : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
+
+            latestLocation = locObj;
+            searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
+            fetchWeatherForLocation(locObj);
+            updateRadar(locObj.lat, locObj.lng);
+            useLocationBtn.disabled = false;
+            useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+        },
+        error => {
+            alert('Unable to retrieve your location.');
+            useLocationBtn.disabled = false;
+            useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+        }
+    );
+});
+
+async function fetchWeatherForLocation(loc) {
+    latestLocation = loc;
+    showSpinner();
+    const lat = loc.lat;
+    const lng = loc.lng;
+    try {
+        const pointsResp = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
+        if (!pointsResp.ok) throw new Error('Unable to find NWS location for this point.');
+        const pointsData = await pointsResp.json();
+        const obsStationsUrl = pointsData.properties.observationStations;
+        let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '';
+        if (obsStationsUrl) {
+            const stationsResp = await fetch(obsStationsUrl);
+            const stationsData = await stationsResp.json();
+            const firstStation = stationsData.features[0]?.properties?.stationIdentifier;
+            if (firstStation) {
+                const obsResp = await fetch(`https://api.weather.gov/stations/${firstStation}/observations/latest`);
+                const obsData = await obsResp.json();
+                const props = obsData.properties;
+                temp = props.temperature.value !== null ? `${Math.round((props.temperature.value * 9/5) + 32)}°F` : '--';
+                desc = props.textDescription || '--';
+                feelsLike = props.heatIndex.value !== null
+                    ? `Feels Like: ${Math.round((props.heatIndex.value * 9/5) + 32)}°F`
+                    : (props.windChill.value !== null
+                        ? `Feels Like: ${Math.round((props.windChill.value * 9/5) + 32)}°F`
+                        : `Feels Like: ${temp}`);
+                humidity = props.relativeHumidity.value !== null ? `Humidity: ${Math.round(props.relativeHumidity.value)}%` : 'Humidity: --';
+                wind = (props.windSpeed.value !== null && props.windDirection.value !== null)
+                    ? `Wind: ${Math.round(props.windSpeed.value * 2.237)} mph ${degToCompass(props.windDirection.value)}`
+                    : 'Wind: --';
+                icon = props.icon || '';
+            }
+        }
+        const forecastUrl = pointsData.properties.forecast;
+        let forecastPeriods = [];
+        if (forecastUrl) {
+            const forecastResp = await fetch(forecastUrl);
+            const forecastData = await forecastResp.json();
+            forecastPeriods = forecastData.properties.periods;
+        }
+        const alertsResp = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`);
+        const alertsData = await alertsResp.json();
+
+        updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, icon);
+        updateForecast(forecastPeriods);
+        updateAlerts(alertsData);
+    } catch (err) {
+        alert('Weather data could not be loaded for this location.');
+        console.error(err);
+    } finally {
+        hideSpinner();
+    }
+}
+function degToCompass(num) {
+    const val = Math.floor((num / 22.5) + 0.5);
+    const arr = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+        "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+    return arr[(val % 16)];
+}
+function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconUrl) {
+    document.getElementById('current-location-label').textContent = `${loc.city || ''}${loc.state_id ? ', ' + loc.state_id : ''} - Current Conditions`;
+    document.getElementById('current-temp').textContent = temp;
+    document.getElementById('current-desc').textContent = desc;
+    document.getElementById('current-feels-like').textContent = feelsLike;
+    document.getElementById('current-humidity').textContent = humidity;
+    document.getElementById('current-wind').textContent = wind;
+    document.getElementById('current-icon').src = getWeatherIcon(iconUrl, desc);
+}
+function getWeatherIcon(iconUrl, desc) {
+    if (iconUrl) return iconUrl.split('?')[0];
+    if (desc && desc.toLowerCase().includes('rain')) return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
+    if (desc && desc.toLowerCase().includes('cloud')) return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
+    if (desc && desc.toLowerCase().includes('clear')) return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
+    if (desc && desc.toLowerCase().includes('snow')) return "https://cdn-icons-png.flaticon.com/512/642/642102.png";
+    return "https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g";
+}
 function updateForecast(periods) {
     const content = document.getElementById('forecast-content');
     content.innerHTML = '';
@@ -24,10 +437,25 @@ function updateForecast(periods) {
         content.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No forecast data.</td></tr>';
         return;
     }
+    // Abbreviation mapping for days
+    const dayAbbr = {
+        "Monday": "Mon", "Tuesday": "Tue", "Wednesday": "Wed",
+        "Thursday": "Thu", "Friday": "Fri", "Saturday": "Sat", "Sunday": "Sun"
+    };
+    function abbrDayPeriod(name) {
+        // "Monday", "Monday Night", "Tuesday", etc
+        for (const day in dayAbbr) {
+            if (name.startsWith(day)) {
+                return name.replace(day, dayAbbr[day]);
+            }
+        }
+        return name;
+    }
     periods.forEach((period, idx) => {
+        const abbrName = abbrDayPeriod(period.name);
         content.innerHTML += `
         <tr class="${idx % 2 === 1 ? 'bg-blue-50' : 'bg-white'}">
-            <td class="py-2 px-4 font-bold text-gray-800 whitespace-nowrap align-middle" style="width: 120px;">${period.name}</td>
+            <td class="py-2 px-4 font-bold text-gray-800 whitespace-nowrap align-middle" style="width: 90px;">${abbrName}</td>
             <td class="py-2 px-2 align-middle" style="width: 60px;">
                 <img src="${period.icon.split('?')[0]}" alt="${period.shortForecast || period.detailedForecast}" class="w-10 h-10 mx-auto" loading="lazy"/>
             </td>
@@ -36,7 +464,161 @@ function updateForecast(periods) {
         `;
     });
 }
-/* ...rest of your JS below unchanged... */
+
+function getLocationTimeZone() {
+    if (latestLocation && latestLocation.tz) return latestLocation.tz;
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+        return undefined;
+    }
+}
+
+function formatExpiresWithZone(dt, tz) {
+    if (!dt) return 'N/A';
+    try {
+        const d = new Date(dt);
+        const opts = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: tz
+        };
+        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
+        let [date, time] = str.split(',');
+        let abbr = '';
+        try {
+            abbr = d.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop();
+        } catch {}
+        abbr = abbr ? abbr.replace(/^GMT/, 'UTC') : (tz ? tz.replace("_", " ") : "");
+        if (date && time) {
+            return `${date.replace(/\//g, "/")} ${time.trim()} ${abbr}`;
+        }
+        return str;
+    } catch(e) {
+        return dt;
+    }
+}
+
+function updateAlerts(alertsData) {
+    latestAlerts = alertsData.features || [];
+    const content = document.getElementById('alerts-content');
+    content.innerHTML = '';
+    const tz = getLocationTimeZone();
+
+    if (!latestAlerts.length) {
+        content.innerHTML = `
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+          <div>
+            <p class="font-semibold text-gray-800">No active weather alerts</p>
+            <p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
+          </div>
+        </div>
+        `;
+    } else {
+        latestAlerts.forEach((alertFeature, idx) => {
+            const alert = alertFeature.properties;
+            const expires = alert.expires ? formatExpiresWithZone(alert.expires, tz) : "N/A";
+            content.innerHTML += `
+            <div class="flex items-start mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
+                <span class="material-symbols-outlined text-red-500 text-3xl mr-3 mt-1">warning</span>
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${alert.event}</p>
+                    <p class="text-gray-700 text-sm mb-1">Expires: ${expires}</p>
+                    <button class="view-alert-detail mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--primary-color)] text-white text-xs font-medium hover:bg-red-700 focus:outline-none" data-alert-idx="${idx}">
+                        View Detail
+                    </button>
+                </div>
+            </div>
+            `;
+        });
+    }
+    Array.from(content.getElementsByClassName('view-alert-detail')).forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = btn.getAttribute('data-alert-idx');
+            showAlertDetail(idx);
+        });
+    });
+}
+
+function formatDateTimeWithZone(dt, tz) {
+    if (!dt) return 'N/A';
+    if (!tz) tz = undefined;
+    try {
+        const d = new Date(dt);
+        const opts = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: tz
+        };
+        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
+        let [date, time] = str.split(',');
+        if (date && time) {
+            const [mm, dd, yyyy] = date.split('/');
+            return `${mm}-${dd}-${yyyy} ${time.trim()}`;
+        }
+        return str;
+    } catch(e) {
+        return dt;
+    }
+}
+
+function showAlertDetail(idx) {
+    const overlay = document.getElementById('alert-detail-overlay');
+    const content = document.getElementById('alert-detail-content');
+    const alert = latestAlerts[idx]?.properties;
+    if (!alert) return;
+
+    const tz = getLocationTimeZone();
+    const tzLabel = tz ? tz.replace("_", " ") : "Local Timezone";
+    const issued = alert.effective ? formatDateTimeWithZone(alert.effective, tz) : "N/A";
+    const expires = alert.expires ? formatDateTimeWithZone(alert.expires, tz) : "N/A";
+    const issuedBy = alert.senderName || "NWS Office";
+
+    content.innerHTML = `
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-red-700 mb-1">${alert.event}</h3>
+          <div class="text-gray-700 text-sm">
+            <span class="block"><b>Issued:</b> ${issued}</span>
+            <span class="block"><b>Expires:</b> ${expires}</span>
+            <span class="block"><b>Issued By:</b> ${issuedBy}</span>
+            <span class="block"><b>Timezone:</b> ${tzLabel}</span>
+          </div>
+        </div>
+        <hr class="my-3"/>
+        <pre class="whitespace-pre-wrap text-gray-900 text-sm">${alert.description || ''}</pre>
+        ${alert.instruction ? `<hr class="my-3"/><div class="text-gray-900 text-sm"><b>Instruction:</b><br>${alert.instruction}</div>` : ''}
+        ${alert.web ? `<div class="mt-3"><a href="${alert.web}" target="_blank" class="text-blue-700 underline">More Info</a></div>` : ''}
+    `;
+    overlay.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+document.getElementById('alert-detail-close').addEventListener('click', function() {
+    document.getElementById('alert-detail-overlay').classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+});
+document.getElementById('alert-detail-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+});
+function updateRadar(lat, lng) {
+    lat = Number(lat);
+    lng = Number(lng);
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
+    }
+}
 </script>
 </body>
 </html>
