@@ -44,6 +44,9 @@
             fill: #f10914;
             stroke: #f10914;
         }
+        html {
+            scroll-behavior: smooth;
+        }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -55,41 +58,52 @@
 <body class="bg-gray-100 text-gray-800">
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
 <header class="bg-[var(--primary-color)] shadow-lg">
-<div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
-<div class="flex items-center gap-8">
-<div class="flex items-center gap-3 text-white">
-<span class="material-symbols-outlined text-4xl">wb_sunny</span>
-<h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
-</div>
-</div>
-<div class="hidden md:flex flex-1 items-center justify-center relative">
-  <div class="flex w-full max-w-lg gap-2 items-center">
-    <div class="relative flex-1">
-      <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
-      <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
-      <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
+  <div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-3 text-white">
+        <span class="material-symbols-outlined text-4xl">wb_sunny</span>
+        <h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
+      </div>
     </div>
-    <button id="use-location-btn" class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
-      <span class="material-symbols-outlined align-middle">my_location</span>
-      <span>Use Location</span>
-    </button>
+    <div class="hidden md:flex flex-1 items-center justify-center relative">
+      <div class="flex w-full max-w-lg gap-2 items-center">
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
+          <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
+          <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
+        </div>
+        <button id="use-location-btn" class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
+          <span class="material-symbols-outlined align-middle">my_location</span>
+          <span>Use Location</span>
+        </button>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
+        <a class="hover:text-gray-200 transition-colors" href="index.html">Home</a>
+        <div class="relative group">
+          <button class="flex items-center gap-1 hover:text-gray-200 transition-colors focus:outline-none">
+            Severe Weather
+            <span class="material-symbols-outlined text-base">expand_more</span>
+          </button>
+          <div class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto z-50">
+            <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="md.html">Severe Outlook</a>
+            <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="reports.html">Storm Reports</a>
+            <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="parameters.html">Severe Parameters</a>
+            <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="101.html">Severe Weather 101</a>
+          </div>
+        </div>
+        <a class="hover:text-gray-200 transition-colors" href="contact.html">Contact</a>
+        <a class="hover:text-gray-200 transition-colors" href="about.html">About jWeather</a>
+      </nav>
+      <button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+      <button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
   </div>
-</div>
-<div class="flex items-center gap-4">
-<nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
-<a class="hover:text-gray-200 transition-colors" href="#">Today</a>
-<a class="hover:text-gray-200 transition-colors" href="#">Hourly</a>
-<a class="hover:text-gray-200 transition-colors" href="#">10 Day</a>
-<a class="hover:text-gray-200 transition-colors" href="#">Radar</a>
-</nav>
-<button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
-<span class="material-symbols-outlined">settings</span>
-</button>
-<button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
-<span class="material-symbols-outlined">menu</span>
-</button>
-</div>
-</div>
 </header>
 <main class="flex-1">
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -141,7 +155,6 @@
 </div>
 </main>
 </div>
-
 <!-- Spinner overlay -->
 <div id="spinner-overlay" style="display:none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
   <div class="flex flex-col items-center bg-white/90 rounded-2xl px-8 py-8 shadow-lg">
@@ -171,7 +184,6 @@
     <div id="alert-detail-content" class="mt-2"></div>
   </div>
 </div>
-
 <script>
 let locationsData = [];
 let suggestions = [];
@@ -207,29 +219,51 @@ window.addEventListener('DOMContentLoaded', () => {
                     });
                     // 1. Check for last used location in localStorage
                     const savedLoc = localStorage.getItem('jweather_last_location');
+                    // 2. If not found, check for string search and resolve
+                    const stringSearch = localStorage.getItem('jweather_search');
                     if (savedLoc) {
                         const locObj = JSON.parse(savedLoc);
                         latestLocation = locObj;
                         searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
                         fetchWeatherForLocation(locObj);
                         updateRadar(locObj.lat, locObj.lng);
-                    } else {
-                        // fallback to Baconton, GA (31716)
-                        const defaultLoc = locationsData.find(loc =>
-                            loc.city && loc.city.trim().toLowerCase() === 'baconton'
-                            && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
-                            && loc.zip && loc.zip.trim() === '31716'
+                    } else if (stringSearch) {
+                        // Try to resolve user string to a location
+                        const match = locationsData.find(loc =>
+                            `${loc.city}, ${loc.state_id} (${loc.zip})`.toLowerCase() === stringSearch.toLowerCase()
+                            || loc.city?.toLowerCase() === stringSearch.toLowerCase()
+                            || loc.zip === stringSearch
                         );
-                        if (defaultLoc) {
-                            latestLocation = defaultLoc;
-                            searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
-                            fetchWeatherForLocation(defaultLoc);
-                            updateRadar(defaultLoc.lat, defaultLoc.lng);
+                        if (match) {
+                            latestLocation = match;
+                            searchBar.value = `${match.city}, ${match.state_id} (${match.zip})`;
+                            fetchWeatherForLocation(match);
+                            updateRadar(match.lat, match.lng);
+                            localStorage.setItem('jweather_last_location', JSON.stringify(match));
+                        } else {
+                            // fallback to Baconton, GA if not found
+                            loadDefaultLocation();
                         }
+                        localStorage.removeItem('jweather_search');
+                    } else {
+                        loadDefaultLocation();
                     }
                 }
             });
         });
+    function loadDefaultLocation() {
+        const defaultLoc = locationsData.find(loc =>
+            loc.city && loc.city.trim().toLowerCase() === 'baconton'
+            && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
+            && loc.zip && loc.zip.trim() === '31716'
+        );
+        if (defaultLoc) {
+            latestLocation = defaultLoc;
+            searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
+            fetchWeatherForLocation(defaultLoc);
+            updateRadar(defaultLoc.lat, defaultLoc.lng);
+        }
+    }
 });
 
 function showSpinner() {
@@ -291,6 +325,9 @@ searchBar.addEventListener('keydown', function(e) {
     } else if (e.key === 'Enter') {
         if (selectedSuggestion >= 0 && selectedSuggestion < suggestions.length) {
             selectSuggestion(suggestions[selectedSuggestion]);
+        } else {
+            // If user types and hits enter, but does not select suggestion, just save value and go
+            handleSearchBarRedirect();
         }
     }
 });
@@ -323,7 +360,13 @@ function selectSuggestion(loc) {
     fetchWeatherForLocation(loc);
     updateRadar(loc.lat, loc.lng);
 }
-
+function handleSearchBarRedirect() {
+    const val = searchBar.value.trim();
+    if (val.length === 0) return;
+    // Save just the string for next load
+    localStorage.setItem('jweather_search', val);
+    window.location.reload();
+}
 useLocationBtn.addEventListener('click', function() {
     if (!navigator.geolocation) {
         alert('Geolocation is not supported by your browser.');
@@ -352,10 +395,8 @@ useLocationBtn.addEventListener('click', function() {
             let locObj = nearestLoc && minDist < 0.2
                 ? nearestLoc
                 : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
-
             latestLocation = locObj;
             searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
-            // --- Save to localStorage
             localStorage.setItem('jweather_last_location', JSON.stringify(locObj));
             fetchWeatherForLocation(locObj);
             updateRadar(locObj.lat, locObj.lng);
@@ -372,7 +413,6 @@ useLocationBtn.addEventListener('click', function() {
 
 async function fetchWeatherForLocation(loc) {
     latestLocation = loc;
-    // --- Save to localStorage
     localStorage.setItem('jweather_last_location', JSON.stringify(loc));
     showSpinner();
     const lat = loc.lat;
