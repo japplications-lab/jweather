@@ -181,6 +181,7 @@ let locationsData = [];
 let suggestions = [];
 let fuse = null;
 let latestAlerts = [];
+let latestLocation = null; // used for timezone
 
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
@@ -214,6 +215,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         && loc.zip && loc.zip.trim() === '31716'
                     );
                     if (defaultLoc) {
+                        latestLocation = defaultLoc;
                         searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
                         fetchWeatherForLocation(defaultLoc);
                         updateRadar(defaultLoc.lat, defaultLoc.lng);
@@ -305,6 +307,7 @@ document.addEventListener('click', function(e) {
     }
 });
 function selectSuggestion(loc) {
+    latestLocation = loc;
     searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
     suggestionsBox.classList.add('hidden');
     selectedSuggestion = -1;
@@ -341,6 +344,7 @@ useLocationBtn.addEventListener('click', function() {
                 ? nearestLoc
                 : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
 
+            latestLocation = locObj;
             searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
             fetchWeatherForLocation(locObj);
             updateRadar(locObj.lat, locObj.lng);
@@ -356,6 +360,7 @@ useLocationBtn.addEventListener('click', function() {
 });
 
 async function fetchWeatherForLocation(loc) {
+    latestLocation = loc;
     showSpinner();
     const lat = loc.lat;
     const lng = loc.lng;
@@ -485,17 +490,44 @@ function updateAlerts(alertsData) {
     });
 }
 
-function formatDateTime(dt) {
+// Use Intl.DateTimeFormat with timeZone argument
+function formatDateTimeWithZone(dt, tz) {
     if (!dt) return 'N/A';
-    const d = new Date(dt);
-    let hours = d.getHours();
-    const minutes = d.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12; if (hours === 0) hours = 12;
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return `${mm}-${dd}-${yyyy} ${hours}:${minutes} ${ampm}`;
+    if (!tz) tz = undefined;
+    try {
+        const d = new Date(dt);
+        const opts = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: tz
+        };
+        // "MM/DD/YYYY, HH:MM AM/PM"
+        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
+        // Convert to MM-DD-YYYY HH:MM AM/PM for consistency
+        let [date, time] = str.split(',');
+        if (date && time) {
+            const [mm, dd, yyyy] = date.split('/');
+            return `${mm}-${dd}-${yyyy} ${time.trim()}`;
+        }
+        return str;
+    } catch(e) {
+        return dt;
+    }
+}
+
+function getLocationTimeZone() {
+    // Try to use latestLocation
+    if (latestLocation && latestLocation.tz) return latestLocation.tz;
+    // fallback: try from alert (not available), or browser
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+        return undefined;
+    }
 }
 
 function showAlertDetail(idx) {
@@ -504,8 +536,10 @@ function showAlertDetail(idx) {
     const alert = latestAlerts[idx]?.properties;
     if (!alert) return;
 
-    const issued = alert.effective ? formatDateTime(alert.effective) : "N/A";
-    const expires = alert.expires ? formatDateTime(alert.expires) : "N/A";
+    const tz = getLocationTimeZone();
+    const tzLabel = tz ? tz.replace("_", " ") : "Local Timezone";
+    const issued = alert.effective ? formatDateTimeWithZone(alert.effective, tz) : "N/A";
+    const expires = alert.expires ? formatDateTimeWithZone(alert.expires, tz) : "N/A";
     const issuedBy = alert.senderName || "NWS Office";
 
     content.innerHTML = `
@@ -515,6 +549,7 @@ function showAlertDetail(idx) {
             <span class="block"><b>Issued:</b> ${issued}</span>
             <span class="block"><b>Expires:</b> ${expires}</span>
             <span class="block"><b>Issued By:</b> ${issuedBy}</span>
+            <span class="block"><b>Timezone:</b> ${tzLabel}</span>
           </div>
         </div>
         <hr class="my-3"/>
