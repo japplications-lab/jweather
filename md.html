@@ -12,6 +12,7 @@
     body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
     .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
     .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
+    /* Add any header-specific styles from index.html here */
   </style>
   <style>
     .outlook-btn-active {
@@ -20,11 +21,13 @@
       box-shadow: 0 0 0 2px var(--primary-color);
       border-color: var(--primary-color) !important;
     }
+    /* Add any custom header CSS from index.html here */
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-  <!-- HEADER (MATCHES index.html) -->
+
+  <!-- BEGIN HEADER: Copy-paste your exact header from index.html below -->
   <header class="bg-[var(--primary-color)] shadow-lg">
     <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4 md:gap-0">
       <!-- Left: Logo/Title -->
@@ -53,7 +56,7 @@
       </form>
     </div>
   </header>
-  <!-- END HEADER -->
+  <!-- END HEADER: If you have a different header in index.html, replace this whole block with that code -->
 
   <main class="flex-1">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -139,14 +142,11 @@ function getSPCImageUrls(day, hazard) {
   }
   if (day === 3) {
     if (hazard === "prob") {
-      // Try the current/modern layout first
       times3.forEach(t => urls.push(`${base}day3prob${t}.gif`));
       times3.forEach(t => urls.push(`${base}day3prob${t}.png`));
-      // Legacy/probabilistic-style
       times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
       times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
     } else if (hazard === "cat") {
-      // Legacy categorical files
       times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
       times3.forEach(t => urls.push(`${base}day3otlk${t}.png`));
       times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
@@ -219,7 +219,6 @@ function updateDaySection(section, hazard) {
   captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
 }
 
-// Setup per day
 daySections.forEach(section => {
   let defaultHazard = section.hazards[0];
   updateDaySection(section, defaultHazard);
