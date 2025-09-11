@@ -4,14 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>The jWeather - SPC Convective Outlooks</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet"/>
+  <!-- Open Sans font only -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <style type="text/tailwindcss">
     :root { --primary-color: #f10914; }
-    body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
+    body { font-family: "Open Sans", sans-serif; }
+    html { font-family: "Open Sans", sans-serif; }
     .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
     .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
     .suggestion-active { background-color: #f3f4f6; }
@@ -28,7 +30,6 @@
       box-shadow: 0 0 0 2px var(--primary-color);
       border-color: var(--primary-color) !important;
     }
-    /* Dropdown menu fixes for nav */
     .group:focus-within .group-hover\:opacity-100 { opacity: 1 !important; }
     .group:focus-within .group-hover\:pointer-events-auto { pointer-events: auto !important; }
   </style>
