@@ -12,8 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <style type="text/tailwindcss">
     :root { --primary-color: #f10914; }
-    body { font-family: "Open Sans", sans-serif; }
-    html { font-family: "Open Sans", sans-serif; }
+    body, html { font-family: "Open Sans", sans-serif; }
     .suggestion-active { background-color: #f3f4f6; }
     .suggestions-scroll::-webkit-scrollbar { width: 6px; }
     .suggestions-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
@@ -157,7 +156,7 @@
   </div>
 </div>
 <script>
-// --- Location/autocomplete setup and use location logic ---
+// --- Location/autocomplete setup and ALL WEATHER LOGIC ---
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
@@ -169,6 +168,7 @@ const suggestionsBox = document.getElementById('suggestions');
 const useLocationBtn = document.getElementById('use-location-btn');
 const spinnerOverlay = document.getElementById('spinner-overlay');
 
+// ---- On Page Load: load from localStorage if available ----
 window.addEventListener('DOMContentLoaded', () => {
     fetch('locations.csv')
         .then(res => res.text())
@@ -241,8 +241,10 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         });
 });
+
 function showSpinner() { spinnerOverlay.style.display = 'flex'; }
 function hideSpinner() { spinnerOverlay.style.display = 'none'; }
+
 function debounce(fn, delay) {
     let timeout;
     return function(...args) {
@@ -250,6 +252,7 @@ function debounce(fn, delay) {
         timeout = setTimeout(() => fn.apply(this, args), delay);
     };
 }
+
 function getSuggestions(query) {
     query = query.trim();
     if (!query || !fuse) return [];
@@ -316,11 +319,13 @@ document.addEventListener('click', function(e) {
     }
 });
 function selectSuggestion(loc) {
+    latestLocation = loc;
     searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
-    localStorage.setItem('jweather_search', searchBar.value);
     suggestionsBox.classList.add('hidden');
     selectedSuggestion = -1;
-    window.location.reload();
+    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+    fetchWeatherForLocation(loc);
+    updateRadar(loc.lat, loc.lng);
 }
 function handleSearchBarRedirect() {
     const val = searchBar.value.trim();
@@ -371,8 +376,268 @@ useLocationBtn.addEventListener('click', function() {
         }
     );
 });
-// ... rest of your index.html JS unchanged ...
+
+// --- ALL WEATHER LOGIC (unchanged) ---
+
+async function fetchWeatherForLocation(loc) {
+    latestLocation = loc;
+    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+    showSpinner();
+    const lat = loc.lat;
+    const lng = loc.lng;
+    try {
+        const pointsResp = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
+        if (!pointsResp.ok) throw new Error('Unable to find NWS location for this point.');
+        const pointsData = await pointsResp.json();
+        const obsStationsUrl = pointsData.properties.observationStations;
+        let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '';
+        if (obsStationsUrl) {
+            const stationsResp = await fetch(obsStationsUrl);
+            const stationsData = await stationsResp.json();
+            const firstStation = stationsData.features[0]?.properties?.stationIdentifier;
+            if (firstStation) {
+                const obsResp = await fetch(`https://api.weather.gov/stations/${firstStation}/observations/latest`);
+                const obsData = await obsResp.json();
+                const props = obsData.properties;
+                temp = props.temperature.value !== null ? `${Math.round((props.temperature.value * 9/5) + 32)}°F` : '--';
+                desc = props.textDescription || '--';
+                feelsLike = props.heatIndex.value !== null
+                    ? `Feels Like: ${Math.round((props.heatIndex.value * 9/5) + 32)}°F`
+                    : (props.windChill.value !== null
+                        ? `Feels Like: ${Math.round((props.windChill.value * 9/5) + 32)}°F`
+                        : `Feels Like: ${temp}`);
+                humidity = props.relativeHumidity.value !== null ? `Humidity: ${Math.round(props.relativeHumidity.value)}%` : 'Humidity: --';
+                wind = (props.windSpeed.value !== null && props.windDirection.value !== null)
+                    ? `Wind: ${Math.round(props.windSpeed.value * 2.237)} mph ${degToCompass(props.windDirection.value)}`
+                    : 'Wind: --';
+                icon = props.icon || '';
+            }
+        }
+        const forecastUrl = pointsData.properties.forecast;
+        let forecastPeriods = [];
+        if (forecastUrl) {
+            const forecastResp = await fetch(forecastUrl);
+            const forecastData = await forecastResp.json();
+            forecastPeriods = forecastData.properties.periods;
+        }
+        const alertsResp = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`);
+        const alertsData = await alertsResp.json();
+
+        updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, icon);
+        updateForecast(forecastPeriods);
+        updateAlerts(alertsData);
+    } catch (err) {
+        alert('Weather data could not be loaded for this location.');
+        console.error(err);
+    } finally {
+        hideSpinner();
+    }
+}
+function degToCompass(num) {
+    const val = Math.floor((num / 22.5) + 0.5);
+    const arr = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+        "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+    return arr[(val % 16)];
+}
+function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconUrl) {
+    document.getElementById('current-location-label').textContent = `${loc.city || ''}${loc.state_id ? ', ' + loc.state_id : ''} - Current Conditions`;
+    document.getElementById('current-temp').textContent = temp;
+    document.getElementById('current-desc').textContent = desc;
+    document.getElementById('current-feels-like').textContent = feelsLike;
+    document.getElementById('current-humidity').textContent = humidity;
+    document.getElementById('current-wind').textContent = wind;
+    document.getElementById('current-icon').src = getWeatherIcon(iconUrl, desc);
+}
+function getWeatherIcon(iconUrl, desc) {
+    if (iconUrl) return iconUrl.split('?')[0];
+    if (desc && desc.toLowerCase().includes('rain')) return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
+    if (desc && desc.toLowerCase().includes('cloud')) return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
+    if (desc && desc.toLowerCase().includes('clear')) return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
+    if (desc && desc.toLowerCase().includes('snow')) return "https://cdn-icons-png.flaticon.com/512/642/642102.png";
+    return "https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g";
+}
+function updateForecast(periods) {
+    const content = document.getElementById('forecast-content');
+    content.innerHTML = '';
+    if (!periods || !periods.length) {
+        content.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No forecast data.</td></tr>';
+        return;
+    }
+    const dayAbbr = {
+        "Monday": "Mon", "Tuesday": "Tue", "Wednesday": "Wed",
+        "Thursday": "Thu", "Friday": "Fri", "Saturday": "Sat", "Sunday": "Sun"
+    };
+    function abbrDayPeriod(name) {
+        for (const day in dayAbbr) {
+            if (name.startsWith(day)) {
+                return name.replace(day, dayAbbr[day]);
+            }
+        }
+        return name;
+    }
+    periods.forEach((period, idx) => {
+        const abbrName = abbrDayPeriod(period.name);
+        content.innerHTML += `
+        <tr class="${idx % 2 === 1 ? 'bg-blue-50' : 'bg-white'}">
+            <td class="py-2 px-4 font-bold text-gray-800 whitespace-nowrap align-middle" style="width: 90px;">${abbrName}</td>
+            <td class="py-2 px-2 align-middle" style="width: 60px;">
+                <img src="${period.icon.split('?')[0]}" alt="${period.shortForecast || period.detailedForecast}" class="w-10 h-10 mx-auto" loading="lazy"/>
+            </td>
+            <td class="py-2 px-4 text-gray-700 align-middle">${period.detailedForecast}</td>
+        </tr>
+        `;
+    });
+}
+function getLocationTimeZone() {
+    if (latestLocation && latestLocation.tz) return latestLocation.tz;
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+        return undefined;
+    }
+}
+function formatExpiresWithZone(dt, tz) {
+    if (!dt) return 'N/A';
+    try {
+        const d = new Date(dt);
+        const opts = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: tz
+        };
+        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
+        let [date, time] = str.split(',');
+        let abbr = '';
+        try {
+            abbr = d.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop();
+        } catch {}
+        abbr = abbr ? abbr.replace(/^GMT/, 'UTC') : (tz ? tz.replace("_", " ") : "");
+        if (date && time) {
+            return `${date.replace(/\//g, "/")} ${time.trim()} ${abbr}`;
+        }
+        return str;
+    } catch(e) {
+        return dt;
+    }
+}
+function updateAlerts(alertsData) {
+    latestAlerts = alertsData.features || [];
+    const content = document.getElementById('alerts-content');
+    content.innerHTML = '';
+    const tz = getLocationTimeZone();
+
+    if (!latestAlerts.length) {
+        content.innerHTML = `
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+          <div>
+            <p class="font-semibold text-gray-800">No active weather alerts</p>
+            <p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
+          </div>
+        </div>
+        `;
+    } else {
+        latestAlerts.forEach((alertFeature, idx) => {
+            const alert = alertFeature.properties;
+            const expires = alert.expires ? formatExpiresWithZone(alert.expires, tz) : "N/A";
+            content.innerHTML += `
+            <div class="flex items-start mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
+                <span class="material-symbols-outlined text-red-500 text-3xl mr-3 mt-1">warning</span>
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${alert.event}</p>
+                    <p class="text-gray-700 text-sm mb-1">Expires: ${expires}</p>
+                    <button class="view-alert-detail mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--primary-color)] text-white text-xs font-medium hover:bg-red-700 focus:outline-none" data-alert-idx="${idx}">
+                        View Detail
+                    </button>
+                </div>
+            </div>
+            `;
+        });
+    }
+    Array.from(content.getElementsByClassName('view-alert-detail')).forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = btn.getAttribute('data-alert-idx');
+            showAlertDetail(idx);
+        });
+    });
+}
+function formatDateTimeWithZone(dt, tz) {
+    if (!dt) return 'N/A';
+    if (!tz) tz = undefined;
+    try {
+        const d = new Date(dt);
+        const opts = {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: tz
+        };
+        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
+        let [date, time] = str.split(',');
+        if (date && time) {
+            const [mm, dd, yyyy] = date.split('/');
+            return `${mm}-${dd}-${yyyy} ${time.trim()}`;
+        }
+        return str;
+    } catch(e) {
+        return dt;
+    }
+}
+function showAlertDetail(idx) {
+    const overlay = document.getElementById('alert-detail-overlay');
+    const content = document.getElementById('alert-detail-content');
+    const alert = latestAlerts[idx]?.properties;
+    if (!alert) return;
+
+    const tz = getLocationTimeZone();
+    const tzLabel = tz ? tz.replace("_", " ") : "Local Timezone";
+    const issued = alert.effective ? formatDateTimeWithZone(alert.effective, tz) : "N/A";
+    const expires = alert.expires ? formatDateTimeWithZone(alert.expires, tz) : "N/A";
+    const issuedBy = alert.senderName || "NWS Office";
+
+    content.innerHTML = `
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-red-700 mb-1">${alert.event}</h3>
+          <div class="text-gray-700 text-sm">
+            <span class="block"><b>Issued:</b> ${issued}</span>
+            <span class="block"><b>Expires:</b> ${expires}</span>
+            <span class="block"><b>Issued By:</b> ${issuedBy}</span>
+            <span class="block"><b>Timezone:</b> ${tzLabel}</span>
+          </div>
+        </div>
+        <hr class="my-3"/>
+        <pre class="whitespace-pre-wrap text-gray-900 text-sm">${alert.description || ''}</pre>
+        ${alert.instruction ? `<hr class="my-3"/><div class="text-gray-900 text-sm"><b>Instruction:</b><br>${alert.instruction}</div>` : ''}
+        ${alert.web ? `<div class="mt-3"><a href="${alert.web}" target="_blank" class="text-blue-700 underline">More Info</a></div>` : ''}
+    `;
+    overlay.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+document.getElementById('alert-detail-close').addEventListener('click', function() {
+    document.getElementById('alert-detail-overlay').classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+});
+document.getElementById('alert-detail-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+});
+function updateRadar(lat, lng) {
+    lat = Number(lat);
+    lng = Number(lng);
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
+    }
+}
 </script>
-<!-- The rest of your weather/alerts/radar JS from your existing index.html follows here (unchanged) -->
 </body>
 </html>
