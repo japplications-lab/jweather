@@ -103,6 +103,9 @@
               <img id="img-day1" src="" alt="Day 1 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
             </div>
             <span id="caption-day1" class="mt-2 text-gray-600 text-sm block text-center"></span>
+            <button id="read-discussion-day1" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+              Read Discussion
+            </button>
           </div>
           <div id="day2-section" class="flex flex-col items-center">
             <h3 class="text-xl font-bold mb-2">Day 2 (Tomorrow)</h3>
@@ -116,6 +119,9 @@
               <img id="img-day2" src="" alt="Day 2 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
             </div>
             <span id="caption-day2" class="mt-2 text-gray-600 text-sm block text-center"></span>
+            <button id="read-discussion-day2" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+              Read Discussion
+            </button>
           </div>
           <div id="day3-section" class="flex flex-col items-center">
             <h3 class="text-xl font-bold mb-2">Day 3</h3>
@@ -127,6 +133,9 @@
               <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
             </div>
             <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
+            <button id="read-discussion-day3" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+              Read Discussion
+            </button>
           </div>
         </div>
         <div class="mt-6 text-center text-gray-500 text-xs">
@@ -135,6 +144,26 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- SPC Discussion Overlay -->
+<div id="spc-discussion-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+  <div class="relative bg-white rounded-2xl shadow-xl max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-6">
+    <button id="spc-discussion-close" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-3xl font-bold focus:outline-none" title="Close" aria-label="Close">
+      <span class="material-symbols-outlined text-3xl">close</span>
+    </button>
+    <div id="spc-discussion-content" class="mt-2">
+      <h3 id="spc-discussion-title" class="text-xl font-bold mb-4 text-gray-900"></h3>
+      <div id="spc-discussion-text" class="text-gray-800 text-sm whitespace-pre-wrap font-mono leading-relaxed"></div>
+      <div id="spc-discussion-loading" class="flex items-center justify-center py-8 hidden">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="ml-3 text-gray-600">Loading discussion...</span>
+      </div>
+      <div id="spc-discussion-error" class="text-red-600 text-center py-4 hidden">
+        <p>Unable to load discussion text. Please try again later.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -419,6 +448,145 @@ daySections.forEach(section => {
       updateDaySection(section, hazard);
     });
   });
+});
+</script>
+
+<script>
+// --- SPC Discussion Feature ---
+const discussionUrls = {
+  1: 'https://www.spc.noaa.gov/products/outlook/day1otlk.txt',
+  2: 'https://www.spc.noaa.gov/products/outlook/day2otlk.txt',
+  3: 'https://www.spc.noaa.gov/products/outlook/day3otlk.txt'
+};
+
+const dayLabels = {
+  1: 'Day 1 (Today)',
+  2: 'Day 2 (Tomorrow)', 
+  3: 'Day 3'
+};
+
+let currentFocusedElement = null;
+
+function showDiscussionOverlay(day) {
+  const overlay = document.getElementById('spc-discussion-overlay');
+  const titleEl = document.getElementById('spc-discussion-title');
+  const textEl = document.getElementById('spc-discussion-text');
+  const loadingEl = document.getElementById('spc-discussion-loading');
+  const errorEl = document.getElementById('spc-discussion-error');
+  
+  // Store current focused element for accessibility
+  currentFocusedElement = document.activeElement;
+  
+  // Set title
+  titleEl.textContent = `SPC Discussion - ${dayLabels[day]}`;
+  
+  // Show overlay and loading state
+  overlay.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
+  loadingEl.classList.remove('hidden');
+  textEl.classList.add('hidden');
+  errorEl.classList.add('hidden');
+  
+  // Focus on close button for accessibility
+  setTimeout(() => {
+    document.getElementById('spc-discussion-close').focus();
+  }, 100);
+  
+  // Fetch discussion text
+  fetchDiscussionText(day)
+    .then(text => {
+      loadingEl.classList.add('hidden');
+      textEl.textContent = text;
+      textEl.classList.remove('hidden');
+    })
+    .catch(error => {
+      loadingEl.classList.add('hidden');
+      errorEl.classList.remove('hidden');
+      console.error('Failed to fetch SPC discussion:', error);
+    });
+}
+
+function hideDiscussionOverlay() {
+  const overlay = document.getElementById('spc-discussion-overlay');
+  overlay.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+  
+  // Restore focus for accessibility
+  if (currentFocusedElement) {
+    currentFocusedElement.focus();
+    currentFocusedElement = null;
+  }
+}
+
+async function fetchDiscussionText(day) {
+  const url = discussionUrls[day];
+  if (!url) {
+    throw new Error(`No discussion URL for day ${day}`);
+  }
+  
+  try {
+    const response = await fetch(url, {
+      mode: 'cors',
+      headers: {
+        'Accept': 'text/plain'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const text = await response.text();
+    return text.trim() || 'No discussion text available.';
+  } catch (error) {
+    // If CORS fails, provide a fallback message
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      return `Discussion text is available at: ${url}\n\nDue to browser security restrictions, the text cannot be displayed directly. Please visit the link above to read the full discussion.`;
+    }
+    throw error;
+  }
+}
+
+// Event listeners for discussion buttons
+document.getElementById('read-discussion-day1').addEventListener('click', () => showDiscussionOverlay(1));
+document.getElementById('read-discussion-day2').addEventListener('click', () => showDiscussionOverlay(2));
+document.getElementById('read-discussion-day3').addEventListener('click', () => showDiscussionOverlay(3));
+
+// Close button event listener
+document.getElementById('spc-discussion-close').addEventListener('click', hideDiscussionOverlay);
+
+// Click outside to close
+document.getElementById('spc-discussion-overlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    hideDiscussionOverlay();
+  }
+});
+
+// ESC key to close
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const overlay = document.getElementById('spc-discussion-overlay');
+    if (!overlay.classList.contains('hidden')) {
+      hideDiscussionOverlay();
+    }
+  }
+});
+
+// Focus trap for accessibility
+document.getElementById('spc-discussion-overlay').addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    const focusableElements = this.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    if (e.shiftKey && document.activeElement === firstElement) {
+      e.preventDefault();
+      lastElement.focus();
+    } else if (!e.shiftKey && document.activeElement === lastElement) {
+      e.preventDefault();
+      firstElement.focus();
+    }
+  }
 });
 </script>
 </body>
