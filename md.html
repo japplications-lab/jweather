@@ -4,18 +4,14 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>The jWeather - SPC Convective Outlooks</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <style type="text/tailwindcss">
     :root { --primary-color: #f10914; }
-    body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
+    body { font-family: "Open Sans", Arial, sans-serif; }
     .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
     .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
-    @media (max-width: 767px) {
-      .nav-menu, .header-search { width: 100%; justify-content: center; }
-      .header-search { margin-top: 0.5rem; }
-    }
   </style>
   <style>
     .outlook-btn-active {
@@ -27,348 +23,337 @@
     .nav-link-active {
       text-decoration: underline;
       text-underline-offset: 4px;
+      font-weight: 700;
     }
     .modal-backdrop { background: rgba(0,0,0,0.6); }
     .modal-content pre { white-space: pre-wrap; font-family: inherit; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
 
-  <!-- BEGIN HEADER: Matches index.html style -->
-  <header class="bg-[var(--primary-color)] shadow-lg">
-    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-2 md:gap-0">
-      <!-- Logo/Title -->
-      <div class="flex items-center gap-3 text-white flex-shrink-0 mb-2 md:mb-0">
-        <span class="material-symbols-outlined text-4xl">wb_sunny</span>
-        <a href="index.html" class="text-2xl font-bold tracking-tight hover:underline">The jWeather</a>
+    <!-- BEGIN HEADER matching index.html style with Open Sans -->
+    <header class="bg-[var(--primary-color)] shadow-lg">
+      <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-0">
+        <!-- Logo/Title -->
+        <div class="flex items-center gap-3 text-white flex-shrink-0 mb-2 md:mb-0">
+          <span class="material-symbols-outlined text-4xl">wb_sunny</span>
+          <a href="index.html" class="text-2xl font-bold tracking-tight hover:underline font-sans" style="font-family:'Open Sans',Arial,sans-serif">The jWeather</a>
+        </div>
+        <!-- Navigation Menu -->
+        <nav class="flex flex-row gap-4 md:gap-6 items-center justify-center flex-1">
+          <a href="index.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link font-sans" style="font-family:'Open Sans',Arial,sans-serif">Home</a>
+          <a href="forecast.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link font-sans" style="font-family:'Open Sans',Arial,sans-serif">Forecast</a>
+          <a href="radar.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link font-sans" style="font-family:'Open Sans',Arial,sans-serif">Radar</a>
+          <a href="outlooks.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link nav-link-active font-sans" style="font-family:'Open Sans',Arial,sans-serif">Outlooks</a>
+        </nav>
+        <!-- Search Bar -->
+        <form class="flex items-center w-full md:w-auto max-w-xs md:max-w-none mt-2 md:mt-0" action="search.html" method="get" autocomplete="off">
+          <input
+            type="text"
+            name="q"
+            placeholder="Search weather, city, etc..."
+            class="w-full md:w-56 px-3 py-1.5 rounded-l border-0 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-white font-sans"
+            style="font-family:'Open Sans',Arial,sans-serif"
+          />
+          <button type="submit" class="bg-white text-[var(--primary-color)] px-3 py-1.5 rounded-r font-bold border-0 hover:bg-gray-100 focus:outline-none">
+            <span class="material-symbols-outlined align-middle text-xl">search</span>
+          </button>
+        </form>
       </div>
-      <!-- Navigation Menu -->
-      <nav class="nav-menu flex flex-row gap-4 md:gap-6 items-center justify-center flex-1">
-        <a href="index.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link">Home</a>
-        <a href="forecast.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link">Forecast</a>
-        <a href="radar.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link">Radar</a>
-        <a href="outlooks.html" class="text-white hover:text-gray-200 text-lg font-semibold transition nav-link nav-link-active">Outlooks</a>
-      </nav>
-      <!-- Search Bar -->
-      <form class="header-search flex items-center w-full md:w-auto max-w-xs md:max-w-none mt-2 md:mt-0" action="search.html" method="get" autocomplete="off">
-        <input
-          type="text"
-          name="q"
-          placeholder="Search weather, city, etc..."
-          class="w-full md:w-56 px-3 py-1.5 rounded-l border-0 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
-        />
-        <button type="submit" class="bg-white text-[var(--primary-color)] px-3 py-1.5 rounded-r font-bold border-0 hover:bg-gray-100 focus:outline-none">
-          <span class="material-symbols-outlined align-middle text-xl">search</span>
-        </button>
-      </form>
-    </div>
-  </header>
-  <!-- END HEADER -->
+    </header>
+    <!-- END HEADER -->
 
-  <main class="flex-1">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-2xl font-bold mb-8 text-gray-900">SPC Convective Outlooks</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div id="day1-section" class="flex flex-col items-center">
-            <h3 class="text-xl font-bold mb-2">Day 1 (Today)</h3>
-            <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="1" data-hazard="cat">Overall</button>
-              <button class="outlook-btn" data-day="1" data-hazard="torn">Tornado</button>
-              <button class="outlook-btn" data-day="1" data-hazard="wind">Wind</button>
-              <button class="outlook-btn" data-day="1" data-hazard="hail">Hail</button>
+    <main class="flex-1">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h2 class="text-2xl font-bold mb-8 text-gray-900 font-sans" style="font-family:'Open Sans',Arial,sans-serif">SPC Convective Outlooks</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div id="day1-section" class="flex flex-col items-center">
+              <h3 class="text-xl font-bold mb-2 font-sans">Day 1 (Today)</h3>
+              <div class="flex gap-2 mb-2">
+                <button class="outlook-btn outlook-btn-active" data-day="1" data-hazard="cat">Overall</button>
+                <button class="outlook-btn" data-day="1" data-hazard="torn">Tornado</button>
+                <button class="outlook-btn" data-day="1" data-hazard="wind">Wind</button>
+                <button class="outlook-btn" data-day="1" data-hazard="hail">Hail</button>
+              </div>
+              <div class="w-full flex justify-center items-center min-h-[240px]">
+                <img id="img-day1" src="" alt="Day 1 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+              </div>
+              <span id="caption-day1" class="mt-2 text-gray-600 text-sm block text-center"></span>
+              <button
+                class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
+                data-day="1"
+              >
+                Read Discussion
+              </button>
             </div>
-            <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day1" src="" alt="Day 1 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+            <div id="day2-section" class="flex flex-col items-center">
+              <h3 class="text-xl font-bold mb-2 font-sans">Day 2 (Tomorrow)</h3>
+              <div class="flex gap-2 mb-2">
+                <button class="outlook-btn outlook-btn-active" data-day="2" data-hazard="cat">Overall</button>
+                <button class="outlook-btn" data-day="2" data-hazard="torn">Tornado</button>
+                <button class="outlook-btn" data-day="2" data-hazard="wind">Wind</button>
+                <button class="outlook-btn" data-day="2" data-hazard="hail">Hail</button>
+              </div>
+              <div class="w-full flex justify-center items-center min-h-[240px]">
+                <img id="img-day2" src="" alt="Day 2 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+              </div>
+              <span id="caption-day2" class="mt-2 text-gray-600 text-sm block text-center"></span>
+              <button
+                class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
+                data-day="2"
+              >
+                Read Discussion
+              </button>
             </div>
-            <span id="caption-day1" class="mt-2 text-gray-600 text-sm block text-center"></span>
-            <button
-              class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
-              data-day="1"
-            >
-              Read Discussion
-            </button>
+            <div id="day3-section" class="flex flex-col items-center">
+              <h3 class="text-xl font-bold mb-2 font-sans">Day 3</h3>
+              <div class="flex gap-2 mb-2">
+                <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="cat">Overall</button>
+                <button class="outlook-btn" data-day="3" data-hazard="prob">Probabilistic</button>
+              </div>
+              <div class="w-full flex justify-center items-center min-h-[240px]">
+                <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+              </div>
+              <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
+              <button
+                class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
+                data-day="3"
+              >
+                Read Discussion
+              </button>
+            </div>
           </div>
-          <div id="day2-section" class="flex flex-col items-center">
-            <h3 class="text-xl font-bold mb-2">Day 2 (Tomorrow)</h3>
-            <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="2" data-hazard="cat">Overall</button>
-              <button class="outlook-btn" data-day="2" data-hazard="torn">Tornado</button>
-              <button class="outlook-btn" data-day="2" data-hazard="wind">Wind</button>
-              <button class="outlook-btn" data-day="2" data-hazard="hail">Hail</button>
-            </div>
-            <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day2" src="" alt="Day 2 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
-            </div>
-            <span id="caption-day2" class="mt-2 text-gray-600 text-sm block text-center"></span>
-            <button
-              class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
-              data-day="2"
-            >
-              Read Discussion
-            </button>
-          </div>
-          <div id="day3-section" class="flex flex-col items-center">
-            <h3 class="text-xl font-bold mb-2">Day 3</h3>
-            <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="cat">Overall</button>
-              <button class="outlook-btn" data-day="3" data-hazard="prob">Probabilistic</button>
-            </div>
-            <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
-            </div>
-            <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
-            <button
-              class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
-              data-day="3"
-            >
-              Read Discussion
-            </button>
+          <div class="mt-6 text-center text-gray-500 text-xs">
+            <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: NOAA/NWS Storm Prediction Center</a>
           </div>
         </div>
-        <div class="mt-6 text-center text-gray-500 text-xs">
-          <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: NOAA/NWS Storm Prediction Center</a>
-        </div>
       </div>
-    </div>
-  </main>
-</div>
+    </main>
+  </div>
 
-<!-- Modal Overlay -->
-<div id="discussion-modal-backdrop" class="fixed inset-0 z-40 flex items-center justify-center modal-backdrop hidden">
-  <div
-    id="discussion-modal"
-    class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-6 relative z-50"
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
-  >
-    <button
-      id="close-modal-btn"
-      class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none"
-      aria-label="Close"
-      type="button"
-    >&#10005;</button>
-    <h3 id="discussion-modal-title" class="text-xl font-bold mb-4 text-blue-800">SPC Outlook Discussion</h3>
-    <div id="discussion-modal-body" class="overflow-y-auto max-h-96">
-      <div class="flex items-center justify-center text-gray-500 text-lg h-40" id="discussion-loading">Loading...</div>
-      <pre id="discussion-text" class="text-gray-800 text-sm leading-relaxed hidden"></pre>
-      <div id="discussion-error" class="text-red-600 hidden"></div>
+  <!-- Modal Overlay -->
+  <div id="discussion-modal-backdrop" class="fixed inset-0 z-40 flex items-center justify-center modal-backdrop hidden">
+    <div
+      id="discussion-modal"
+      class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-6 relative z-50"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
+      <button
+        id="close-modal-btn"
+        class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none"
+        aria-label="Close"
+        type="button"
+      >&#10005;</button>
+      <h3 id="discussion-modal-title" class="text-xl font-bold mb-4 text-blue-800">SPC Outlook Discussion</h3>
+      <div id="discussion-modal-body" class="overflow-y-auto max-h-96">
+        <div class="flex items-center justify-center text-gray-500 text-lg h-40" id="discussion-loading">Loading...</div>
+        <pre id="discussion-text" class="text-gray-800 text-sm leading-relaxed hidden"></pre>
+        <div id="discussion-error" class="text-red-600 hidden"></div>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-function getSPCImageUrls(day, hazard) {
-  const base = "https://www.spc.noaa.gov/products/outlook/";
-  let times1 = ["_1630", "_1300", "_0600", "_0100"];
-  let times2 = ["_1730", "_1300", "_0600", "_0100"];
-  let times3 = ["_1930", "_0730", "_0100"];
-  let urls = [];
-
-  if (day === 1) {
-    if (hazard === "cat") {
-      times1.forEach(t => urls.push(`${base}day1otlk${t}.gif`));
-      times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.gif`));
-      times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
-      times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
-      times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
-    } else if (["torn","wind","hail"].includes(hazard)) {
-      times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.gif`));
-      times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.png`));
+  <script>
+    // ... JavaScript from previous answer is unchanged ...
+    // --- Dynamic SPC Image Logic ---
+    function getSPCImageUrls(day, hazard) {
+      const base = "https://www.spc.noaa.gov/products/outlook/";
+      let times1 = ["_1630", "_1300", "_0600", "_0100"];
+      let times2 = ["_1730", "_1300", "_0600", "_0100"];
+      let times3 = ["_1930", "_0730", "_0100"];
+      let urls = [];
+      if (day === 1) {
+        if (hazard === "cat") {
+          times1.forEach(t => urls.push(`${base}day1otlk${t}.gif`));
+          times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.gif`));
+          times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
+          times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
+          times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
+        } else if (["torn","wind","hail"].includes(hazard)) {
+          times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.gif`));
+          times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.png`));
+        }
+      }
+      if (day === 2) {
+        if (hazard === "cat") {
+          times2.forEach(t => urls.push(`${base}day2otlk${t}.gif`));
+          times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.gif`));
+          times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
+          times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
+          times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
+        } else if (["torn","wind","hail"].includes(hazard)) {
+          times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.gif`));
+          times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.png`));
+        }
+      }
+      if (day === 3) {
+        if (hazard === "prob") {
+          times3.forEach(t => urls.push(`${base}day3prob${t}.gif`));
+          times3.forEach(t => urls.push(`${base}day3prob${t}.png`));
+          times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+          times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+        } else if (hazard === "cat") {
+          times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
+          times3.forEach(t => urls.push(`${base}day3otlk${t}.png`));
+          times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
+          times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
+          times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
+          times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
+        }
+      }
+      return urls;
     }
-  }
-  if (day === 2) {
-    if (hazard === "cat") {
-      times2.forEach(t => urls.push(`${base}day2otlk${t}.gif`));
-      times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.gif`));
-      times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
-      times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
-      times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
-    } else if (["torn","wind","hail"].includes(hazard)) {
-      times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.gif`));
-      times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.png`));
+    function trySPCImage(day, hazard, callback) {
+      const urls = getSPCImageUrls(day, hazard);
+      let idx = 0;
+      function tryNext() {
+        if (idx >= urls.length) {
+          callback(""); // Not found
+          return;
+        }
+        const img = new window.Image();
+        img.onload = () => callback(urls[idx]);
+        img.onerror = () => { idx++; tryNext(); };
+        img.src = urls[idx];
+      }
+      tryNext();
     }
-  }
-  if (day === 3) {
-    if (hazard === "prob") {
-      times3.forEach(t => urls.push(`${base}day3prob${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3prob${t}.png`));
-      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
-    } else if (hazard === "cat") {
-      times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk${t}.png`));
-      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
-      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
-      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
+    const daySections = [
+      {day: 1, imgId: "img-day1", captionId: "caption-day1", sectionId: "day1-section", hazards: ["cat", "torn", "wind", "hail"]},
+      {day: 2, imgId: "img-day2", captionId: "caption-day2", sectionId: "day2-section", hazards: ["cat", "torn", "wind", "hail"]},
+      {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["cat", "prob"]}
+    ];
+    const hazardCaptions = {
+      cat: "SPC Categorical Outlook",
+      prob: "SPC Probabilistic Outlook",
+      torn: "SPC Tornado Probability",
+      wind: "SPC Damaging Wind Probability",
+      hail: "SPC Large Hail Probability"
+    };
+    function setActiveButton(section, activeHazard) {
+      const buttons = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
+      buttons.forEach(btn => {
+        if (btn.getAttribute("data-hazard") === activeHazard) {
+          btn.classList.add("outlook-btn-active");
+        } else {
+          btn.classList.remove("outlook-btn-active");
+        }
+      });
     }
-  }
-  return urls;
-}
-
-function trySPCImage(day, hazard, callback) {
-  const urls = getSPCImageUrls(day, hazard);
-  let idx = 0;
-  function tryNext() {
-    if (idx >= urls.length) {
-      callback(""); // Not found
-      return;
-    }
-    const img = new window.Image();
-    img.onload = () => callback(urls[idx]);
-    img.onerror = () => { idx++; tryNext(); };
-    img.src = urls[idx];
-  }
-  tryNext();
-}
-
-const daySections = [
-  {day: 1, imgId: "img-day1", captionId: "caption-day1", sectionId: "day1-section", hazards: ["cat", "torn", "wind", "hail"]},
-  {day: 2, imgId: "img-day2", captionId: "caption-day2", sectionId: "day2-section", hazards: ["cat", "torn", "wind", "hail"]},
-  {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["cat", "prob"]}
-];
-
-const hazardCaptions = {
-  cat: "SPC Categorical Outlook",
-  prob: "SPC Probabilistic Outlook",
-  torn: "SPC Tornado Probability",
-  wind: "SPC Damaging Wind Probability",
-  hail: "SPC Large Hail Probability"
-};
-
-function setActiveButton(section, activeHazard) {
-  const buttons = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
-  buttons.forEach(btn => {
-    if (btn.getAttribute("data-hazard") === activeHazard) {
-      btn.classList.add("outlook-btn-active");
-    } else {
-      btn.classList.remove("outlook-btn-active");
-    }
-  });
-}
-
-function updateDaySection(section, hazard) {
-  setActiveButton(section, hazard);
-  const imgEl = document.getElementById(section.imgId);
-  const captionEl = document.getElementById(section.captionId);
-  imgEl.src = "";
-  imgEl.alt = "Loading outlook image...";
-  trySPCImage(section.day, hazard, function(imgUrl) {
-    if (imgUrl) {
-      imgEl.src = imgUrl;
-      imgEl.alt = "SPC Outlook";
-    } else {
+    function updateDaySection(section, hazard) {
+      setActiveButton(section, hazard);
+      const imgEl = document.getElementById(section.imgId);
+      const captionEl = document.getElementById(section.captionId);
       imgEl.src = "";
-      imgEl.alt = "No outlook image available";
+      imgEl.alt = "Loading outlook image...";
+      trySPCImage(section.day, hazard, function(imgUrl) {
+        if (imgUrl) {
+          imgEl.src = imgUrl;
+          imgEl.alt = "SPC Outlook";
+        } else {
+          imgEl.src = "";
+          imgEl.alt = "No outlook image available";
+        }
+      });
+      let dayLabel = section.day === 1 ? "Today" : (section.day === 2 ? "Tomorrow" : "Day 3");
+      let hazardLabel = hazardCaptions[hazard] || "SPC Outlook";
+      captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
     }
-  });
-  let dayLabel = section.day === 1 ? "Today" : (section.day === 2 ? "Tomorrow" : "Day 3");
-  let hazardLabel = hazardCaptions[hazard] || "SPC Outlook";
-  captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
-}
-
-daySections.forEach(section => {
-  let defaultHazard = section.hazards[0];
-  updateDaySection(section, defaultHazard);
-
-  const btns = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
-  btns.forEach(btn => {
-    btn.addEventListener("click", function() {
-      const hazard = btn.getAttribute("data-hazard");
-      updateDaySection(section, hazard);
+    daySections.forEach(section => {
+      let defaultHazard = section.hazards[0];
+      updateDaySection(section, defaultHazard);
+      const btns = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
+      btns.forEach(btn => {
+        btn.addEventListener("click", function() {
+          const hazard = btn.getAttribute("data-hazard");
+          updateDaySection(section, hazard);
+        });
+      });
     });
-  });
-});
 
-// --- SPC DISCUSSION MODAL LOGIC ---
-
-const spcDiscussionURLs = {
-  1: "https://www.spc.noaa.gov/products/outlook/day1otlk.txt",
-  2: "https://www.spc.noaa.gov/products/outlook/day2otlk.txt",
-  3: "https://www.spc.noaa.gov/products/outlook/day3otlk.txt",
-};
-
-const modalBackdrop = document.getElementById('discussion-modal-backdrop');
-const modal = document.getElementById('discussion-modal');
-const modalTitle = document.getElementById('discussion-modal-title');
-const modalBody = document.getElementById('discussion-modal-body');
-const modalLoading = document.getElementById('discussion-loading');
-const modalText = document.getElementById('discussion-text');
-const modalError = document.getElementById('discussion-error');
-const closeModalBtn = document.getElementById('close-modal-btn');
-
-document.querySelectorAll('.read-discussion-btn').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const day = btn.getAttribute('data-day');
-    openModal(`Day ${day} Outlook Discussion`);
-    await fetchAndDisplayDiscussion(day);
-  });
-});
-
-function openModal(title) {
-  modalTitle.textContent = title;
-  modalLoading.classList.remove('hidden');
-  modalText.classList.add('hidden');
-  modalError.classList.add('hidden');
-  modalBackdrop.classList.remove('hidden');
-  modal.setAttribute('tabindex', '-1');
-  setTimeout(() => { modal.focus(); }, 0);
-  document.body.classList.add('overflow-hidden');
-}
-function closeModal() {
-  modalBackdrop.classList.add('hidden');
-  document.body.classList.remove('overflow-hidden');
-  modalText.textContent = '';
-  modalError.textContent = '';
-}
-document.addEventListener('keydown', (e) => {
-  if (!modalBackdrop.classList.contains('hidden') && e.key === 'Escape') {
-    closeModal();
-  }
-});
-modalBackdrop.addEventListener('mousedown', (e) => {
-  if (e.target === modalBackdrop) {
-    closeModal();
-  }
-});
-closeModalBtn.addEventListener('click', closeModal);
-
-modalBackdrop.addEventListener('keydown', function(e) {
-  if (e.key !== 'Tab') return;
-  const focusable = modal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (!e.shiftKey && document.activeElement === last) {
-    e.preventDefault(); first.focus();
-  } else if (e.shiftKey && document.activeElement === first) {
-    e.preventDefault(); last.focus();
-  }
-});
-
-async function fetchAndDisplayDiscussion(day) {
-  modalLoading.classList.remove('hidden');
-  modalText.classList.add('hidden');
-  modalError.classList.add('hidden');
-  modalText.textContent = '';
-  modalError.textContent = '';
-
-  try {
-    const url = spcDiscussionURLs[day];
-    const response = await fetch(url, { cache: "reload" });
-    if (!response.ok) throw new Error("Could not fetch discussion.");
-    const text = await response.text();
-    modalText.textContent = text.trim();
-    modalLoading.classList.add('hidden');
-    modalText.classList.remove('hidden');
-  } catch (err) {
-    modalLoading.classList.add('hidden');
-    modalError.textContent = "Sorry, the discussion could not be loaded.";
-    modalError.classList.remove('hidden');
-  }
-}
-</script>
+    // --- SPC DISCUSSION MODAL LOGIC ---
+    const spcDiscussionURLs = {
+      1: "https://www.spc.noaa.gov/products/outlook/day1otlk.txt",
+      2: "https://www.spc.noaa.gov/products/outlook/day2otlk.txt",
+      3: "https://www.spc.noaa.gov/products/outlook/day3otlk.txt",
+    };
+    const modalBackdrop = document.getElementById('discussion-modal-backdrop');
+    const modal = document.getElementById('discussion-modal');
+    const modalTitle = document.getElementById('discussion-modal-title');
+    const modalBody = document.getElementById('discussion-modal-body');
+    const modalLoading = document.getElementById('discussion-loading');
+    const modalText = document.getElementById('discussion-text');
+    const modalError = document.getElementById('discussion-error');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    document.querySelectorAll('.read-discussion-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const day = btn.getAttribute('data-day');
+        openModal(`Day ${day} Outlook Discussion`);
+        await fetchAndDisplayDiscussion(day);
+      });
+    });
+    function openModal(title) {
+      modalTitle.textContent = title;
+      modalLoading.classList.remove('hidden');
+      modalText.classList.add('hidden');
+      modalError.classList.add('hidden');
+      modalBackdrop.classList.remove('hidden');
+      modal.setAttribute('tabindex', '-1');
+      setTimeout(() => { modal.focus(); }, 0);
+      document.body.classList.add('overflow-hidden');
+    }
+    function closeModal() {
+      modalBackdrop.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+      modalText.textContent = '';
+      modalError.textContent = '';
+    }
+    document.addEventListener('keydown', (e) => {
+      if (!modalBackdrop.classList.contains('hidden') && e.key === 'Escape') {
+        closeModal();
+      }
+    });
+    modalBackdrop.addEventListener('mousedown', (e) => {
+      if (e.target === modalBackdrop) {
+        closeModal();
+      }
+    });
+    closeModalBtn.addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('keydown', function(e) {
+      if (e.key !== 'Tab') return;
+      const focusable = modal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      }
+    });
+    async function fetchAndDisplayDiscussion(day) {
+      modalLoading.classList.remove('hidden');
+      modalText.classList.add('hidden');
+      modalError.classList.add('hidden');
+      modalText.textContent = '';
+      modalError.textContent = '';
+      try {
+        const url = spcDiscussionURLs[day];
+        const response = await fetch(url, { cache: "reload" });
+        if (!response.ok) throw new Error("Could not fetch discussion.");
+        const text = await response.text();
+        modalText.textContent = text.trim();
+        modalLoading.classList.add('hidden');
+        modalText.classList.remove('hidden');
+      } catch (err) {
+        modalLoading.classList.add('hidden');
+        modalError.textContent = "Sorry, the discussion could not be loaded.";
+        modalError.classList.remove('hidden');
+      }
+    }
+  </script>
 </body>
 </html>
