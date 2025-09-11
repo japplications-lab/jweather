@@ -138,12 +138,13 @@
 </div>
 
 <script>
-// --- Search bar autocomplete for city/state/zip with redirect to index.html ---
+// --- Autocomplete and Use Location logic (matches index.html) ---
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
+const useLocationBtn = document.getElementById('use-location-btn');
 
 // Helper debounce
 function debounce(fn, delay) {
@@ -220,7 +221,6 @@ document.addEventListener('click', function(e) {
         selectedSuggestion = -1;
     }
 });
-// --- Redirect logic ---
 function selectSuggestion(loc) {
     const searchString = `${loc.city}, ${loc.state_id} (${loc.zip})`;
     localStorage.setItem('jweather_search', searchString);
@@ -259,6 +259,48 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         });
 });
+
+// --- Use Location button logic ---
+if (useLocationBtn) {
+  useLocationBtn.addEventListener('click', function() {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    useLocationBtn.disabled = true;
+    useLocationBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Locating...';
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        let nearestLoc = null;
+        let minDist = Infinity;
+        if (Array.isArray(locationsData) && locationsData.length > 0) {
+          locationsData.forEach(loc => {
+            if (!loc.lat || !loc.lng) return;
+            const dlat = Number(loc.lat) - lat;
+            const dlng = Number(loc.lng) - lng;
+            const dist = Math.sqrt(dlat * dlat + dlng * dlng);
+            if (dist < minDist) {
+              minDist = dist;
+              nearestLoc = loc;
+            }
+          });
+        }
+        let locObj = nearestLoc && minDist < 0.2
+          ? nearestLoc
+          : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
+        localStorage.setItem('jweather_last_location', JSON.stringify(locObj));
+        window.location.href = "index.html";
+      },
+      function(error) {
+        alert('Unable to retrieve your location.');
+        useLocationBtn.disabled = false;
+        useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+      }
+    );
+  });
+}
 </script>
 <script>
 // ---- Severe Outlook Logic (unchanged) ----
