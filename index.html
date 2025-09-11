@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>The jWeather</title>
+  <title>The jWeather - SPC Convective Outlooks</title>
   <!-- Open Sans font only -->
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -14,23 +13,30 @@
   <style type="text/tailwindcss">
     :root { --primary-color: #f10914; }
     body, html { font-family: "Open Sans", sans-serif; }
+    .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
+    .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
     .suggestion-active { background-color: #f3f4f6; }
     .suggestions-scroll::-webkit-scrollbar { width: 6px; }
     .suggestions-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
-    #forecast-section table { border-collapse: separate; border-spacing: 0; width: 100%; }
-    #forecast-section th, #forecast-section td { border: none; }
-    #forecast-section tr { transition: background 0.2s; }
-    #spinner-overlay .spinner-sun-rays line { stroke: #f10914; }
-    #spinner-overlay .spinner-sun-core { fill: #f10914; stroke: #f10914; }
     html { scroll-behavior: smooth; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .animate-spin { animation: spin 1.1s linear infinite; }
-    .wi { vertical-align: middle; }
+  </style>
+  <style>
+    .outlook-btn-active {
+      background-color: var(--primary-color) !important;
+      color: #fff !important;
+      box-shadow: 0 0 0 2px var(--primary-color);
+      border-color: var(--primary-color) !important;
+    }
+    .group:focus-within .group-hover\:opacity-100 { opacity: 1 !important; }
+    .group:focus-within .group-hover\:pointer-events-auto { pointer-events: auto !important; }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-  <!-- HEADER -->
+  <!-- HEADER (matches index.html) -->
+  <!-- ... header unchanged ... -->
   <header class="bg-[var(--primary-color)] shadow-lg">
     <div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
       <div class="flex items-center gap-8">
@@ -61,7 +67,7 @@
               <span class="material-symbols-outlined text-base">expand_more</span>
             </button>
             <div class="absolute left-0 top-full w-56 bg-white rounded-lg shadow-lg py-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto z-50 transition">
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100 font-semibold" href="md.html">Severe Outlook</a>
+              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100 font-semibold" href="md.html" style="background:#f3f4f6;">Severe Outlook</a>
               <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="reports.html">Storm Reports</a>
               <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="parameters.html">Severe Parameters</a>
               <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="101.html">Severe Weather 101</a>
@@ -79,197 +85,67 @@
       </div>
     </div>
   </header>
-  <!-- MAIN CONTENT -->
+
   <main class="flex-1">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="space-y-8">
-          <!-- Current Conditions -->
-          <div class="bg-white rounded-lg shadow-lg p-6" id="current-conditions-section">
-            <h2 class="text-2xl font-bold mb-4 text-gray-900" id="current-location-label">Loading...</h2>
-            <div class="flex items-start justify-between gap-6">
-              <div class="flex-1">
-                <p class="text-7xl font-bold text-gray-900 flex items-center gap-2">
-                  <i id="current-icon" class="wi wi-day-sunny text-7xl"></i>
-                  <span id="current-temp">--</span>
-                </p>
-                <p class="text-xl text-gray-600 mt-2" id="current-desc">--</p>
-                <div class="mt-4 space-y-2 text-gray-500">
-                  <p id="current-feels-like">--</p>
-                  <p id="current-humidity">--</p>
-                  <p id="current-wind">--</p>
-                </div>
-              </div>
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-8 text-gray-900">SPC Convective Outlooks</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div id="day1-section" class="flex flex-col items-center">
+            <h3 class="text-xl font-bold mb-2">Day 1 (Today)</h3>
+            <div class="flex gap-2 mb-2">
+              <button class="outlook-btn outlook-btn-active" data-day="1" data-hazard="cat">Overall</button>
+              <button class="outlook-btn" data-day="1" data-hazard="torn">Tornado</button>
+              <button class="outlook-btn" data-day="1" data-hazard="wind">Wind</button>
+              <button class="outlook-btn" data-day="1" data-hazard="hail">Hail</button>
             </div>
-          </div>
-          <!-- Alerts -->
-          <div class="bg-white rounded-lg shadow-lg p-6" id="alerts-section">
-            <h2 class="text-2xl font-bold mb-4 text-gray-900">Active Weather Alerts</h2>
-            <div class="flex flex-col gap-4" id="alerts-content"></div>
-          </div>
-          <!-- Radar -->
-          <div class="bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-2xl font-bold mb-4 text-gray-900">Local Radar</h2>
-            <div id="radar-embed" class="w-full flex justify-center items-center">
-              <iframe id="radar-iframe" width="650" height="450"
-                src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=31.3776&lon=-84.1607"
-                frameborder="0"></iframe>
+            <div class="w-full flex justify-center items-center min-h-[240px]">
+              <img id="img-day1" src="" alt="Day 1 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
             </div>
+            <span id="caption-day1" class="mt-2 text-gray-600 text-sm block text-center"></span>
+          </div>
+          <div id="day2-section" class="flex flex-col items-center">
+            <h3 class="text-xl font-bold mb-2">Day 2 (Tomorrow)</h3>
+            <div class="flex gap-2 mb-2">
+              <button class="outlook-btn outlook-btn-active" data-day="2" data-hazard="cat">Overall</button>
+              <button class="outlook-btn" data-day="2" data-hazard="torn">Tornado</button>
+              <button class="outlook-btn" data-day="2" data-hazard="wind">Wind</button>
+              <button class="outlook-btn" data-day="2" data-hazard="hail">Hail</button>
+            </div>
+            <div class="w-full flex justify-center items-center min-h-[240px]">
+              <img id="img-day2" src="" alt="Day 2 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+            </div>
+            <span id="caption-day2" class="mt-2 text-gray-600 text-sm block text-center"></span>
+          </div>
+          <div id="day3-section" class="flex flex-col items-center">
+            <h3 class="text-xl font-bold mb-2">Day 3</h3>
+            <div class="flex gap-2 mb-2">
+              <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="cat">Overall</button>
+              <button class="outlook-btn" data-day="3" data-hazard="prob">Probabilistic</button>
+            </div>
+            <div class="w-full flex justify-center items-center min-h-[240px]">
+              <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
+            </div>
+            <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
           </div>
         </div>
-        <!-- Forecast -->
-        <div class="bg-white rounded-lg shadow-lg p-6" id="forecast-section">
-          <h2 class="text-2xl font-bold mb-4 text-blue-800">Detailed Forecast</h2>
-          <div class="overflow-x-auto">
-            <table class="min-w-full border border-gray-200 rounded-lg" id="forecast-table">
-              <tbody id="forecast-content"></tbody>
-            </table>
-          </div>
+        <div class="mt-6 text-center text-gray-500 text-xs">
+          <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: NOAA/NWS Storm Prediction Center</a>
         </div>
       </div>
     </div>
   </main>
 </div>
-<!-- Spinner overlay and alert overlays (unchanged) -->
-<div id="spinner-overlay" style="display:none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-  <div class="flex flex-col items-center bg-white/90 rounded-2xl px-8 py-8 shadow-lg">
-    <svg class="animate-spin" width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1.1s linear infinite;">
-      <circle class="spinner-sun-core" cx="35" cy="35" r="16" stroke-width="2"/>
-      <g class="spinner-sun-rays" stroke-width="4" stroke-linecap="round">
-        <line x1="35" y1="6" x2="35" y2="20"/>
-        <line x1="35" y1="50" x2="35" y2="64"/>
-        <line x1="6" y1="35" x2="20" y2="35"/>
-        <line x1="50" y1="35" x2="64" y2="35"/>
-        <line x1="15" y1="15" x2="25" y2="25"/>
-        <line x1="45" y1="45" x2="55" y2="55"/>
-        <line x1="15" y1="55" x2="25" y2="45"/>
-        <line x1="45" y1="25" x2="55" y2="15"/>
-      </g>
-    </svg>
-    <span class="text-lg font-semibold text-gray-700 mt-4">Loading…</span>
-  </div>
-</div>
-<div id="alert-detail-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
-  <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto p-6">
-    <button id="alert-detail-close" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-3xl font-bold focus:outline-none" title="Close" aria-label="Close">
-      <span class="material-symbols-outlined text-3xl">close</span>
-    </button>
-    <div id="alert-detail-content" class="mt-2"></div>
-  </div>
-</div>
-<script>
-// --- Weather Icon Mapping (Erik Flowers) ---
-function getWeatherIconClass(shortForecast, isDaytime) {
-  if (!shortForecast) return isDaytime ? "wi wi-day-sunny" : "wi wi-night-clear";
-  const text = shortForecast.toLowerCase();
-  if (text.includes("thunderstorm")) return isDaytime ? "wi wi-day-thunderstorm" : "wi wi-night-alt-thunderstorm";
-  if (text.includes("sleet")) return isDaytime ? "wi wi-day-sleet" : "wi wi-night-alt-sleet";
-  if (text.includes("freezing drizzle") || text.includes("freezing rain")) return isDaytime ? "wi wi-day-sleet" : "wi wi-night-alt-sleet";
-  if (text.includes("rain") || text.includes("showers")) {
-    if (text.includes("snow") || text.includes("sleet")) return isDaytime ? "wi wi-day-rain-mix" : "wi wi-night-alt-rain-mix";
-    return isDaytime ? "wi wi-day-rain" : "wi wi-night-alt-rain";
-  }
-  if (text.includes("drizzle")) return isDaytime ? "wi wi-day-sprinkle" : "wi wi-night-alt-sprinkle";
-  if (text.includes("snow") || text.includes("flurries") || text.includes("blizzard")) return isDaytime ? "wi wi-day-snow" : "wi wi-night-alt-snow";
-  if (text.includes("hail")) return isDaytime ? "wi wi-day-hail" : "wi wi-night-alt-hail";
-  if (text.includes("fog") || text.includes("haze") || text.includes("mist") || text.includes("smoke")) return isDaytime ? "wi wi-day-fog" : "wi wi-night-fog";
-  if (text.includes("wind") || text.includes("breezy") || text.includes("gust")) return isDaytime ? "wi wi-day-windy" : "wi wi-night-alt-cloudy-windy";
-  if (text.includes("overcast")) return isDaytime ? "wi wi-cloudy" : "wi wi-night-cloudy";
-  if (text.includes("partly sunny")) return "wi wi-day-cloudy";
-  if (text.includes("partly cloudy")) return isDaytime ? "wi wi-day-cloudy" : "wi wi-night-alt-cloudy";
-  if (text.includes("mostly sunny")) return "wi wi-day-sunny-overcast";
-  if (text.includes("mostly cloudy")) return isDaytime ? "wi wi-cloudy" : "wi wi-night-cloudy";
-  if (text.includes("cloudy")) return isDaytime ? "wi wi-cloudy" : "wi wi-night-cloudy";
-  if (text.includes("clear") || text.includes("sunny")) return isDaytime ? "wi wi-day-sunny" : "wi wi-night-clear";
-  return isDaytime ? "wi wi-day-sunny" : "wi wi-night-clear";
-}
 
-// --- Location/autocomplete setup and ALL WEATHER LOGIC ---
+<script>
+// --- Autocomplete and Use Location logic ---
 let locationsData = [];
 let suggestions = [];
 let fuse = null;
-let latestAlerts = [];
-let latestLocation = null;
-
 const searchBar = document.getElementById('search-bar');
 const suggestionsBox = document.getElementById('suggestions');
 const useLocationBtn = document.getElementById('use-location-btn');
-const spinnerOverlay = document.getElementById('spinner-overlay');
 
-window.addEventListener('DOMContentLoaded', () => {
-    fetch('locations.csv')
-        .then(res => res.text())
-        .then(csvText => {
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    locationsData = results.data;
-                    fuse = new Fuse(locationsData, {
-                        keys: [
-                            { name: 'city', weight: 0.6 },
-                            { name: 'state_id', weight: 0.2 },
-                            { name: 'zip', weight: 0.2 },
-                        ],
-                        threshold: 0.35,
-                        minMatchCharLength: 2,
-                        ignoreLocation: true,
-                        includeScore: true,
-                    });
-                    // 1. Check for last used location in localStorage
-                    const savedLoc = localStorage.getItem('jweather_last_location');
-                    if (savedLoc) {
-                        try {
-                            const locObj = JSON.parse(savedLoc);
-                            if (locObj && locObj.city && locObj.lat && locObj.lng) {
-                                latestLocation = locObj;
-                                searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
-                                fetchWeatherForLocation(locObj);
-                                updateRadar(locObj.lat, locObj.lng);
-                                return;
-                            }
-                        } catch(e) {}
-                    }
-                    // Only use jweather_search if there is no last_location
-                    const stringSearch = localStorage.getItem('jweather_search');
-                    if (stringSearch) {
-                        const match = locationsData.find(loc =>
-                            `${loc.city}, ${loc.state_id} (${loc.zip})`.toLowerCase() === stringSearch.toLowerCase()
-                            || loc.city?.toLowerCase() === stringSearch.toLowerCase()
-                            || loc.zip === stringSearch
-                        );
-                        if (match) {
-                            latestLocation = match;
-                            searchBar.value = `${match.city}, ${match.state_id} (${match.zip})`;
-                            fetchWeatherForLocation(match);
-                            updateRadar(match.lat, match.lng);
-                            localStorage.setItem('jweather_last_location', JSON.stringify(match));
-                        } else {
-                            loadDefaultLocation();
-                        }
-                        localStorage.removeItem('jweather_search');
-                    } else {
-                        loadDefaultLocation();
-                    }
-                    function loadDefaultLocation() {
-                        const defaultLoc = locationsData.find(loc =>
-                            loc.city && loc.city.trim().toLowerCase() === 'baconton'
-                            && loc.state_id && loc.state_id.trim().toUpperCase() === 'GA'
-                            && loc.zip && loc.zip.trim() === '31716'
-                        );
-                        if (defaultLoc) {
-                            latestLocation = defaultLoc;
-                            searchBar.value = `${defaultLoc.city}, ${defaultLoc.state_id} (${defaultLoc.zip})`;
-                            fetchWeatherForLocation(defaultLoc);
-                            updateRadar(defaultLoc.lat, defaultLoc.lng);
-                        }
-                    }
-                }
-            });
-        });
-});
-function showSpinner() { spinnerOverlay.style.display = 'flex'; }
-function hideSpinner() { spinnerOverlay.style.display = 'none'; }
 function debounce(fn, delay) {
     let timeout;
     return function(...args) {
@@ -318,7 +194,7 @@ searchBar.addEventListener('keydown', function(e) {
     } else if (e.key === 'Enter') {
         if (selectedSuggestion >= 0 && selectedSuggestion < suggestions.length) {
             selectSuggestion(suggestions[selectedSuggestion]);
-        } else {
+        } else if (searchBar.value.trim().length > 0) {
             handleSearchBarRedirect();
         }
     }
@@ -343,322 +219,207 @@ document.addEventListener('click', function(e) {
     }
 });
 function selectSuggestion(loc) {
-    latestLocation = loc;
-    searchBar.value = `${loc.city}, ${loc.state_id} (${loc.zip})`;
+    const searchString = `${loc.city}, ${loc.state_id} (${loc.zip})`;
+    localStorage.setItem('jweather_search', searchString);
     suggestionsBox.classList.add('hidden');
     selectedSuggestion = -1;
-    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-    fetchWeatherForLocation(loc);
-    updateRadar(loc.lat, loc.lng);
+    window.location.href = "index.html";
 }
 function handleSearchBarRedirect() {
     const val = searchBar.value.trim();
     if (val.length === 0) return;
     localStorage.setItem('jweather_search', val);
-    window.location.reload();
+    window.location.href = "index.html";
 }
-useLocationBtn.addEventListener('click', function() {
+window.addEventListener('DOMContentLoaded', () => {
+    fetch('locations.csv')
+        .then(res => res.text())
+        .then(csvText => {
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    locationsData = results.data;
+                    fuse = new Fuse(locationsData, {
+                        keys: [
+                            { name: 'city', weight: 0.6 },
+                            { name: 'state_id', weight: 0.2 },
+                            { name: 'zip', weight: 0.2 },
+                        ],
+                        threshold: 0.35,
+                        minMatchCharLength: 2,
+                        ignoreLocation: true,
+                        includeScore: true,
+                    });
+                }
+            });
+        });
+});
+if (useLocationBtn) {
+  useLocationBtn.addEventListener('click', function() {
     if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser.');
-        return;
+      alert('Geolocation is not supported by your browser.');
+      return;
     }
     useLocationBtn.disabled = true;
     useLocationBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Locating...';
     navigator.geolocation.getCurrentPosition(
-        async position => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            let nearestLoc = null;
-            let minDist = Infinity;
-            if (locationsData && locationsData.length > 0) {
-                locationsData.forEach(loc => {
-                    if (!loc.lat || !loc.lng) return;
-                    const dlat = Number(loc.lat) - lat;
-                    const dlng = Number(loc.lng) - lng;
-                    const dist = Math.sqrt(dlat * dlat + dlng * dlng);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        nearestLoc = loc;
-                    }
-                });
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        let nearestLoc = null;
+        let minDist = Infinity;
+        if (Array.isArray(locationsData) && locationsData.length > 0) {
+          locationsData.forEach(loc => {
+            if (!loc.lat || !loc.lng) return;
+            const dlat = Number(loc.lat) - lat;
+            const dlng = Number(loc.lng) - lng;
+            const dist = Math.sqrt(dlat * dlat + dlng * dlng);
+            if (dist < minDist) {
+              minDist = dist;
+              nearestLoc = loc;
             }
-            let locObj = nearestLoc && minDist < 0.2
-                ? nearestLoc
-                : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
-            latestLocation = locObj;
-            searchBar.value = locObj.city && locObj.state_id ? `${locObj.city}, ${locObj.state_id} (${locObj.zip})` : 'Your Location';
-            localStorage.setItem('jweather_last_location', JSON.stringify(locObj));
-            fetchWeatherForLocation(locObj);
-            updateRadar(locObj.lat, locObj.lng);
-            useLocationBtn.disabled = false;
-            useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
-        },
-        error => {
-            alert('Unable to retrieve your location.');
-            useLocationBtn.disabled = false;
-            useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+          });
         }
+        let locObj = nearestLoc && minDist < 0.2
+          ? nearestLoc
+          : { city: "Your Location", state_id: "", zip: "", lat: lat, lng: lng };
+        localStorage.setItem('jweather_last_location', JSON.stringify(locObj));
+        window.location.href = "index.html";
+      },
+      function(error) {
+        alert('Unable to retrieve your location.');
+        useLocationBtn.disabled = false;
+        useLocationBtn.innerHTML = '<span class="material-symbols-outlined align-middle">my_location</span> <span>Use Location</span>';
+      }
     );
-});
+  });
+}
+</script>
+<script>
+// ---- Severe Outlook Logic (unchanged) ----
+function getSPCImageUrls(day, hazard) {
+  const base = "https://www.spc.noaa.gov/products/outlook/";
+  let times1 = ["_1630", "_1300", "_0600", "_0100"];
+  let times2 = ["_1730", "_1300", "_0600", "_0100"];
+  let times3 = ["_1930", "_0730", "_0100"];
+  let urls = [];
 
-// --- Weather Fetching ---
-async function fetchWeatherForLocation(loc) {
-    latestLocation = loc;
-    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-    showSpinner();
-    const lat = loc.lat;
-    const lng = loc.lng;
-    try {
-        const pointsResp = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
-        if (!pointsResp.ok) throw new Error('Unable to find NWS location for this point.');
-        const pointsData = await pointsResp.json();
-        const obsStationsUrl = pointsData.properties.observationStations;
-        let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '', isDaytime = true;
-        if (obsStationsUrl) {
-            const stationsResp = await fetch(obsStationsUrl);
-            const stationsData = await stationsResp.json();
-            const firstStation = stationsData.features[0]?.properties?.stationIdentifier;
-            if (firstStation) {
-                const obsResp = await fetch(`https://api.weather.gov/stations/${firstStation}/observations/latest`);
-                const obsData = await obsResp.json();
-                const props = obsData.properties;
-                temp = props.temperature.value !== null ? `${Math.round((props.temperature.value * 9/5) + 32)}°F` : '--';
-                desc = props.textDescription || '--';
-                // Rough day/night: use now and sunrise/sunset if available, else fallback
-                isDaytime = (props.timestamp && props.timestamp.length >= 13)
-                  ? (new Date(props.timestamp).getHours() >= 6 && new Date(props.timestamp).getHours() < 18)
-                  : true; // fallback day
-                feelsLike = props.heatIndex.value !== null
-                    ? `Feels Like: ${Math.round((props.heatIndex.value * 9/5) + 32)}°F`
-                    : (props.windChill.value !== null
-                        ? `Feels Like: ${Math.round((props.windChill.value * 9/5) + 32)}°F`
-                        : `Feels Like: ${temp}`);
-                humidity = props.relativeHumidity.value !== null ? `Humidity: ${Math.round(props.relativeHumidity.value)}%` : 'Humidity: --';
-                wind = (props.windSpeed.value !== null && props.windDirection.value !== null)
-                    ? `Wind: ${Math.round(props.windSpeed.value * 2.237)} mph ${degToCompass(props.windDirection.value)}`
-                    : 'Wind: --';
-                icon = props.icon || '';
-            }
-        }
-        const forecastUrl = pointsData.properties.forecast;
-        let forecastPeriods = [];
-        if (forecastUrl) {
-            const forecastResp = await fetch(forecastUrl);
-            const forecastData = await forecastResp.json();
-            forecastPeriods = forecastData.properties.periods;
-        }
-        const alertsResp = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`);
-        const alertsData = await alertsResp.json();
+  if (day === 1) {
+    if (hazard === "cat") {
+      times1.forEach(t => urls.push(`${base}day1otlk${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_cat${t}.png`));
+      times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.gif`));
+      times1.forEach(t => urls.push(`${base}day1otlk_catl${t}.png`));
+    } else if (["torn","wind","hail"].includes(hazard)) {
+      times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.gif`));
+      times1.forEach(t => urls.push(`${base}day1probotlk${t}_${hazard}.png`));
+    }
+  }
+  if (day === 2) {
+    if (hazard === "cat") {
+      times2.forEach(t => urls.push(`${base}day2otlk${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2otlk_cat${t}.png`));
+      times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.gif`));
+      times2.forEach(t => urls.push(`${base}day2otlk_catl${t}.png`));
+    } else if (["torn","wind","hail"].includes(hazard)) {
+      times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.gif`));
+      times2.forEach(t => urls.push(`${base}day2probotlk${t}_${hazard}.png`));
+    }
+  }
+  if (day === 3) {
+    if (hazard === "prob") {
+      times3.forEach(t => urls.push(`${base}day3prob${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3prob${t}.png`));
+      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_prob${t}.png`));
+    } else if (hazard === "cat") {
+      times3.forEach(t => urls.push(`${base}day3otlk${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk${t}.png`));
+      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_cat${t}.png`));
+      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.gif`));
+      times3.forEach(t => urls.push(`${base}day3otlk_catl${t}.png`));
+    }
+  }
+  return urls;
+}
 
-        updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, desc, isDaytime);
-        updateForecast(forecastPeriods);
-        updateAlerts(alertsData);
-    } catch (err) {
-        alert('Weather data could not be loaded for this location.');
-        console.error(err);
-    } finally {
-        hideSpinner();
+function trySPCImage(day, hazard, callback) {
+  const urls = getSPCImageUrls(day, hazard);
+  let idx = 0;
+  function tryNext() {
+    if (idx >= urls.length) {
+      callback(""); // Not found
+      return;
     }
+    const img = new window.Image();
+    img.onload = () => callback(urls[idx]);
+    img.onerror = () => { idx++; tryNext(); };
+    img.src = urls[idx];
+  }
+  tryNext();
 }
-function degToCompass(num) {
-    const val = Math.floor((num / 22.5) + 0.5);
-    const arr = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
-        "S","SSW","SW","WSW","W","WNW","NW","NNW"];
-    return arr[(val % 16)];
-}
-function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconDesc, isDaytime) {
-    document.getElementById('current-location-label').textContent = `${loc.city || ''}${loc.state_id ? ', ' + loc.state_id : ''} - Current Conditions`;
-    document.getElementById('current-temp').textContent = temp;
-    document.getElementById('current-desc').textContent = desc;
-    document.getElementById('current-feels-like').textContent = feelsLike;
-    document.getElementById('current-humidity').textContent = humidity;
-    document.getElementById('current-wind').textContent = wind;
-    // Weather Icons!
-    document.getElementById('current-icon').className = getWeatherIconClass(iconDesc, isDaytime) + " text-7xl";
-}
-function updateForecast(periods) {
-    const content = document.getElementById('forecast-content');
-    content.innerHTML = '';
-    if (!periods || !periods.length) {
-        content.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No forecast data.</td></tr>';
-        return;
-    }
-    const dayAbbr = {
-        "Monday": "Mon", "Tuesday": "Tue", "Wednesday": "Wed",
-        "Thursday": "Thu", "Friday": "Fri", "Saturday": "Sat", "Sunday": "Sun"
-    };
-    function abbrDayPeriod(name) {
-        for (const day in dayAbbr) {
-            if (name.startsWith(day)) {
-                return name.replace(day, dayAbbr[day]);
-            }
-        }
-        return name;
-    }
-    periods.forEach((period, idx) => {
-        const abbrName = abbrDayPeriod(period.name);
-        const iconClass = getWeatherIconClass(period.shortForecast, period.isDaytime);
-        content.innerHTML += `
-        <tr class="${idx % 2 === 1 ? 'bg-blue-50' : 'bg-white'}">
-            <td class="py-2 px-4 font-bold text-gray-800 whitespace-nowrap align-middle" style="width: 90px;">${abbrName}</td>
-            <td class="py-2 px-2 align-middle" style="width: 60px;">
-                <i class="${iconClass} text-3xl"></i>
-            </td>
-            <td class="py-2 px-4 text-gray-700 align-middle">${period.detailedForecast}</td>
-        </tr>
-        `;
-    });
-}
-function getLocationTimeZone() {
-    if (latestLocation && latestLocation.tz) return latestLocation.tz;
-    try {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone;
-    } catch {
-        return undefined;
-    }
-}
-function formatExpiresWithZone(dt, tz) {
-    if (!dt) return 'N/A';
-    try {
-        const d = new Date(dt);
-        const opts = {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-            timeZone: tz
-        };
-        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
-        let [date, time] = str.split(',');
-        let abbr = '';
-        try {
-            abbr = d.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop();
-        } catch {}
-        abbr = abbr ? abbr.replace(/^GMT/, 'UTC') : (tz ? tz.replace("_", " ") : "");
-        if (date && time) {
-            return `${date.replace(/\//g, "/")} ${time.trim()} ${abbr}`;
-        }
-        return str;
-    } catch(e) {
-        return dt;
-    }
-}
-function updateAlerts(alertsData) {
-    latestAlerts = alertsData.features || [];
-    const content = document.getElementById('alerts-content');
-    content.innerHTML = '';
-    const tz = getLocationTimeZone();
 
-    if (!latestAlerts.length) {
-        content.innerHTML = `
-        <div class="flex items-center gap-4">
-          <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
-          <div>
-            <p class="font-semibold text-gray-800">No active weather alerts</p>
-            <p class="text-gray-500 text-sm">All clear for now. Stay tuned for updates.</p>
-          </div>
-        </div>
-        `;
+const daySections = [
+  {day: 1, imgId: "img-day1", captionId: "caption-day1", sectionId: "day1-section", hazards: ["cat", "torn", "wind", "hail"]},
+  {day: 2, imgId: "img-day2", captionId: "caption-day2", sectionId: "day2-section", hazards: ["cat", "torn", "wind", "hail"]},
+  {day: 3, imgId: "img-day3", captionId: "caption-day3", sectionId: "day3-section", hazards: ["cat", "prob"]}
+];
+
+const hazardCaptions = {
+  cat: "SPC Categorical Outlook",
+  prob: "SPC Probabilistic Outlook",
+  torn: "SPC Tornado Probability",
+  wind: "SPC Damaging Wind Probability",
+  hail: "SPC Large Hail Probability"
+};
+
+function setActiveButton(section, activeHazard) {
+  const buttons = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
+  buttons.forEach(btn => {
+    if (btn.getAttribute("data-hazard") === activeHazard) {
+      btn.classList.add("outlook-btn-active");
     } else {
-        latestAlerts.forEach((alertFeature, idx) => {
-            const alert = alertFeature.properties;
-            const expires = alert.expires ? formatExpiresWithZone(alert.expires, tz) : "N/A";
-            content.innerHTML += `
-            <div class="flex items-start mb-4 p-3 bg-red-50 rounded-lg shadow-sm">
-                <span class="material-symbols-outlined text-red-500 text-3xl mr-3 mt-1">warning</span>
-                <div class="flex-1">
-                    <p class="font-semibold text-gray-800">${alert.event}</p>
-                    <p class="text-gray-700 text-sm mb-1">Expires: ${expires}</p>
-                    <button class="view-alert-detail mt-2 inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--primary-color)] text-white text-xs font-medium hover:bg-red-700 focus:outline-none" data-alert-idx="${idx}">
-                        View Detail
-                    </button>
-                </div>
-            </div>
-            `;
-        });
+      btn.classList.remove("outlook-btn-active");
     }
-    Array.from(content.getElementsByClassName('view-alert-detail')).forEach(btn => {
-        btn.addEventListener('click', function() {
-            const idx = btn.getAttribute('data-alert-idx');
-            showAlertDetail(idx);
-        });
+  });
+}
+
+function updateDaySection(section, hazard) {
+  setActiveButton(section, hazard);
+  const imgEl = document.getElementById(section.imgId);
+  const captionEl = document.getElementById(section.captionId);
+  imgEl.src = "";
+  imgEl.alt = "Loading outlook image...";
+  trySPCImage(section.day, hazard, function(imgUrl) {
+    if (imgUrl) {
+      imgEl.src = imgUrl;
+      imgEl.alt = "SPC Outlook";
+    } else {
+      imgEl.src = "";
+      imgEl.alt = "No outlook image available";
+    }
+  });
+  let dayLabel = section.day === 1 ? "Today" : (section.day === 2 ? "Tomorrow" : "Day 3");
+  let hazardLabel = hazardCaptions[hazard] || "SPC Outlook";
+  captionEl.textContent = `${dayLabel} • ${hazardLabel}`;
+}
+
+daySections.forEach(section => {
+  let defaultHazard = section.hazards[0];
+  updateDaySection(section, defaultHazard);
+
+  const btns = document.querySelectorAll(`#${section.sectionId} .outlook-btn`);
+  btns.forEach(btn => {
+    btn.addEventListener("click", function() {
+      const hazard = btn.getAttribute("data-hazard");
+      updateDaySection(section, hazard);
     });
-}
-function formatDateTimeWithZone(dt, tz) {
-    if (!dt) return 'N/A';
-    if (!tz) tz = undefined;
-    try {
-        const d = new Date(dt);
-        const opts = {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-            timeZone: tz
-        };
-        let str = new Intl.DateTimeFormat('en-US', opts).format(d);
-        let [date, time] = str.split(',');
-        if (date && time) {
-            const [mm, dd, yyyy] = date.split('/');
-            return `${mm}-${dd}-${yyyy} ${time.trim()}`;
-        }
-        return str;
-    } catch(e) {
-        return dt;
-    }
-}
-function showAlertDetail(idx) {
-    const overlay = document.getElementById('alert-detail-overlay');
-    const content = document.getElementById('alert-detail-content');
-    const alert = latestAlerts[idx]?.properties;
-    if (!alert) return;
-
-    const tz = getLocationTimeZone();
-    const tzLabel = tz ? tz.replace("_", " ") : "Local Timezone";
-    const issued = alert.effective ? formatDateTimeWithZone(alert.effective, tz) : "N/A";
-    const expires = alert.expires ? formatDateTimeWithZone(alert.expires, tz) : "N/A";
-    const issuedBy = alert.senderName || "NWS Office";
-
-    content.innerHTML = `
-        <div class="mb-4">
-          <h3 class="text-xl font-bold text-red-700 mb-1">${alert.event}</h3>
-          <div class="text-gray-700 text-sm">
-            <span class="block"><b>Issued:</b> ${issued}</span>
-            <span class="block"><b>Expires:</b> ${expires}</span>
-            <span class="block"><b>Issued By:</b> ${issuedBy}</span>
-            <span class="block"><b>Timezone:</b> ${tzLabel}</span>
-          </div>
-        </div>
-        <hr class="my-3"/>
-        <pre class="whitespace-pre-wrap text-gray-900 text-sm">${alert.description || ''}</pre>
-        ${alert.instruction ? `<hr class="my-3"/><div class="text-gray-900 text-sm"><b>Instruction:</b><br>${alert.instruction}</div>` : ''}
-        ${alert.web ? `<div class="mt-3"><a href="${alert.web}" target="_blank" class="text-blue-700 underline">More Info</a></div>` : ''}
-    `;
-    overlay.classList.remove('hidden');
-    document.body.classList.add('overflow-hidden');
-}
-document.getElementById('alert-detail-close').addEventListener('click', function() {
-    document.getElementById('alert-detail-overlay').classList.add('hidden');
-    document.body.classList.remove('overflow-hidden');
+  });
 });
-document.getElementById('alert-detail-overlay').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
-});
-function updateRadar(lat, lng) {
-    lat = Number(lat);
-    lng = Number(lng);
-    const radarIframe = document.getElementById('radar-iframe');
-    if (radarIframe) {
-        radarIframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=11&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}`;
-    }
-}
 </script>
 </body>
 </html>
