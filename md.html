@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <style type="text/tailwindcss">
     :root { --primary-color: #f10914; }
     body { font-family: "Space Grotesk", "Noto Sans", sans-serif; }
@@ -134,7 +136,132 @@
     </div>
   </main>
 </div>
+
 <script>
+// --- Search bar autocomplete for city/state/zip with redirect to index.html ---
+let locationsData = [];
+let suggestions = [];
+let fuse = null;
+const searchBar = document.getElementById('search-bar');
+const suggestionsBox = document.getElementById('suggestions');
+
+// Helper debounce
+function debounce(fn, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// Get suggestions from Fuse
+function getSuggestions(query) {
+    query = query.trim();
+    if (!query || !fuse) return [];
+    const results = fuse.search(query, { limit: 10 });
+    return results.map(r => r.item);
+}
+function renderSuggestions(suggestions) {
+    suggestionsBox.innerHTML = '';
+    if (!suggestions.length) {
+        suggestionsBox.classList.add('hidden');
+        return;
+    }
+    suggestions.forEach((loc, idx) => {
+        const li = document.createElement('li');
+        li.className = "px-4 py-2 cursor-pointer hover:bg-gray-100";
+        li.tabIndex = 0;
+        li.dataset.idx = idx;
+        li.innerHTML = `<span class="font-semibold">${loc.city}, ${loc.state_id}</span> <span class="text-gray-400 text-sm">(${loc.zip})</span>`;
+        suggestionsBox.appendChild(li);
+    });
+    suggestionsBox.classList.remove('hidden');
+}
+searchBar.addEventListener('input', debounce(function(e) {
+    const val = e.target.value;
+    suggestions = getSuggestions(val);
+    renderSuggestions(suggestions);
+}, 200));
+let selectedSuggestion = -1;
+searchBar.addEventListener('keydown', function(e) {
+    if (suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedSuggestion = (selectedSuggestion + 1) % suggestions.length;
+        highlightSuggestion();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedSuggestion = (selectedSuggestion - 1 + suggestions.length) % suggestions.length;
+        highlightSuggestion();
+    } else if (e.key === 'Enter') {
+        if (selectedSuggestion >= 0 && selectedSuggestion < suggestions.length) {
+            selectSuggestion(suggestions[selectedSuggestion]);
+        } else if (searchBar.value.trim().length > 0) {
+            handleSearchBarRedirect();
+        }
+    }
+});
+function highlightSuggestion() {
+    Array.from(suggestionsBox.children).forEach((li, idx) => {
+        li.classList.toggle('suggestion-active', idx === selectedSuggestion);
+    });
+}
+suggestionsBox.addEventListener('mousedown', function(e) {
+    const li = e.target.closest('li');
+    if (!li) return;
+    const idx = li.dataset.idx;
+    if (suggestions[idx]) {
+        selectSuggestion(suggestions[idx]);
+    }
+});
+document.addEventListener('click', function(e) {
+    if (!suggestionsBox.contains(e.target) && e.target !== searchBar) {
+        suggestionsBox.classList.add('hidden');
+        selectedSuggestion = -1;
+    }
+});
+// --- Redirect logic ---
+function selectSuggestion(loc) {
+    const searchString = `${loc.city}, ${loc.state_id} (${loc.zip})`;
+    localStorage.setItem('jweather_search', searchString);
+    suggestionsBox.classList.add('hidden');
+    selectedSuggestion = -1;
+    window.location.href = "index.html";
+}
+function handleSearchBarRedirect() {
+    const val = searchBar.value.trim();
+    if (val.length === 0) return;
+    localStorage.setItem('jweather_search', val);
+    window.location.href = "index.html";
+}
+// --- Load locations.csv and build Fuse ---
+window.addEventListener('DOMContentLoaded', () => {
+    fetch('locations.csv')
+        .then(res => res.text())
+        .then(csvText => {
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    locationsData = results.data;
+                    fuse = new Fuse(locationsData, {
+                        keys: [
+                            { name: 'city', weight: 0.6 },
+                            { name: 'state_id', weight: 0.2 },
+                            { name: 'zip', weight: 0.2 },
+                        ],
+                        threshold: 0.35,
+                        minMatchCharLength: 2,
+                        ignoreLocation: true,
+                        includeScore: true,
+                    });
+                }
+            });
+        });
+});
+</script>
+<script>
+// ---- Severe Outlook Logic (unchanged) ----
 function getSPCImageUrls(day, hazard) {
   const base = "https://www.spc.noaa.gov/products/outlook/";
   let times1 = ["_1630", "_1300", "_0600", "_0100"];
