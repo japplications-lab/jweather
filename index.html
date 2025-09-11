@@ -6,6 +6,7 @@
   <title>The jWeather</title>
   <!-- Open Sans font only -->
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -24,6 +25,7 @@
     html { scroll-behavior: smooth; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .animate-spin { animation: spin 1.1s linear infinite; }
+    .wi { vertical-align: middle; }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -87,16 +89,16 @@
             <h2 class="text-2xl font-bold mb-4 text-gray-900" id="current-location-label">Loading...</h2>
             <div class="flex items-start justify-between gap-6">
               <div class="flex-1">
-                <p class="text-7xl font-bold text-gray-900" id="current-temp">--</p>
+                <p class="text-7xl font-bold text-gray-900 flex items-center gap-2">
+                  <i id="current-icon" class="wi wi-day-sunny text-7xl"></i>
+                  <span id="current-temp">--</span>
+                </p>
                 <p class="text-xl text-gray-600 mt-2" id="current-desc">--</p>
                 <div class="mt-4 space-y-2 text-gray-500">
                   <p id="current-feels-like">--</p>
                   <p id="current-humidity">--</p>
                   <p id="current-wind">--</p>
                 </div>
-              </div>
-              <div class="flex-shrink-0">
-                <img alt="Weather icon" class="w-48 h-48 object-cover rounded-lg" id="current-icon" src="" />
               </div>
             </div>
           </div>
@@ -156,6 +158,32 @@
   </div>
 </div>
 <script>
+// --- Weather Icon Mapping (Erik Flowers) ---
+function getWeatherIconClass(shortForecast, isDaytime) {
+  if (!shortForecast) return isDaytime ? "wi wi-day-sunny" : "wi wi-night-clear";
+  const text = shortForecast.toLowerCase();
+  if (text.includes("thunderstorm")) return isDaytime ? "wi wi-day-thunderstorm" : "wi wi-night-alt-thunderstorm";
+  if (text.includes("sleet")) return isDaytime ? "wi wi-day-sleet" : "wi wi-night-alt-sleet";
+  if (text.includes("freezing drizzle") || text.includes("freezing rain")) return isDaytime ? "wi wi-day-sleet" : "wi wi-night-alt-sleet";
+  if (text.includes("rain") || text.includes("showers")) {
+    if (text.includes("snow") || text.includes("sleet")) return isDaytime ? "wi wi-day-rain-mix" : "wi wi-night-alt-rain-mix";
+    return isDaytime ? "wi wi-day-rain" : "wi wi-night-alt-rain";
+  }
+  if (text.includes("drizzle")) return isDaytime ? "wi wi-day-sprinkle" : "wi wi-night-alt-sprinkle";
+  if (text.includes("snow") || text.includes("flurries") || text.includes("blizzard")) return isDaytime ? "wi wi-day-snow" : "wi wi-night-alt-snow";
+  if (text.includes("hail")) return isDaytime ? "wi wi-day-hail" : "wi wi-night-alt-hail";
+  if (text.includes("fog") || text.includes("haze") || text.includes("mist") || text.includes("smoke")) return isDaytime ? "wi wi-day-fog" : "wi wi-night-fog";
+  if (text.includes("wind") || text.includes("breezy") || text.includes("gust")) return isDaytime ? "wi wi-day-windy" : "wi wi-night-alt-cloudy-windy";
+  if (text.includes("overcast")) return isDaytime ? "wi wi-cloudy" : "wi wi-night-cloudy";
+  if (text.includes("partly sunny")) return "wi wi-day-cloudy";
+  if (text.includes("partly cloudy")) return isDaytime ? "wi wi-day-cloudy" : "wi wi-night-alt-cloudy";
+  if (text.includes("mostly sunny")) return "wi wi-day-sunny-overcast";
+  if (text.includes("mostly cloudy")) return isDaytime ? "wi wi-cloudy" : "wi wi-night-cloudy";
+  if (text.includes("cloudy")) return isDaytime ? "wi wi-cloudy" : "wi wi-night-cloudy";
+  if (text.includes("clear") || text.includes("sunny")) return isDaytime ? "wi wi-day-sunny" : "wi wi-night-clear";
+  return isDaytime ? "wi wi-day-sunny" : "wi wi-night-clear";
+}
+
 // --- Location/autocomplete setup and ALL WEATHER LOGIC ---
 let locationsData = [];
 let suggestions = [];
@@ -168,7 +196,6 @@ const suggestionsBox = document.getElementById('suggestions');
 const useLocationBtn = document.getElementById('use-location-btn');
 const spinnerOverlay = document.getElementById('spinner-overlay');
 
-// ---- On Page Load: load from localStorage if available ----
 window.addEventListener('DOMContentLoaded', () => {
     fetch('locations.csv')
         .then(res => res.text())
@@ -241,10 +268,8 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         });
 });
-
 function showSpinner() { spinnerOverlay.style.display = 'flex'; }
 function hideSpinner() { spinnerOverlay.style.display = 'none'; }
-
 function debounce(fn, delay) {
     let timeout;
     return function(...args) {
@@ -252,7 +277,6 @@ function debounce(fn, delay) {
         timeout = setTimeout(() => fn.apply(this, args), delay);
     };
 }
-
 function getSuggestions(query) {
     query = query.trim();
     if (!query || !fuse) return [];
@@ -377,8 +401,7 @@ useLocationBtn.addEventListener('click', function() {
     );
 });
 
-// --- ALL WEATHER LOGIC (unchanged) ---
-
+// --- Weather Fetching ---
 async function fetchWeatherForLocation(loc) {
     latestLocation = loc;
     localStorage.setItem('jweather_last_location', JSON.stringify(loc));
@@ -390,7 +413,7 @@ async function fetchWeatherForLocation(loc) {
         if (!pointsResp.ok) throw new Error('Unable to find NWS location for this point.');
         const pointsData = await pointsResp.json();
         const obsStationsUrl = pointsData.properties.observationStations;
-        let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '';
+        let temp = '--', desc = '--', feelsLike = '--', humidity = '--', wind = '--', icon = '', isDaytime = true;
         if (obsStationsUrl) {
             const stationsResp = await fetch(obsStationsUrl);
             const stationsData = await stationsResp.json();
@@ -401,6 +424,10 @@ async function fetchWeatherForLocation(loc) {
                 const props = obsData.properties;
                 temp = props.temperature.value !== null ? `${Math.round((props.temperature.value * 9/5) + 32)}°F` : '--';
                 desc = props.textDescription || '--';
+                // Rough day/night: use now and sunrise/sunset if available, else fallback
+                isDaytime = (props.timestamp && props.timestamp.length >= 13)
+                  ? (new Date(props.timestamp).getHours() >= 6 && new Date(props.timestamp).getHours() < 18)
+                  : true; // fallback day
                 feelsLike = props.heatIndex.value !== null
                     ? `Feels Like: ${Math.round((props.heatIndex.value * 9/5) + 32)}°F`
                     : (props.windChill.value !== null
@@ -423,7 +450,7 @@ async function fetchWeatherForLocation(loc) {
         const alertsResp = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`);
         const alertsData = await alertsResp.json();
 
-        updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, icon);
+        updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, desc, isDaytime);
         updateForecast(forecastPeriods);
         updateAlerts(alertsData);
     } catch (err) {
@@ -439,22 +466,15 @@ function degToCompass(num) {
         "S","SSW","SW","WSW","W","WNW","NW","NNW"];
     return arr[(val % 16)];
 }
-function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconUrl) {
+function updateCurrentConditions(loc, temp, desc, feelsLike, humidity, wind, iconDesc, isDaytime) {
     document.getElementById('current-location-label').textContent = `${loc.city || ''}${loc.state_id ? ', ' + loc.state_id : ''} - Current Conditions`;
     document.getElementById('current-temp').textContent = temp;
     document.getElementById('current-desc').textContent = desc;
     document.getElementById('current-feels-like').textContent = feelsLike;
     document.getElementById('current-humidity').textContent = humidity;
     document.getElementById('current-wind').textContent = wind;
-    document.getElementById('current-icon').src = getWeatherIcon(iconUrl, desc);
-}
-function getWeatherIcon(iconUrl, desc) {
-    if (iconUrl) return iconUrl.split('?')[0];
-    if (desc && desc.toLowerCase().includes('rain')) return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
-    if (desc && desc.toLowerCase().includes('cloud')) return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
-    if (desc && desc.toLowerCase().includes('clear')) return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
-    if (desc && desc.toLowerCase().includes('snow')) return "https://cdn-icons-png.flaticon.com/512/642/642102.png";
-    return "https://lh3.googleusercontent.com/aida-public/AB6AXuBBw6Cnw4OL-pBd-jDaoVbK1-E22RKmIk_iNW9htwlsDP9RsiqzTmca8UPvZbHfUNVUwUJC0D1SSmYYW8xZdu4AJXHU4ykuAz4JNqreqYLG2_2Y1_oOLkLXTJRRF2kx9bl20EK_aJJyVzrBqDifzHNi8lhOLZJSDo0b72q265nTb__dvj9KpExZRHPogvoH_rj-IhWPbRhHgZ0TokBgkKsVY0Ta7ytJs_Urnfg95IHPCOSthJ15HwtOJt1MYRzM1JoG-XGNdZqpY-g";
+    // Weather Icons!
+    document.getElementById('current-icon').className = getWeatherIconClass(iconDesc, isDaytime) + " text-7xl";
 }
 function updateForecast(periods) {
     const content = document.getElementById('forecast-content');
@@ -477,11 +497,12 @@ function updateForecast(periods) {
     }
     periods.forEach((period, idx) => {
         const abbrName = abbrDayPeriod(period.name);
+        const iconClass = getWeatherIconClass(period.shortForecast, period.isDaytime);
         content.innerHTML += `
         <tr class="${idx % 2 === 1 ? 'bg-blue-50' : 'bg-white'}">
             <td class="py-2 px-4 font-bold text-gray-800 whitespace-nowrap align-middle" style="width: 90px;">${abbrName}</td>
             <td class="py-2 px-2 align-middle" style="width: 60px;">
-                <img src="${period.icon.split('?')[0]}" alt="${period.shortForecast || period.detailedForecast}" class="w-10 h-10 mx-auto" loading="lazy"/>
+                <i class="${iconClass} text-3xl"></i>
             </td>
             <td class="py-2 px-4 text-gray-700 align-middle">${period.detailedForecast}</td>
         </tr>
