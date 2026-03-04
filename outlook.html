@@ -88,8 +88,11 @@
     .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
     .cat-btn:hover{background:var(--bg);color:var(--text-2);}
     .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
-    .cat-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,0.1);}
-    .cat-btn.active .cat-dot{border-color:transparent;}
+    .cat-icon{font-size:15px;flex-shrink:0;color:var(--text-3);
+      font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
+    .cat-btn.active .cat-icon{color:var(--red);
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .cat-btn:hover .cat-icon{color:var(--text-2);}
 
     /* Discussion button in sidebar */
     .disc-sidebar-btn{display:flex;align-items:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 7px;padding:5px 9px;border:1px solid var(--border-2);background:var(--bg);border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:border-color .15s,color .15s;}
@@ -274,16 +277,16 @@
       </div>
       <div class="cat-list" id="cats-1">
         <button class="cat-btn active" data-day="1" data-mode="cat">
-          <div class="cat-dot" style="background:#ff6600;"></div>Overall
+          <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
         </button>
         <button class="cat-btn" data-day="1" data-mode="torn">
-          <div class="cat-dot" style="background:#ff6600;"></div>Tornado
+          <span class="material-symbols-rounded cat-icon">tornado</span>Tornado
         </button>
         <button class="cat-btn" data-day="1" data-mode="wind">
-          <div class="cat-dot" style="background:#ffdd00;"></div>Wind
+          <span class="material-symbols-rounded cat-icon">air</span>Wind
         </button>
         <button class="cat-btn" data-day="1" data-mode="hail">
-          <div class="cat-dot" style="background:#43e843;"></div>Hail
+          <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
@@ -302,16 +305,16 @@
       </div>
       <div class="cat-list" id="cats-2">
         <button class="cat-btn" data-day="2" data-mode="cat">
-          <div class="cat-dot" style="background:#ff6600;"></div>Overall
+          <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
         </button>
         <button class="cat-btn" data-day="2" data-mode="torn">
-          <div class="cat-dot" style="background:#ff6600;"></div>Tornado
+          <span class="material-symbols-rounded cat-icon">tornado</span>Tornado
         </button>
         <button class="cat-btn" data-day="2" data-mode="wind">
-          <div class="cat-dot" style="background:#ffdd00;"></div>Wind
+          <span class="material-symbols-rounded cat-icon">air</span>Wind
         </button>
         <button class="cat-btn" data-day="2" data-mode="hail">
-          <div class="cat-dot" style="background:#43e843;"></div>Hail
+          <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
@@ -330,10 +333,10 @@
       </div>
       <div class="cat-list" id="cats-3">
         <button class="cat-btn" data-day="3" data-mode="cat">
-          <div class="cat-dot" style="background:#ff6600;"></div>Overall
+          <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
         </button>
         <button class="cat-btn" data-day="3" data-mode="prob">
-          <div class="cat-dot" style="background:#ff8800;"></div>Probabilistic
+          <span class="material-symbols-rounded cat-icon">percent</span>Probabilistic
         </button>
       </div>
       <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
@@ -396,7 +399,7 @@
 const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
 const SPC_BASE   = 'https://www.spc.noaa.gov';
 const NOAA_BASE  = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer';
-const CONUS      = [[21.5,-128],[50.5,-60]];
+const CONUS      = [[24,-126],[50,-66]]; // tight CONUS bounds
 
 // NOAA ArcGIS layer IDs — confirmed from MapServer pjson
 // Day 1 subLayers [1-7]: 1=cat, 2=sig_torn, 3=prob_torn, 4=sig_hail, 5=prob_hail, 6=sig_wind, 7=prob_wind
@@ -637,7 +640,9 @@ function initMap() {
   };
 
   makeBaseTiles().addTo(theMap);
-  theMap.fitBounds(CONUS);
+  // Ensure container dimensions are known before fitting, then fit with no padding
+  theMap.invalidateSize();
+  theMap.fitBounds(CONUS, { padding:[0,0], animate:false });
   addStatesOverlay(theMap);
   addCitiesLayer(theMap);
   makeLabelTiles().addTo(theMap);
