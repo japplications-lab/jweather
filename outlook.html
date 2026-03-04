@@ -76,50 +76,62 @@
     /* OUTLOOK PANEL */
     .outlook-panel { display: none; }
     .outlook-panel.visible { display: block; }
+
+    /* DAY CARD */
     .outlook-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
 
-    /* Hazard tabs */
-    .hazard-row { display: flex; gap: 6px; padding: 14px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
-    .hbtn { font-family: var(--font); font-size: 0.72rem; font-weight: 600; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border-2); background: var(--bg); color: var(--text-3); cursor: pointer; transition: all 0.12s; white-space: nowrap; line-height: 1.4; }
+    /* Card header */
+    .day-card-head { padding: 16px 18px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .day-card-head-left { }
+    .day-card-eyebrow { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
+    .day-card-title { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: -0.015em; margin-top: 2px; }
+    .issue-time { font-size: 0.72rem; color: var(--text-4); font-weight: 500; }
+
+    /* Hazard pills */
+    .hazard-row { display: flex; gap: 6px; padding: 11px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
+    .hbtn { font-family: var(--font); font-size: 0.72rem; font-weight: 600; padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border-2); background: var(--bg); color: var(--text-3); cursor: pointer; transition: all 0.12s; white-space: nowrap; line-height: 1.4; }
     .hbtn:hover { color: var(--text); background: #e8e9ec; }
     .hbtn.on { background: var(--red); color: #fff; border-color: var(--red); }
-    .issue-time { margin-left: auto; font-size: 0.72rem; color: var(--text-4); font-weight: 500; }
 
-    /* Image viewer — layered exactly like SPC */
-    .img-viewer { position: relative; width: 815px; height: 555px; max-width: 100%; background: var(--bg); border-bottom: 1px solid var(--border); overflow: hidden; }
+    /* Overlay controls */
+    .overlay-row { display: flex; gap: 14px; padding: 9px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--bg); }
+    .ovl-label { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 500; color: var(--text-3); cursor: pointer; user-select: none; }
+    .ovl-label input { accent-color: var(--red); cursor: pointer; }
+
+    /* Image viewer */
+    .img-viewer { position: relative; width: 100%; aspect-ratio: 815 / 555; background: var(--bg); border-bottom: 1px solid var(--border); overflow: hidden; }
     .img-viewer img.layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
     .img-viewer img.overlay { display: none; }
     .img-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 10; }
     .spin-ring { width: 24px; height: 24px; border: 2px solid var(--border-2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.65s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .img-unavail { font-size: 0.78rem; color: var(--text-4); }
+    .img-unavail { font-size: 0.78rem; color: var(--text-4); text-align: center; padding: 0 16px; }
 
-    /* Overlay controls */
-    .overlay-row { display: flex; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--bg); }
-    .ovl-label { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 500; color: var(--text-3); cursor: pointer; user-select: none; }
-    .ovl-label input { accent-color: var(--red); cursor: pointer; }
-
-    /* Discussion */
-    .disc-section { padding: 0; }
-    .disc-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--bg); }
-    .disc-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
-    .disc-toggle { font-family: var(--font); font-size: 0.75rem; font-weight: 600; color: var(--text-2); background: var(--surface); border: 1px solid var(--border-2); border-radius: 6px; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; display: flex; align-items: center; gap: 5px; }
+    /* Card footer — discussion */
+    .day-card-foot { padding: 12px 18px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .disc-caption { font-size: 0.72rem; color: var(--text-3); flex: 1; line-height: 1.4; }
+    .disc-toggle { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-size: 0.75rem; font-weight: 600; color: var(--text-2); background: var(--bg); border: 1px solid var(--border-2); border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap; flex-shrink: 0; }
     .disc-toggle:hover { border-color: var(--red); color: var(--red); }
     .disc-toggle .material-symbols-rounded { font-size: 13px; }
-    .disc-body { display: none; padding: 18px 22px 22px; max-height: 500px; overflow-y: auto; }
-    .disc-body.open { display: block; }
-    .disc-body pre { white-space: pre-wrap; font-family: var(--font); font-size: 0.8rem; line-height: 1.8; color: var(--text-2); }
-    .disc-loading { display: flex; align-items: center; gap: 10px; color: var(--text-4); font-size: 0.82rem; padding: 10px 0; }
-    .disc-err { color: var(--red); font-size: 0.82rem; }
-    .disc-fallback { font-size: 0.82rem; color: var(--text-3); margin-top: 8px; }
+
+    /* Discussion modal */
+    #disc-modal { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
+    .disc-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); max-width: 680px; width: 100%; max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .disc-head { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .disc-pip { width: 10px; height: 10px; background: var(--red); border-radius: 50%; flex-shrink: 0; }
+    .disc-title { font-size: 0.95rem; font-weight: 700; color: var(--text); flex: 1; letter-spacing: -0.01em; }
+    .disc-close { background: none; border: none; color: var(--text-4); cursor: pointer; transition: color 0.15s; line-height: 1; }
+    .disc-close:hover { color: var(--red); }
+    .disc-close .material-symbols-rounded { font-size: 18px; }
+    .disc-modal-body { padding: 18px 22px 22px; overflow-y: auto; flex: 1; }
+    .disc-modal-body pre { white-space: pre-wrap; font-family: var(--font); font-size: 0.8rem; line-height: 1.8; color: var(--text-2); }
+    .disc-loading { display: flex; align-items: center; gap: 12px; padding: 36px 0; color: var(--text-4); font-size: 0.83rem; }
+    .disc-err { color: var(--red); font-size: 0.82rem; padding: 8px 0; }
+    .disc-fallback { font-size: 0.82rem; color: var(--text-3); margin-top: 10px; }
     .disc-fallback a { color: var(--red); }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
-
-    @media (max-width: 900px) {
-      .img-viewer { width: 100%; height: auto; aspect-ratio: 815/555; }
-    }
   </style>
 </head>
 <body>
@@ -177,135 +189,153 @@
     <button class="day-tab" id="day3-tab" data-day="3">Day 3 — <span id="day3-label">—</span></button>
   </div>
 
-  <!-- Day 1 panel -->
+  <!-- Day 1 -->
   <div class="outlook-panel visible" id="panel-1">
     <div class="outlook-card">
-      <div class="hazard-row">
+      <div class="day-card-head">
+        <div class="day-card-head-left">
+          <div class="day-card-eyebrow">Day 1</div>
+          <div class="day-card-title">Today</div>
+        </div>
+        <span class="issue-time" id="issue-1"></span>
+      </div>
+      <div class="hazard-row" id="hazard-row-1">
         <button class="hbtn on" data-day="1" data-hazard="cat">Categorical</button>
         <button class="hbtn" data-day="1" data-hazard="torn">Tornado</button>
         <button class="hbtn" data-day="1" data-hazard="wind">Wind</button>
         <button class="hbtn" data-day="1" data-hazard="hail">Hail</button>
-        <span class="issue-time" id="issue-1"></span>
       </div>
       <div class="overlay-row" id="overlay-row-1"></div>
       <div class="img-viewer" id="viewer-1">
         <div class="img-loader" id="loader-1"><div class="spin-ring"></div></div>
-        <!-- Overlay layers injected by JS -->
         <img class="layer" id="main-1" src="" alt="Day 1 Outlook" style="z-index:2"/>
       </div>
-      <div class="disc-section">
-        <div class="disc-header">
-          <span class="disc-label">Forecast Discussion</span>
-          <button class="disc-toggle" data-day="1">
-            <span class="material-symbols-rounded">description</span>Show Discussion
-          </button>
-        </div>
-        <div class="disc-body" id="disc-1">
-          <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
-        </div>
+      <div class="day-card-foot">
+        <div class="disc-caption" id="cap-1"></div>
+        <button class="disc-toggle" data-day="1" data-label="Day 1 — Today">
+          <span class="material-symbols-rounded">description</span>Discussion
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Day 2 panel -->
+  <!-- Day 2 -->
   <div class="outlook-panel" id="panel-2">
     <div class="outlook-card">
-      <div class="hazard-row">
+      <div class="day-card-head">
+        <div class="day-card-head-left">
+          <div class="day-card-eyebrow">Day 2</div>
+          <div class="day-card-title">Tomorrow</div>
+        </div>
+        <span class="issue-time" id="issue-2"></span>
+      </div>
+      <div class="hazard-row" id="hazard-row-2">
         <button class="hbtn on" data-day="2" data-hazard="cat">Categorical</button>
         <button class="hbtn" data-day="2" data-hazard="torn">Tornado</button>
         <button class="hbtn" data-day="2" data-hazard="wind">Wind</button>
         <button class="hbtn" data-day="2" data-hazard="hail">Hail</button>
-        <span class="issue-time" id="issue-2"></span>
       </div>
       <div class="overlay-row" id="overlay-row-2"></div>
       <div class="img-viewer" id="viewer-2">
         <div class="img-loader" id="loader-2"><div class="spin-ring"></div></div>
         <img class="layer" id="main-2" src="" alt="Day 2 Outlook" style="z-index:2"/>
       </div>
-      <div class="disc-section">
-        <div class="disc-header">
-          <span class="disc-label">Forecast Discussion</span>
-          <button class="disc-toggle" data-day="2">
-            <span class="material-symbols-rounded">description</span>Show Discussion
-          </button>
-        </div>
-        <div class="disc-body" id="disc-2">
-          <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
-        </div>
+      <div class="day-card-foot">
+        <div class="disc-caption" id="cap-2"></div>
+        <button class="disc-toggle" data-day="2" data-label="Day 2 — Tomorrow">
+          <span class="material-symbols-rounded">description</span>Discussion
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Day 3 panel -->
+  <!-- Day 3 -->
   <div class="outlook-panel" id="panel-3">
     <div class="outlook-card">
-      <div class="hazard-row">
+      <div class="day-card-head">
+        <div class="day-card-head-left">
+          <div class="day-card-eyebrow">Day 3</div>
+          <div class="day-card-title" id="day3-card-title">—</div>
+        </div>
+        <span class="issue-time" id="issue-3"></span>
+      </div>
+      <div class="hazard-row" id="hazard-row-3">
         <button class="hbtn on" data-day="3" data-hazard="cat">Categorical</button>
         <button class="hbtn" data-day="3" data-hazard="prob">Probabilistic</button>
-        <span class="issue-time" id="issue-3"></span>
       </div>
       <div class="overlay-row" id="overlay-row-3"></div>
       <div class="img-viewer" id="viewer-3">
         <div class="img-loader" id="loader-3"><div class="spin-ring"></div></div>
         <img class="layer" id="main-3" src="" alt="Day 3 Outlook" style="z-index:2"/>
       </div>
-      <div class="disc-section">
-        <div class="disc-header">
-          <span class="disc-label">Forecast Discussion</span>
-          <button class="disc-toggle" data-day="3">
-            <span class="material-symbols-rounded">description</span>Show Discussion
-          </button>
-        </div>
-        <div class="disc-body" id="disc-3">
-          <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
-        </div>
+      <div class="day-card-foot">
+        <div class="disc-caption" id="cap-3"></div>
+        <button class="disc-toggle" data-day="3" data-label="" id="disc-toggle-3">
+          <span class="material-symbols-rounded">description</span>Discussion
+        </button>
       </div>
     </div>
   </div>
 </main>
 
+<!-- Discussion Modal -->
+<div id="disc-modal">
+  <div class="disc-box">
+    <div class="disc-head">
+      <div class="disc-pip"></div>
+      <div id="disc-modal-title" class="disc-title">SPC Discussion</div>
+      <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="disc-modal-body" id="disc-modal-body">
+      <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
+    </div>
+  </div>
+</div>
+
 <script>
 const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
 const SPC_BASE   = 'https://www.spc.noaa.gov';
 
-// Overlay images from SPC (same relative paths they use)
 const OVERLAYS = [
-  { id: 'pop',   file: 'pop.png',        label: 'Pop.' },
-  { id: 'city',  file: 'cities.png',     label: 'Cities' },
-  { id: 'cwa',   file: 'cwa.png',        label: 'CWAs' },
-  { id: 'cnty',  file: 'counties.png',   label: 'Counties' },
-  { id: 'hwy',   file: 'interstates.png',label: 'Interstates' },
-  { id: 'rfc',   file: 'rfc.png',        label: 'RFCs' },
+  { id: 'pop',   file: 'pop.png',         label: 'Pop.' },
+  { id: 'city',  file: 'cities.png',      label: 'Cities',      defaultOn: true },
+  { id: 'cwa',   file: 'cwa.png',         label: 'CWAs' },
+  { id: 'cnty',  file: 'counties.png',    label: 'Counties' },
+  { id: 'hwy',   file: 'interstates.png', label: 'Interstates' },
+  { id: 'rfc',   file: 'rfc.png',         label: 'RFCs' },
 ];
 
-// State: issuance time parsed per day, discussion text cached per day
-const state = { 1: {time:null, disc:null}, 2: {time:null, disc:null}, 3: {time:null, disc:null} };
+const HAZARD_LABELS = {
+  cat: 'Categorical Risk', torn: 'Tornado Probability',
+  wind: 'Wind Probability', hail: 'Hail Probability', prob: 'Probabilistic Outlook'
+};
+
+const state = { 1:{time:null,disc:null}, 2:{time:null,disc:null}, 3:{time:null,disc:null} };
 
 function proxyUrl(spcPath) {
   return `${WORKER_URL}/proxy${spcPath}`;
 }
 
-// ---- Build overlay controls for a day ----
+// ---- Build overlay controls ----
 function buildOverlays(day) {
-  const row = document.getElementById(`overlay-row-${day}`);
+  const row    = document.getElementById(`overlay-row-${day}`);
   const viewer = document.getElementById(`viewer-${day}`);
+  const mainImg = document.getElementById(`main-${day}`);
 
   OVERLAYS.forEach(ovl => {
-    // Inject overlay img into viewer
     const img = document.createElement('img');
     img.className = 'layer overlay';
     img.id = `ovl-${day}-${ovl.id}`;
     img.src = proxyUrl(`/products/outlook/imgs_v2/${ovl.file}`);
     img.alt = ovl.label;
-    img.style.cssText = 'z-index:3; display:none; position:absolute; top:0; left:0; width:100%; height:100%;';
-    // Insert before main image
-    viewer.insertBefore(img, document.getElementById(`main-${day}`));
+    img.style.cssText = `z-index:3; display:${ovl.defaultOn ? 'block' : 'none'}; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;`;
+    viewer.insertBefore(img, mainImg);
 
-    // Checkbox label
     const label = document.createElement('label');
     label.className = 'ovl-label';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
+    cb.checked = !!ovl.defaultOn;
     cb.addEventListener('change', () => {
       img.style.display = cb.checked ? 'block' : 'none';
     });
@@ -315,27 +345,17 @@ function buildOverlays(day) {
   });
 }
 
-// ---- Fetch day HTML through Worker, extract time + discussion ----
+// ---- Fetch day HTML, extract time + discussion ----
 async function fetchDayData(day) {
-  const path = `/products/outlook/day${day}otlk.html`;
-  const res = await fetch(proxyUrl(path));
+  const res = await fetch(proxyUrl(`/products/outlook/day${day}otlk.html`));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
 
-  // Extract issuance time from show_tab call in onload:
-  // onload="...show_tab('otlk_0100')" → time = "0100"
-  const timeMatch = html.match(/show_tab\(['"](?:otlk_|day\d)(\d{4})['"]\)/);
-  const time = timeMatch ? timeMatch[1] : null;
+  // Parse issuance time from show_tab call e.g. show_tab('otlk_0100') → 0100
+  const timeMatch = html.match(/show_tab\(['"][^'"]*?(\d{4})['"]\)/);
+  const time = timeMatch ? timeMatch[1] : '1300';
 
-  // For day 3, the pattern is slightly different — also try:
-  // show_tab('3otlk_0730') → time = "0730"
-  let finalTime = time;
-  if (!finalTime) {
-    const t2 = html.match(/show_tab\(['"][^'"]*?(\d{4})['"]\)/);
-    finalTime = t2 ? t2[1] : '1300';
-  }
-
-  // Extract <pre> discussion block
+  // Extract <pre> discussion
   const preMatch = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
   let disc = '';
   if (preMatch) {
@@ -346,27 +366,24 @@ async function fetchDayData(day) {
       .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
       .trim();
   }
-
-  return { time: finalTime, disc };
+  return { time, disc };
 }
 
-// ---- Load main outlook image ----
+// ---- Load main image ----
 function loadImage(day, hazard) {
-  const time  = state[day].time || '1300';
-  const main  = document.getElementById(`main-${day}`);
+  const time   = state[day].time || '1300';
+  const main   = document.getElementById(`main-${day}`);
   const loader = document.getElementById(`loader-${day}`);
+  const cap    = document.getElementById(`cap-${day}`);
 
   loader.style.display = 'flex';
+  loader.innerHTML = '<div class="spin-ring"></div>';
   main.style.opacity = '0';
 
   let spcPath;
-  if (hazard === 'cat') {
-    spcPath = `/products/outlook/day${day}otlk_${time}.png`;
-  } else if (hazard === 'prob') {
-    spcPath = `/products/outlook/day3otlk_${time}_prob.png`;
-  } else {
-    spcPath = `/products/outlook/day${day}probotlk_${time}_${hazard}.png`;
-  }
+  if (hazard === 'cat')  spcPath = `/products/outlook/day${day}otlk_${time}.png`;
+  else if (hazard === 'prob') spcPath = `/products/outlook/day3otlk_${time}_prob.png`;
+  else spcPath = `/products/outlook/day${day}probotlk_${time}_${hazard}.png`;
 
   const url = proxyUrl(spcPath);
   const tmp = new Image();
@@ -374,14 +391,16 @@ function loadImage(day, hazard) {
     main.src = url;
     main.style.opacity = '1';
     loader.style.display = 'none';
+    cap.textContent = `Day ${day} · ${HAZARD_LABELS[hazard] || hazard}`;
   };
   tmp.onerror = () => {
     loader.innerHTML = '<span class="img-unavail">Image unavailable</span>';
+    cap.textContent = '';
   };
   tmp.src = url;
 }
 
-// ---- Init a day panel ----
+// ---- Init a day ----
 async function initDay(day) {
   buildOverlays(day);
   try {
@@ -389,26 +408,11 @@ async function initDay(day) {
     state[day].time = time;
     state[day].disc = disc;
     document.getElementById(`issue-${day}`).textContent = time ? `${time}Z` : '';
-
-    // Load default (categorical) image
     loadImage(day, 'cat');
-
-    // Pre-populate discussion
-    const discEl = document.getElementById(`disc-${day}`);
-    if (disc) {
-      discEl.innerHTML = `<pre>${esc(disc)}</pre>`;
-    } else {
-      discEl.innerHTML = `<div class="disc-err">Discussion not available.</div>
-        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
-    }
   } catch(e) {
     document.getElementById(`loader-${day}`).innerHTML = `<span class="img-unavail">Failed to load (${e.message})</span>`;
-    document.getElementById(`disc-${day}`).innerHTML = `<div class="disc-err">${e.message}</div>
-      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
   }
 }
-
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ---- Day tab switching ----
 document.querySelectorAll('.day-tab').forEach(btn => {
@@ -431,30 +435,46 @@ document.querySelectorAll('.hbtn').forEach(btn => {
   });
 });
 
-// ---- Discussion toggle ----
+// ---- Discussion modal ----
+const discModal = document.getElementById('disc-modal');
 document.querySelectorAll('.disc-toggle').forEach(btn => {
   btn.addEventListener('click', () => {
     const day = +btn.dataset.day;
-    const body = document.getElementById(`disc-${day}`);
-    const open = body.classList.toggle('open');
-    btn.innerHTML = open
-      ? `<span class="material-symbols-rounded">expand_less</span>Hide Discussion`
-      : `<span class="material-symbols-rounded">description</span>Show Discussion`;
+    const label = btn.dataset.label || `Day ${day}`;
+    document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
+    const body = document.getElementById('disc-modal-body');
+    const disc = state[day].disc;
+    if (disc) {
+      body.innerHTML = `<pre>${esc(disc)}</pre>`;
+    } else {
+      body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+    }
+    discModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
   });
 });
+document.getElementById('disc-close').addEventListener('click', closeDisc);
+discModal.addEventListener('click', e => { if (e.target === discModal) closeDisc(); });
+function closeDisc() { discModal.style.display='none'; document.body.style.overflow=''; }
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ---- Day 3 label ----
 const d3date = new Date(); d3date.setDate(d3date.getDate() + 2);
-document.getElementById('day3-label').textContent = d3date.toLocaleDateString('en-US', { weekday:'long' });
+const d3str = d3date.toLocaleDateString('en-US', { weekday:'long' });
+document.getElementById('day3-label').textContent = d3str;
+document.getElementById('day3-card-title').textContent = d3str;
+document.getElementById('disc-toggle-3').dataset.label = `Day 3 — ${d3str}`;
 
-// ---- Boot: init all three days ----
+// ---- Boot ----
 window.addEventListener('DOMContentLoaded', () => {
   initDay(1);
   initDay(2);
   initDay(3);
 });
 
-// ---- Search (navigates to index.html) ----
+// ---- Search ----
 const STATE_ABBR = {"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
 function stateAbbr(n) { return STATE_ABBR[n] || n; }
 function parseNom(r) {
@@ -474,7 +494,7 @@ sBar.addEventListener('input', debounce(async e => {
   if (searchCtrl) searchCtrl.abort();
   searchCtrl = new AbortController();
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`, { signal: searchCtrl.signal, headers: { 'Accept-Language':'en-US,en', 'User-Agent':'jWeather/1.0' } });
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`, { signal: searchCtrl.signal, headers: {'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'} });
     const data = await res.json();
     const seen = new Set(); sugs = [];
     for (const r of data) { const p = parseNom(r); if (!seen.has(p.label)) { seen.add(p.label); sugs.push(p); } if (sugs.length >= 6) break; }
@@ -504,7 +524,7 @@ document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.ta
 function pickLoc(loc) { localStorage.setItem('jweather_last_location', JSON.stringify(loc)); window.location.href = 'index.html'; }
 locBtn.addEventListener('click', () => {
   if (!navigator.geolocation) return alert('Geolocation not supported.');
-  locBtn.disabled=true;
+  locBtn.disabled = true;
   navigator.geolocation.getCurrentPosition(async pos => {
     const { latitude:lat, longitude:lng } = pos.coords;
     let loc = { label:'Your Location', city:'Your Location', state:'', lat, lng };
@@ -514,7 +534,7 @@ locBtn.addEventListener('click', () => {
     } catch {}
     localStorage.setItem('jweather_last_location', JSON.stringify(loc));
     window.location.href = 'index.html';
-  }, () => { alert('Unable to get location.'); locBtn.disabled=false; });
+  }, () => { alert('Unable to get location.'); locBtn.disabled = false; });
 });
 window.addEventListener('DOMContentLoaded', () => {
   try { const s = JSON.parse(localStorage.getItem('jweather_last_location')); if (s?.label) sBar.value = s.label; } catch {}
