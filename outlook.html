@@ -476,7 +476,7 @@ function makeLabelTiles() {
     {
       subdomains:'abcd', maxZoom:19,
       r: window.devicePixelRatio > 1 ? '@2x' : '',
-      pane:'labels'
+      pane:'labelTilePane'
     }
   );
 }
@@ -527,11 +527,7 @@ const CITIES = [
 let citiesLayer = null;
 function addCitiesLayer(map) {
   const pane = 'cityPane';
-  if (!map.getPane(pane)) {
-    map.createPane(pane);
-    map.getPane(pane).style.zIndex = 510;
-    map.getPane(pane).style.pointerEvents = 'none';
-  }
+  // pane is created in initMap; guard in case called before initMap somehow
   const markers = CITIES.map(c => {
     const icon = L.divIcon({
       className: 'city-label',
@@ -553,7 +549,7 @@ async function addStatesOverlay(map) {
     statesLayer = L.geoJSON(gj, {
       style: { color:'#6b7280', weight:1.5, fill:false, opacity:0.75 },
       interactive: false,
-      pane: 'states'
+      pane: 'statesPane'
     }).addTo(map);
   } catch(e) { console.warn('State borders failed', e); }
 }
@@ -568,13 +564,29 @@ function initMap() {
     scrollWheelZoom:true,
     attributionControl:true,
   });
-  // Pane ordering: base < outlook polygons (default 400) < states (450) < labels (500)
-  theMap.createPane('states');    theMap.getPane('states').style.zIndex = 450;
-  theMap.createPane('sigBadgePane'); theMap.getPane('sigBadgePane').style.zIndex = 460;
-  theMap.createPane('labels'); theMap.getPane('labels').style.zIndex = 500;
-  // cityPane created inside addCitiesLayer (zIndex 510)
-  // Labels pane must not capture pointer events so map stays interactive
-  theMap.getPane('labels').style.pointerEvents = 'none';
+
+  // ── Pane z-index stack (Leaflet defaults: tilePane=200, overlayPane=400, markerPane=600) ──
+  // 200  baseTiles       (default tilePane — CARTO no-labels base)
+  // 310  outlookPane     outlook risk polygons
+  // 330  sigOutlinePane  significant threat dashed outline
+  // 360  statesPane      US state border lines
+  // 420  labelTilePane   CARTO city/road labels tile layer
+  // 450  sigBadgePane    significant threat badge markers
+  // 480  cityPane        major metro dot + name markers
+  // (popup pane stays at Leaflet default 700)
+
+  function mkPane(name, z, noPointer) {
+    theMap.createPane(name);
+    theMap.getPane(name).style.zIndex = z;
+    if (noPointer) theMap.getPane(name).style.pointerEvents = 'none';
+  }
+
+  mkPane('outlookPane',    310, false);
+  mkPane('sigOutlinePane', 330, false);
+  mkPane('statesPane',     360, true);   // state lines — no clicks
+  mkPane('labelTilePane',  420, true);   // tile labels — no clicks
+  mkPane('sigBadgePane',   450, false);  // sig badges — clickable
+  mkPane('cityPane',       480, true);   // city names — no clicks
 
   makeBaseTiles().addTo(theMap);
   theMap.fitBounds(CONUS);
@@ -744,6 +756,7 @@ async function loadHazard(day, mode) {
 
     activeLayer = L.geoJSON(gj, {
       style: f => styleFeature(f, mode),
+      pane: 'outlookPane',
       onEachFeature: (f, lyr) => {
         // Skip TSTM — no popup on invisible polygons
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
@@ -792,7 +805,7 @@ async function loadSigLayer(day, mode) {
     const gj = await res.json();
     if (!gj.features || !gj.features.length) return;
 
-    // Render dashed red outline polygon
+    // Render dashed red outline polygon — sits just above outlook polygons
     activeSigLayer = L.geoJSON(gj, {
       style: {
         color: '#e5182a',
@@ -802,6 +815,7 @@ async function loadSigLayer(day, mode) {
         fillOpacity: 0.07,
         opacity: 0.9
       },
+      pane: 'sigOutlinePane',
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(popupContent(f, mode, day, true), { closeButton:false, autoPan:true, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.18, weight:3 }); });
