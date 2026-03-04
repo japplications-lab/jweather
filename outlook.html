@@ -393,15 +393,18 @@ const CONUS      = [[21.5,-128],[50.5,-60]];
 
 // NOAA ArcGIS layer IDs
 const LAYER_IDS = {
-  '1-cat':1,'1-torn':3,'1-wind':5,'1-hail':7,
-  '2-cat':9,'2-torn':11,'2-wind':13,'2-hail':15,
-  '3-cat':17,'3-prob':19
+  '1-cat':1, '1-torn':3,  '1-wind':7,  '1-hail':5,
+  '2-cat':9, '2-torn':11, '2-wind':15, '2-hail':13,
+  '3-cat':17,'3-prob':18
 };
-// Significant threat layer IDs (separate polygons — EF2+ torn, 65mph+ wind, 2"+ hail)
+// Significant threat layer IDs
+// Day 1: sig torn=2, sig hail=4, sig wind=6
+// Day 2: sig torn=10, sig hail=12, sig wind=14
+// Day 3: sig severe=19
 const SIG_LAYER_IDS = {
-  '1-torn':2, '1-wind':4, '1-hail':6,
-  '2-torn':10,'2-wind':12,'2-hail':14,
-  '3-prob':20
+  '1-torn':2, '1-hail':4, '1-wind':6,
+  '2-torn':10,'2-hail':12,'2-wind':14,
+  '3-prob':19
 };
 // Human-readable sig threat labels per mode
 const SIG_LABELS = {
@@ -442,6 +445,38 @@ const PROB = [
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
 const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
+
+// ─────────────────────────────────────────────
+//  GEOMETRY HELPERS
+// ─────────────────────────────────────────────
+// Shoelace formula for a ring's approximate area (in deg² — just for sorting)
+function ringArea(coords) {
+  let area = 0;
+  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+    area += (coords[j][0] + coords[i][0]) * (coords[j][1] - coords[i][1]);
+  }
+  return Math.abs(area / 2);
+}
+
+// Bounding-box area of a GeoJSON feature — fast proxy for sorting largest→smallest
+function featureArea(feature) {
+  const geom = feature.geometry;
+  if (!geom) return 0;
+  const rings = geom.type === 'Polygon'
+    ? geom.coordinates
+    : geom.type === 'MultiPolygon'
+      ? geom.coordinates.flat(1)
+      : [];
+  return rings.reduce((sum, ring) => sum + ringArea(ring), 0);
+}
+
+// Sort GeoJSON features largest-first so Leaflet renders smallest on top
+function sortByAreaDesc(geojson) {
+  return {
+    ...geojson,
+    features: [...geojson.features].sort((a, b) => featureArea(b) - featureArea(a))
+  };
+}
 
 // ─────────────────────────────────────────────
 //  STATE
@@ -752,7 +787,8 @@ async function loadHazard(day, mode) {
     const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const gj = await res.json();
+    const gjRaw = await res.json();
+    const gj = sortByAreaDesc(gjRaw); // largest polygon first → smallest rendered on top
 
     activeLayer = L.geoJSON(gj, {
       style: f => styleFeature(f, mode),
@@ -804,9 +840,10 @@ async function loadSigLayer(day, mode) {
     if (!res.ok) return;
     const gj = await res.json();
     if (!gj.features || !gj.features.length) return;
+    const gjSorted = sortByAreaDesc(gj);
 
     // Render dashed red outline polygon — sits just above outlook polygons
-    activeSigLayer = L.geoJSON(gj, {
+    activeSigLayer = L.geoJSON(gjSorted, {
       style: {
         color: '#e5182a',
         weight: 2.5,
@@ -825,7 +862,7 @@ async function loadSigLayer(day, mode) {
     }).addTo(theMap);
 
     // Pin a badge marker at the centroid of each significant polygon
-    gj.features.forEach(f => {
+    gjSorted.features.forEach(f => {
       try {
         const lyrTemp = L.geoJSON(f);
         const center  = lyrTemp.getBounds().getCenter();
