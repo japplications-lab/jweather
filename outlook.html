@@ -275,25 +275,27 @@
 </div>
 
 <script>
-// ---- SPC correct image URLs ----
-// Day 1: https://www.spc.noaa.gov/products/outlook/day1otlk_cat.gif  (cat/torn/wind/hail)
-// Day 2: https://www.spc.noaa.gov/products/outlook/day2otlk_cat.gif  (cat/torn/wind/hail)
-// Day 3: https://www.spc.noaa.gov/products/outlook/day3otlk.gif (cat) / day3otlk_prob.gif (prob)
+// ---- SPC image URLs (served via weather.gov, no CORS issues) ----
+// Pattern: https://www.weather.gov/images/ffc/spc_wpc/SPC_XX_DayNState.png
+const IMG_KEYS = {
+  1: { cat:'SPC_CO_Day1State', torn:'SPC_TP_Day1State', wind:'SPC_WP_Day1State', hail:'SPC_HP_Day1State' },
+  2: { cat:'SPC_CO_Day2State', torn:'SPC_TP_Day2State', wind:'SPC_WP_Day2State', hail:'SPC_HP_Day2State' },
+  3: { cat:'SPC_CO_Day3State', prob:'SPC_PR_Day3State' },
+};
 function imgUrl(day, hazard) {
-  const cb = `?cb=${Date.now()}`;
-  const base = 'https://www.spc.noaa.gov/products/outlook/';
-  if (day === 1) return `${base}day1otlk_${hazard}.gif${cb}`;
-  if (day === 2) return `${base}day2otlk_${hazard}.gif${cb}`;
-  if (day === 3) return hazard === 'prob' ? `${base}day3otlk_prob.gif${cb}` : `${base}day3otlk.gif${cb}`;
+  const key = IMG_KEYS[day]?.[hazard];
+  if (!key) return null;
+  return `https://www.weather.gov/images/ffc/spc_wpc/${key}.png?cb=${Date.now()}`;
 }
 
 const HAZARD_LABELS = { cat:'Categorical Risk', torn:'Tornado Probability', wind:'Wind Probability', hail:'Hail Probability', prob:'Probabilistic Outlook' };
 
-// SPC text products — direct fetch (no auth, public)
-const TEXT_URLS = {
-  1: 'https://www.spc.noaa.gov/products/outlook/SWODY1.txt',
-  2: 'https://www.spc.noaa.gov/products/outlook/SWODY2.txt',
-  3: 'https://www.spc.noaa.gov/products/outlook/SWODY3.txt',
+// Discussion: fetched from SPC HTML pages via a public CORS proxy
+// The discussion text lives inside a <pre> tag on these pages
+const DISC_HTML_URLS = {
+  1: 'https://www.spc.noaa.gov/products/outlook/day1otlk.html',
+  2: 'https://www.spc.noaa.gov/products/outlook/day2otlk.html',
+  3: 'https://www.spc.noaa.gov/products/outlook/day3otlk.html',
 };
 const PAGE_URLS = {
   1: 'https://www.spc.noaa.gov/products/outlook/day1otlk.html',
@@ -311,6 +313,11 @@ function loadImg(day, hazard) {
   loader.innerHTML = '<div class="spin-ring"></div>';
 
   const url = imgUrl(day, hazard);
+  if (!url) {
+    loader.innerHTML = '<span class="img-unavail">Not available for this day</span>';
+    cap.textContent = '';
+    return;
+  }
   const tmp = new Image();
   tmp.onload = () => {
     img.src = url;
@@ -351,20 +358,33 @@ document.querySelectorAll('.disc-btn').forEach(btn => {
 
 async function loadDiscussion(day) {
   const body = document.getElementById('disc-body');
-  try {
-    const res = await fetch(TEXT_URLS[day]);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = await res.text();
-    const idx = raw.indexOf('...');
-    const text = idx !== -1 ? raw.slice(idx) : raw;
-    body.innerHTML = `<pre>${esc(text.trim())}</pre>`;
-  } catch(e) {
-    body.innerHTML = `
-      <div class="disc-err">Discussion text could not be loaded directly (${e.message}).</div>
-      <div class="disc-fallback">Read it on the SPC website:
-        <a href="${PAGE_URLS[day]}" target="_blank" rel="noopener">Day ${day} Outlook Discussion ↗</a>
-      </div>`;
+  // Use a CORS proxy to fetch the SPC HTML page, then extract the <pre> block
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(DISC_HTML_URLS[day])}`,
+    `https://corsproxy.io/?${encodeURIComponent(DISC_HTML_URLS[day])}`,
+  ];
+  let html = null;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy);
+      if (res.ok) { html = await res.text(); break; }
+    } catch {}
   }
+  if (html) {
+    // Extract text from <pre> tag
+    const match = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+    if (match) {
+      const text = match[1].replace(/<[^>]+>/g, '').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
+      body.innerHTML = `<pre>${esc(text)}</pre>`;
+      return;
+    }
+  }
+  // Fallback: direct link
+  body.innerHTML = `
+    <div class="disc-err">Could not load discussion text automatically.</div>
+    <div class="disc-fallback">Read it directly on the SPC website:
+      <a href="${PAGE_URLS[day]}" target="_blank" rel="noopener">Day ${day} Outlook Discussion ↗</a>
+    </div>`;
 }
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
