@@ -8,19 +8,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <style>
     :root {
-      --red:#e5182a; --red-dim:rgba(229,24,42,0.08);
+      --red:#e5182a; --red-dim:rgba(229,24,42,0.08); --red-hover:rgba(229,24,42,0.12);
       --bg:#f2f3f5; --surface:#ffffff; --border:rgba(0,0,0,0.07); --border-2:rgba(0,0,0,0.11);
       --text:#0f1115; --text-2:#3a3d45; --text-3:#7c818f; --text-4:#b0b4be;
       --r:12px; --r-sm:8px; --font:'Geist',system-ui,sans-serif;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
     .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
 
-    /* HEADER */
-    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    /* ── HEADER ── */
+    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:500;}
     .header-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;gap:20px;}
     .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
@@ -36,7 +38,7 @@
     .loc-btn{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);border-radius:6px;padding:5px 11px;font-family:var(--font);font-size:0.77rem;font-weight:500;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;}
     .loc-btn:hover{border-color:var(--red);color:var(--red);}
     .loc-btn .material-symbols-rounded{font-size:14px;}
-    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:300;display:none;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.1);}
     #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
     #suggestions li:last-child{border-bottom:none;}
     #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
@@ -49,7 +51,7 @@
     .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--red);background:var(--red-dim);border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
     .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
     .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
-    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:200;}
+    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
     .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
     .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
     .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;}
@@ -58,7 +60,7 @@
     .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
     .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
 
-    /* PAGE */
+    /* ── PAGE ── */
     main{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
     .page-header{margin-bottom:22px;}
     .page-title{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;}
@@ -67,56 +69,54 @@
     .page-subtitle a{color:var(--red);text-decoration:none;}
     .page-subtitle a:hover{text-decoration:underline;}
 
-    /* 3-COLUMN GRID */
+    /* ── 3-COLUMN GRID ── */
     .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
 
-    /* DAY CARD */
-    .day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;}
-    .day-card-head{padding:16px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
-    .day-card-eyebrow{font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
+    /* ── DAY CARD ── */
+    .day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);}
+    .day-card-head{padding:15px 18px 13px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
+    .day-card-eyebrow{font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-4);}
     .day-card-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-0.015em;margin-top:2px;}
-    .issue-badge{font-size:0.65rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 6px;white-space:nowrap;}
+    .issue-badge{font-size:0.63rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 7px;margin-top:1px;white-space:nowrap;}
 
     /* Hazard pills */
-    .hazard-row{display:flex;gap:6px;padding:11px 18px 12px;flex-wrap:wrap;align-items:center;}
-    .hbtn{font-family:var(--font);font-size:0.72rem;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid var(--border-2);background:var(--bg);color:var(--text-3);cursor:pointer;transition:all .12s;white-space:nowrap;line-height:1.4;}
-    .hbtn:hover{color:var(--text);background:#e8e9ec;border-color:rgba(0,0,0,.18);}
+    .hazard-row{display:flex;gap:5px;padding:10px 18px 11px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);}
+    .hbtn{font-family:var(--font);font-size:0.71rem;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border-2);background:var(--bg);color:var(--text-3);cursor:pointer;transition:all .12s;white-space:nowrap;line-height:1.5;}
+    .hbtn:hover{color:var(--text);background:#e5e7eb;}
     .hbtn.on{background:var(--red);color:#fff;border-color:var(--red);}
 
-    /* Image area */
-    .img-viewer{position:relative;width:100%;aspect-ratio:815/555;background:var(--bg);border-top:1px solid var(--border);overflow:hidden;}
-    .img-viewer img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;}
-    .img-viewer .map-main{z-index:2;}
-    .img-viewer .map-cities{z-index:3;pointer-events:none;}
-    .img-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:10;flex-direction:column;gap:10px;}
-    .spin-ring{width:22px;height:22px;border:2px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;}
+    /* ── MAP CONTAINER ── */
+    .map-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#e8eaed;}
+    .map-wrap .leaflet-map{position:absolute;inset:0;width:100%;height:100%;}
+
+    /* Loading / error states */
+    .map-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:var(--bg);flex-direction:column;gap:10px;pointer-events:none;}
+    .map-overlay.hidden{display:none;}
+    .spin-ring{width:22px;height:22px;border:2.5px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
-    .img-unavail{font-size:0.78rem;color:var(--text-4);text-align:center;}
+    .map-err-text{font-size:0.78rem;color:var(--text-4);text-align:center;padding:0 16px;}
 
-    /* Card footer */
-    .day-card-foot{padding:11px 18px 13px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-    .disc-caption{font-size:0.72rem;color:var(--text-3);flex:1;line-height:1.4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .disc-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font);font-size:0.75rem;font-weight:600;color:var(--text-2);background:var(--bg);border:1px solid var(--border-2);border-radius:6px;padding:6px 13px;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;flex-shrink:0;}
-    .disc-btn:hover{border-color:var(--red);color:var(--red);}
-    .disc-btn .material-symbols-rounded{font-size:13px;}
-
-    /* ENLARGE BUTTON */
-    .enlarge-btn{position:absolute;bottom:10px;right:10px;z-index:5;display:flex;align-items:center;gap:4px;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text-2);background:rgba(255,255,255,0.92);border:1px solid var(--border-2);border-radius:6px;padding:5px 10px;cursor:pointer;backdrop-filter:blur(4px);transition:border-color .15s,color .15s,opacity .15s;opacity:0;}
-    .img-viewer:hover .enlarge-btn{opacity:1;}
+    /* Enlarge button */
+    .enlarge-btn{position:absolute;bottom:10px;right:10px;z-index:400;display:flex;align-items:center;gap:4px;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text-2);background:rgba(255,255,255,0.92);border:1px solid var(--border-2);border-radius:6px;padding:5px 10px;cursor:pointer;backdrop-filter:blur(4px);transition:border-color .15s,color .15s,opacity .15s;opacity:0;}
+    .map-wrap:hover .enlarge-btn{opacity:1;}
     .enlarge-btn:hover{border-color:var(--red);color:var(--red);}
     .enlarge-btn .material-symbols-rounded{font-size:13px;}
 
-    /* IMAGE ENLARGE MODAL */
-    #img-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;}
-    .img-modal-inner{position:relative;max-width:min(1100px,95vw);width:100%;}
-    .img-modal-inner img{width:100%;height:auto;display:block;border-radius:var(--r);box-shadow:0 24px 80px rgba(0,0,0,.4);}
-    .img-modal-close{position:absolute;top:-14px;right:-14px;width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:color .15s,border-color .15s;}
-    .img-modal-close:hover{color:var(--red);border-color:var(--red);}
-    .img-modal-close .material-symbols-rounded{font-size:17px;}
+    /* Card footer */
+    .day-card-foot{padding:10px 18px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .disc-caption{font-size:0.71rem;color:var(--text-3);flex:1;line-height:1.4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .disc-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font);font-size:0.74rem;font-weight:600;color:var(--text-2);background:var(--bg);border:1px solid var(--border-2);border-radius:6px;padding:5px 12px;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;flex-shrink:0;}
+    .disc-btn:hover{border-color:var(--red);color:var(--red);}
+    .disc-btn .material-symbols-rounded{font-size:13px;}
 
-    /* DISCUSSION MODAL */
-    #disc-modal{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
-    .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
+    /* ── LEGEND ── */
+    .legend-row{padding:8px 18px 10px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--bg);}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:0.67rem;font-weight:500;color:var(--text-3);}
+    .legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
+
+    /* ── DISCUSSION MODAL ── */
+    #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
+    .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.2);}
     .disc-head{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
     .disc-pip{width:9px;height:9px;background:var(--red);border-radius:50%;flex-shrink:0;}
     .disc-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
@@ -124,12 +124,29 @@
     .disc-close:hover{color:var(--red);}
     .disc-close .material-symbols-rounded{font-size:18px;}
     .disc-modal-body{padding:18px 22px 24px;overflow-y:auto;flex:1;}
-    .disc-modal-body pre{white-space:pre-wrap;font-family:var(--font);font-size:0.8rem;line-height:1.8;color:var(--text-2);}
+    .disc-modal-body pre{white-space:pre-wrap;font-family:var(--font);font-size:0.8rem;line-height:1.85;color:var(--text-2);}
     .disc-loading{display:flex;align-items:center;gap:12px;padding:32px 0;color:var(--text-4);font-size:0.83rem;}
     .disc-err{color:var(--red);font-size:0.82rem;padding:6px 0;}
     .disc-fallback{font-size:0.82rem;color:var(--text-3);margin-top:10px;}
     .disc-fallback a{color:var(--red);text-decoration:none;}
-    .disc-fallback a:hover{text-decoration:underline;}
+
+    /* ── ENLARGE MAP MODAL ── */
+    #map-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
+    .map-modal-inner{position:relative;width:min(1100px,95vw);height:min(750px,90vh);border-radius:var(--r);overflow:hidden;box-shadow:0 30px 100px rgba(0,0,0,.5);}
+    #map-modal-map{width:100%;height:100%;}
+    .map-modal-close{position:absolute;top:14px;right:14px;z-index:900;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.9);border:1px solid var(--border-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:color .15s,border-color .15s;}
+    .map-modal-close:hover{color:var(--red);border-color:var(--red);}
+    .map-modal-close .material-symbols-rounded{font-size:17px;}
+
+    /* Leaflet overrides */
+    .leaflet-container{font-family:var(--font);}
+    .leaflet-popup-content-wrapper{border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid var(--border-2);font-family:var(--font);}
+    .leaflet-popup-content{margin:10px 14px;font-size:0.78rem;line-height:1.5;}
+    .popup-risk{font-size:0.85rem;font-weight:700;letter-spacing:-0.01em;}
+    .popup-day{font-size:0.7rem;color:var(--text-3);margin-top:2px;}
+    .leaflet-popup-tip{background:var(--surface);}
+    .leaflet-control-attribution{font-family:var(--font);font-size:10px;}
+    .leaflet-bar a{font-family:var(--font);}
 
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
@@ -180,91 +197,91 @@
       SPC Convective Outlooks
     </div>
     <div class="page-subtitle">
-      Issued by the <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener">NOAA/NWS Storm Prediction Center</a> · Updated throughout the day
+      Live data from the <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener">NOAA/NWS Storm Prediction Center</a> · Updated automatically
     </div>
   </div>
 
   <div class="cards-grid">
 
-    <!-- ── Day 1 ── -->
+    <!-- Day 1 -->
     <div class="day-card">
       <div class="day-card-head">
         <div>
           <div class="day-card-eyebrow">Day 1</div>
           <div class="day-card-title">Today</div>
         </div>
-        <span class="issue-badge" id="issue-1"></span>
+        <span class="issue-badge" id="issue-1">Loading…</span>
       </div>
-      <div class="hazard-row">
-        <button class="hbtn on" data-day="1" data-hazard="cat">Overall</button>
-        <button class="hbtn" data-day="1" data-hazard="torn">Tornado</button>
-        <button class="hbtn" data-day="1" data-hazard="wind">Wind</button>
-        <button class="hbtn" data-day="1" data-hazard="hail">Hail</button>
+      <div class="hazard-row" id="pills-1">
+        <button class="hbtn on" data-day="1" data-mode="cat">Overall</button>
+        <button class="hbtn" data-day="1" data-mode="torn">Tornado</button>
+        <button class="hbtn" data-day="1" data-mode="wind">Wind</button>
+        <button class="hbtn" data-day="1" data-mode="hail">Hail</button>
       </div>
-      <div class="img-viewer" id="viewer-1">
-        <div class="img-loader" id="loader-1"><div class="spin-ring"></div></div>
-        <img class="map-main" id="main-1" src="" alt="Day 1 Outlook"/>
-        <img class="map-cities" id="cities-1" src="" alt=""/>
+      <div id="legend-1" class="legend-row"></div>
+      <div class="map-wrap" id="wrap-1">
+        <div id="map-1" class="leaflet-map"></div>
+        <div class="map-overlay" id="overlay-1"><div class="spin-ring"></div></div>
         <button class="enlarge-btn" data-day="1"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
       </div>
       <div class="day-card-foot">
-        <span class="disc-caption" id="cap-1"></span>
+        <span class="disc-caption" id="cap-1">Loading outlook data…</span>
         <button class="disc-btn" data-day="1" data-label="Day 1 — Today">
           <span class="material-symbols-rounded">description</span>Discussion
         </button>
       </div>
     </div>
 
-    <!-- ── Day 2 ── -->
+    <!-- Day 2 -->
     <div class="day-card">
       <div class="day-card-head">
         <div>
           <div class="day-card-eyebrow">Day 2</div>
           <div class="day-card-title">Tomorrow</div>
         </div>
-        <span class="issue-badge" id="issue-2"></span>
+        <span class="issue-badge" id="issue-2">Loading…</span>
       </div>
-      <div class="hazard-row">
-        <button class="hbtn on" data-day="2" data-hazard="cat">Overall</button>
-        <button class="hbtn" data-day="2" data-hazard="torn">Tornado</button>
-        <button class="hbtn" data-day="2" data-hazard="wind">Wind</button>
-        <button class="hbtn" data-day="2" data-hazard="hail">Hail</button>
+      <div class="hazard-row" id="pills-2">
+        <button class="hbtn on" data-day="2" data-mode="cat">Overall</button>
+        <button class="hbtn" data-day="2" data-mode="torn">Tornado</button>
+        <button class="hbtn" data-day="2" data-mode="wind">Wind</button>
+        <button class="hbtn" data-day="2" data-mode="hail">Hail</button>
       </div>
-      <div class="img-viewer" id="viewer-2">
-        <div class="img-loader" id="loader-2"><div class="spin-ring"></div></div>
-        <img class="map-main" id="main-2" src="" alt="Day 2 Outlook"/>
-        <img class="map-cities" id="cities-2" src="" alt=""/>
+      <div id="legend-2" class="legend-row"></div>
+      <div class="map-wrap" id="wrap-2">
+        <div id="map-2" class="leaflet-map"></div>
+        <div class="map-overlay" id="overlay-2"><div class="spin-ring"></div></div>
         <button class="enlarge-btn" data-day="2"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
       </div>
       <div class="day-card-foot">
-        <span class="disc-caption" id="cap-2"></span>
+        <span class="disc-caption" id="cap-2">Loading outlook data…</span>
         <button class="disc-btn" data-day="2" data-label="Day 2 — Tomorrow">
           <span class="material-symbols-rounded">description</span>Discussion
         </button>
       </div>
     </div>
 
-    <!-- ── Day 3 ── -->
+    <!-- Day 3 -->
     <div class="day-card">
       <div class="day-card-head">
         <div>
           <div class="day-card-eyebrow">Day 3</div>
           <div class="day-card-title" id="day3-title">—</div>
         </div>
-        <span class="issue-badge" id="issue-3"></span>
+        <span class="issue-badge" id="issue-3">Loading…</span>
       </div>
-      <div class="hazard-row">
-        <button class="hbtn on" data-day="3" data-hazard="cat">Overall</button>
-        <button class="hbtn" data-day="3" data-hazard="prob">Probabilistic</button>
+      <div class="hazard-row" id="pills-3">
+        <button class="hbtn on" data-day="3" data-mode="cat">Overall</button>
+        <button class="hbtn" data-day="3" data-mode="prob">Probabilistic</button>
       </div>
-      <div class="img-viewer" id="viewer-3">
-        <div class="img-loader" id="loader-3"><div class="spin-ring"></div></div>
-        <img class="map-main" id="main-3" src="" alt="Day 3 Outlook"/>
-        <img class="map-cities" id="cities-3" src="" alt=""/>
+      <div id="legend-3" class="legend-row"></div>
+      <div class="map-wrap" id="wrap-3">
+        <div id="map-3" class="leaflet-map"></div>
+        <div class="map-overlay" id="overlay-3"><div class="spin-ring"></div></div>
         <button class="enlarge-btn" data-day="3"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
       </div>
       <div class="day-card-foot">
-        <span class="disc-caption" id="cap-3"></span>
+        <span class="disc-caption" id="cap-3">Loading outlook data…</span>
         <button class="disc-btn" data-day="3" id="disc-btn-3" data-label="">
           <span class="material-symbols-rounded">description</span>Discussion
         </button>
@@ -273,14 +290,6 @@
 
   </div>
 </main>
-
-<!-- Image Enlarge Modal -->
-<div id="img-modal">
-  <div class="img-modal-inner">
-    <button class="img-modal-close" id="img-modal-close"><span class="material-symbols-rounded">close</span></button>
-    <img id="img-modal-img" src="" alt="Enlarged outlook map"/>
-  </div>
-</div>
 
 <!-- Discussion Modal -->
 <div id="disc-modal">
@@ -296,146 +305,399 @@
   </div>
 </div>
 
-<script>
-const WORKER_URL   = 'https://spc-proxy.justin-e-beck.workers.dev';
-const SPC_BASE     = 'https://www.spc.noaa.gov';
-const CITIES_PATH  = '/products/outlook/imgs_v2/cities.png';
+<!-- Enlarge Map Modal -->
+<div id="map-modal">
+  <div class="map-modal-inner">
+    <button class="map-modal-close" id="map-modal-close"><span class="material-symbols-rounded">close</span></button>
+    <div id="map-modal-map"></div>
+  </div>
+</div>
 
-const HAZARD_LABELS = {
-  cat:'Categorical Risk', torn:'Tornado Probability',
-  wind:'Wind Probability', hail:'Hail Probability', prob:'Probabilistic Outlook'
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+const SPC_BASE   = 'https://www.spc.noaa.gov';
+const NOAA_BASE  = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer';
+
+// NOAA ArcGIS MapServer layer IDs
+// Layer 1  = Day 1 Categorical
+// Layer 3  = Day 1 Probabilistic Tornado
+// Layer 5  = Day 1 Probabilistic Wind
+// Layer 7  = Day 1 Probabilistic Hail
+// Layer 9  = Day 2 Categorical
+// Layer 11 = Day 2 Probabilistic Tornado
+// Layer 13 = Day 2 Probabilistic Wind
+// Layer 15 = Day 2 Probabilistic Hail
+// Layer 17 = Day 3 Categorical
+// Layer 19 = Day 3 Probabilistic Severe
+const LAYER_IDS = {
+  '1-cat':1, '1-torn':3, '1-wind':5, '1-hail':7,
+  '2-cat':9, '2-torn':11,'2-wind':13,'2-hail':15,
+  '3-cat':17,'3-prob':19
 };
 
-const state = { 1:{time:null,disc:null}, 2:{time:null,disc:null}, 3:{time:null,disc:null} };
+// Categorical risk colors (SPC standard)
+const CAT_COLORS = {
+  'TSTM': { fill:'#c1e9c1', stroke:'#5fa05f', label:'Thunder' },
+  'MRGL': { fill:'#7fc57f', stroke:'#3d8c3d', label:'Marginal' },
+  'SLGT': { fill:'#f6f67f', stroke:'#baba00', label:'Slight' },
+  'ENH':  { fill:'#e8a832', stroke:'#b07820', label:'Enhanced' },
+  'MDT':  { fill:'#e84040', stroke:'#a00000', label:'Moderate' },
+  'HIGH': { fill:'#ff00ff', stroke:'#cc00cc', label:'High' },
+};
 
-function proxyUrl(path){ return `${WORKER_URL}/proxy${path}`; }
+// Probabilistic colors (% thresholds)
+const PROB_COLORS = [
+  { dn:2,  fill:'#7fc57f', stroke:'#3d8c3d', label:'2%' },
+  { dn:5,  fill:'#c8e86a', stroke:'#8ab020', label:'5%' },
+  { dn:10, fill:'#f6f67f', stroke:'#baba00', label:'10%' },
+  { dn:15, fill:'#e8c840', stroke:'#b09000', label:'15%' },
+  { dn:30, fill:'#e87820', stroke:'#b04000', label:'30%' },
+  { dn:45, fill:'#e84040', stroke:'#a00000', label:'45%' },
+  { dn:60, fill:'#ff00ff', stroke:'#cc00cc', label:'60%' },
+];
 
-async function fetchDayData(day){
-  const res = await fetch(proxyUrl(`/products/outlook/day${day}otlk.html`));
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  const html = await res.text();
-  const m = html.match(/show_tab\(['"][^'"]*?(\d{4})['"]\)/);
-  const time = m ? m[1] : '1300';
-  const pre = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-  let disc = '';
-  if(pre){
-    disc = pre[1]
+const CONUS_BOUNDS = [[21, -130], [50, -60]];
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+const maps      = {};   // day -> L.Map
+const layers    = {};   // 'day-mode' -> L.GeoJSON layer
+const state     = {     // per-day
+  1: { mode:'cat', disc:null, valid:null },
+  2: { mode:'cat', disc:null, valid:null },
+  3: { mode:'cat', disc:null, valid:null },
+};
+
+// ─────────────────────────────────────────────
+//  TILE LAYER (CARTO Positron — clean, light)
+// ─────────────────────────────────────────────
+function makeTileLayer() {
+  return L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      r: L.Browser.retina ? '@2x' : ''
+    }
+  );
+}
+
+// ─────────────────────────────────────────────
+//  INIT MAP
+// ─────────────────────────────────────────────
+function initMap(day) {
+  const map = L.map(`map-${day}`, {
+    center: [38, -95],
+    zoom: 3,
+    zoomControl: true,
+    scrollWheelZoom: false,
+    attributionControl: true,
+  });
+  makeTileLayer().addTo(map);
+  map.fitBounds(CONUS_BOUNDS);
+  maps[day] = map;
+  return map;
+}
+
+// ─────────────────────────────────────────────
+//  FETCH GEOJSON FROM NOAA ARCGIS
+// ─────────────────────────────────────────────
+async function fetchLayer(layerId) {
+  const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for layer ${layerId}`);
+  return res.json();
+}
+
+// ─────────────────────────────────────────────
+//  STYLE HELPERS
+// ─────────────────────────────────────────────
+function styleForFeature(feature, mode) {
+  const props = feature.properties || {};
+
+  if (mode === 'cat') {
+    const label = (props.LABEL || props.label || props.DN || '').toString().toUpperCase().trim();
+    // Map numeric DN to category label if needed
+    const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+    const key = CAT_COLORS[label] ? label : (dnMap[label] || label);
+    const c = CAT_COLORS[key] || { fill:'#cccccc', stroke:'#999999' };
+    return { fillColor: c.fill, color: c.stroke, weight: 1.5, fillOpacity: 0.55, opacity: 1 };
+  } else {
+    // Probabilistic — use DN field
+    const dn = parseInt(props.DN || props.dn || 0);
+    let c = PROB_COLORS[0];
+    for (const p of PROB_COLORS) { if (dn >= p.dn) c = p; }
+    return { fillColor: c.fill, color: c.stroke, weight: 1.5, fillOpacity: 0.55, opacity: 1 };
+  }
+}
+
+function getLegendItems(geojson, mode) {
+  const seen = new Set();
+  const items = [];
+  if (!geojson || !geojson.features) return items;
+
+  if (mode === 'cat') {
+    const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+    const order = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
+    geojson.features.forEach(f => {
+      const raw = (f.properties.LABEL || f.properties.label || f.properties.DN || '').toString().toUpperCase().trim();
+      const key = CAT_COLORS[raw] ? raw : (dnMap[raw] || raw);
+      if (CAT_COLORS[key]) seen.add(key);
+    });
+    order.forEach(k => { if (seen.has(k)) items.push({ color: CAT_COLORS[k].fill, stroke: CAT_COLORS[k].stroke, label: CAT_COLORS[k].label }); });
+  } else {
+    const dns = new Set();
+    geojson.features.forEach(f => { const dn = parseInt(f.properties.DN || f.properties.dn || 0); if (dn > 0) dns.add(dn); });
+    PROB_COLORS.forEach(p => { if (dns.has(p.dn)) items.push({ color: p.fill, stroke: p.stroke, label: p.label }); });
+  }
+  return items;
+}
+
+function renderLegend(day, items) {
+  const el = document.getElementById(`legend-${day}`);
+  if (!items.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = items.map(i =>
+    `<div class="legend-item"><div class="legend-swatch" style="background:${i.color};border-color:${i.stroke}"></div>${i.label}</div>`
+  ).join('');
+}
+
+// ─────────────────────────────────────────────
+//  LOAD + RENDER A HAZARD LAYER ON A MAP
+// ─────────────────────────────────────────────
+async function loadHazard(day, mode) {
+  const key = `${day}-${mode}`;
+  const map = maps[day];
+  const overlay = document.getElementById(`overlay-${day}`);
+  const cap = document.getElementById(`cap-${day}`);
+
+  // Remove current layer
+  Object.keys(layers).forEach(k => {
+    if (k.startsWith(`${day}-`) && layers[k]) {
+      try { map.removeLayer(layers[k]); } catch(e){}
+    }
+  });
+
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = '<div class="spin-ring"></div>';
+
+  const layerId = LAYER_IDS[key];
+  if (!layerId) {
+    overlay.innerHTML = '<span class="map-err-text">Layer not available</span>';
+    return;
+  }
+
+  try {
+    const geojson = await fetchLayer(layerId);
+
+    const layer = L.geoJSON(geojson, {
+      style: f => styleForFeature(f, mode),
+      onEachFeature: (feature, lyr) => {
+        const props = feature.properties || {};
+        const raw = (props.LABEL || props.label || props.DN || '').toString().toUpperCase().trim();
+        const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+        const key2 = CAT_COLORS[raw] ? raw : (dnMap[raw] || raw);
+        let riskName = '';
+        if (mode === 'cat') {
+          riskName = CAT_COLORS[key2]?.label || raw || '—';
+        } else {
+          const dn = parseInt(props.DN || props.dn || 0);
+          riskName = `${dn}% probability`;
+        }
+        lyr.bindPopup(`<div class="popup-risk">${riskName}</div><div class="popup-day">Day ${day} · ${modeLabel(mode)}</div>`, { maxWidth: 220 });
+        lyr.on('mouseover', function(e) { this.setStyle({ fillOpacity: 0.75, weight: 2.5 }); });
+        lyr.on('mouseout', function(e) { layer.resetStyle(this); });
+        lyr.on('click', function(e) { this.openPopup(); });
+      }
+    });
+
+    layers[key] = layer;
+    layer.addTo(map);
+
+    // Update legend
+    renderLegend(day, getLegendItems(geojson, mode));
+
+    // Caption
+    const validStr = geojson.features?.[0]?.properties?.valid || geojson.features?.[0]?.properties?.VALID || '';
+    if (validStr) state[day].valid = validStr;
+    cap.textContent = `Day ${day} · ${modeLabel(mode)}${state[day].valid ? ' · Valid ' + formatValid(state[day].valid) : ''}`;
+
+    overlay.classList.add('hidden');
+
+    // Update issue badge
+    const badge = document.getElementById(`issue-${day}`);
+    const expire = geojson.features?.[0]?.properties?.expire || geojson.features?.[0]?.properties?.EXPIRE || '';
+    if (expire) badge.textContent = `Until ${formatValid(expire)}`;
+    else badge.textContent = 'Live';
+
+  } catch(e) {
+    console.error(e);
+    overlay.innerHTML = `<span class="map-err-text">Failed to load data</span>`;
+    cap.textContent = '';
+    renderLegend(day, []);
+  }
+}
+
+function modeLabel(mode) {
+  return {cat:'Categorical',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic'}[mode] || mode;
+}
+function formatValid(s) {
+  // YYYYMMDDHHMM → human readable
+  if (!s || s.length < 8) return s;
+  try {
+    const y=s.slice(0,4), mo=s.slice(4,6), d=s.slice(6,8);
+    const h=s.slice(8,10)||'00', mn=s.slice(10,12)||'00';
+    const dt = new Date(`${y}-${mo}-${d}T${h}:${mn}:00Z`);
+    return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  } catch{ return s; }
+}
+
+// ─────────────────────────────────────────────
+//  FETCH DISCUSSION (via Worker for CORS)
+// ─────────────────────────────────────────────
+async function fetchDiscussion(day) {
+  if (state[day].disc) return state[day].disc;
+  try {
+    const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const pre = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+    if (!pre) return null;
+    const disc = pre[1]
       .replace(/<script[\s\S]*?<\/script>/gi,'')
       .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
       .replace(/<[^>]+>/g,'')
       .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
       .trim();
-  }
-  return {time,disc};
-}
-
-function loadImage(day, hazard){
-  const time   = state[day].time || '1300';
-  const main   = document.getElementById(`main-${day}`);
-  const loader = document.getElementById(`loader-${day}`);
-  const cap    = document.getElementById(`cap-${day}`);
-
-  loader.style.display = 'flex';
-  loader.innerHTML = '<div class="spin-ring"></div>';
-  main.style.opacity = '0';
-
-  let spcPath;
-  if(hazard==='cat')       spcPath = `/products/outlook/day${day}otlk_${time}.png`;
-  else if(hazard==='prob') spcPath = `/products/outlook/day3otlk_${time}_prob.png`;
-  else                     spcPath = `/products/outlook/day${day}probotlk_${time}_${hazard}.png`;
-
-  const url = proxyUrl(spcPath);
-  const tmp = new Image();
-  tmp.onload = () => {
-    main.src = url;
-    main.style.opacity = '1';
-    loader.style.display = 'none';
-    cap.textContent = `Day ${day} · ${HAZARD_LABELS[hazard]||hazard}`;
-  };
-  tmp.onerror = () => {
-    loader.innerHTML = '<span class="img-unavail">Image unavailable</span>';
-    cap.textContent = '';
-  };
-  tmp.src = url;
-}
-
-async function initDay(day){
-  // Cities overlay — always on, no UI
-  document.getElementById(`cities-${day}`).src = proxyUrl(CITIES_PATH);
-  try {
-    const {time,disc} = await fetchDayData(day);
-    state[day].time = time;
     state[day].disc = disc;
-    const badge = document.getElementById(`issue-${day}`);
-    if(time) badge.textContent = `${time}Z`;
-    loadImage(day, 'cat');
-  } catch(e){
-    document.getElementById(`loader-${day}`).innerHTML =
-      `<span class="img-unavail">Failed to load<br><small>${e.message}</small></span>`;
-  }
+    return disc;
+  } catch(e) { return null; }
 }
 
-// Hazard pills
+// ─────────────────────────────────────────────
+//  BOOT — init all 3 maps + load default layers
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Day 3 title
+  const d3 = new Date(); d3.setDate(d3.getDate()+2);
+  const d3str = d3.toLocaleDateString('en-US',{weekday:'long'});
+  document.getElementById('day3-title').textContent = d3str;
+  document.getElementById('disc-btn-3').dataset.label = `Day 3 — ${d3str}`;
+
+  [1,2,3].forEach(day => {
+    initMap(day);
+    loadHazard(day, state[day].mode);
+  });
+
+  // Restore search bar
+  try { const s = JSON.parse(localStorage.getItem('jweather_last_location')); if (s?.label) sBar.value = s.label; } catch{}
+});
+
+// ─────────────────────────────────────────────
+//  HAZARD PILLS
+// ─────────────────────────────────────────────
 document.querySelectorAll('.hbtn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const day = +btn.dataset.day;
+    const day  = +btn.dataset.day;
+    const mode = btn.dataset.mode;
     document.querySelectorAll(`.hbtn[data-day="${day}"]`).forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
-    loadImage(day, btn.dataset.hazard);
+    state[day].mode = mode;
+    loadHazard(day, mode);
   });
 });
 
-// Enlarge modal
-const imgModal = document.getElementById('img-modal');
-const imgModalImg = document.getElementById('img-modal-img');
-document.querySelectorAll('.enlarge-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const day = +btn.dataset.day;
-    const src = document.getElementById(`main-${day}`).src;
-    if (!src) return;
-    imgModalImg.src = src;
-    imgModal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  });
-});
-document.getElementById('img-modal-close').addEventListener('click', closeImgModal);
-imgModal.addEventListener('click', e => { if (e.target === imgModal) closeImgModal(); });
-function closeImgModal() { imgModal.style.display = 'none'; document.body.style.overflow = ''; }
-
-// Discussion modal
+// ─────────────────────────────────────────────
+//  DISCUSSION MODAL
+// ─────────────────────────────────────────────
 const discModal = document.getElementById('disc-modal');
 document.querySelectorAll('.disc-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     const day   = +btn.dataset.day;
     const label = btn.dataset.label || `Day ${day}`;
     document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
     const body = document.getElementById('disc-modal-body');
-    const disc = state[day].disc;
-    if(disc){
-      body.innerHTML = `<pre>${esc(disc)}</pre>`;
-    } else {
-      body.innerHTML = `<div class="disc-err">Discussion not yet available.</div>
-        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
-    }
+    body.innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading…</div>';
     discModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    const disc = await fetchDiscussion(day);
+    if (disc) {
+      body.innerHTML = `<pre>${esc(disc)}</pre>`;
+    } else {
+      body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+    }
   });
 });
-document.getElementById('disc-close').addEventListener('click', closeModal);
-discModal.addEventListener('click', e => { if(e.target===discModal) closeModal(); });
-function closeModal(){ discModal.style.display='none'; document.body.style.overflow=''; }
+document.getElementById('disc-close').addEventListener('click', () => { discModal.style.display='none'; document.body.style.overflow=''; });
+discModal.addEventListener('click', e => { if(e.target===discModal){ discModal.style.display='none'; document.body.style.overflow=''; } });
+
+// ─────────────────────────────────────────────
+//  ENLARGE MAP MODAL
+// ─────────────────────────────────────────────
+let modalMap = null;
+const mapModal = document.getElementById('map-modal');
+
+document.querySelectorAll('.enlarge-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day  = +btn.dataset.day;
+    const mode = state[day].mode;
+    mapModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Init modal map if first time
+    if (!modalMap) {
+      modalMap = L.map('map-modal-map', {
+        center:[38,-95], zoom:4, scrollWheelZoom:true, attributionControl:true
+      });
+      makeTileLayer().addTo(modalMap);
+    }
+    modalMap.fitBounds(CONUS_BOUNDS);
+
+    // Remove any existing modal layers
+    modalMap.eachLayer(l => { if (l._url === undefined) modalMap.removeLayer(l); });
+
+    // Clone the current day's layer onto the modal map
+    const key = `${day}-${mode}`;
+    if (layers[key]) {
+      const layerId = LAYER_IDS[key];
+      fetchLayer(layerId).then(geojson => {
+        L.geoJSON(geojson, {
+          style: f => styleForFeature(f, mode),
+          onEachFeature: (feature, lyr) => {
+            const props = feature.properties || {};
+            const raw = (props.LABEL || props.label || props.DN || '').toString().toUpperCase().trim();
+            const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+            const k = CAT_COLORS[raw] ? raw : (dnMap[raw] || raw);
+            const riskName = mode === 'cat' ? (CAT_COLORS[k]?.label || raw) : `${props.DN||props.dn||0}% probability`;
+            lyr.bindPopup(`<div class="popup-risk">${riskName}</div><div class="popup-day">Day ${day} · ${modeLabel(mode)}</div>`);
+          }
+        }).addTo(modalMap);
+      }).catch(()=>{});
+    }
+
+    setTimeout(() => { modalMap.invalidateSize(); }, 100);
+  });
+});
+
+document.getElementById('map-modal-close').addEventListener('click', closeMapModal);
+mapModal.addEventListener('click', e => { if(e.target===mapModal) closeMapModal(); });
+function closeMapModal() { mapModal.style.display='none'; document.body.style.overflow=''; }
+
+// ─────────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────────
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Day 3 label
-const d3 = new Date(); d3.setDate(d3.getDate()+2);
-const d3str = d3.toLocaleDateString('en-US',{weekday:'long'});
-document.getElementById('day3-title').textContent = d3str;
-document.getElementById('disc-btn-3').dataset.label = `Day 3 — ${d3str}`;
-
-// Boot
-window.addEventListener('DOMContentLoaded', () => { initDay(1); initDay(2); initDay(3); });
-
-// Search
+// ─────────────────────────────────────────────
+//  SEARCH
+// ─────────────────────────────────────────────
 const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
 function sa(n){return SA[n]||n;}
 function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
@@ -477,7 +739,6 @@ locBtn.addEventListener('click',()=>{
     localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';
   },()=>{alert('Unable to get location.');locBtn.disabled=false;});
 });
-window.addEventListener('DOMContentLoaded',()=>{try{const s=JSON.parse(localStorage.getItem('jweather_last_location'));if(s?.label)sBar.value=s.label;}catch{}});
 </script>
 </body>
 </html>
