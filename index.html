@@ -63,6 +63,19 @@
     .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
     .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
     .header-nav a:hover { color: var(--text); background: var(--bg); }
+    /* Dropdown */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-btn { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; font-weight: 500; color: var(--text-3); background: none; border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-family: var(--font); transition: color 0.15s, background 0.15s; white-space: nowrap; }
+    .nav-dropdown-btn:hover, .nav-dropdown:hover .nav-dropdown-btn { color: var(--text); background: var(--bg); }
+    .nav-dropdown-btn .material-symbols-rounded { font-size: 14px; transition: transform 0.2s; }
+    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded { transform: rotate(180deg); }
+    .nav-dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; min-width: 210px; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.1); overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s; z-index: 200; }
+    .nav-dropdown:hover .nav-dropdown-menu { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .nav-dropdown-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 0.8rem; font-weight: 500; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.1s, color 0.1s; white-space: nowrap; }
+    .nav-dropdown-menu a:last-child { border-bottom: none; }
+    .nav-dropdown-menu a:hover { background: var(--red-dim); color: var(--red); }
+    .nav-dropdown-menu a .material-symbols-rounded { font-size: 15px; color: var(--text-4); }
+    .nav-dropdown-menu a:hover .material-symbols-rounded { color: var(--red); }
 
     /* ===== LAYOUT — 2 col matching original ===== */
     main {
@@ -211,7 +224,17 @@
     </div>
     <nav class="header-nav">
       <a href="index.html">Home</a>
-      <a href="md.html">Severe Weather</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">
+          Severe Weather <span class="material-symbols-rounded">expand_more</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+          <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+          <a href="parameters.html"><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+          <a href="101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+        </div>
+      </div>
       <a href="contact.html">Contact</a>
       <a href="about.html">About</a>
     </nav>
