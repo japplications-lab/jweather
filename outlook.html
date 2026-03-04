@@ -67,34 +67,34 @@
     .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
 
     /* ── LEFT SIDEBAR ── */
-    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
     .sidebar::-webkit-scrollbar{width:3px;}
     .sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
 
     /* Sidebar header */
-    .sidebar-head{padding:18px 18px 14px;border-bottom:1px solid var(--border);}
+    .sidebar-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .sidebar-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.11em;color:var(--text-4);}
 
-    /* Day sections */
+    /* Day sections — compact to fit all 3 days without scrolling */
     .day-section{border-bottom:1px solid var(--border);}
-    .day-section-head{padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;cursor:default;}
-    .day-section-label{display:flex;flex-direction:column;gap:2px;}
-    .day-eyebrow{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
-    .day-name{font-size:0.88rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
-    .day-badge{font-size:0.6rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 6px;white-space:nowrap;}
+    .day-section-head{padding:8px 14px 6px;display:flex;align-items:center;justify-content:space-between;}
+    .day-section-label{display:flex;flex-direction:column;gap:1px;}
+    .day-eyebrow{font-size:0.57rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
+    .day-name{font-size:0.83rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
+    .day-badge{font-size:0.57rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:1px 5px;white-space:nowrap;}
 
     /* Category buttons */
-    .cat-list{padding:4px 10px 10px;}
-    .cat-btn{display:flex;align-items:center;gap:9px;width:100%;padding:7px 10px;border:none;background:none;border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.78rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;position:relative;}
+    .cat-list{padding:2px 8px 4px;}
+    .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
     .cat-btn:hover{background:var(--bg);color:var(--text-2);}
     .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
-    .cat-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.1);}
+    .cat-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,0.1);}
     .cat-btn.active .cat-dot{border-color:transparent;}
 
     /* Discussion button in sidebar */
-    .disc-sidebar-btn{display:flex;align-items:center;gap:7px;width:calc(100% - 20px);margin:0 10px 12px;padding:7px 10px;border:1px solid var(--border-2);background:var(--bg);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.75rem;font-weight:600;color:var(--text-3);transition:border-color .15s,color .15s;}
+    .disc-sidebar-btn{display:flex;align-items:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 7px;padding:5px 9px;border:1px solid var(--border-2);background:var(--bg);border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:border-color .15s,color .15s;}
     .disc-sidebar-btn:hover{border-color:var(--red);color:var(--red);}
-    .disc-sidebar-btn .material-symbols-rounded{font-size:14px;}
+    .disc-sidebar-btn .material-symbols-rounded{font-size:13px;}
 
     /* ── MAP PANEL ── */
     .map-panel{flex:1;position:relative;background:#e8eaed;min-width:0;}
@@ -276,10 +276,10 @@
     </div>
 
     <!-- Attribution -->
-    <div style="margin-top:auto;padding:16px 16px 20px;border-top:1px solid var(--border);">
-      <p style="font-size:0.65rem;color:var(--text-4);line-height:1.6;">
-        Data: <a href="https://www.spc.noaa.gov" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">NOAA/SPC</a><br>
-        Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">OpenStreetMap</a> contributors, © <a href="https://carto.com/attributions" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">CARTO</a>
+    <div style="margin-top:auto;padding:10px 14px 12px;border-top:1px solid var(--border);flex-shrink:0;">
+      <p style="font-size:0.6rem;color:var(--text-4);line-height:1.55;">
+        Data: <a href="https://www.spc.noaa.gov" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">NOAA/SPC</a> &nbsp;·&nbsp;
+        Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">OpenStreetMap</a>, © <a href="https://carto.com/attributions" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">CARTO</a>
       </p>
     </div>
   </aside>
@@ -375,20 +375,44 @@ let activeDay  = 1;
 let activeMode = 'cat';
 
 // ─────────────────────────────────────────────
-//  TILE LAYER
-//  Using Stadia Alidade Smooth for crisp state
-//  lines AND legible city labels
+//  TILE LAYERS
+//  Base:   CARTO Positron no-labels (free, no API key)
+//  States: US Census GeoJSON overlay (crisp borders)
+//  Labels: CARTO Positron labels-only on top
 // ─────────────────────────────────────────────
-function makeTiles() {
-  // Stadia Maps Alidade Smooth — excellent state borders + city labels, free, no key needed
+function makeBaseTiles() {
   return L.tileLayer(
-    'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+    'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
     {
-      attribution:'&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 20,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains:'abcd', maxZoom:19,
       r: window.devicePixelRatio > 1 ? '@2x' : ''
     }
   );
+}
+function makeLabelTiles() {
+  return L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
+    {
+      subdomains:'abcd', maxZoom:19,
+      r: window.devicePixelRatio > 1 ? '@2x' : '',
+      pane:'labels'
+    }
+  );
+}
+
+let statesLayer = null;
+async function addStatesOverlay(map) {
+  const url = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+  try {
+    const res = await fetch(url);
+    const gj  = await res.json();
+    statesLayer = L.geoJSON(gj, {
+      style: { color:'#6b7280', weight:1.5, fill:false, opacity:0.75 },
+      interactive: false,
+      pane: 'states'
+    }).addTo(map);
+  } catch(e) { console.warn('State borders failed', e); }
 }
 
 // ─────────────────────────────────────────────
@@ -399,13 +423,18 @@ function initMap() {
     center:[38,-96], zoom:4,
     zoomControl:true,
     scrollWheelZoom:true,
-    attributionControl:false,  // we handle it in sidebar
+    attributionControl:true,
   });
-  makeTiles().addTo(theMap);
-  theMap.fitBounds(CONUS);
+  // Pane ordering: base < outlook polygons (default 400) < states (450) < labels (500)
+  theMap.createPane('states'); theMap.getPane('states').style.zIndex = 450;
+  theMap.createPane('labels'); theMap.getPane('labels').style.zIndex = 500;
+  // Labels pane must not capture pointer events so map stays interactive
+  theMap.getPane('labels').style.pointerEvents = 'none';
 
-  // Custom attribution bottom-right (minimal)
-  L.control.attribution({ prefix:false, position:'bottomright' }).addTo(theMap);
+  makeBaseTiles().addTo(theMap);
+  theMap.fitBounds(CONUS);
+  addStatesOverlay(theMap);
+  makeLabelTiles().addTo(theMap);
 }
 
 // ─────────────────────────────────────────────
