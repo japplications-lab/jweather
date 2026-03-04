@@ -442,27 +442,27 @@ const SIG_DESC = {
   prob:'This area has an elevated risk of particularly destructive severe weather — including EF2+ tornadoes, 65+ mph winds, and/or 2"+ hail — any of which can cause major structural damage.',
 };
 
-// Exact SPC 2024 redesign colors (from official SPC outlook map)
+// Exact SPC colors — sampled directly from official SPC outlook imagery
 const CAT = {
-  'TSTM':{ fill:'#c4e6c4', stroke:'#8ab88a', label:'General Thunder' },
-  'MRGL':{ fill:'#5ab75a', stroke:'#3a8a3a', label:'Level 1 · Marginal' },
-  'SLGT':{ fill:'#a3c75a', stroke:'#729040', label:'Level 2 · Slight' },
-  'ENH': { fill:'#f5e23c', stroke:'#c0ac18', label:'Level 3 · Enhanced' },
-  'MDT': { fill:'#f09030', stroke:'#c06010', label:'Level 4 · Moderate' },
-  'HIGH':{ fill:'#ec60aa', stroke:'#b83080', label:'Level 5 · High' },
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Thunder' },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Level 1 · Marginal' },
+  'SLGT':{ fill:'#3a7a3a', stroke:'#285428', label:'Level 2 · Slight' },
+  'ENH': { fill:'#f0e040', stroke:'#b8a800', label:'Level 3 · Enhanced' },
+  'MDT': { fill:'#e88020', stroke:'#b05000', label:'Level 4 · Moderate' },
+  'HIGH':{ fill:'#e04040', stroke:'#a81818', label:'Level 5 · High' },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
 
-// Probabilistic thresholds — matching SPC 2024 gradient
+// Probabilistic thresholds — SPC palette
 const PROB = [
-  { dn:2,  fill:'#5ab75a', stroke:'#3a8a3a', label:'Very Low',  pct:'2%'  },
-  { dn:5,  fill:'#84c050', stroke:'#507830', label:'Low',       pct:'5%'  },
-  { dn:10, fill:'#a3c75a', stroke:'#729040', label:'Elevated',  pct:'10%' },
-  { dn:15, fill:'#f5e23c', stroke:'#c0ac18', label:'Moderate',  pct:'15%' },
-  { dn:30, fill:'#f5b030', stroke:'#c07810', label:'High',      pct:'30%' },
-  { dn:45, fill:'#f09030', stroke:'#c06010', label:'Very High', pct:'45%' },
-  { dn:60, fill:'#ec60aa', stroke:'#b83080', label:'Extreme',   pct:'60%' },
+  { dn:2,  fill:'#6abf6a', stroke:'#3d8c3d', label:'Very Low',  pct:'2%'  },
+  { dn:5,  fill:'#50a050', stroke:'#306030', label:'Low',       pct:'5%'  },
+  { dn:10, fill:'#3a7a3a', stroke:'#285428', label:'Elevated',  pct:'10%' },
+  { dn:15, fill:'#f0e040', stroke:'#b8a800', label:'Moderate',  pct:'15%' },
+  { dn:30, fill:'#f0a030', stroke:'#b86800', label:'High',      pct:'30%' },
+  { dn:45, fill:'#e88020', stroke:'#b05000', label:'Very High', pct:'45%' },
+  { dn:60, fill:'#e04040', stroke:'#a81818', label:'Extreme',   pct:'60%' },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
@@ -700,12 +700,12 @@ function styleFeature(f, mode) {
     const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
     if (key === 'TSTM') return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
-    return { fillColor:c.fill, color:c.stroke, weight:1.5, fillOpacity:0.72, opacity:1 };
+    return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   } else {
     const dn = parseInt(p.DN || p.dn || 0);
     let c = PROB[0];
     for (const x of PROB) { if (dn >= x.dn) c = x; }
-    return { fillColor:c.fill, color:c.stroke, weight:1.5, fillOpacity:0.72, opacity:1 };
+    return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   }
 }
 
@@ -864,32 +864,13 @@ async function loadHazard(day, mode) {
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
-        // Permanent centroid label showing threat level
-        const lbl = shortLabel(mode, f);
-        if (lbl) {
-          const style = styleFeature(f, mode);
-          const txtColor = contrastColor(style.fillColor);
-          lyr.bindTooltip(lbl, {
-            permanent: true, direction:'center', className:'poly-label',
-            offset:[0,0],
-          });
-          // Store color for CSS injection after render
-          lyr._labelColor = txtColor;
-        }
+
       }
     }).addTo(theMap);
 
     buildLegend(gj, mode);
 
-    // Apply per-polygon label contrast colors after Leaflet renders tooltips
-    requestAnimationFrame(() => {
-      activeLayer.eachLayer(lyr => {
-        if (lyr._labelColor && lyr.getTooltip()) {
-          const el = lyr.getTooltip().getElement();
-          if (el) el.style.color = lyr._labelColor;
-        }
-      });
-    });
+
 
     // Valid time badge
     const vp = document.getElementById('valid-pill');
