@@ -398,19 +398,18 @@ const SPC_BASE   = 'https://www.spc.noaa.gov';
 const NOAA_BASE  = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer';
 const CONUS      = [[21.5,-128],[50.5,-60]];
 
-// NOAA ArcGIS layer IDs
+// NOAA ArcGIS layer IDs — confirmed from MapServer pjson
+// Day 1 subLayers [1-7]: 1=cat, 2=sig_torn, 3=prob_torn, 4=sig_hail, 5=prob_hail, 6=sig_wind, 7=prob_wind
+// Day 2 subLayers [9-15]: same pattern offset by 8
+// Day 3 subLayers [17-19]: 17=cat, 18=prob_severe, 19=sig_severe
 const LAYER_IDS = {
-  '1-cat':1, '1-torn':3,  '1-wind':7,  '1-hail':5,
-  '2-cat':9, '2-torn':11, '2-wind':15, '2-hail':13,
-  '3-cat':17,'3-prob':18
+  '1-cat':1,  '1-torn':3,  '1-wind':7,  '1-hail':5,
+  '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
+  '3-cat':17, '3-prob':18
 };
-// Significant threat layer IDs
-// Day 1: sig torn=2, sig hail=4, sig wind=6
-// Day 2: sig torn=10, sig hail=12, sig wind=14
-// Day 3: sig severe=19
 const SIG_LAYER_IDS = {
-  '1-torn':2, '1-hail':4, '1-wind':6,
-  '2-torn':10,'2-hail':12,'2-wind':14,
+  '1-torn':2,  '1-hail':4,  '1-wind':6,
+  '2-torn':10, '2-hail':12, '2-wind':14,
   '3-prob':19
 };
 // Human-readable sig threat labels per mode
@@ -588,11 +587,10 @@ async function addStatesOverlay(map) {
   try {
     const res = await fetch(url);
     const gj  = await res.json();
-    statesLayer = L.geoJSON(gj, {
-      style: { color:'#6b7280', weight:1.5, fill:false, opacity:0.75 },
-      interactive: false,
-      pane: 'statesPane'
-    }).addTo(map);
+    // Use renderer from map if available, otherwise fall back to default (still renders, just default pane)
+    const opts = { style: { color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive: false };
+    if (map._renderers?.states) opts.renderer = map._renderers.states;
+    statesLayer = L.geoJSON(gj, opts).addTo(map);
   } catch(e) { console.warn('State borders failed', e); }
 }
 
@@ -630,6 +628,13 @@ function initMap() {
   mkPane('labelTilePane',  420, true);   // tile labels — no clicks
   mkPane('sigBadgePane',   450, false);  // sig badges — clickable
   mkPane('cityPane',       480, true);   // city names — no clicks
+
+  // SVG renderers bound to their panes — required for path fills to respect pane z-order
+  theMap._renderers = {
+    outlook:    L.svg({ pane:'outlookPane' }).addTo(theMap),
+    sigOutline: L.svg({ pane:'sigOutlinePane' }).addTo(theMap),
+    states:     L.svg({ pane:'statesPane' }).addTo(theMap),
+  };
 
   makeBaseTiles().addTo(theMap);
   theMap.fitBounds(CONUS);
@@ -788,14 +793,21 @@ async function loadHazard(day, mode) {
 
   try {
     const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+    console.log(`[jWeather] Fetching layer ${layerId} for day=${day} mode=${mode}:`, url);
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gjRaw = await res.json();
+    console.log(`[jWeather] Layer ${layerId} returned ${gjRaw.features?.length ?? 0} features`);
+    if (!gjRaw.features || gjRaw.features.length === 0) {
+      console.warn(`[jWeather] Layer ${layerId} has no features — outlook may not be issued yet`);
+      document.getElementById('map-loading').classList.add('hidden');
+      return;
+    }
     const gj = sortByAreaDesc(gjRaw); // largest polygon first → smallest rendered on top
 
     activeLayer = L.geoJSON(gj, {
       style: f => styleFeature(f, mode),
-      pane: 'outlookPane',
+      renderer: theMap._renderers.outlook,
       onEachFeature: (f, lyr) => {
         // Skip TSTM — no popup on invisible polygons
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
@@ -840,9 +852,11 @@ async function loadSigLayer(day, mode) {
 
   try {
     const url = `${NOAA_BASE}/${sigLayerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+    console.log(`[jWeather] Fetching sig layer ${sigLayerId}:`, url);
     const res = await fetch(url);
-    if (!res.ok) return;
+    if (!res.ok) { console.warn(`[jWeather] Sig layer ${sigLayerId} HTTP ${res.status}`); return; }
     const gj = await res.json();
+    console.log(`[jWeather] Sig layer ${sigLayerId} returned ${gj.features?.length ?? 0} features`);
     if (!gj.features || !gj.features.length) return;
 
     // Merge all features into a single bounding area for the badge — one badge per outbreak
@@ -855,10 +869,10 @@ async function loadSigLayer(day, mode) {
         color: '#e5182a',
         weight: 3,
         dashArray: '8 5',
-        fill: false,          // no fill — dashed outline only, never covers prob polygons
+        fill: false,
         opacity: 1
       },
-      pane: 'sigOutlinePane',
+      renderer: theMap._renderers.sigOutline,
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, opacity:1 }); });
