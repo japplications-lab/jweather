@@ -3,196 +3,366 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>The jWeather - SPC Convective Outlooks</title>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-  <style type="text/tailwindcss">
-    :root { --primary-color: #f10914; }
-    body, html { font-family: "Open Sans", sans-serif; }
-    .suggestion-active { background-color: #f3f4f6; }
-    .suggestions-scroll::-webkit-scrollbar { width: 6px; }
-    .suggestions-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+  <title>jWeather — SPC Convective Outlooks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #e5182a;
+      --red-dim: rgba(229,24,42,0.08);
+      --red-border: rgba(229,24,42,0.18);
+      --bg: #f2f3f5;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,0.07);
+      --border-2: rgba(0,0,0,0.11);
+      --text: #0f1115;
+      --text-2: #3a3d45;
+      --text-3: #7c818f;
+      --text-4: #b0b4be;
+      --r: 12px;
+      --r-sm: 8px;
+      --font: 'Geist', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    .outlook-btn { @apply px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-800 bg-white hover:bg-gray-100 transition; }
-    .outlook-btn[disabled] { @apply bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed ring-0; }
-    .outlook-btn-active {
-      background-color: var(--primary-color) !important;
-      color: #fff !important;
-      box-shadow: 0 0 0 2px var(--primary-color);
-      border-color: var(--primary-color) !important;
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; line-height: 1; display: inline-block; }
+
+    /* ===== HEADER ===== */
+    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 58px; display: flex; align-items: center; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
+    .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .logo-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .logo-name span { color: var(--red); }
+    .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+    .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
+    .header-nav a:hover { color: var(--text); background: var(--bg); }
+    .header-nav a.active { color: var(--red); background: var(--red-dim); }
+
+    /* ===== PAGE ===== */
+    main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    .page-header { margin-bottom: 22px; }
+    .page-title { font-size: 1.3rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .page-title .material-symbols-rounded { font-size: 20px; color: var(--red); font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+    .page-subtitle { font-size: 0.78rem; color: var(--text-3); margin-top: 5px; }
+    .page-subtitle a { color: var(--red); text-decoration: none; }
+    .page-subtitle a:hover { text-decoration: underline; }
+
+    /* ===== 3-COL GRID ===== */
+    .outlook-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 860px) { .outlook-grid { grid-template-columns: 1fr; } }
+
+    /* ===== DAY CARD ===== */
+    .day-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; }
+
+    .day-card-head { padding: 16px 18px 14px; border-bottom: 1px solid var(--border); }
+    .day-card-eyebrow { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
+    .day-card-title { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: -0.015em; margin-top: 2px; }
+
+    /* Hazard pills */
+    .hazard-tabs { display: flex; gap: 6px; padding: 11px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .hbtn {
+      font-family: var(--font);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 20px;
+      border: 1px solid var(--border-2);
+      background: var(--bg);
+      color: var(--text-3);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+      line-height: 1.4;
     }
-    .nav-link-active {
-      text-decoration: underline;
-      text-underline-offset: 4px;
-      font-weight: 700;
+    .hbtn:hover { color: var(--text); background: #e8e9ec; }
+    .hbtn.on { background: var(--red); color: #fff; border-color: var(--red); }
+    .hbtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Image area */
+    .img-area {
+      flex: 1;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 230px;
+      position: relative;
+      padding: 14px;
     }
-    .modal-backdrop { background: rgba(0,0,0,0.6); }
-    .modal-content pre { white-space: pre-wrap; font-family: inherit; }
-    .wi { vertical-align: middle; }
+    .img-area img { max-width: 100%; max-height: 280px; object-fit: contain; border-radius: var(--r-sm); display: block; }
+    .img-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+    .spin-ring { width: 22px; height: 22px; border: 2px solid var(--border-2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.65s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .img-unavail { font-size: 0.75rem; color: var(--text-4); }
+
+    /* Footer */
+    .day-card-foot { padding: 12px 18px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .outlook-caption { font-size: 0.72rem; color: var(--text-3); flex: 1; line-height: 1.4; }
+    .disc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-2);
+      background: var(--bg);
+      border: 1px solid var(--border-2);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .disc-btn:hover { border-color: var(--red); color: var(--red); }
+    .disc-btn .material-symbols-rounded { font-size: 13px; }
+
+    /* ===== DISCUSSION MODAL ===== */
+    #disc-modal { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
+    .disc-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); max-width: 680px; width: 100%; max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .disc-head { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .disc-pip { width: 10px; height: 10px; background: var(--red); border-radius: 50%; flex-shrink: 0; }
+    .disc-title { font-size: 0.95rem; font-weight: 700; color: var(--text); flex: 1; letter-spacing: -0.01em; }
+    .disc-close { background: none; border: none; color: var(--text-4); cursor: pointer; transition: color 0.15s; line-height: 1; }
+    .disc-close:hover { color: var(--red); }
+    .disc-close .material-symbols-rounded { font-size: 18px; }
+    .disc-body { padding: 18px 22px 22px; overflow-y: auto; flex: 1; }
+    .disc-body pre { white-space: pre-wrap; font-family: var(--font); font-size: 0.8rem; line-height: 1.8; color: var(--text-2); }
+    .disc-loading { display: flex; align-items: center; gap: 12px; padding: 36px 0; color: var(--text-4); font-size: 0.83rem; }
+    .disc-err { color: var(--red); font-size: 0.82rem; padding: 16px 0; }
+    .disc-fallback { font-size: 0.82rem; color: var(--text-3); margin-top: 10px; }
+    .disc-fallback a { color: var(--red); }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-  <!-- HEADER (copied from index.html) -->
-  <header class="bg-[var(--primary-color)] shadow-lg">
-    <div class="container mx-auto flex items-center justify-between whitespace-nowrap px-6 py-4">
-      <div class="flex items-center gap-8">
-        <div class="flex items-center gap-3 text-white">
-          <span class="material-symbols-outlined text-4xl">wb_sunny</span>
-          <h1 class="text-2xl font-bold tracking-tight">The jWeather</h1>
-        </div>
-      </div>
-      <div class="hidden md:flex flex-1 items-center justify-center relative">
-        <div class="flex w-full max-w-lg gap-2 items-center">
-          <div class="relative flex-1">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
-            <input id="search-bar" class="form-input w-full rounded-full border-none bg-white/20 py-2.5 pl-12 pr-4 text-white placeholder-gray-300 transition focus:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" placeholder="Search City, State or Zip Code" type="search" autocomplete="off"/>
-            <ul id="suggestions" class="absolute z-50 left-0 right-0 mt-1 bg-white shadow-lg rounded-lg suggestions-scroll max-h-72 overflow-y-auto hidden"></ul>
-          </div>
-          <button id="use-location-btn" class="flex items-center gap-1 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium transition-colors" title="Use my current location">
-            <span class="material-symbols-outlined align-middle">my_location</span>
-            <span>Use Location</span>
-          </button>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-white">
-          <a class="hover:text-gray-200 transition-colors" href="index.html">Home</a>
-          <div class="relative group">
-            <button type="button" class="flex items-center gap-1 hover:text-gray-200 transition-colors focus:outline-none nav-link-active">
-              Severe Weather
-              <span class="material-symbols-outlined text-base">expand_more</span>
-            </button>
-            <div class="absolute left-0 top-full w-56 bg-white rounded-lg shadow-lg py-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto z-50 transition">
-              <a class="block px-6 py-2 text-blue-700 font-semibold bg-blue-50" href="md.html">Severe Outlook</a>
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="reports.html">Storm Reports</a>
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="parameters.html">Severe Parameters</a>
-              <a class="block px-6 py-2 text-gray-800 hover:bg-gray-100" href="101.html">Severe Weather 101</a>
-            </div>
-          </div>
-          <a class="hover:text-gray-200 transition-colors" href="contact.html">Contact</a>
-          <a class="hover:text-gray-200 transition-colors" href="about.html">About jWeather</a>
-        </nav>
-        <button class="hidden lg:flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
-          <span class="material-symbols-outlined">settings</span>
-        </button>
-        <button class="lg:hidden flex items-center justify-center rounded-full h-10 w-10 bg-white/20 text-white hover:bg-white/30 transition-colors">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-      </div>
-    </div>
-  </header>
-  <!-- END HEADER -->
+<body>
 
-  <main class="flex-1">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-2xl font-bold mb-8 text-gray-900">SPC Convective Outlooks</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- DAY 1 -->
-          <div id="day1-section" class="flex flex-col items-center">
-            <h3 class="text-xl font-bold mb-2">Day 1 (Today)</h3>
-            <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="1" data-hazard="cat">Overall</button>
-              <button class="outlook-btn" data-day="1" data-hazard="torn">Tornado</button>
-              <button class="outlook-btn" data-day="1" data-hazard="wind">Wind</button>
-              <button class="outlook-btn" data-day="1" data-hazard="hail">Hail</button>
-            </div>
-            <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day1" src="" alt="Day 1 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
-            </div>
-            <span id="caption-day1" class="mt-2 text-gray-600 text-sm block text-center"></span>
-            <button
-              class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
-              data-day="1"
-            >
-              Read Discussion
-            </button>
-          </div>
-          <!-- DAY 2 -->
-          <div id="day2-section" class="flex flex-col items-center">
-            <h3 class="text-xl font-bold mb-2">Day 2 (Tomorrow)</h3>
-            <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="2" data-hazard="cat">Overall</button>
-              <button class="outlook-btn" data-day="2" data-hazard="torn">Tornado</button>
-              <button class="outlook-btn" data-day="2" data-hazard="wind">Wind</button>
-              <button class="outlook-btn" data-day="2" data-hazard="hail">Hail</button>
-            </div>
-            <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day2" src="" alt="Day 2 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
-            </div>
-            <span id="caption-day2" class="mt-2 text-gray-600 text-sm block text-center"></span>
-            <button
-              class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
-              data-day="2"
-            >
-              Read Discussion
-            </button>
-          </div>
-          <!-- DAY 3 -->
-          <div id="day3-section" class="flex flex-col items-center">
-            <h3 class="text-xl font-bold mb-2">Day 3</h3>
-            <div class="flex gap-2 mb-2">
-              <button class="outlook-btn outlook-btn-active" data-day="3" data-hazard="cat">Overall</button>
-              <button class="outlook-btn" data-day="3" data-hazard="prob">Probabilistic</button>
-            </div>
-            <div class="w-full flex justify-center items-center min-h-[240px]">
-              <img id="img-day3" src="" alt="Day 3 Outlook" class="rounded-lg shadow max-w-full h-[240px] object-contain bg-gray-100"/>
-            </div>
-            <span id="caption-day3" class="mt-2 text-gray-600 text-sm block text-center"></span>
-            <button
-              class="read-discussion-btn px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-blue-700 bg-white hover:bg-blue-50 transition mt-4"
-              data-day="3"
-            >
-              Read Discussion
-            </button>
-          </div>
-        </div>
-        <div class="mt-6 text-center text-gray-500 text-xs">
-          <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener" class="text-blue-700 underline">Source: NOAA/NWS Storm Prediction Center</a>
-        </div>
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">
+      <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+      <span class="logo-name">j<span>Weather</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="md.html" class="active">Severe Weather</a>
+      <a href="contact.html">Contact</a>
+      <a href="about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">
+      <span class="material-symbols-rounded">thunderstorm</span>
+      SPC Convective Outlooks
+    </div>
+    <div class="page-subtitle">
+      Issued by the <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener">NOAA/NWS Storm Prediction Center</a> · Updated throughout the day
+    </div>
+  </div>
+
+  <div class="outlook-grid">
+
+    <!-- DAY 1 -->
+    <div class="day-card">
+      <div class="day-card-head">
+        <div class="day-card-eyebrow">Day 1</div>
+        <div class="day-card-title">Today</div>
+      </div>
+      <div class="hazard-tabs">
+        <button class="hbtn on" data-day="1" data-hazard="cat">Overall</button>
+        <button class="hbtn" data-day="1" data-hazard="torn">Tornado</button>
+        <button class="hbtn" data-day="1" data-hazard="wind">Wind</button>
+        <button class="hbtn" data-day="1" data-hazard="hail">Hail</button>
+      </div>
+      <div class="img-area" id="img-area-1">
+        <div class="img-loader" id="loader-1"><div class="spin-ring"></div></div>
+        <img id="img-1" src="" alt="Day 1 Outlook" style="display:none"/>
+      </div>
+      <div class="day-card-foot">
+        <div class="outlook-caption" id="cap-1"></div>
+        <button class="disc-btn" data-day="1"><span class="material-symbols-rounded">description</span>Discussion</button>
       </div>
     </div>
-  </main>
-</div>
-<!-- Modal Overlay -->
-<div id="discussion-modal-backdrop" class="fixed inset-0 z-40 flex items-center justify-center modal-backdrop hidden">
-  <div
-    id="discussion-modal"
-    class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-6 relative z-50"
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
-  >
-    <button
-      id="close-modal-btn"
-      class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none"
-      aria-label="Close"
-      type="button"
-    >&#10005;</button>
-    <h3 id="discussion-modal-title" class="text-xl font-bold mb-4 text-blue-800">SPC Outlook Discussion</h3>
-    <div id="discussion-modal-body" class="overflow-y-auto max-h-96">
-      <div class="flex items-center justify-center text-gray-500 text-lg h-40" id="discussion-loading">Loading...</div>
-      <pre id="discussion-text" class="text-gray-800 text-sm leading-relaxed hidden"></pre>
-      <div id="discussion-error" class="text-red-600 hidden"></div>
+
+    <!-- DAY 2 -->
+    <div class="day-card">
+      <div class="day-card-head">
+        <div class="day-card-eyebrow">Day 2</div>
+        <div class="day-card-title">Tomorrow</div>
+      </div>
+      <div class="hazard-tabs">
+        <button class="hbtn on" data-day="2" data-hazard="cat">Overall</button>
+        <button class="hbtn" data-day="2" data-hazard="torn">Tornado</button>
+        <button class="hbtn" data-day="2" data-hazard="wind">Wind</button>
+        <button class="hbtn" data-day="2" data-hazard="hail">Hail</button>
+      </div>
+      <div class="img-area" id="img-area-2">
+        <div class="img-loader" id="loader-2"><div class="spin-ring"></div></div>
+        <img id="img-2" src="" alt="Day 2 Outlook" style="display:none"/>
+      </div>
+      <div class="day-card-foot">
+        <div class="outlook-caption" id="cap-2"></div>
+        <button class="disc-btn" data-day="2"><span class="material-symbols-rounded">description</span>Discussion</button>
+      </div>
+    </div>
+
+    <!-- DAY 3 -->
+    <div class="day-card">
+      <div class="day-card-head">
+        <div class="day-card-eyebrow">Day 3</div>
+        <div class="day-card-title" id="day3-label">—</div>
+      </div>
+      <div class="hazard-tabs">
+        <button class="hbtn on" data-day="3" data-hazard="cat">Overall</button>
+        <button class="hbtn" data-day="3" data-hazard="prob">Probabilistic</button>
+      </div>
+      <div class="img-area" id="img-area-3">
+        <div class="img-loader" id="loader-3"><div class="spin-ring"></div></div>
+        <img id="img-3" src="" alt="Day 3 Outlook" style="display:none"/>
+      </div>
+      <div class="day-card-foot">
+        <div class="outlook-caption" id="cap-3"></div>
+        <button class="disc-btn" data-day="3"><span class="material-symbols-rounded">description</span>Discussion</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Discussion Modal -->
+<div id="disc-modal">
+  <div class="disc-box">
+    <div class="disc-head">
+      <div class="disc-pip"></div>
+      <div id="disc-title" class="disc-title">SPC Discussion</div>
+      <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="disc-body" id="disc-body">
+      <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
     </div>
   </div>
 </div>
-<!-- BEGIN: Autocomplete / Use Location JS copied from index.html -->
+
 <script>
-// ... (Paste all autocomplete/search/location JS from index.html here, up to but not including unrelated weather logic) ...
-// For brevity, copy all code from immediately after <script> in index.html up to the start of main weather logic.
-// This includes: locationsData, suggestions, fuse, searchBar, suggestionsBox, useLocationBtn, debounce, getSuggestions, renderSuggestions, highlightSuggestion, selectSuggestion, handleSearchBarRedirect, useLocationBtn handler, etc.
-// Do NOT include: current conditions, alerts, forecast, radar, etc, as those are not used in md.html.
-</script>
-<!-- END: Autocomplete / Use Location JS -->
-<script>
-// --- SPC Outlook JS (UNCHANGED as before, see previous answer for this logic) ---
-/* ... SPC image, hazard button, and modal overlay logic here ... */
+// ---- Image URL builder ----
+function imgUrl(day, hazard) {
+  const ts = Date.now();
+  if (day === 1) return `https://www.spc.noaa.gov/products/outlook/day1otlk_${hazard}.gif?cb=${ts}`;
+  if (day === 2) return `https://www.spc.noaa.gov/products/outlook/day2otlk_${hazard}.gif?cb=${ts}`;
+  if (day === 3) {
+    if (hazard === 'prob') return `https://www.spc.noaa.gov/products/outlook/day3otlk_prob.gif?cb=${ts}`;
+    return `https://www.spc.noaa.gov/products/outlook/day3otlk.gif?cb=${ts}`;
+  }
+}
+
+const HAZARD_LABELS = { cat:'Categorical Risk', torn:'Tornado Probability', wind:'Wind Probability', hail:'Hail Probability', prob:'Probabilistic Outlook' };
+const TEXT_URLS = {
+  1: 'https://www.spc.noaa.gov/products/outlook/SWODY1.txt',
+  2: 'https://www.spc.noaa.gov/products/outlook/SWODY2.txt',
+  3: 'https://www.spc.noaa.gov/products/outlook/SWODY3.txt',
+};
+const PAGE_URLS = {
+  1: 'https://www.spc.noaa.gov/products/outlook/day1otlk.html',
+  2: 'https://www.spc.noaa.gov/products/outlook/day2otlk.html',
+  3: 'https://www.spc.noaa.gov/products/outlook/day3otlk.html',
+};
+
+// ---- Load image ----
+function loadImg(day, hazard) {
+  const img    = document.getElementById(`img-${day}`);
+  const loader = document.getElementById(`loader-${day}`);
+  const cap    = document.getElementById(`cap-${day}`);
+  img.style.display = 'none';
+  loader.style.display = 'flex';
+  loader.innerHTML = '<div class="spin-ring"></div>';
+
+  const url = imgUrl(day, hazard);
+  const tmp = new Image();
+  tmp.onload = () => {
+    img.src = url;
+    img.style.display = 'block';
+    loader.style.display = 'none';
+    cap.textContent = `Day ${day} · ${HAZARD_LABELS[hazard] || hazard}`;
+  };
+  tmp.onerror = () => {
+    loader.innerHTML = '<span class="img-unavail">Image unavailable</span>';
+    cap.textContent = '';
+  };
+  tmp.src = url;
+}
+
+// ---- Hazard tab clicks ----
+document.querySelectorAll('.hbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day = +btn.dataset.day;
+    document.querySelectorAll(`.hbtn[data-day="${day}"]`).forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    loadImg(day, btn.dataset.hazard);
+  });
+});
+
+// ---- Discussion modal ----
+const discModal = document.getElementById('disc-modal');
+document.querySelectorAll('.disc-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day = +btn.dataset.day;
+    const labels = {1:'Today', 2:'Tomorrow', 3:'Day 3'};
+    document.getElementById('disc-title').textContent = `Day ${day} (${labels[day]}) — SPC Outlook Discussion`;
+    document.getElementById('disc-body').innerHTML = `<div class="disc-loading"><div class="spin-ring"></div>Loading discussion…</div>`;
+    discModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    loadDiscussion(day);
+  });
+});
+
+async function loadDiscussion(day) {
+  const body = document.getElementById('disc-body');
+  try {
+    const res = await fetch(TEXT_URLS[day]);
+    if (!res.ok) throw new Error('fetch failed');
+    const raw = await res.text();
+    // Trim boilerplate: find first occurrence of '...' which starts the actual discussion
+    const idx = raw.indexOf('...');
+    const text = idx !== -1 ? raw.slice(idx) : raw;
+    body.innerHTML = `<pre>${esc(text.trim())}</pre>`;
+  } catch {
+    body.innerHTML = `
+      <div class="disc-err">Could not load discussion text directly.</div>
+      <div class="disc-fallback">
+        Read it on the SPC website: <a href="${PAGE_URLS[day]}" target="_blank" rel="noopener">Day ${day} Outlook Discussion ↗</a>
+      </div>`;
+  }
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('disc-close').addEventListener('click', closeDisc);
+discModal.addEventListener('click', e => { if (e.target === discModal) closeDisc(); });
+function closeDisc() { discModal.style.display='none'; document.body.style.overflow=''; }
+
+// ---- Day 3 label ----
+const d3 = new Date(); d3.setDate(d3.getDate() + 2);
+document.getElementById('day3-label').textContent = d3.toLocaleDateString('en-US', { weekday:'long' });
+
+// ---- Boot ----
+window.addEventListener('DOMContentLoaded', () => {
+  loadImg(1, 'cat');
+  loadImg(2, 'cat');
+  loadImg(3, 'cat');
+});
 </script>
 </body>
 </html>
