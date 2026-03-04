@@ -507,7 +507,6 @@ function showModal(i) {
   document.getElementById('modal-body').innerHTML = `
     <pre>${a.description||''}</pre>
     ${a.instruction?`<div class="modal-instruction"><strong>Action Required</strong>${a.instruction}</div>`:''}
-    ${a.web?`<p style="margin-top:12px;font-size:.78rem"><a href="${a.web}" target="_blank" style="color:var(--red)">Official NWS advisory ↗</a></p>`:''}
   `;
   document.getElementById('alert-modal').style.display='flex'; document.body.style.overflow='hidden';
 }
