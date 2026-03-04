@@ -101,7 +101,7 @@
     #main-map{position:absolute;inset:0;width:100%;height:100%;}
 
     /* Map top bar */
-    .map-topbar{position:absolute;top:14px;left:14px;right:14px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
+    .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
     .map-context-pill{background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
 
@@ -200,9 +200,16 @@
     .city-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
     .city-dot{width:5px;height:5px;background:#374151;border-radius:50%;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 1px 3px rgba(0,0,0,.25);}
     .city-name{font-family:var(--font);font-size:10px;font-weight:600;color:#1f2937;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 5px #fff;}
-    .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:8px !important;overflow:hidden;box-shadow:var(--shadow) !important;}
-    .leaflet-control-zoom a{font-family:var(--font);color:var(--text-2) !important;background:rgba(255,255,255,0.94) !important;backdrop-filter:blur(6px);}
+    .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:10px !important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12) !important;}
+    .leaflet-control-zoom a{
+      font-family:var(--font) !important;color:var(--text-2) !important;
+      background:rgba(255,255,255,0.97) !important;backdrop-filter:blur(8px);
+      width:36px !important;height:36px !important;line-height:36px !important;
+      font-size:18px !important;font-weight:400 !important;
+      display:flex !important;align-items:center;justify-content:center;
+    }
     .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
+    .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
     .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(255,255,255,0.8) !important;backdrop-filter:blur(4px);}
 
     ::-webkit-scrollbar{width:4px;}
@@ -595,10 +602,11 @@ async function addStatesOverlay(map) {
 function initMap() {
   theMap = L.map('main-map', {
     center:[38,-96], zoom:4,
-    zoomControl:true,
+    zoomControl:false,      // we add it manually to control position
     scrollWheelZoom:true,
     attributionControl:true,
   });
+  L.control.zoom({ position:'topright' }).addTo(theMap);
 
   // ── Pane z-index stack (Leaflet defaults: tilePane=200, overlayPane=400, markerPane=600) ──
   // 200  baseTiles       (default tilePane — CARTO no-labels base)
@@ -845,16 +853,15 @@ async function loadSigLayer(day, mode) {
     activeSigLayer = L.geoJSON(gj, {
       style: {
         color: '#e5182a',
-        weight: 2.5,
-        dashArray: '7 5',
-        fillColor: '#e5182a',
-        fillOpacity: 0.08,
-        opacity: 0.9
+        weight: 3,
+        dashArray: '8 5',
+        fill: false,          // no fill — dashed outline only, never covers prob polygons
+        opacity: 1
       },
       pane: 'sigOutlinePane',
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.2, weight:3.5 }); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, opacity:1 }); });
         lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
@@ -886,7 +893,7 @@ async function loadSigLayer(day, mode) {
     const legendEl = document.getElementById('legend-items');
     const sigEntry = document.createElement('div');
     sigEntry.className = 'legend-item sig-legend-entry';
-    sigEntry.innerHTML = `<div class="legend-swatch" style="background:rgba(229,24,42,0.1);border:2px dashed #e5182a;box-sizing:border-box;"></div><span style="font-weight:600;color:#e5182a">${sigLabel}</span>`;
+    sigEntry.innerHTML = `<div class="legend-swatch" style="background:none;border:2.5px dashed #e5182a;box-sizing:border-box;"></div><span style="font-weight:600;color:#e5182a">${sigLabel}</span>`;
     legendEl.appendChild(sigEntry);
     document.getElementById('map-legend').style.display = 'block';
 
@@ -918,7 +925,7 @@ function sigPopupContent(f, mode, day) {
     </div>
     <div class="popup-inner">
       <div class="popup-header">
-        <div class="popup-swatch" style="background:rgba(229,24,42,0.15);border:2px dashed #e5182a;box-sizing:border-box;"></div>
+        <div class="popup-swatch" style="background:none;border:2.5px dashed #e5182a;box-sizing:border-box;"></div>
         <div>
           <div class="popup-risk">Significant Threat Zone</div>
           <div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div>
