@@ -274,16 +274,16 @@
       </div>
       <div class="cat-list" id="cats-1">
         <button class="cat-btn active" data-day="1" data-mode="cat">
-          <div class="cat-dot" style="background:#e84040;"></div>Overall
+          <div class="cat-dot" style="background:#ef4444;"></div>Overall
         </button>
         <button class="cat-btn" data-day="1" data-mode="torn">
-          <div class="cat-dot" style="background:#e87820;"></div>Tornado
+          <div class="cat-dot" style="background:#ef4444;"></div>Tornado
         </button>
         <button class="cat-btn" data-day="1" data-mode="wind">
-          <div class="cat-dot" style="background:#f6f67f;border-color:#baba00;"></div>Wind
+          <div class="cat-dot" style="background:#f97316;"></div>Wind
         </button>
         <button class="cat-btn" data-day="1" data-mode="hail">
-          <div class="cat-dot" style="background:#7fc57f;"></div>Hail
+          <div class="cat-dot" style="background:#34d399;"></div>Hail
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
@@ -302,16 +302,16 @@
       </div>
       <div class="cat-list" id="cats-2">
         <button class="cat-btn" data-day="2" data-mode="cat">
-          <div class="cat-dot" style="background:#e84040;"></div>Overall
+          <div class="cat-dot" style="background:#ef4444;"></div>Overall
         </button>
         <button class="cat-btn" data-day="2" data-mode="torn">
-          <div class="cat-dot" style="background:#e87820;"></div>Tornado
+          <div class="cat-dot" style="background:#ef4444;"></div>Tornado
         </button>
         <button class="cat-btn" data-day="2" data-mode="wind">
-          <div class="cat-dot" style="background:#f6f67f;border-color:#baba00;"></div>Wind
+          <div class="cat-dot" style="background:#f97316;"></div>Wind
         </button>
         <button class="cat-btn" data-day="2" data-mode="hail">
-          <div class="cat-dot" style="background:#7fc57f;"></div>Hail
+          <div class="cat-dot" style="background:#34d399;"></div>Hail
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
@@ -330,10 +330,10 @@
       </div>
       <div class="cat-list" id="cats-3">
         <button class="cat-btn" data-day="3" data-mode="cat">
-          <div class="cat-dot" style="background:#e84040;"></div>Overall
+          <div class="cat-dot" style="background:#ef4444;"></div>Overall
         </button>
         <button class="cat-btn" data-day="3" data-mode="prob">
-          <div class="cat-dot" style="background:#e87820;"></div>Probabilistic
+          <div class="cat-dot" style="background:#fbbf24;"></div>Probabilistic
         </button>
       </div>
       <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
@@ -426,27 +426,28 @@ const SIG_DESC = {
   prob:'This area has an elevated risk of particularly destructive severe weather — including EF2+ tornadoes, 65+ mph winds, and/or 2"+ hail — any of which can cause major structural damage.',
 };
 
-// SPC categorical colors
+// Custom modern color scheme — saturated, dramatic, clean
+// Designed to bleed visually like the FOX11 gradient but refined
 const CAT = {
-  'TSTM':{ fill:'#c1e9c1', stroke:'#5fa05f', label:'General Thunder' },
-  'MRGL':{ fill:'#7fc57f', stroke:'#3d8c3d', label:'Marginal (1)' },
-  'SLGT':{ fill:'#f6f67f', stroke:'#baba00', label:'Slight (2)' },
-  'ENH': { fill:'#e8a832', stroke:'#b07820', label:'Enhanced (3)' },
-  'MDT': { fill:'#e84040', stroke:'#a00000', label:'Moderate (4)' },
-  'HIGH':{ fill:'#ff00ff', stroke:'#cc00cc', label:'High (5)' },
+  'TSTM':{ fill:'#d1fae5', stroke:'#6ee7b7', label:'General Thunder' },
+  'MRGL':{ fill:'#34d399', stroke:'#059669', label:'Level 1 · Marginal' },
+  'SLGT':{ fill:'#fbbf24', stroke:'#d97706', label:'Level 2 · Slight' },
+  'ENH': { fill:'#f97316', stroke:'#c2410c', label:'Level 3 · Enhanced' },
+  'MDT': { fill:'#ef4444', stroke:'#b91c1c', label:'Level 4 · Moderate' },
+  'HIGH':{ fill:'#a855f7', stroke:'#7e22ce', label:'Level 5 · High' },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
 
-// Probabilistic thresholds — labels use threat words, not raw percentages
+// Probabilistic thresholds — modern saturated palette matching CAT scale
 const PROB = [
-  { dn:2,  fill:'#7fc57f', stroke:'#3d8c3d', label:'Very Low',    pct:'2%'  },
-  { dn:5,  fill:'#c8e86a', stroke:'#8ab020', label:'Low',         pct:'5%'  },
-  { dn:10, fill:'#f6f67f', stroke:'#baba00', label:'Elevated',    pct:'10%' },
-  { dn:15, fill:'#e8c840', stroke:'#b09000', label:'Moderate',    pct:'15%' },
-  { dn:30, fill:'#e87820', stroke:'#b04000', label:'High',        pct:'30%' },
-  { dn:45, fill:'#e84040', stroke:'#a00000', label:'Very High',   pct:'45%' },
-  { dn:60, fill:'#ff00ff', stroke:'#cc00cc', label:'Extreme',     pct:'60%' },
+  { dn:2,  fill:'#34d399', stroke:'#059669', label:'Very Low',  pct:'2%'  },
+  { dn:5,  fill:'#86efac', stroke:'#16a34a', label:'Low',       pct:'5%'  },
+  { dn:10, fill:'#fde047', stroke:'#ca8a04', label:'Elevated',  pct:'10%' },
+  { dn:15, fill:'#fbbf24', stroke:'#d97706', label:'Moderate',  pct:'15%' },
+  { dn:30, fill:'#f97316', stroke:'#c2410c', label:'High',      pct:'30%' },
+  { dn:45, fill:'#ef4444', stroke:'#b91c1c', label:'Very High', pct:'45%' },
+  { dn:60, fill:'#a855f7', stroke:'#7e22ce', label:'Extreme',   pct:'60%' },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
@@ -653,23 +654,23 @@ function styleFeature(f, mode) {
     const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
     if (key === 'TSTM') return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
-    return { fillColor:c.fill, color:c.stroke, weight:1.8, fillOpacity:0.55, opacity:1 };
+    return { fillColor:c.fill, color:c.stroke, weight:1.5, fillOpacity:0.72, opacity:1 };
   } else {
     const dn = parseInt(p.DN || p.dn || 0);
     let c = PROB[0];
     for (const x of PROB) { if (dn >= x.dn) c = x; }
-    return { fillColor:c.fill, color:c.stroke, weight:1.8, fillOpacity:0.55, opacity:1 };
+    return { fillColor:c.fill, color:c.stroke, weight:1.5, fillOpacity:0.72, opacity:1 };
   }
 }
 
 // Plain-English descriptions for categorical risks
 const CAT_DESC = {
-  TSTM: { short:'General Thunder', stat:'Storm coverage: widespread', desc:'Organized severe weather is unlikely, but strong thunderstorms producing gusty winds or small hail are possible across this area.' },
-  MRGL: { short:'Marginal Risk', stat:'Roughly 1-in-20 chance of severe weather', desc:'Isolated severe storms are possible but are expected to be brief or short-lived. Impacts are likely to be limited in coverage.' },
-  SLGT: { short:'Slight Risk', stat:'Roughly 1-in-10 chance of severe weather', desc:'Scattered severe storms are possible. Not everyone in this area will see severe weather, but some locations could be significantly impacted.' },
-  ENH:  { short:'Enhanced Risk', stat:'Roughly 1-in-5 chance of severe weather', desc:'Numerous severe storms are possible. Widespread damaging impacts are expected across portions of this area — preparation is advised.' },
-  MDT:  { short:'Moderate Risk', stat:'Significant severe weather likely', desc:'Widespread severe storms with the potential for long-track tornadoes, very large hail, or destructive straight-line winds. Life-threatening weather is likely for some locations.' },
-  HIGH: { short:'High Risk', stat:'Particularly dangerous situation (PDS)', desc:'An outbreak of severe weather is expected. Violent, long-track tornadoes or widespread damaging winds are likely. Take shelter plans seriously — this is the highest alert SPC issues.' },
+  TSTM: { short:'General Thunder',  stat:'Storm coverage: widespread',          desc:'Organized severe weather is unlikely, but strong thunderstorms producing gusty winds or small hail are possible across this area.' },
+  MRGL: { short:'Level 1 · Marginal',  stat:'Roughly 1-in-20 chance of severe weather', desc:'Isolated severe storms are possible but are expected to be brief or short-lived. Impacts are likely to be limited in coverage.' },
+  SLGT: { short:'Level 2 · Slight',    stat:'Roughly 1-in-10 chance of severe weather', desc:'Scattered severe storms are possible. Not everyone in this area will see severe weather, but some locations could be significantly impacted.' },
+  ENH:  { short:'Level 3 · Enhanced',  stat:'Roughly 1-in-5 chance of severe weather',  desc:'Numerous severe storms are possible. Widespread damaging impacts are expected across portions of this area — preparation is advised.' },
+  MDT:  { short:'Level 4 · Moderate',  stat:'Significant severe weather likely',         desc:'Widespread severe storms with the potential for long-track tornadoes, very large hail, or destructive straight-line winds. Life-threatening weather is likely for some locations.' },
+  HIGH: { short:'Level 5 · High',      stat:'Particularly dangerous situation (PDS)',    desc:'An outbreak of severe weather is expected. Violent, long-track tornadoes or widespread damaging winds are likely. Take shelter plans seriously — this is the highest alert SPC issues.' },
 };
 
 // Plain-English descriptions for probabilistic hazards
@@ -814,7 +815,7 @@ async function loadHazard(day, mode) {
         const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
         if (mode === 'cat' && key === 'TSTM') return;
         lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.78, weight:2.5 }); });
+        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
