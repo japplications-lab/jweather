@@ -427,17 +427,17 @@ const CAT = {
   'HIGH':{ fill:'#ff00ff', stroke:'#cc00cc', label:'High (5)' },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-const CAT_ORDER = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
+const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
 
-// Probabilistic thresholds
+// Probabilistic thresholds — labels use threat words, not raw percentages
 const PROB = [
-  { dn:2,  fill:'#7fc57f', stroke:'#3d8c3d', label:'2%' },
-  { dn:5,  fill:'#c8e86a', stroke:'#8ab020', label:'5%' },
-  { dn:10, fill:'#f6f67f', stroke:'#baba00', label:'10%' },
-  { dn:15, fill:'#e8c840', stroke:'#b09000', label:'15%' },
-  { dn:30, fill:'#e87820', stroke:'#b04000', label:'30%' },
-  { dn:45, fill:'#e84040', stroke:'#a00000', label:'45%' },
-  { dn:60, fill:'#ff00ff', stroke:'#cc00cc', label:'60%' },
+  { dn:2,  fill:'#7fc57f', stroke:'#3d8c3d', label:'Very Low',    pct:'2%'  },
+  { dn:5,  fill:'#c8e86a', stroke:'#8ab020', label:'Low',         pct:'5%'  },
+  { dn:10, fill:'#f6f67f', stroke:'#baba00', label:'Elevated',    pct:'10%' },
+  { dn:15, fill:'#e8c840', stroke:'#b09000', label:'Moderate',    pct:'15%' },
+  { dn:30, fill:'#e87820', stroke:'#b04000', label:'High',        pct:'30%' },
+  { dn:45, fill:'#e84040', stroke:'#a00000', label:'Very High',   pct:'45%' },
+  { dn:60, fill:'#ff00ff', stroke:'#cc00cc', label:'Extreme',     pct:'60%' },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
@@ -569,10 +569,10 @@ function initMap() {
     attributionControl:true,
   });
   // Pane ordering: base < outlook polygons (default 400) < states (450) < labels (500)
-  theMap.createPane('states'); theMap.getPane('states').style.zIndex = 450;
+  theMap.createPane('states');    theMap.getPane('states').style.zIndex = 450;
+  theMap.createPane('sigBadgePane'); theMap.getPane('sigBadgePane').style.zIndex = 460;
   theMap.createPane('labels'); theMap.getPane('labels').style.zIndex = 500;
   // cityPane created inside addCitiesLayer (zIndex 510)
-  theMap.createPane('sigBadgePane'); theMap.getPane('sigBadgePane').style.zIndex = 460;
   // Labels pane must not capture pointer events so map stays interactive
   theMap.getPane('labels').style.pointerEvents = 'none';
 
@@ -591,6 +591,7 @@ function styleFeature(f, mode) {
   if (mode === 'cat') {
     const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
     const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+    if (key === 'TSTM') return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
     return { fillColor:c.fill, color:c.stroke, weight:1.8, fillOpacity:0.55, opacity:1 };
   } else {
@@ -627,13 +628,15 @@ function probDesc(dn, hazard) {
                 : hazard === 'torn' ? 'Tornadoes are expected in this area — not necessarily near you, but you should have a plan ready.'
                 : 'Significant events are expected in this area — not necessarily near you, but you should have a plan ready.';
 
-  if (dn <= 2)  return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`That's similar odds to a coin flip over dozens of flips — low but real enough that ${hPlural} are expected somewhere in this zone.` };
-  if (dn <= 5)  return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Low overall odds, but the threat is real. Scattered ${hPlural} are possible — stay weather-aware.` };
-  if (dn <= 10) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:midCtx };
-  if (dn <= 15) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Elevated threat. Multiple ${hPlural} are likely somewhere in this zone. Know your shelter options before storms arrive.` };
-  if (dn <= 30) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`High threat. Numerous ${hPlural} are expected. A significant portion of this area will be directly impacted.` };
-  if (dn <= 45) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Very high threat. Widespread ${hPlural} are expected — this is a serious weather situation. Take immediate preparedness steps.` };
-  return        { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Extremely high threat — a particularly dangerous situation (PDS). A major severe weather outbreak is expected. Treat this as a life-safety emergency.` };
+  // Technical framing: kept for accuracy but phrased to not undersell the threat
+  const techFrame = `Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`;
+  if (dn <= 2)  return { frame:techFrame, context:`The odds are low for any single location, but ${hPlural} are expected to occur somewhere in this zone — stay weather-aware.` };
+  if (dn <= 5)  return { frame:techFrame, context:`Low overall odds, but the threat is real and events are expected in this zone. Scattered ${hPlural} are possible.` };
+  if (dn <= 10) return { frame:techFrame, context:midCtx };
+  if (dn <= 15) return { frame:techFrame, context:`Multiple ${hPlural} are likely somewhere in this zone. Know your shelter options and have a plan before storms arrive.` };
+  if (dn <= 30) return { frame:techFrame, context:`Numerous ${hPlural} are expected. A significant portion of this area will be directly impacted — preparation is strongly advised.` };
+  if (dn <= 45) return { frame:techFrame, context:`Widespread ${hPlural} are expected across much of this area. This is a serious, potentially life-threatening weather situation. Take immediate preparedness steps.` };
+  return        { frame:techFrame, context:`A major ${h} outbreak is expected — this is a particularly dangerous situation (PDS). Treat this as a life-safety emergency and take shelter plans seriously.` };
 }
 
 function popupContent(f, mode, day, isSig=false) {
@@ -669,7 +672,7 @@ function popupContent(f, mode, day, isSig=false) {
     return `${sigBar2}<div class="popup-inner">
       <div class="popup-header">
         <div class="popup-swatch" style="background:${probC.fill};border-color:${probC.stroke}"></div>
-        <div><div class="popup-risk">${dn}% Probability</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div></div>
+        <div><div class="popup-risk">${probC.label} Threat</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]} · ${probC.pct} probability</div></div>
       </div>
       <div class="popup-divider"></div>
       <div class="popup-desc">${frame}</div>
@@ -698,7 +701,7 @@ function buildLegend(geojson, mode) {
   } else {
     const dns = new Set();
     geojson.features.forEach(f => { const d=parseInt(f.properties.DN||f.properties.dn||0); if(d>0) dns.add(d); });
-    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:p.label }); });
+    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:`${p.label} (${p.pct})` }); });
   }
 
   if (!items.length) { box.style.display='none'; return; }
@@ -742,6 +745,10 @@ async function loadHazard(day, mode) {
     activeLayer = L.geoJSON(gj, {
       style: f => styleFeature(f, mode),
       onEachFeature: (f, lyr) => {
+        // Skip TSTM — no popup on invisible polygons
+        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+        const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+        if (mode === 'cat' && key === 'TSTM') return;
         lyr.bindPopup(popupContent(f, mode, day, false), { closeButton:false, autoPan:true, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.78, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
@@ -817,7 +824,7 @@ async function loadSigLayer(day, mode) {
           iconAnchor: [0, 0],
           iconSize: null,
         });
-        const marker = L.marker(center, { icon, interactive:true, keyboard:false, pane:'sigBadgePane' });
+        const marker = L.marker(center, { icon, interactive:true, keyboard:false, pane:'sigBadgePane', zIndexOffset:1000 });
         marker.bindPopup(popupContent(f, mode, day, true), { closeButton:false, autoPan:true, maxWidth:290 });
         marker.addTo(theMap);
         activeSigMarkers.push(marker);
