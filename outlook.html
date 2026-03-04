@@ -100,6 +100,20 @@
     .disc-btn:hover{border-color:var(--red);color:var(--red);}
     .disc-btn .material-symbols-rounded{font-size:13px;}
 
+    /* ENLARGE BUTTON */
+    .enlarge-btn{position:absolute;bottom:10px;right:10px;z-index:5;display:flex;align-items:center;gap:4px;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text-2);background:rgba(255,255,255,0.92);border:1px solid var(--border-2);border-radius:6px;padding:5px 10px;cursor:pointer;backdrop-filter:blur(4px);transition:border-color .15s,color .15s,opacity .15s;opacity:0;}
+    .img-viewer:hover .enlarge-btn{opacity:1;}
+    .enlarge-btn:hover{border-color:var(--red);color:var(--red);}
+    .enlarge-btn .material-symbols-rounded{font-size:13px;}
+
+    /* IMAGE ENLARGE MODAL */
+    #img-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;}
+    .img-modal-inner{position:relative;max-width:min(1100px,95vw);width:100%;}
+    .img-modal-inner img{width:100%;height:auto;display:block;border-radius:var(--r);box-shadow:0 24px 80px rgba(0,0,0,.4);}
+    .img-modal-close{position:absolute;top:-14px;right:-14px;width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:color .15s,border-color .15s;}
+    .img-modal-close:hover{color:var(--red);border-color:var(--red);}
+    .img-modal-close .material-symbols-rounded{font-size:17px;}
+
     /* DISCUSSION MODAL */
     #disc-modal{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
     .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
@@ -191,6 +205,7 @@
         <div class="img-loader" id="loader-1"><div class="spin-ring"></div></div>
         <img class="map-main" id="main-1" src="" alt="Day 1 Outlook"/>
         <img class="map-cities" id="cities-1" src="" alt=""/>
+        <button class="enlarge-btn" data-day="1"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
       </div>
       <div class="day-card-foot">
         <span class="disc-caption" id="cap-1"></span>
@@ -219,6 +234,7 @@
         <div class="img-loader" id="loader-2"><div class="spin-ring"></div></div>
         <img class="map-main" id="main-2" src="" alt="Day 2 Outlook"/>
         <img class="map-cities" id="cities-2" src="" alt=""/>
+        <button class="enlarge-btn" data-day="2"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
       </div>
       <div class="day-card-foot">
         <span class="disc-caption" id="cap-2"></span>
@@ -245,6 +261,7 @@
         <div class="img-loader" id="loader-3"><div class="spin-ring"></div></div>
         <img class="map-main" id="main-3" src="" alt="Day 3 Outlook"/>
         <img class="map-cities" id="cities-3" src="" alt=""/>
+        <button class="enlarge-btn" data-day="3"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
       </div>
       <div class="day-card-foot">
         <span class="disc-caption" id="cap-3"></span>
@@ -256,6 +273,14 @@
 
   </div>
 </main>
+
+<!-- Image Enlarge Modal -->
+<div id="img-modal">
+  <div class="img-modal-inner">
+    <button class="img-modal-close" id="img-modal-close"><span class="material-symbols-rounded">close</span></button>
+    <img id="img-modal-img" src="" alt="Enlarged outlook map"/>
+  </div>
+</div>
 
 <!-- Discussion Modal -->
 <div id="disc-modal">
@@ -359,6 +384,23 @@ document.querySelectorAll('.hbtn').forEach(btn => {
     loadImage(day, btn.dataset.hazard);
   });
 });
+
+// Enlarge modal
+const imgModal = document.getElementById('img-modal');
+const imgModalImg = document.getElementById('img-modal-img');
+document.querySelectorAll('.enlarge-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day = +btn.dataset.day;
+    const src = document.getElementById(`main-${day}`).src;
+    if (!src) return;
+    imgModalImg.src = src;
+    imgModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  });
+});
+document.getElementById('img-modal-close').addEventListener('click', closeImgModal);
+imgModal.addEventListener('click', e => { if (e.target === imgModal) closeImgModal(); });
+function closeImgModal() { imgModal.style.display = 'none'; document.body.style.overflow = ''; }
 
 // Discussion modal
 const discModal = document.getElementById('disc-modal');
