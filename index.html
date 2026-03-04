@@ -8,8 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
   <style>
     :root {
       --red: #e5182a;
@@ -60,7 +59,6 @@
     #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
     #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
     .sug-city { font-weight: 500; flex: 1; }
-    .sug-zip { color: var(--text-4); font-size: 0.75rem; }
 
     .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
     .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
@@ -343,65 +341,122 @@ function getIcon(text, isDaytime) {
 }
 function compass(n) { return ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.floor((n/22.5)+0.5)%16]; }
 
-let locData=[], fuse=null, alerts=[], curLoc=null, sugs=[], selIdx=-1;
+// US state abbreviation lookup
+const STATE_ABBR = {"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
+
+function stateAbbr(name) { return STATE_ABBR[name] || name; }
+
+// Parse Nominatim result into { label, city, state, lat, lng }
+function parseNominatim(r) {
+  const addr = r.address || {};
+  const city = addr.city || addr.town || addr.village || addr.hamlet || addr.county || r.display_name.split(',')[0];
+  const state = stateAbbr(addr.state || '');
+  const label = state ? `${city}, ${state}` : city;
+  return { label, city, state, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
+}
+
+let alerts=[], curLoc=null, sugs=[], selIdx=-1, searchController=null;
 const sBar=document.getElementById('search-bar'), sugBox=document.getElementById('suggestions'),
       locBtn=document.getElementById('use-location-btn'), spin=document.getElementById('spinner-overlay');
 
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-  fetch('locations.csv').then(r => r.text()).then(csv => {
-    Papa.parse(csv, { header: true, skipEmptyLines: true, complete: ({ data }) => {
-      locData = data;
-      fuse = new Fuse(locData, { keys:[{name:'city',weight:.6},{name:'state_id',weight:.2},{name:'zip',weight:.2}], threshold:.35, minMatchCharLength:2, ignoreLocation:true, includeScore:true });
-      const saved = (() => { try { const l = JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
-      if (saved) { curLoc=saved; sBar.value=saved.city&&saved.state_id?`${saved.city}, ${saved.state_id}`:'Your Location'; loadWeather(saved); updateRadar(saved.lat, saved.lng); return; }
-      const def = locData.find(l => l.city?.trim().toLowerCase()==='baconton' && l.state_id?.trim().toUpperCase()==='GA');
-      if (def) { curLoc=def; sBar.value=`${def.city}, ${def.state_id}`; loadWeather(def); updateRadar(def.lat, def.lng); }
-    }});
-  });
+  // Restore last location or default to Baconton, GA
+  const saved = (() => { try { const l = JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
+  if (saved) {
+    curLoc = saved;
+    sBar.value = saved.label || (saved.city && saved.state ? `${saved.city}, ${saved.state}` : 'Your Location');
+    loadWeather(saved); updateRadar(saved.lat, saved.lng);
+  } else {
+    // Default location
+    const def = { label: 'Baconton, GA', city: 'Baconton', state: 'GA', lat: 31.3776, lng: -84.1607 };
+    curLoc = def; sBar.value = def.label; loadWeather(def); updateRadar(def.lat, def.lng);
+  }
 });
 
+// ---- Nominatim autocomplete ----
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
-sBar.addEventListener('input', debounce(e => {
+
+async function fetchSuggestions(q) {
+  if (searchController) searchController.abort();
+  searchController = new AbortController();
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us&featuretype=city`;
+    const res = await fetch(url, {
+      signal: searchController.signal,
+      headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
+    });
+    const data = await res.json();
+    // Parse and deduplicate by "City, ST" label — one result per city
+    const seen = new Set();
+    const results = [];
+    for (const r of data) {
+      const parsed = parseNominatim(r);
+      if (!seen.has(parsed.label)) {
+        seen.add(parsed.label);
+        results.push(parsed);
+      }
+      if (results.length >= 6) break;
+    }
+    return results;
+  } catch (e) {
+    if (e.name === 'AbortError') return null; // cancelled
+    return [];
+  }
+}
+
+sBar.addEventListener('input', debounce(async e => {
   const q = e.target.value.trim();
-  sugs = q.length>=2 && fuse ? fuse.search(q, {limit:8}).map(r=>r.item) : [];
-  selIdx=-1; renderSugs();
-}, 180));
+  if (q.length < 2) { sugBox.style.display='none'; sugs=[]; return; }
+  const results = await fetchSuggestions(q);
+  if (results === null) return; // aborted
+  sugs = results; selIdx = -1; renderSugs();
+}, 280));
+
 sBar.addEventListener('keydown', e => {
   if (!sugs.length) return;
   if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%sugs.length; renderSugs(); }
   else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+sugs.length)%sugs.length; renderSugs(); }
-  else if (e.key==='Enter') { if (selIdx>=0) pick(sugs[selIdx]); }
-  else if (e.key==='Escape') sugBox.style.display='none';
+  else if (e.key==='Enter') { if (selIdx>=0) pick(sugs[selIdx]); else if (sugs.length) pick(sugs[0]); }
+  else if (e.key==='Escape') { sugBox.style.display='none'; selIdx=-1; }
 });
+
 function renderSugs() {
   sugBox.innerHTML = '';
   if (!sugs.length) { sugBox.style.display='none'; return; }
   sugs.forEach((loc, i) => {
     const li = document.createElement('li');
     if (i===selIdx) li.classList.add('active');
-    li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.city}, ${loc.state_id}</span><span class="sug-zip">${loc.zip}</span>`;
+    li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
     li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc); });
     sugBox.appendChild(li);
   });
   sugBox.style.display = 'block';
 }
+
 document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.target!==sBar) { sugBox.style.display='none'; selIdx=-1; } });
+
 function pick(loc) {
-  curLoc=loc; sBar.value=`${loc.city}, ${loc.state_id}`; sugBox.style.display='none'; selIdx=-1;
+  curLoc = loc; sBar.value = loc.label; sugBox.style.display='none'; selIdx=-1;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
   loadWeather(loc); updateRadar(loc.lat, loc.lng);
 }
 
+// ---- Use My Location ----
 locBtn.addEventListener('click', () => {
   if (!navigator.geolocation) return alert('Geolocation not supported.');
   locBtn.disabled=true; locBtn.innerHTML=`<span class="material-symbols-rounded" style="animation:spin .65s linear infinite;display:inline-block">progress_activity</span> Locating…`;
-  navigator.geolocation.getCurrentPosition(pos => {
+  navigator.geolocation.getCurrentPosition(async pos => {
     const { latitude:lat, longitude:lng } = pos.coords;
-    let near=null, minD=Infinity;
-    locData.forEach(l => { if (!l.lat||!l.lng) return; const d=Math.hypot(+l.lat-lat,+l.lng-lng); if (d<minD){minD=d;near=l;} });
-    const loc = (near&&minD<.2) ? near : { city:'Your Location', state_id:'', zip:'', lat, lng };
-    curLoc=loc; sBar.value=loc.city!=='Your Location'?`${loc.city}, ${loc.state_id}`:'Your Location';
+    // Reverse geocode with Nominatim
+    let loc = { label:'Your Location', city:'Your Location', state:'', lat, lng };
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, { headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'} });
+      const data = await res.json();
+      const parsed = parseNominatim(data);
+      if (parsed.city) loc = parsed;
+    } catch {}
+    curLoc = loc; sBar.value = loc.label;
     localStorage.setItem('jweather_last_location', JSON.stringify(loc));
     loadWeather(loc); updateRadar(loc.lat, loc.lng);
     locBtn.disabled=false; locBtn.innerHTML=`<span class="material-symbols-rounded">my_location</span> Locate me`;
@@ -449,7 +504,7 @@ async function loadWeather(loc) {
 }
 
 function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
-  document.getElementById('current-loc').textContent = loc.city ? `${loc.city}${loc.state_id?', '+loc.state_id:''}` : 'Your Location';
+  document.getElementById('current-loc').textContent = loc.label || (loc.city ? `${loc.city}${loc.state?', '+loc.state:''}` : 'Your Location');
   document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
   document.getElementById('current-temp-val').textContent = temp;
   document.getElementById('current-desc').textContent = desc;
