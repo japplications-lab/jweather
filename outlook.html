@@ -11,19 +11,22 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <style>
     :root {
-      --red:#e5182a; --red-dim:rgba(229,24,42,0.08); --red-hover:rgba(229,24,42,0.12);
-      --bg:#f2f3f5; --surface:#ffffff; --border:rgba(0,0,0,0.07); --border-2:rgba(0,0,0,0.11);
+      --red:#e5182a; --red-dim:rgba(229,24,42,0.08);
+      --bg:#f2f3f5; --surface:#ffffff;
+      --border:rgba(0,0,0,0.07); --border-2:rgba(0,0,0,0.11);
       --text:#0f1115; --text-2:#3a3d45; --text-3:#7c818f; --text-4:#b0b4be;
+      --sidebar:240px; --header:58px;
       --r:12px; --r-sm:8px; --font:'Geist',system-ui,sans-serif;
-      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+      --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
     .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
 
     /* ── HEADER ── */
-    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:500;}
-    .header-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;gap:20px;}
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
+    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
     .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
@@ -48,7 +51,7 @@
     .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
     .header-nav a:hover{color:var(--text);background:var(--bg);}
     .nav-dropdown{position:relative;}
-    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--red);background:var(--red-dim);border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
+    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--red);background:var(--red-dim);border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);white-space:nowrap;}
     .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
     .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
     .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
@@ -60,66 +63,67 @@
     .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
     .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
 
-    /* ── PAGE ── */
-    main{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
-    .page-header{margin-bottom:22px;}
-    .page-title{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;}
-    .page-title .material-symbols-rounded{font-size:20px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 24;}
-    .page-subtitle{font-size:0.78rem;color:var(--text-3);margin-top:5px;}
-    .page-subtitle a{color:var(--red);text-decoration:none;}
-    .page-subtitle a:hover{text-decoration:underline;}
+    /* ── APP BODY: sidebar + map ── */
+    .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
 
-    /* ── 3-COLUMN GRID ── */
-    .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
+    /* ── LEFT SIDEBAR ── */
+    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+    .sidebar::-webkit-scrollbar{width:3px;}
+    .sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
 
-    /* ── DAY CARD ── */
-    .day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);}
-    .day-card-head{padding:15px 18px 13px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
-    .day-card-eyebrow{font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-4);}
-    .day-card-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-0.015em;margin-top:2px;}
-    .issue-badge{font-size:0.63rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 7px;margin-top:1px;white-space:nowrap;}
+    /* Sidebar header */
+    .sidebar-head{padding:18px 18px 14px;border-bottom:1px solid var(--border);}
+    .sidebar-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.11em;color:var(--text-4);}
 
-    /* Hazard pills */
-    .hazard-row{display:flex;gap:5px;padding:10px 18px 11px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);}
-    .hbtn{font-family:var(--font);font-size:0.71rem;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border-2);background:var(--bg);color:var(--text-3);cursor:pointer;transition:all .12s;white-space:nowrap;line-height:1.5;}
-    .hbtn:hover{color:var(--text);background:#e5e7eb;}
-    .hbtn.on{background:var(--red);color:#fff;border-color:var(--red);}
+    /* Day sections */
+    .day-section{border-bottom:1px solid var(--border);}
+    .day-section-head{padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;cursor:default;}
+    .day-section-label{display:flex;flex-direction:column;gap:2px;}
+    .day-eyebrow{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
+    .day-name{font-size:0.88rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
+    .day-badge{font-size:0.6rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 6px;white-space:nowrap;}
 
-    /* ── MAP CONTAINER ── */
-    .map-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#e8eaed;}
-    .map-wrap .leaflet-map{position:absolute;inset:0;width:100%;height:100%;}
+    /* Category buttons */
+    .cat-list{padding:4px 10px 10px;}
+    .cat-btn{display:flex;align-items:center;gap:9px;width:100%;padding:7px 10px;border:none;background:none;border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.78rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;position:relative;}
+    .cat-btn:hover{background:var(--bg);color:var(--text-2);}
+    .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
+    .cat-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.1);}
+    .cat-btn.active .cat-dot{border-color:transparent;}
 
-    /* Loading / error states */
-    .map-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:var(--bg);flex-direction:column;gap:10px;pointer-events:none;}
-    .map-overlay.hidden{display:none;}
-    .spin-ring{width:22px;height:22px;border:2.5px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
+    /* Discussion button in sidebar */
+    .disc-sidebar-btn{display:flex;align-items:center;gap:7px;width:calc(100% - 20px);margin:0 10px 12px;padding:7px 10px;border:1px solid var(--border-2);background:var(--bg);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.75rem;font-weight:600;color:var(--text-3);transition:border-color .15s,color .15s;}
+    .disc-sidebar-btn:hover{border-color:var(--red);color:var(--red);}
+    .disc-sidebar-btn .material-symbols-rounded{font-size:14px;}
+
+    /* ── MAP PANEL ── */
+    .map-panel{flex:1;position:relative;background:#e8eaed;min-width:0;}
+    #main-map{position:absolute;inset:0;width:100%;height:100%;}
+
+    /* Map top bar */
+    .map-topbar{position:absolute;top:14px;left:14px;right:14px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
+    .map-context-pill{background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
+    .map-context-pill span{color:var(--red);}
+
+    /* Legend overlay */
+    .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
+    .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
+    .legend-items{display:flex;flex-direction:column;gap:5px;}
+    .legend-item{display:flex;align-items:center;gap:8px;font-size:0.72rem;font-weight:500;color:var(--text-2);}
+    .legend-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
+
+    /* Loading overlay */
+    .map-loading{position:absolute;inset:0;z-index:410;background:rgba(242,243,245,0.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
+    .map-loading.hidden{opacity:0;pointer-events:none;}
+    .spin-ring{width:24px;height:24px;border:2.5px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
-    .map-err-text{font-size:0.78rem;color:var(--text-4);text-align:center;padding:0 16px;}
-
-    /* Enlarge button */
-    .enlarge-btn{position:absolute;bottom:10px;right:10px;z-index:400;display:flex;align-items:center;gap:4px;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text-2);background:rgba(255,255,255,0.92);border:1px solid var(--border-2);border-radius:6px;padding:5px 10px;cursor:pointer;backdrop-filter:blur(4px);transition:border-color .15s,color .15s,opacity .15s;opacity:0;}
-    .map-wrap:hover .enlarge-btn{opacity:1;}
-    .enlarge-btn:hover{border-color:var(--red);color:var(--red);}
-    .enlarge-btn .material-symbols-rounded{font-size:13px;}
-
-    /* Card footer */
-    .day-card-foot{padding:10px 18px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-    .disc-caption{font-size:0.71rem;color:var(--text-3);flex:1;line-height:1.4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .disc-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font);font-size:0.74rem;font-weight:600;color:var(--text-2);background:var(--bg);border:1px solid var(--border-2);border-radius:6px;padding:5px 12px;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;flex-shrink:0;}
-    .disc-btn:hover{border-color:var(--red);color:var(--red);}
-    .disc-btn .material-symbols-rounded{font-size:13px;}
-
-    /* ── LEGEND ── */
-    .legend-row{padding:8px 18px 10px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--bg);}
-    .legend-item{display:flex;align-items:center;gap:5px;font-size:0.67rem;font-weight:500;color:var(--text-3);}
-    .legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
 
     /* ── DISCUSSION MODAL ── */
     #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
     .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.2);}
     .disc-head{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
     .disc-pip{width:9px;height:9px;background:var(--red);border-radius:50%;flex-shrink:0;}
-    .disc-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
+    .disc-modal-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
     .disc-close{background:none;border:none;color:var(--text-4);cursor:pointer;line-height:1;transition:color .15s;}
     .disc-close:hover{color:var(--red);}
     .disc-close .material-symbols-rounded{font-size:18px;}
@@ -130,31 +134,25 @@
     .disc-fallback{font-size:0.82rem;color:var(--text-3);margin-top:10px;}
     .disc-fallback a{color:var(--red);text-decoration:none;}
 
-    /* ── ENLARGE MAP MODAL ── */
-    #map-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
-    .map-modal-inner{position:relative;width:min(1100px,95vw);height:min(750px,90vh);border-radius:var(--r);overflow:hidden;box-shadow:0 30px 100px rgba(0,0,0,.5);}
-    #map-modal-map{width:100%;height:100%;}
-    .map-modal-close{position:absolute;top:14px;right:14px;z-index:900;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.9);border:1px solid var(--border-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:color .15s,border-color .15s;}
-    .map-modal-close:hover{color:var(--red);border-color:var(--red);}
-    .map-modal-close .material-symbols-rounded{font-size:17px;}
-
     /* Leaflet overrides */
     .leaflet-container{font-family:var(--font);}
-    .leaflet-popup-content-wrapper{border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid var(--border-2);font-family:var(--font);}
-    .leaflet-popup-content{margin:10px 14px;font-size:0.78rem;line-height:1.5;}
-    .popup-risk{font-size:0.85rem;font-weight:700;letter-spacing:-0.01em;}
-    .popup-day{font-size:0.7rem;color:var(--text-3);margin-top:2px;}
-    .leaflet-popup-tip{background:var(--surface);}
-    .leaflet-control-attribution{font-family:var(--font);font-size:10px;}
-    .leaflet-bar a{font-family:var(--font);}
+    .leaflet-popup-content-wrapper{border-radius:9px;box-shadow:0 4px 24px rgba(0,0,0,.14);border:1px solid var(--border-2);font-family:var(--font);padding:0;}
+    .leaflet-popup-content{margin:11px 15px;font-size:0.78rem;line-height:1.5;}
+    .popup-risk{font-size:0.88rem;font-weight:700;letter-spacing:-0.01em;}
+    .popup-sub{font-size:0.7rem;color:var(--text-3);margin-top:3px;}
+    .leaflet-popup-tip-container{display:none;}
+    .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:8px !important;overflow:hidden;box-shadow:var(--shadow) !important;}
+    .leaflet-control-zoom a{font-family:var(--font);color:var(--text-2) !important;background:rgba(255,255,255,0.94) !important;backdrop-filter:blur(6px);}
+    .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
+    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(255,255,255,0.8) !important;backdrop-filter:blur(4px);}
 
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
-    @media(max-width:1024px){.cards-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
 
+<!-- ── HEADER ── -->
 <header>
   <div class="header-inner">
     <a class="logo" href="index.html">
@@ -190,126 +188,137 @@
   </div>
 </header>
 
-<main>
-  <div class="page-header">
-    <div class="page-title">
-      <span class="material-symbols-rounded">thunderstorm</span>
-      SPC Convective Outlooks
-    </div>
-    <div class="page-subtitle">
-      Live data from the <a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" rel="noopener">NOAA/NWS Storm Prediction Center</a> · Updated automatically
-    </div>
-  </div>
+<!-- ── APP BODY ── -->
+<div class="app-body">
 
-  <div class="cards-grid">
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title">SPC Outlooks</div>
+    </div>
 
     <!-- Day 1 -->
-    <div class="day-card">
-      <div class="day-card-head">
-        <div>
-          <div class="day-card-eyebrow">Day 1</div>
-          <div class="day-card-title">Today</div>
+    <div class="day-section">
+      <div class="day-section-head">
+        <div class="day-section-label">
+          <div class="day-eyebrow">Day 1</div>
+          <div class="day-name">Today</div>
         </div>
-        <span class="issue-badge" id="issue-1">Loading…</span>
+        <span class="day-badge" id="badge-1">—</span>
       </div>
-      <div class="hazard-row" id="pills-1">
-        <button class="hbtn on" data-day="1" data-mode="cat">Overall</button>
-        <button class="hbtn" data-day="1" data-mode="torn">Tornado</button>
-        <button class="hbtn" data-day="1" data-mode="wind">Wind</button>
-        <button class="hbtn" data-day="1" data-mode="hail">Hail</button>
-      </div>
-      <div id="legend-1" class="legend-row"></div>
-      <div class="map-wrap" id="wrap-1">
-        <div id="map-1" class="leaflet-map"></div>
-        <div class="map-overlay" id="overlay-1"><div class="spin-ring"></div></div>
-        <button class="enlarge-btn" data-day="1"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
-      </div>
-      <div class="day-card-foot">
-        <span class="disc-caption" id="cap-1">Loading outlook data…</span>
-        <button class="disc-btn" data-day="1" data-label="Day 1 — Today">
-          <span class="material-symbols-rounded">description</span>Discussion
+      <div class="cat-list" id="cats-1">
+        <button class="cat-btn active" data-day="1" data-mode="cat">
+          <div class="cat-dot" style="background:#e84040;"></div>Overall
+        </button>
+        <button class="cat-btn" data-day="1" data-mode="torn">
+          <div class="cat-dot" style="background:#e87820;"></div>Tornado
+        </button>
+        <button class="cat-btn" data-day="1" data-mode="wind">
+          <div class="cat-dot" style="background:#f6f67f;border-color:#baba00;"></div>Wind
+        </button>
+        <button class="cat-btn" data-day="1" data-mode="hail">
+          <div class="cat-dot" style="background:#7fc57f;"></div>Hail
         </button>
       </div>
+      <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
+        <span class="material-symbols-rounded">description</span>Discussion
+      </button>
     </div>
 
     <!-- Day 2 -->
-    <div class="day-card">
-      <div class="day-card-head">
-        <div>
-          <div class="day-card-eyebrow">Day 2</div>
-          <div class="day-card-title">Tomorrow</div>
+    <div class="day-section">
+      <div class="day-section-head">
+        <div class="day-section-label">
+          <div class="day-eyebrow">Day 2</div>
+          <div class="day-name">Tomorrow</div>
         </div>
-        <span class="issue-badge" id="issue-2">Loading…</span>
+        <span class="day-badge" id="badge-2">—</span>
       </div>
-      <div class="hazard-row" id="pills-2">
-        <button class="hbtn on" data-day="2" data-mode="cat">Overall</button>
-        <button class="hbtn" data-day="2" data-mode="torn">Tornado</button>
-        <button class="hbtn" data-day="2" data-mode="wind">Wind</button>
-        <button class="hbtn" data-day="2" data-mode="hail">Hail</button>
-      </div>
-      <div id="legend-2" class="legend-row"></div>
-      <div class="map-wrap" id="wrap-2">
-        <div id="map-2" class="leaflet-map"></div>
-        <div class="map-overlay" id="overlay-2"><div class="spin-ring"></div></div>
-        <button class="enlarge-btn" data-day="2"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
-      </div>
-      <div class="day-card-foot">
-        <span class="disc-caption" id="cap-2">Loading outlook data…</span>
-        <button class="disc-btn" data-day="2" data-label="Day 2 — Tomorrow">
-          <span class="material-symbols-rounded">description</span>Discussion
+      <div class="cat-list" id="cats-2">
+        <button class="cat-btn" data-day="2" data-mode="cat">
+          <div class="cat-dot" style="background:#e84040;"></div>Overall
+        </button>
+        <button class="cat-btn" data-day="2" data-mode="torn">
+          <div class="cat-dot" style="background:#e87820;"></div>Tornado
+        </button>
+        <button class="cat-btn" data-day="2" data-mode="wind">
+          <div class="cat-dot" style="background:#f6f67f;border-color:#baba00;"></div>Wind
+        </button>
+        <button class="cat-btn" data-day="2" data-mode="hail">
+          <div class="cat-dot" style="background:#7fc57f;"></div>Hail
         </button>
       </div>
+      <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
+        <span class="material-symbols-rounded">description</span>Discussion
+      </button>
     </div>
 
     <!-- Day 3 -->
-    <div class="day-card">
-      <div class="day-card-head">
-        <div>
-          <div class="day-card-eyebrow">Day 3</div>
-          <div class="day-card-title" id="day3-title">—</div>
+    <div class="day-section">
+      <div class="day-section-head">
+        <div class="day-section-label">
+          <div class="day-eyebrow">Day 3</div>
+          <div class="day-name" id="day3-name">—</div>
         </div>
-        <span class="issue-badge" id="issue-3">Loading…</span>
+        <span class="day-badge" id="badge-3">—</span>
       </div>
-      <div class="hazard-row" id="pills-3">
-        <button class="hbtn on" data-day="3" data-mode="cat">Overall</button>
-        <button class="hbtn" data-day="3" data-mode="prob">Probabilistic</button>
-      </div>
-      <div id="legend-3" class="legend-row"></div>
-      <div class="map-wrap" id="wrap-3">
-        <div id="map-3" class="leaflet-map"></div>
-        <div class="map-overlay" id="overlay-3"><div class="spin-ring"></div></div>
-        <button class="enlarge-btn" data-day="3"><span class="material-symbols-rounded">fullscreen</span>Enlarge</button>
-      </div>
-      <div class="day-card-foot">
-        <span class="disc-caption" id="cap-3">Loading outlook data…</span>
-        <button class="disc-btn" data-day="3" id="disc-btn-3" data-label="">
-          <span class="material-symbols-rounded">description</span>Discussion
+      <div class="cat-list" id="cats-3">
+        <button class="cat-btn" data-day="3" data-mode="cat">
+          <div class="cat-dot" style="background:#e84040;"></div>Overall
+        </button>
+        <button class="cat-btn" data-day="3" data-mode="prob">
+          <div class="cat-dot" style="background:#e87820;"></div>Probabilistic
         </button>
       </div>
+      <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
+        <span class="material-symbols-rounded">description</span>Discussion
+      </button>
     </div>
 
+    <!-- Attribution -->
+    <div style="margin-top:auto;padding:16px 16px 20px;border-top:1px solid var(--border);">
+      <p style="font-size:0.65rem;color:var(--text-4);line-height:1.6;">
+        Data: <a href="https://www.spc.noaa.gov" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">NOAA/SPC</a><br>
+        Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">OpenStreetMap</a> contributors, © <a href="https://carto.com/attributions" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">CARTO</a>
+      </p>
+    </div>
+  </aside>
+
+  <!-- MAP PANEL -->
+  <div class="map-panel">
+    <div id="main-map"></div>
+
+    <!-- Context pill top-left -->
+    <div class="map-topbar">
+      <div class="map-context-pill" id="context-pill">
+        <span id="pill-day">Day 1</span> · <span id="pill-mode">Overall</span>
+      </div>
+      <div class="map-context-pill" id="valid-pill" style="display:none;"></div>
+    </div>
+
+    <!-- Legend bottom-left -->
+    <div class="map-legend" id="map-legend" style="display:none;">
+      <div class="legend-title">Risk Level</div>
+      <div class="legend-items" id="legend-items"></div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="map-loading" id="map-loading"><div class="spin-ring"></div></div>
   </div>
-</main>
+
+</div>
 
 <!-- Discussion Modal -->
 <div id="disc-modal">
   <div class="disc-box">
     <div class="disc-head">
       <div class="disc-pip"></div>
-      <div id="disc-modal-title" class="disc-title">SPC Discussion</div>
+      <div id="disc-modal-title" class="disc-modal-title">SPC Discussion</div>
       <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
     </div>
     <div class="disc-modal-body" id="disc-modal-body">
       <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
     </div>
-  </div>
-</div>
-
-<!-- Enlarge Map Modal -->
-<div id="map-modal">
-  <div class="map-modal-inner">
-    <button class="map-modal-close" id="map-modal-close"><span class="material-symbols-rounded">close</span></button>
-    <div id="map-modal-map"></div>
   </div>
 </div>
 
@@ -321,36 +330,29 @@
 const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
 const SPC_BASE   = 'https://www.spc.noaa.gov';
 const NOAA_BASE  = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer';
+const CONUS      = [[21.5,-128],[50.5,-60]];
 
-// NOAA ArcGIS MapServer layer IDs
-// Layer 1  = Day 1 Categorical
-// Layer 3  = Day 1 Probabilistic Tornado
-// Layer 5  = Day 1 Probabilistic Wind
-// Layer 7  = Day 1 Probabilistic Hail
-// Layer 9  = Day 2 Categorical
-// Layer 11 = Day 2 Probabilistic Tornado
-// Layer 13 = Day 2 Probabilistic Wind
-// Layer 15 = Day 2 Probabilistic Hail
-// Layer 17 = Day 3 Categorical
-// Layer 19 = Day 3 Probabilistic Severe
+// NOAA ArcGIS layer IDs
 const LAYER_IDS = {
-  '1-cat':1, '1-torn':3, '1-wind':5, '1-hail':7,
-  '2-cat':9, '2-torn':11,'2-wind':13,'2-hail':15,
+  '1-cat':1,'1-torn':3,'1-wind':5,'1-hail':7,
+  '2-cat':9,'2-torn':11,'2-wind':13,'2-hail':15,
   '3-cat':17,'3-prob':19
 };
 
-// Categorical risk colors (SPC standard)
-const CAT_COLORS = {
-  'TSTM': { fill:'#c1e9c1', stroke:'#5fa05f', label:'Thunder' },
-  'MRGL': { fill:'#7fc57f', stroke:'#3d8c3d', label:'Marginal' },
-  'SLGT': { fill:'#f6f67f', stroke:'#baba00', label:'Slight' },
-  'ENH':  { fill:'#e8a832', stroke:'#b07820', label:'Enhanced' },
-  'MDT':  { fill:'#e84040', stroke:'#a00000', label:'Moderate' },
-  'HIGH': { fill:'#ff00ff', stroke:'#cc00cc', label:'High' },
+// SPC categorical colors
+const CAT = {
+  'TSTM':{ fill:'#c1e9c1', stroke:'#5fa05f', label:'General Thunder' },
+  'MRGL':{ fill:'#7fc57f', stroke:'#3d8c3d', label:'Marginal (1)' },
+  'SLGT':{ fill:'#f6f67f', stroke:'#baba00', label:'Slight (2)' },
+  'ENH': { fill:'#e8a832', stroke:'#b07820', label:'Enhanced (3)' },
+  'MDT': { fill:'#e84040', stroke:'#a00000', label:'Moderate (4)' },
+  'HIGH':{ fill:'#ff00ff', stroke:'#cc00cc', label:'High (5)' },
 };
+const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+const CAT_ORDER = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
 
-// Probabilistic colors (% thresholds)
-const PROB_COLORS = [
+// Probabilistic thresholds
+const PROB = [
   { dn:2,  fill:'#7fc57f', stroke:'#3d8c3d', label:'2%' },
   { dn:5,  fill:'#c8e86a', stroke:'#8ab020', label:'5%' },
   { dn:10, fill:'#f6f67f', stroke:'#baba00', label:'10%' },
@@ -360,30 +362,31 @@ const PROB_COLORS = [
   { dn:60, fill:'#ff00ff', stroke:'#cc00cc', label:'60%' },
 ];
 
-const CONUS_BOUNDS = [[21, -130], [50, -60]];
+const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
+const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
 
 // ─────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────
-const maps      = {};   // day -> L.Map
-const layers    = {};   // 'day-mode' -> L.GeoJSON layer
-const state     = {     // per-day
-  1: { mode:'cat', disc:null, valid:null },
-  2: { mode:'cat', disc:null, valid:null },
-  3: { mode:'cat', disc:null, valid:null },
-};
+let theMap = null;
+let activeLayer = null;
+const discCache = {};
+let activeDay  = 1;
+let activeMode = 'cat';
 
 // ─────────────────────────────────────────────
-//  TILE LAYER (CARTO Positron — clean, light)
+//  TILE LAYER
+//  Using Stadia Alidade Smooth for crisp state
+//  lines AND legible city labels
 // ─────────────────────────────────────────────
-function makeTileLayer() {
+function makeTiles() {
+  // Stadia Maps Alidade Smooth — excellent state borders + city labels, free, no key needed
   return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
     {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 19,
-      r: L.Browser.retina ? '@2x' : ''
+      attribution:'&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 20,
+      r: window.devicePixelRatio > 1 ? '@2x' : ''
     }
   );
 }
@@ -391,224 +394,168 @@ function makeTileLayer() {
 // ─────────────────────────────────────────────
 //  INIT MAP
 // ─────────────────────────────────────────────
-function initMap(day) {
-  const map = L.map(`map-${day}`, {
-    center: [38, -95],
-    zoom: 3,
-    zoomControl: true,
-    scrollWheelZoom: false,
-    attributionControl: true,
+function initMap() {
+  theMap = L.map('main-map', {
+    center:[38,-96], zoom:4,
+    zoomControl:true,
+    scrollWheelZoom:true,
+    attributionControl:false,  // we handle it in sidebar
   });
-  makeTileLayer().addTo(map);
-  map.fitBounds(CONUS_BOUNDS);
-  maps[day] = map;
-  return map;
+  makeTiles().addTo(theMap);
+  theMap.fitBounds(CONUS);
+
+  // Custom attribution bottom-right (minimal)
+  L.control.attribution({ prefix:false, position:'bottomright' }).addTo(theMap);
 }
 
 // ─────────────────────────────────────────────
-//  FETCH GEOJSON FROM NOAA ARCGIS
+//  STYLE
 // ─────────────────────────────────────────────
-async function fetchLayer(layerId) {
-  const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for layer ${layerId}`);
-  return res.json();
-}
-
-// ─────────────────────────────────────────────
-//  STYLE HELPERS
-// ─────────────────────────────────────────────
-function styleForFeature(feature, mode) {
-  const props = feature.properties || {};
-
+function styleFeature(f, mode) {
+  const p = f.properties || {};
   if (mode === 'cat') {
-    const label = (props.LABEL || props.label || props.DN || '').toString().toUpperCase().trim();
-    // Map numeric DN to category label if needed
-    const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-    const key = CAT_COLORS[label] ? label : (dnMap[label] || label);
-    const c = CAT_COLORS[key] || { fill:'#cccccc', stroke:'#999999' };
-    return { fillColor: c.fill, color: c.stroke, weight: 1.5, fillOpacity: 0.55, opacity: 1 };
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+    const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
+    return { fillColor:c.fill, color:c.stroke, weight:1.8, fillOpacity:0.55, opacity:1 };
   } else {
-    // Probabilistic — use DN field
-    const dn = parseInt(props.DN || props.dn || 0);
-    let c = PROB_COLORS[0];
-    for (const p of PROB_COLORS) { if (dn >= p.dn) c = p; }
-    return { fillColor: c.fill, color: c.stroke, weight: 1.5, fillOpacity: 0.55, opacity: 1 };
+    const dn = parseInt(p.DN || p.dn || 0);
+    let c = PROB[0];
+    for (const x of PROB) { if (dn >= x.dn) c = x; }
+    return { fillColor:c.fill, color:c.stroke, weight:1.8, fillOpacity:0.55, opacity:1 };
   }
 }
 
-function getLegendItems(geojson, mode) {
-  const seen = new Set();
+function popupContent(f, mode, day) {
+  const p = f.properties || {};
+  let risk = '';
+  if (mode === 'cat') {
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+    risk = CAT[key]?.label || raw || '—';
+  } else {
+    const dn = parseInt(p.DN || p.dn || 0);
+    risk = `${dn}% probability`;
+  }
+  return `<div class="popup-risk">${risk}</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div>`;
+}
+
+// ─────────────────────────────────────────────
+//  LEGEND
+// ─────────────────────────────────────────────
+function buildLegend(geojson, mode) {
+  const el = document.getElementById('legend-items');
+  const box = document.getElementById('map-legend');
   const items = [];
-  if (!geojson || !geojson.features) return items;
 
   if (mode === 'cat') {
-    const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-    const order = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
+    const seen = new Set();
     geojson.features.forEach(f => {
-      const raw = (f.properties.LABEL || f.properties.label || f.properties.DN || '').toString().toUpperCase().trim();
-      const key = CAT_COLORS[raw] ? raw : (dnMap[raw] || raw);
-      if (CAT_COLORS[key]) seen.add(key);
+      const raw = (f.properties.LABEL||f.properties.label||f.properties.DN||'').toString().toUpperCase().trim();
+      const key = CAT[raw] ? raw : (DN_TO_CAT[raw]||'');
+      if (CAT[key]) seen.add(key);
     });
-    order.forEach(k => { if (seen.has(k)) items.push({ color: CAT_COLORS[k].fill, stroke: CAT_COLORS[k].stroke, label: CAT_COLORS[k].label }); });
+    CAT_ORDER.forEach(k => { if (seen.has(k)) items.push({ fill:CAT[k].fill, stroke:CAT[k].stroke, label:CAT[k].label }); });
   } else {
     const dns = new Set();
-    geojson.features.forEach(f => { const dn = parseInt(f.properties.DN || f.properties.dn || 0); if (dn > 0) dns.add(dn); });
-    PROB_COLORS.forEach(p => { if (dns.has(p.dn)) items.push({ color: p.fill, stroke: p.stroke, label: p.label }); });
+    geojson.features.forEach(f => { const d=parseInt(f.properties.DN||f.properties.dn||0); if(d>0) dns.add(d); });
+    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:p.label }); });
   }
-  return items;
-}
 
-function renderLegend(day, items) {
-  const el = document.getElementById(`legend-${day}`);
-  if (!items.length) { el.style.display = 'none'; return; }
-  el.style.display = 'flex';
+  if (!items.length) { box.style.display='none'; return; }
+  box.style.display='block';
   el.innerHTML = items.map(i =>
-    `<div class="legend-item"><div class="legend-swatch" style="background:${i.color};border-color:${i.stroke}"></div>${i.label}</div>`
+    `<div class="legend-item"><div class="legend-swatch" style="background:${i.fill};border-color:${i.stroke}"></div>${i.label}</div>`
   ).join('');
 }
 
 // ─────────────────────────────────────────────
-//  LOAD + RENDER A HAZARD LAYER ON A MAP
+//  LOAD HAZARD LAYER
 // ─────────────────────────────────────────────
 async function loadHazard(day, mode) {
-  const key = `${day}-${mode}`;
-  const map = maps[day];
-  const overlay = document.getElementById(`overlay-${day}`);
-  const cap = document.getElementById(`cap-${day}`);
+  activeDay  = day;
+  activeMode = mode;
 
-  // Remove current layer
-  Object.keys(layers).forEach(k => {
-    if (k.startsWith(`${day}-`) && layers[k]) {
-      try { map.removeLayer(layers[k]); } catch(e){}
-    }
-  });
+  // Update context pill
+  document.getElementById('pill-day').textContent  = DAY_LABELS[day];
+  document.getElementById('pill-mode').textContent = MODE_LABELS[mode];
 
-  overlay.classList.remove('hidden');
-  overlay.innerHTML = '<div class="spin-ring"></div>';
+  // Show spinner
+  const loading = document.getElementById('map-loading');
+  loading.classList.remove('hidden');
 
-  const layerId = LAYER_IDS[key];
-  if (!layerId) {
-    overlay.innerHTML = '<span class="map-err-text">Layer not available</span>';
-    return;
-  }
+  // Remove old layer
+  if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
+
+  const layerId = LAYER_IDS[`${day}-${mode}`];
+  if (!layerId) { loading.classList.add('hidden'); return; }
 
   try {
-    const geojson = await fetchLayer(layerId);
+    const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const gj = await res.json();
 
-    const layer = L.geoJSON(geojson, {
-      style: f => styleForFeature(f, mode),
-      onEachFeature: (feature, lyr) => {
-        const props = feature.properties || {};
-        const raw = (props.LABEL || props.label || props.DN || '').toString().toUpperCase().trim();
-        const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-        const key2 = CAT_COLORS[raw] ? raw : (dnMap[raw] || raw);
-        let riskName = '';
-        if (mode === 'cat') {
-          riskName = CAT_COLORS[key2]?.label || raw || '—';
-        } else {
-          const dn = parseInt(props.DN || props.dn || 0);
-          riskName = `${dn}% probability`;
-        }
-        lyr.bindPopup(`<div class="popup-risk">${riskName}</div><div class="popup-day">Day ${day} · ${modeLabel(mode)}</div>`, { maxWidth: 220 });
-        lyr.on('mouseover', function(e) { this.setStyle({ fillOpacity: 0.75, weight: 2.5 }); });
-        lyr.on('mouseout', function(e) { layer.resetStyle(this); });
-        lyr.on('click', function(e) { this.openPopup(); });
+    activeLayer = L.geoJSON(gj, {
+      style: f => styleFeature(f, mode),
+      onEachFeature: (f, lyr) => {
+        lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true });
+        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.78, weight:2.5 }); });
+        lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
+        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
-    });
+    }).addTo(theMap);
 
-    layers[key] = layer;
-    layer.addTo(map);
+    buildLegend(gj, mode);
 
-    // Update legend
-    renderLegend(day, getLegendItems(geojson, mode));
-
-    // Caption
-    const validStr = geojson.features?.[0]?.properties?.valid || geojson.features?.[0]?.properties?.VALID || '';
-    if (validStr) state[day].valid = validStr;
-    cap.textContent = `Day ${day} · ${modeLabel(mode)}${state[day].valid ? ' · Valid ' + formatValid(state[day].valid) : ''}`;
-
-    overlay.classList.add('hidden');
-
-    // Update issue badge
-    const badge = document.getElementById(`issue-${day}`);
-    const expire = geojson.features?.[0]?.properties?.expire || geojson.features?.[0]?.properties?.EXPIRE || '';
-    if (expire) badge.textContent = `Until ${formatValid(expire)}`;
-    else badge.textContent = 'Live';
+    // Valid time badge
+    const vp = document.getElementById('valid-pill');
+    const expire = gj.features?.[0]?.properties?.expire || gj.features?.[0]?.properties?.EXPIRE;
+    if (expire) {
+      vp.textContent = `Until ${fmtValid(expire)}`;
+      vp.style.display = 'block';
+      document.getElementById(`badge-${day}`).textContent = fmtBadge(expire);
+    } else {
+      vp.style.display = 'none';
+    }
 
   } catch(e) {
     console.error(e);
-    overlay.innerHTML = `<span class="map-err-text">Failed to load data</span>`;
-    cap.textContent = '';
-    renderLegend(day, []);
+    document.getElementById('legend-items').innerHTML = '';
+    document.getElementById('map-legend').style.display = 'none';
   }
+
+  loading.classList.add('hidden');
 }
 
-function modeLabel(mode) {
-  return {cat:'Categorical',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic'}[mode] || mode;
-}
-function formatValid(s) {
-  // YYYYMMDDHHMM → human readable
+// ─────────────────────────────────────────────
+//  FORMAT HELPERS
+// ─────────────────────────────────────────────
+function fmtValid(s) {
   if (!s || s.length < 8) return s;
   try {
-    const y=s.slice(0,4), mo=s.slice(4,6), d=s.slice(6,8);
-    const h=s.slice(8,10)||'00', mn=s.slice(10,12)||'00';
-    const dt = new Date(`${y}-${mo}-${d}T${h}:${mn}:00Z`);
+    const dt = new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(8,10)||'00'}:${s.slice(10,12)||'00'}:00Z`);
     return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
   } catch{ return s; }
 }
-
-// ─────────────────────────────────────────────
-//  FETCH DISCUSSION (via Worker for CORS)
-// ─────────────────────────────────────────────
-async function fetchDiscussion(day) {
-  if (state[day].disc) return state[day].disc;
+function fmtBadge(s) {
+  if (!s || s.length < 8) return 'Live';
   try {
-    const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
-    const pre = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-    if (!pre) return null;
-    const disc = pre[1]
-      .replace(/<script[\s\S]*?<\/script>/gi,'')
-      .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
-      .replace(/<[^>]+>/g,'')
-      .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
-      .trim();
-    state[day].disc = disc;
-    return disc;
-  } catch(e) { return null; }
+    const dt = new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(8,10)||'00'}:${s.slice(10,12)||'00'}:00Z`);
+    return dt.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  } catch{ return 'Live'; }
 }
 
 // ─────────────────────────────────────────────
-//  BOOT — init all 3 maps + load default layers
+//  SIDEBAR BUTTON CLICKS
 // ─────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  // Day 3 title
-  const d3 = new Date(); d3.setDate(d3.getDate()+2);
-  const d3str = d3.toLocaleDateString('en-US',{weekday:'long'});
-  document.getElementById('day3-title').textContent = d3str;
-  document.getElementById('disc-btn-3').dataset.label = `Day 3 — ${d3str}`;
-
-  [1,2,3].forEach(day => {
-    initMap(day);
-    loadHazard(day, state[day].mode);
-  });
-
-  // Restore search bar
-  try { const s = JSON.parse(localStorage.getItem('jweather_last_location')); if (s?.label) sBar.value = s.label; } catch{}
-});
-
-// ─────────────────────────────────────────────
-//  HAZARD PILLS
-// ─────────────────────────────────────────────
-document.querySelectorAll('.hbtn').forEach(btn => {
+document.querySelectorAll('.cat-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const day  = +btn.dataset.day;
     const mode = btn.dataset.mode;
-    document.querySelectorAll(`.hbtn[data-day="${day}"]`).forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    state[day].mode = mode;
+    // Remove active from ALL cat-btns
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     loadHazard(day, mode);
   });
 });
@@ -617,83 +564,64 @@ document.querySelectorAll('.hbtn').forEach(btn => {
 //  DISCUSSION MODAL
 // ─────────────────────────────────────────────
 const discModal = document.getElementById('disc-modal');
-document.querySelectorAll('.disc-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const day   = +btn.dataset.day;
-    const label = btn.dataset.label || `Day ${day}`;
-    document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
-    const body = document.getElementById('disc-modal-body');
-    body.innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading…</div>';
-    discModal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    const disc = await fetchDiscussion(day);
-    if (disc) {
-      body.innerHTML = `<pre>${esc(disc)}</pre>`;
-    } else {
-      body.innerHTML = `<div class="disc-err">Discussion not available.</div>
-        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
-    }
-  });
+
+async function openDisc(day, label) {
+  document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
+  const body = document.getElementById('disc-modal-body');
+  body.innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading…</div>';
+  discModal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  if (!discCache[day]) {
+    try {
+      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      const pre  = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+      if (pre) {
+        discCache[day] = pre[1]
+          .replace(/<script[\s\S]*?<\/script>/gi,'')
+          .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
+          .replace(/<[^>]+>/g,'')
+          .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
+          .trim();
+      }
+    } catch(e) { discCache[day] = null; }
+  }
+
+  const disc = discCache[day];
+  if (disc) {
+    body.innerHTML = `<pre>${esc(disc)}</pre>`;
+  } else {
+    body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+  }
+}
+
+document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
+  btn.addEventListener('click', () => openDisc(+btn.dataset.day, btn.dataset.label));
 });
-document.getElementById('disc-close').addEventListener('click', () => { discModal.style.display='none'; document.body.style.overflow=''; });
-discModal.addEventListener('click', e => { if(e.target===discModal){ discModal.style.display='none'; document.body.style.overflow=''; } });
-
-// ─────────────────────────────────────────────
-//  ENLARGE MAP MODAL
-// ─────────────────────────────────────────────
-let modalMap = null;
-const mapModal = document.getElementById('map-modal');
-
-document.querySelectorAll('.enlarge-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const day  = +btn.dataset.day;
-    const mode = state[day].mode;
-    mapModal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-
-    // Init modal map if first time
-    if (!modalMap) {
-      modalMap = L.map('map-modal-map', {
-        center:[38,-95], zoom:4, scrollWheelZoom:true, attributionControl:true
-      });
-      makeTileLayer().addTo(modalMap);
-    }
-    modalMap.fitBounds(CONUS_BOUNDS);
-
-    // Remove any existing modal layers
-    modalMap.eachLayer(l => { if (l._url === undefined) modalMap.removeLayer(l); });
-
-    // Clone the current day's layer onto the modal map
-    const key = `${day}-${mode}`;
-    if (layers[key]) {
-      const layerId = LAYER_IDS[key];
-      fetchLayer(layerId).then(geojson => {
-        L.geoJSON(geojson, {
-          style: f => styleForFeature(f, mode),
-          onEachFeature: (feature, lyr) => {
-            const props = feature.properties || {};
-            const raw = (props.LABEL || props.label || props.DN || '').toString().toUpperCase().trim();
-            const dnMap = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-            const k = CAT_COLORS[raw] ? raw : (dnMap[raw] || raw);
-            const riskName = mode === 'cat' ? (CAT_COLORS[k]?.label || raw) : `${props.DN||props.dn||0}% probability`;
-            lyr.bindPopup(`<div class="popup-risk">${riskName}</div><div class="popup-day">Day ${day} · ${modeLabel(mode)}</div>`);
-          }
-        }).addTo(modalMap);
-      }).catch(()=>{});
-    }
-
-    setTimeout(() => { modalMap.invalidateSize(); }, 100);
-  });
-});
-
-document.getElementById('map-modal-close').addEventListener('click', closeMapModal);
-mapModal.addEventListener('click', e => { if(e.target===mapModal) closeMapModal(); });
-function closeMapModal() { mapModal.style.display='none'; document.body.style.overflow=''; }
-
-// ─────────────────────────────────────────────
-//  UTILS
-// ─────────────────────────────────────────────
+document.getElementById('disc-close').addEventListener('click', closeDisc);
+discModal.addEventListener('click', e => { if(e.target===discModal) closeDisc(); });
+function closeDisc(){ discModal.style.display='none'; document.body.style.overflow=''; }
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Day 3 name
+  const d3 = new Date(); d3.setDate(d3.getDate()+2);
+  const d3str = d3.toLocaleDateString('en-US',{weekday:'long'});
+  document.getElementById('day3-name').textContent = d3str;
+  document.getElementById('disc-btn-3').dataset.label = `Day 3 — ${d3str}`;
+
+  initMap();
+  loadHazard(1, 'cat');
+
+  // Restore search
+  try { const s=JSON.parse(localStorage.getItem('jweather_last_location')); if(s?.label) document.getElementById('search-bar').value=s.label; } catch{}
+});
 
 // ─────────────────────────────────────────────
 //  SEARCH
@@ -705,40 +633,18 @@ let sugs=[],selIdx=-1,sCtrl=null;
 const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions'),locBtn=document.getElementById('use-location-btn');
 function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 sBar.addEventListener('input',db(async e=>{
-  const q=e.target.value.trim();
-  if(q.length<2){sugBox.style.display='none';sugs=[];return;}
+  const q=e.target.value.trim();if(q.length<2){sugBox.style.display='none';sugs=[];return;}
   if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
-  try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
-    const d=await r.json();const seen=new Set();sugs=[];
-    for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
-    selIdx=-1;rSugs();
-  }catch(e){if(e.name!=='AbortError')console.error(e);}
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
+  const d=await r.json();const seen=new Set();sugs=[];
+  for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
+  selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
 },280));
-sBar.addEventListener('keydown',e=>{
-  if(!sugs.length)return;
-  if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}
-  else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}
-  else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}
-  else if(e.key==='Escape')sugBox.style.display='none';
-});
-function rSugs(){
-  sugBox.innerHTML='';
-  if(!sugs.length){sugBox.style.display='none';return;}
-  sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});
-  sugBox.style.display='block';
-}
-document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==sBar){sugBox.style.display='none';selIdx=-1;}});
+sBar.addEventListener('keydown',e=>{if(!sugs.length)return;if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}else if(e.key==='Escape')sugBox.style.display='none';});
+function rSugs(){sugBox.innerHTML='';if(!sugs.length){sugBox.style.display='none';return;}sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});sugBox.style.display='block';}
+document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
 function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
-locBtn.addEventListener('click',()=>{
-  if(!navigator.geolocation)return alert('Geolocation not supported.');
-  locBtn.disabled=true;
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const{latitude:lat,longitude:lng}=pos.coords;let loc={label:'Your Location',city:'Your Location',state:'',lat,lng};
-    try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}
-    localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';
-  },()=>{alert('Unable to get location.');locBtn.disabled=false;});
-});
+locBtn.addEventListener('click',()=>{if(!navigator.geolocation)return alert('Geolocation not supported.');locBtn.disabled=true;navigator.geolocation.getCurrentPosition(async pos=>{const{latitude:lat,longitude:lng}=pos.coords;let loc={label:'Your Location',city:'Your Location',state:'',lat,lng};try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';},()=>{alert('Unable to get location.');locBtn.disabled=false;});});
 </script>
 </body>
 </html>
