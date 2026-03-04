@@ -136,11 +136,22 @@
 
     /* Leaflet overrides */
     .leaflet-container{font-family:var(--font);}
-    .leaflet-popup-content-wrapper{border-radius:9px;box-shadow:0 4px 24px rgba(0,0,0,.14);border:1px solid var(--border-2);font-family:var(--font);padding:0;}
-    .leaflet-popup-content{margin:11px 15px;font-size:0.78rem;line-height:1.5;}
-    .popup-risk{font-size:0.88rem;font-weight:700;letter-spacing:-0.01em;}
-    .popup-sub{font-size:0.7rem;color:var(--text-3);margin-top:3px;}
+    .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.16);border:1px solid var(--border-2);font-family:var(--font);padding:0;min-width:240px;max-width:280px;}
+    .leaflet-popup-content{margin:0;font-size:0.78rem;line-height:1.5;}
+    .popup-inner{padding:13px 15px 14px;}
+    .popup-header{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+    .popup-swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
+    .popup-risk{font-size:0.9rem;font-weight:700;letter-spacing:-0.01em;color:var(--text);}
+    .popup-sub{font-size:0.68rem;color:var(--text-4);font-weight:500;}
+    .popup-divider{height:1px;background:var(--border);margin:0 0 10px;}
+    .popup-desc{font-size:0.74rem;color:var(--text-2);line-height:1.6;}
+    .popup-stat{display:inline-block;font-size:0.68rem;font-weight:600;color:var(--text-3);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 7px;margin-top:8px;}
     .leaflet-popup-tip-container{display:none;}
+    /* City marker labels */
+    .city-label{background:none;border:none;box-shadow:none;}
+    .city-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+    .city-dot{width:5px;height:5px;background:#374151;border-radius:50%;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 1px 3px rgba(0,0,0,.25);}
+    .city-name{font-family:var(--font);font-size:10px;font-weight:600;color:#1f2937;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 5px #fff;}
     .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:8px !important;overflow:hidden;box-shadow:var(--shadow) !important;}
     .leaflet-control-zoom a{font-family:var(--font);color:var(--text-2) !important;background:rgba(255,255,255,0.94) !important;backdrop-filter:blur(6px);}
     .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
@@ -401,6 +412,69 @@ function makeLabelTiles() {
   );
 }
 
+// ─────────────────────────────────────────────
+//  CITY MARKERS
+// ─────────────────────────────────────────────
+const CITIES = [
+  // Northeast
+  {n:'New York',    lat:40.71, lng:-74.01}, {n:'Boston',      lat:42.36, lng:-71.06},
+  {n:'Philadelphia',lat:39.95, lng:-75.16}, {n:'Washington DC',lat:38.91,lng:-77.04},
+  {n:'Baltimore',   lat:39.29, lng:-76.61},
+  // Southeast
+  {n:'Atlanta',     lat:33.75, lng:-84.39}, {n:'Miami',        lat:25.77, lng:-80.19},
+  {n:'Tampa',       lat:27.95, lng:-82.46}, {n:'Orlando',      lat:28.54, lng:-81.38},
+  {n:'Charlotte',   lat:35.23, lng:-80.84}, {n:'Nashville',    lat:36.17, lng:-86.78},
+  {n:'Memphis',     lat:35.15, lng:-90.05}, {n:'New Orleans',  lat:29.95, lng:-90.07},
+  {n:'Jacksonville',lat:30.33, lng:-81.66}, {n:'Richmond',     lat:37.54, lng:-77.43},
+  // Midwest
+  {n:'Chicago',     lat:41.88, lng:-87.63}, {n:'Detroit',      lat:42.33, lng:-83.05},
+  {n:'Cleveland',   lat:41.50, lng:-81.69}, {n:'Columbus',     lat:39.96, lng:-82.99},
+  {n:'Cincinnati',  lat:39.10, lng:-84.51}, {n:'Indianapolis', lat:39.77, lng:-86.16},
+  {n:'Milwaukee',   lat:43.04, lng:-87.91}, {n:'Minneapolis',  lat:44.98, lng:-93.27},
+  {n:'St. Louis',   lat:38.63, lng:-90.20}, {n:'Kansas City',  lat:39.10, lng:-94.58},
+  {n:'Omaha',       lat:41.26, lng:-95.94}, {n:'Des Moines',   lat:41.59, lng:-93.62},
+  // South / Central
+  {n:'Dallas',      lat:32.78, lng:-96.80}, {n:'Houston',      lat:29.76, lng:-95.37},
+  {n:'San Antonio', lat:29.42, lng:-98.49}, {n:'Austin',       lat:30.27, lng:-97.74},
+  {n:'Oklahoma City',lat:35.47,lng:-97.52}, {n:'Tulsa',        lat:36.15, lng:-95.99},
+  {n:'Little Rock', lat:34.75, lng:-92.29}, {n:'Birmingham',   lat:33.52, lng:-86.80},
+  {n:'Louisville',  lat:38.25, lng:-85.76},
+  // West
+  {n:'Denver',      lat:39.74, lng:-104.98},{n:'Phoenix',      lat:33.45, lng:-112.07},
+  {n:'Las Vegas',   lat:36.17, lng:-115.14},{n:'Salt Lake City',lat:40.76,lng:-111.89},
+  {n:'Albuquerque', lat:35.08, lng:-106.65},{n:'El Paso',      lat:31.76, lng:-106.49},
+  {n:'Tucson',      lat:32.22, lng:-110.93},
+  // Pacific
+  {n:'Los Angeles', lat:34.05, lng:-118.24},{n:'San Francisco', lat:37.77, lng:-122.42},
+  {n:'San Diego',   lat:32.72, lng:-117.16},{n:'Seattle',       lat:47.61, lng:-122.33},
+  {n:'Portland',    lat:45.52, lng:-122.68},{n:'Sacramento',    lat:38.58, lng:-121.49},
+  // Northern
+  {n:'Billings',    lat:45.78, lng:-108.50},{n:'Fargo',         lat:46.88, lng:-96.79},
+  {n:'Sioux Falls', lat:43.55, lng:-96.73}, {n:'Rapid City',   lat:44.08, lng:-103.23},
+  {n:'Boise',       lat:43.62, lng:-116.20},{n:'Reno',          lat:39.53, lng:-119.81},
+  {n:'Spokane',     lat:47.66, lng:-117.43},
+];
+
+let citiesLayer = null;
+function addCitiesLayer(map) {
+  const pane = 'cityPane';
+  if (!map.getPane(pane)) {
+    map.createPane(pane);
+    map.getPane(pane).style.zIndex = 510;
+    map.getPane(pane).style.pointerEvents = 'none';
+  }
+  const markers = CITIES.map(c => {
+    const icon = L.divIcon({
+      className: 'city-label',
+      html: `<div class="city-dot-wrap"><div class="city-dot"></div><span class="city-name">${c.n}</span></div>`,
+      iconAnchor: [0, 4],
+      iconSize: null,
+    });
+    return L.marker([c.lat, c.lng], { icon, pane, interactive:false, keyboard:false });
+  });
+  citiesLayer = L.layerGroup(markers, { pane }).addTo(map);
+}
+
 let statesLayer = null;
 async function addStatesOverlay(map) {
   const url = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
@@ -428,12 +502,14 @@ function initMap() {
   // Pane ordering: base < outlook polygons (default 400) < states (450) < labels (500)
   theMap.createPane('states'); theMap.getPane('states').style.zIndex = 450;
   theMap.createPane('labels'); theMap.getPane('labels').style.zIndex = 500;
+  // cityPane created inside addCitiesLayer (zIndex 510)
   // Labels pane must not capture pointer events so map stays interactive
   theMap.getPane('labels').style.pointerEvents = 'none';
 
   makeBaseTiles().addTo(theMap);
   theMap.fitBounds(CONUS);
   addStatesOverlay(theMap);
+  addCitiesLayer(theMap);
   makeLabelTiles().addTo(theMap);
 }
 
@@ -455,18 +531,66 @@ function styleFeature(f, mode) {
   }
 }
 
+// Plain-English descriptions for categorical risks
+const CAT_DESC = {
+  TSTM: { short:'General Thunder', stat:'Storm coverage: widespread', desc:'Organized severe weather is unlikely, but strong thunderstorms producing gusty winds or small hail are possible across this area.' },
+  MRGL: { short:'Marginal Risk', stat:'Roughly 1-in-20 chance of severe weather', desc:'Isolated severe storms are possible but are expected to be brief or short-lived. Impacts are likely to be limited in coverage.' },
+  SLGT: { short:'Slight Risk', stat:'Roughly 1-in-10 chance of severe weather', desc:'Scattered severe storms are possible. Not everyone in this area will see severe weather, but some locations could be significantly impacted.' },
+  ENH:  { short:'Enhanced Risk', stat:'Roughly 1-in-5 chance of severe weather', desc:'Numerous severe storms are possible. Widespread damaging impacts are expected across portions of this area — preparation is advised.' },
+  MDT:  { short:'Moderate Risk', stat:'Significant severe weather likely', desc:'Widespread severe storms with the potential for long-track tornadoes, very large hail, or destructive straight-line winds. Life-threatening weather is likely for some locations.' },
+  HIGH: { short:'High Risk', stat:'Particularly dangerous situation (PDS)', desc:'An outbreak of severe weather is expected. Violent, long-track tornadoes or widespread damaging winds are likely. Take shelter plans seriously — this is the highest alert SPC issues.' },
+};
+
+// Plain-English descriptions for probabilistic hazards
+function probDesc(dn, hazard) {
+  const h = hazard === 'torn' ? 'tornado' : hazard === 'wind' ? 'damaging wind' : 'large hail';
+  const hPlural = hazard === 'torn' ? 'tornadoes' : hazard === 'wind' ? 'damaging wind events' : 'large hail events';
+  if (dn <= 2)  return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`That's similar odds to a coin flip over dozens of flips — low but real enough that ${hPlural} are expected somewhere in this zone.` };
+  if (dn <= 5)  return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Low overall odds, but the threat is real. Scattered ${hPlural} are possible — stay weather-aware.` };
+  if (dn <= 10) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Moderate threat. ${hazard==='torn'?'Tornadoes':'Significant events'} are expected in this area — not necessarily near you, but you should have a plan ready.` };
+  if (dn <= 15) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Elevated threat. Multiple ${hPlural} are likely somewhere in this zone. Know your shelter options before storms arrive.` };
+  if (dn <= 30) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`High threat. Numerous ${hPlural} are expected. A significant portion of this area will be directly impacted.` };
+  if (dn <= 45) return { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Very high threat. Widespread ${hPlural} are expected — this is a serious weather situation. Take immediate preparedness steps.` };
+  return        { frame:`Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`, context:`Extremely high threat — a particularly dangerous situation (PDS). A major ${h} outbreak is expected. Treat this as a life-safety emergency.` };
+}
+
 function popupContent(f, mode, day) {
   const p = f.properties || {};
-  let risk = '';
+
   if (mode === 'cat') {
     const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
     const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
-    risk = CAT[key]?.label || raw || '—';
+    const c = CAT[key];
+    const d = CAT_DESC[key];
+    const swatchColor = c?.fill || '#ccc';
+    const swatchBorder = c?.stroke || '#999';
+    const label = d?.short || key || '—';
+    const stat  = d?.stat  || '';
+    const desc  = d?.desc  || 'Severe weather is possible in this area.';
+    return `<div class="popup-inner">
+      <div class="popup-header">
+        <div class="popup-swatch" style="background:${swatchColor};border-color:${swatchBorder}"></div>
+        <div><div class="popup-risk">${label}</div><div class="popup-sub">${DAY_LABELS[day]} · Categorical</div></div>
+      </div>
+      <div class="popup-divider"></div>
+      <div class="popup-desc">${desc}</div>
+      ${stat ? `<div class="popup-stat">${stat}</div>` : ''}
+    </div>`;
   } else {
     const dn = parseInt(p.DN || p.dn || 0);
-    risk = `${dn}% probability`;
+    const hazard = mode; // torn / wind / hail / prob
+    const { frame, context } = probDesc(dn, hazard);
+    let probC = PROB[0]; for (const x of PROB) { if (dn >= x.dn) probC = x; }
+    return `<div class="popup-inner">
+      <div class="popup-header">
+        <div class="popup-swatch" style="background:${probC.fill};border-color:${probC.stroke}"></div>
+        <div><div class="popup-risk">${dn}% Probability</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div></div>
+      </div>
+      <div class="popup-divider"></div>
+      <div class="popup-desc">${frame}</div>
+      <div class="popup-desc" style="margin-top:7px;color:var(--text-3)">${context}</div>
+    </div>`;
   }
-  return `<div class="popup-risk">${risk}</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div>`;
 }
 
 // ─────────────────────────────────────────────
