@@ -610,10 +610,13 @@ const CITIES = [
   {n:'Spokane',     lat:47.66, lng:-117.43},
 ];
 
+// City markers are only shown at zoom <= CITY_MAX_ZOOM.
+// Above that, the CARTO label tiles already show city names so our layer would duplicate them.
+const CITY_MAX_ZOOM = 5;
+
 let citiesLayer = null;
 function addCitiesLayer(map) {
   const pane = 'cityPane';
-  // pane is created in initMap; guard in case called before initMap somehow
   const markers = CITIES.map(c => {
     const icon = L.divIcon({
       className: 'city-label',
@@ -623,7 +626,16 @@ function addCitiesLayer(map) {
     });
     return L.marker([c.lat, c.lng], { icon, pane, interactive:false, keyboard:false });
   });
-  citiesLayer = L.layerGroup(markers, { pane }).addTo(map);
+  citiesLayer = L.layerGroup(markers).addTo(map);
+
+  // Show/hide on every zoom change
+  function syncCityLayer() {
+    const z = map.getZoom();
+    const paneEl = map.getPane(pane);
+    if (paneEl) paneEl.style.display = z <= CITY_MAX_ZOOM ? '' : 'none';
+  }
+  map.on('zoomend', syncCityLayer);
+  syncCityLayer(); // apply immediately on load
 }
 
 let statesLayer = null;
@@ -682,6 +694,21 @@ function initMap() {
   };
 
   makeBaseTiles().addTo(theMap);
+
+  // Inject SVG hatch pattern for significant threat zones
+  // Must be added to the DOM so Leaflet's SVG renderer can reference url(#sig-hatch)
+  const hatchSvg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  hatchSvg.setAttribute('width','0');
+  hatchSvg.setAttribute('height','0');
+  hatchSvg.style.position = 'absolute';
+  hatchSvg.innerHTML = `
+    <defs>
+      <pattern id="sig-hatch" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="8" height="8" fill="#c07060" fill-opacity="0.75"/>
+        <line x1="0" y1="0" x2="0" y2="8" stroke="#222" stroke-width="1.5" stroke-opacity="0.55"/>
+      </pattern>
+    </defs>`;
+  document.getElementById('main-map').appendChild(hatchSvg);
   // Ensure container dimensions are known before fitting, then fit with no padding
   theMap.invalidateSize();
   theMap.fitBounds(CONUS, { padding:[0,0], animate:false });
@@ -913,19 +940,19 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render dashed red outline — one layer covering all sig features
+    // Render sig zone: brownish-pink hatch fill + solid dark border, matching SPC style
     activeSigLayer = L.geoJSON(gj, {
       style: {
-        color: '#e5182a',
-        weight: 3,
-        dashArray: '8 5',
-        fill: false,
-        opacity: 1
+        color: '#333',          // dark outline like SPC
+        weight: 1.5,
+        opacity: 0.9,
+        fillColor: 'url(#sig-hatch)',  // SVG pattern — brown/pink + diagonal lines
+        fillOpacity: 1,
       },
       renderer: theMap._renderers?.sigOutline || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, opacity:1 }); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:2.5, color:'#000' }); });
         lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
@@ -957,7 +984,15 @@ async function loadSigLayer(day, mode) {
     const legendEl = document.getElementById('legend-items');
     const sigEntry = document.createElement('div');
     sigEntry.className = 'legend-item sig-legend-entry';
-    sigEntry.innerHTML = `<div class="legend-swatch" style="background:none;border:2.5px dashed #e5182a;box-sizing:border-box;"></div><span style="font-weight:600;color:#e5182a">${sigLabel}</span>`;
+    sigEntry.innerHTML = `
+      <div class="legend-swatch" style="
+        background: repeating-linear-gradient(
+          45deg,
+          rgba(0,0,0,0.45) 0px, rgba(0,0,0,0.45) 1.5px,
+          rgba(192,112,96,0.85) 1.5px, rgba(192,112,96,0.85) 6px
+        );
+        border:1.5px solid #333;box-sizing:border-box;border-radius:2px;
+      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
     legendEl.appendChild(sigEntry);
     document.getElementById('map-legend').style.display = 'block';
 
