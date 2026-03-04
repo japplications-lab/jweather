@@ -10,128 +10,116 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
   <style>
     :root {
-      --red: #e5182a; --red-dim: rgba(229,24,42,0.08); --red-border: rgba(229,24,42,0.18);
-      --bg: #f2f3f5; --surface: #ffffff; --border: rgba(0,0,0,0.07); --border-2: rgba(0,0,0,0.11);
-      --text: #0f1115; --text-2: #3a3d45; --text-3: #7c818f; --text-4: #b0b4be;
-      --r: 12px; --r-sm: 8px; --font: 'Geist', system-ui, sans-serif;
+      --red:#e5182a; --red-dim:rgba(229,24,42,0.08);
+      --bg:#f2f3f5; --surface:#ffffff; --border:rgba(0,0,0,0.07); --border-2:rgba(0,0,0,0.11);
+      --text:#0f1115; --text-2:#3a3d45; --text-3:#7c818f; --text-4:#b0b4be;
+      --r:12px; --r-sm:8px; --font:'Geist',system-ui,sans-serif;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-    .material-symbols-rounded { font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; vertical-align: middle; line-height: 1; display: inline-block; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+    .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
 
     /* HEADER */
-    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-    .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 58px; display: flex; align-items: center; gap: 20px; }
-    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
-    .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
-    .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-    .logo-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
-    .logo-name span { color: var(--red); }
-    .search-wrap { flex: 1; max-width: 440px; position: relative; }
-    .search-row { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border-2); border-radius: 8px; padding: 0 6px 0 12px; transition: border-color 0.15s, box-shadow 0.15s; }
-    .search-row:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); background: var(--surface); }
-    .search-row .material-symbols-rounded { color: var(--text-4); font-size: 16px; flex-shrink: 0; }
-    #search-bar { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 0.83rem; color: var(--text); padding: 9px 8px; }
-    #search-bar::placeholder { color: var(--text-4); }
-    .loc-btn { display: flex; align-items: center; gap: 5px; background: var(--surface); border: 1px solid var(--border-2); color: var(--text-2); border-radius: 6px; padding: 5px 11px; font-family: var(--font); font-size: 0.77rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap; }
-    .loc-btn:hover { border-color: var(--red); color: var(--red); }
-    .loc-btn .material-symbols-rounded { font-size: 14px; }
-    #suggestions { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); overflow: hidden; z-index: 300; display: none; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-    #suggestions li { list-style: none; padding: 9px 14px; cursor: pointer; font-size: 0.83rem; color: var(--text); display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
-    #suggestions li:last-child { border-bottom: none; }
-    #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
-    #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
-    .sug-city { font-weight: 500; flex: 1; }
-    .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
-    .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
-    .header-nav a:hover { color: var(--text); background: var(--bg); }
-    .nav-dropdown { position: relative; }
-    .nav-dropdown-btn { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; font-weight: 500; color: var(--red); background: var(--red-dim); border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-family: var(--font); transition: color 0.15s, background 0.15s; white-space: nowrap; }
-    .nav-dropdown-btn .material-symbols-rounded { font-size: 14px; transition: transform 0.2s; }
-    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded { transform: rotate(180deg); }
-    .nav-dropdown-menu { position: absolute; top: 100%; right: 0; padding-top: 8px; min-width: 210px; z-index: 200; }
-    .nav-dropdown-menu-inner { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.1); overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s; }
-    .nav-dropdown:hover .nav-dropdown-menu-inner { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .nav-dropdown-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 0.8rem; font-weight: 500; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.1s, color 0.1s; white-space: nowrap; }
-    .nav-dropdown-menu a:last-child { border-bottom: none; }
-    .nav-dropdown-menu a.active, .nav-dropdown-menu a:hover { background: var(--red-dim); color: var(--red); }
-    .nav-dropdown-menu a .material-symbols-rounded { font-size: 15px; color: var(--text-4); }
-    .nav-dropdown-menu a.active .material-symbols-rounded, .nav-dropdown-menu a:hover .material-symbols-rounded { color: var(--red); }
+    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .header-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;gap:20px;}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+    .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+    .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+    .logo-name span{color:var(--red);}
+    .search-wrap{flex:1;max-width:440px;position:relative;}
+    .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
+    .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
+    .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
+    #search-bar{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-bar::placeholder{color:var(--text-4);}
+    .loc-btn{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);border-radius:6px;padding:5px 11px;font-family:var(--font);font-size:0.77rem;font-weight:500;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;}
+    .loc-btn:hover{border-color:var(--red);color:var(--red);}
+    .loc-btn .material-symbols-rounded{font-size:14px;}
+    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:300;display:none;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+    #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
+    #suggestions li:last-child{border-bottom:none;}
+    #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
+    #suggestions li .material-symbols-rounded{font-size:13px;color:var(--red);}
+    .sug-city{font-weight:500;flex:1;}
+    .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
+    .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
+    .header-nav a:hover{color:var(--text);background:var(--bg);}
+    .nav-dropdown{position:relative;}
+    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--red);background:var(--red-dim);border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
+    .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
+    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
+    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:200;}
+    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
+    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
+    .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;}
+    .nav-dropdown-menu a:last-child{border-bottom:none;}
+    .nav-dropdown-menu a.active,.nav-dropdown-menu a:hover{background:var(--red-dim);color:var(--red);}
+    .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
 
     /* PAGE */
-    main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 60px; }
-    .page-header { margin-bottom: 22px; }
-    .page-title { font-size: 1.3rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
-    .page-title .material-symbols-rounded { font-size: 20px; color: var(--red); font-variation-settings: 'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 24; }
-    .page-subtitle { font-size: 0.78rem; color: var(--text-3); margin-top: 5px; }
-    .page-subtitle a { color: var(--red); text-decoration: none; }
-    .page-subtitle a:hover { text-decoration: underline; }
+    main{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
+    .page-header{margin-bottom:22px;}
+    .page-title{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;}
+    .page-title .material-symbols-rounded{font-size:20px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 24;}
+    .page-subtitle{font-size:0.78rem;color:var(--text-3);margin-top:5px;}
+    .page-subtitle a{color:var(--red);text-decoration:none;}
+    .page-subtitle a:hover{text-decoration:underline;}
 
-    /* DAY TABS */
-    .day-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-    .day-tab { font-family: var(--font); font-size: 0.82rem; font-weight: 600; padding: 8px 20px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--surface); color: var(--text-3); cursor: pointer; transition: all 0.15s; }
-    .day-tab:hover { color: var(--text); border-color: var(--border-2); background: #eaebee; }
-    .day-tab.on { background: var(--red); color: #fff; border-color: var(--red); }
-
-    /* OUTLOOK PANEL */
-    .outlook-panel { display: none; }
-    .outlook-panel.visible { display: block; }
+    /* 3-COLUMN GRID */
+    .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;}
 
     /* DAY CARD */
-    .outlook-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
-
-    /* Card header */
-    .day-card-head { padding: 16px 18px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .day-card-head-left { }
-    .day-card-eyebrow { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
-    .day-card-title { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: -0.015em; margin-top: 2px; }
-    .issue-time { font-size: 0.72rem; color: var(--text-4); font-weight: 500; }
+    .day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;}
+    .day-card-head{padding:16px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
+    .day-card-eyebrow{font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
+    .day-card-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-0.015em;margin-top:2px;}
+    .issue-badge{font-size:0.65rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 6px;white-space:nowrap;}
 
     /* Hazard pills */
-    .hazard-row { display: flex; gap: 6px; padding: 11px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; }
-    .hbtn { font-family: var(--font); font-size: 0.72rem; font-weight: 600; padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border-2); background: var(--bg); color: var(--text-3); cursor: pointer; transition: all 0.12s; white-space: nowrap; line-height: 1.4; }
-    .hbtn:hover { color: var(--text); background: #e8e9ec; }
-    .hbtn.on { background: var(--red); color: #fff; border-color: var(--red); }
+    .hazard-row{display:flex;gap:6px;padding:11px 18px 12px;flex-wrap:wrap;align-items:center;}
+    .hbtn{font-family:var(--font);font-size:0.72rem;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid var(--border-2);background:var(--bg);color:var(--text-3);cursor:pointer;transition:all .12s;white-space:nowrap;line-height:1.4;}
+    .hbtn:hover{color:var(--text);background:#e8e9ec;border-color:rgba(0,0,0,.18);}
+    .hbtn.on{background:var(--red);color:#fff;border-color:var(--red);}
 
-    /* Overlay controls */
-    .overlay-row { display: flex; gap: 14px; padding: 9px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--bg); }
-    .ovl-label { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 500; color: var(--text-3); cursor: pointer; user-select: none; }
-    .ovl-label input { accent-color: var(--red); cursor: pointer; }
+    /* Image area */
+    .img-viewer{position:relative;width:100%;aspect-ratio:815/555;background:var(--bg);border-top:1px solid var(--border);overflow:hidden;}
+    .img-viewer img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;}
+    .img-viewer .map-main{z-index:2;}
+    .img-viewer .map-cities{z-index:3;pointer-events:none;}
+    .img-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:10;flex-direction:column;gap:10px;}
+    .spin-ring{width:22px;height:22px;border:2px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .img-unavail{font-size:0.78rem;color:var(--text-4);text-align:center;}
 
-    /* Image viewer */
-    .img-viewer { position: relative; width: 100%; aspect-ratio: 815 / 555; background: var(--bg); border-bottom: 1px solid var(--border); overflow: hidden; }
-    .img-viewer img.layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
-    .img-viewer img.overlay { display: none; }
-    .img-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 10; }
-    .spin-ring { width: 24px; height: 24px; border: 2px solid var(--border-2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.65s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .img-unavail { font-size: 0.78rem; color: var(--text-4); text-align: center; padding: 0 16px; }
+    /* Card footer */
+    .day-card-foot{padding:11px 18px 13px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .disc-caption{font-size:0.72rem;color:var(--text-3);flex:1;line-height:1.4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .disc-btn{display:inline-flex;align-items:center;gap:5px;font-family:var(--font);font-size:0.75rem;font-weight:600;color:var(--text-2);background:var(--bg);border:1px solid var(--border-2);border-radius:6px;padding:6px 13px;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;flex-shrink:0;}
+    .disc-btn:hover{border-color:var(--red);color:var(--red);}
+    .disc-btn .material-symbols-rounded{font-size:13px;}
 
-    /* Card footer — discussion */
-    .day-card-foot { padding: 12px 18px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-    .disc-caption { font-size: 0.72rem; color: var(--text-3); flex: 1; line-height: 1.4; }
-    .disc-toggle { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-size: 0.75rem; font-weight: 600; color: var(--text-2); background: var(--bg); border: 1px solid var(--border-2); border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap; flex-shrink: 0; }
-    .disc-toggle:hover { border-color: var(--red); color: var(--red); }
-    .disc-toggle .material-symbols-rounded { font-size: 13px; }
+    /* DISCUSSION MODAL */
+    #disc-modal{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
+    .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
+    .disc-head{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .disc-pip{width:9px;height:9px;background:var(--red);border-radius:50%;flex-shrink:0;}
+    .disc-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
+    .disc-close{background:none;border:none;color:var(--text-4);cursor:pointer;line-height:1;transition:color .15s;}
+    .disc-close:hover{color:var(--red);}
+    .disc-close .material-symbols-rounded{font-size:18px;}
+    .disc-modal-body{padding:18px 22px 24px;overflow-y:auto;flex:1;}
+    .disc-modal-body pre{white-space:pre-wrap;font-family:var(--font);font-size:0.8rem;line-height:1.8;color:var(--text-2);}
+    .disc-loading{display:flex;align-items:center;gap:12px;padding:32px 0;color:var(--text-4);font-size:0.83rem;}
+    .disc-err{color:var(--red);font-size:0.82rem;padding:6px 0;}
+    .disc-fallback{font-size:0.82rem;color:var(--text-3);margin-top:10px;}
+    .disc-fallback a{color:var(--red);text-decoration:none;}
+    .disc-fallback a:hover{text-decoration:underline;}
 
-    /* Discussion modal */
-    #disc-modal { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
-    .disc-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); max-width: 680px; width: 100%; max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-    .disc-head { padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .disc-pip { width: 10px; height: 10px; background: var(--red); border-radius: 50%; flex-shrink: 0; }
-    .disc-title { font-size: 0.95rem; font-weight: 700; color: var(--text); flex: 1; letter-spacing: -0.01em; }
-    .disc-close { background: none; border: none; color: var(--text-4); cursor: pointer; transition: color 0.15s; line-height: 1; }
-    .disc-close:hover { color: var(--red); }
-    .disc-close .material-symbols-rounded { font-size: 18px; }
-    .disc-modal-body { padding: 18px 22px 22px; overflow-y: auto; flex: 1; }
-    .disc-modal-body pre { white-space: pre-wrap; font-family: var(--font); font-size: 0.8rem; line-height: 1.8; color: var(--text-2); }
-    .disc-loading { display: flex; align-items: center; gap: 12px; padding: 36px 0; color: var(--text-4); font-size: 0.83rem; }
-    .disc-err { color: var(--red); font-size: 0.82rem; padding: 8px 0; }
-    .disc-fallback { font-size: 0.82rem; color: var(--text-3); margin-top: 10px; }
-    .disc-fallback a { color: var(--red); }
-
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
+    ::-webkit-scrollbar{width:4px;}
+    ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
+    @media(max-width:1024px){.cards-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
@@ -182,99 +170,90 @@
     </div>
   </div>
 
-  <!-- Day selector tabs -->
-  <div class="day-tabs">
-    <button class="day-tab on" data-day="1">Day 1 — Today</button>
-    <button class="day-tab" data-day="2">Day 2 — Tomorrow</button>
-    <button class="day-tab" id="day3-tab" data-day="3">Day 3 — <span id="day3-label">—</span></button>
-  </div>
+  <div class="cards-grid">
 
-  <!-- Day 1 -->
-  <div class="outlook-panel visible" id="panel-1">
-    <div class="outlook-card">
+    <!-- ── Day 1 ── -->
+    <div class="day-card">
       <div class="day-card-head">
-        <div class="day-card-head-left">
+        <div>
           <div class="day-card-eyebrow">Day 1</div>
           <div class="day-card-title">Today</div>
         </div>
-        <span class="issue-time" id="issue-1"></span>
+        <span class="issue-badge" id="issue-1"></span>
       </div>
-      <div class="hazard-row" id="hazard-row-1">
-        <button class="hbtn on" data-day="1" data-hazard="cat">Categorical</button>
+      <div class="hazard-row">
+        <button class="hbtn on" data-day="1" data-hazard="cat">Overall</button>
         <button class="hbtn" data-day="1" data-hazard="torn">Tornado</button>
         <button class="hbtn" data-day="1" data-hazard="wind">Wind</button>
         <button class="hbtn" data-day="1" data-hazard="hail">Hail</button>
       </div>
-      <div class="overlay-row" id="overlay-row-1"></div>
       <div class="img-viewer" id="viewer-1">
         <div class="img-loader" id="loader-1"><div class="spin-ring"></div></div>
-        <img class="layer" id="main-1" src="" alt="Day 1 Outlook" style="z-index:2"/>
+        <img class="map-main" id="main-1" src="" alt="Day 1 Outlook"/>
+        <img class="map-cities" id="cities-1" src="" alt=""/>
       </div>
       <div class="day-card-foot">
-        <div class="disc-caption" id="cap-1"></div>
-        <button class="disc-toggle" data-day="1" data-label="Day 1 — Today">
+        <span class="disc-caption" id="cap-1"></span>
+        <button class="disc-btn" data-day="1" data-label="Day 1 — Today">
           <span class="material-symbols-rounded">description</span>Discussion
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- Day 2 -->
-  <div class="outlook-panel" id="panel-2">
-    <div class="outlook-card">
+    <!-- ── Day 2 ── -->
+    <div class="day-card">
       <div class="day-card-head">
-        <div class="day-card-head-left">
+        <div>
           <div class="day-card-eyebrow">Day 2</div>
           <div class="day-card-title">Tomorrow</div>
         </div>
-        <span class="issue-time" id="issue-2"></span>
+        <span class="issue-badge" id="issue-2"></span>
       </div>
-      <div class="hazard-row" id="hazard-row-2">
-        <button class="hbtn on" data-day="2" data-hazard="cat">Categorical</button>
+      <div class="hazard-row">
+        <button class="hbtn on" data-day="2" data-hazard="cat">Overall</button>
         <button class="hbtn" data-day="2" data-hazard="torn">Tornado</button>
         <button class="hbtn" data-day="2" data-hazard="wind">Wind</button>
         <button class="hbtn" data-day="2" data-hazard="hail">Hail</button>
       </div>
-      <div class="overlay-row" id="overlay-row-2"></div>
       <div class="img-viewer" id="viewer-2">
         <div class="img-loader" id="loader-2"><div class="spin-ring"></div></div>
-        <img class="layer" id="main-2" src="" alt="Day 2 Outlook" style="z-index:2"/>
+        <img class="map-main" id="main-2" src="" alt="Day 2 Outlook"/>
+        <img class="map-cities" id="cities-2" src="" alt=""/>
       </div>
       <div class="day-card-foot">
-        <div class="disc-caption" id="cap-2"></div>
-        <button class="disc-toggle" data-day="2" data-label="Day 2 — Tomorrow">
+        <span class="disc-caption" id="cap-2"></span>
+        <button class="disc-btn" data-day="2" data-label="Day 2 — Tomorrow">
           <span class="material-symbols-rounded">description</span>Discussion
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- Day 3 -->
-  <div class="outlook-panel" id="panel-3">
-    <div class="outlook-card">
+    <!-- ── Day 3 ── -->
+    <div class="day-card">
       <div class="day-card-head">
-        <div class="day-card-head-left">
+        <div>
           <div class="day-card-eyebrow">Day 3</div>
-          <div class="day-card-title" id="day3-card-title">—</div>
+          <div class="day-card-title" id="day3-title">—</div>
         </div>
-        <span class="issue-time" id="issue-3"></span>
+        <span class="issue-badge" id="issue-3"></span>
       </div>
-      <div class="hazard-row" id="hazard-row-3">
-        <button class="hbtn on" data-day="3" data-hazard="cat">Categorical</button>
+      <div class="hazard-row">
+        <button class="hbtn on" data-day="3" data-hazard="cat">Overall</button>
         <button class="hbtn" data-day="3" data-hazard="prob">Probabilistic</button>
       </div>
-      <div class="overlay-row" id="overlay-row-3"></div>
       <div class="img-viewer" id="viewer-3">
         <div class="img-loader" id="loader-3"><div class="spin-ring"></div></div>
-        <img class="layer" id="main-3" src="" alt="Day 3 Outlook" style="z-index:2"/>
+        <img class="map-main" id="main-3" src="" alt="Day 3 Outlook"/>
+        <img class="map-cities" id="cities-3" src="" alt=""/>
       </div>
       <div class="day-card-foot">
-        <div class="disc-caption" id="cap-3"></div>
-        <button class="disc-toggle" data-day="3" data-label="" id="disc-toggle-3">
+        <span class="disc-caption" id="cap-3"></span>
+        <button class="disc-btn" data-day="3" id="disc-btn-3" data-label="">
           <span class="material-symbols-rounded">description</span>Discussion
         </button>
       </div>
     </div>
+
   </div>
 </main>
 
@@ -293,84 +272,39 @@
 </div>
 
 <script>
-const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
-const SPC_BASE   = 'https://www.spc.noaa.gov';
-
-const OVERLAYS = [
-  { id: 'pop',   file: 'pop.png',         label: 'Pop.' },
-  { id: 'city',  file: 'cities.png',      label: 'Cities',      defaultOn: true },
-  { id: 'cwa',   file: 'cwa.png',         label: 'CWAs' },
-  { id: 'cnty',  file: 'counties.png',    label: 'Counties' },
-  { id: 'hwy',   file: 'interstates.png', label: 'Interstates' },
-  { id: 'rfc',   file: 'rfc.png',         label: 'RFCs' },
-];
+const WORKER_URL   = 'https://spc-proxy.justin-e-beck.workers.dev';
+const SPC_BASE     = 'https://www.spc.noaa.gov';
+const CITIES_PATH  = '/products/outlook/imgs_v2/cities.png';
 
 const HAZARD_LABELS = {
-  cat: 'Categorical Risk', torn: 'Tornado Probability',
-  wind: 'Wind Probability', hail: 'Hail Probability', prob: 'Probabilistic Outlook'
+  cat:'Categorical Risk', torn:'Tornado Probability',
+  wind:'Wind Probability', hail:'Hail Probability', prob:'Probabilistic Outlook'
 };
 
 const state = { 1:{time:null,disc:null}, 2:{time:null,disc:null}, 3:{time:null,disc:null} };
 
-function proxyUrl(spcPath) {
-  return `${WORKER_URL}/proxy${spcPath}`;
-}
+function proxyUrl(path){ return `${WORKER_URL}/proxy${path}`; }
 
-// ---- Build overlay controls ----
-function buildOverlays(day) {
-  const row    = document.getElementById(`overlay-row-${day}`);
-  const viewer = document.getElementById(`viewer-${day}`);
-  const mainImg = document.getElementById(`main-${day}`);
-
-  OVERLAYS.forEach(ovl => {
-    const img = document.createElement('img');
-    img.className = 'layer overlay';
-    img.id = `ovl-${day}-${ovl.id}`;
-    img.src = proxyUrl(`/products/outlook/imgs_v2/${ovl.file}`);
-    img.alt = ovl.label;
-    img.style.cssText = `z-index:3; display:${ovl.defaultOn ? 'block' : 'none'}; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;`;
-    viewer.insertBefore(img, mainImg);
-
-    const label = document.createElement('label');
-    label.className = 'ovl-label';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = !!ovl.defaultOn;
-    cb.addEventListener('change', () => {
-      img.style.display = cb.checked ? 'block' : 'none';
-    });
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(' ' + ovl.label));
-    row.appendChild(label);
-  });
-}
-
-// ---- Fetch day HTML, extract time + discussion ----
-async function fetchDayData(day) {
+async function fetchDayData(day){
   const res = await fetch(proxyUrl(`/products/outlook/day${day}otlk.html`));
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
-
-  // Parse issuance time from show_tab call e.g. show_tab('otlk_0100') → 0100
-  const timeMatch = html.match(/show_tab\(['"][^'"]*?(\d{4})['"]\)/);
-  const time = timeMatch ? timeMatch[1] : '1300';
-
-  // Extract <pre> discussion
-  const preMatch = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+  const m = html.match(/show_tab\(['"][^'"]*?(\d{4})['"]\)/);
+  const time = m ? m[1] : '1300';
+  const pre = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
   let disc = '';
-  if (preMatch) {
-    disc = preMatch[1]
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi, '$1')
-      .replace(/<[^>]+>/g, '')
+  if(pre){
+    disc = pre[1]
+      .replace(/<script[\s\S]*?<\/script>/gi,'')
+      .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
+      .replace(/<[^>]+>/g,'')
       .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
       .trim();
   }
-  return { time, disc };
+  return {time,disc};
 }
 
-// ---- Load main image ----
-function loadImage(day, hazard) {
+function loadImage(day, hazard){
   const time   = state[day].time || '1300';
   const main   = document.getElementById(`main-${day}`);
   const loader = document.getElementById(`loader-${day}`);
@@ -381,9 +315,9 @@ function loadImage(day, hazard) {
   main.style.opacity = '0';
 
   let spcPath;
-  if (hazard === 'cat')  spcPath = `/products/outlook/day${day}otlk_${time}.png`;
-  else if (hazard === 'prob') spcPath = `/products/outlook/day3otlk_${time}_prob.png`;
-  else spcPath = `/products/outlook/day${day}probotlk_${time}_${hazard}.png`;
+  if(hazard==='cat')       spcPath = `/products/outlook/day${day}otlk_${time}.png`;
+  else if(hazard==='prob') spcPath = `/products/outlook/day3otlk_${time}_prob.png`;
+  else                     spcPath = `/products/outlook/day${day}probotlk_${time}_${hazard}.png`;
 
   const url = proxyUrl(spcPath);
   const tmp = new Image();
@@ -391,7 +325,7 @@ function loadImage(day, hazard) {
     main.src = url;
     main.style.opacity = '1';
     loader.style.display = 'none';
-    cap.textContent = `Day ${day} · ${HAZARD_LABELS[hazard] || hazard}`;
+    cap.textContent = `Day ${day} · ${HAZARD_LABELS[hazard]||hazard}`;
   };
   tmp.onerror = () => {
     loader.innerHTML = '<span class="img-unavail">Image unavailable</span>';
@@ -400,32 +334,23 @@ function loadImage(day, hazard) {
   tmp.src = url;
 }
 
-// ---- Init a day ----
-async function initDay(day) {
-  buildOverlays(day);
+async function initDay(day){
+  // Cities overlay — always on, no UI
+  document.getElementById(`cities-${day}`).src = proxyUrl(CITIES_PATH);
   try {
-    const { time, disc } = await fetchDayData(day);
+    const {time,disc} = await fetchDayData(day);
     state[day].time = time;
     state[day].disc = disc;
-    document.getElementById(`issue-${day}`).textContent = time ? `${time}Z` : '';
+    const badge = document.getElementById(`issue-${day}`);
+    if(time) badge.textContent = `${time}Z`;
     loadImage(day, 'cat');
-  } catch(e) {
-    document.getElementById(`loader-${day}`).innerHTML = `<span class="img-unavail">Failed to load (${e.message})</span>`;
+  } catch(e){
+    document.getElementById(`loader-${day}`).innerHTML =
+      `<span class="img-unavail">Failed to load<br><small>${e.message}</small></span>`;
   }
 }
 
-// ---- Day tab switching ----
-document.querySelectorAll('.day-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const day = +btn.dataset.day;
-    document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('on'));
-    document.querySelectorAll('.outlook-panel').forEach(p => p.classList.remove('visible'));
-    btn.classList.add('on');
-    document.getElementById(`panel-${day}`).classList.add('visible');
-  });
-});
-
-// ---- Hazard tab switching ----
+// Hazard pills
 document.querySelectorAll('.hbtn').forEach(btn => {
   btn.addEventListener('click', () => {
     const day = +btn.dataset.day;
@@ -435,110 +360,82 @@ document.querySelectorAll('.hbtn').forEach(btn => {
   });
 });
 
-// ---- Discussion modal ----
+// Discussion modal
 const discModal = document.getElementById('disc-modal');
-document.querySelectorAll('.disc-toggle').forEach(btn => {
+document.querySelectorAll('.disc-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    const day = +btn.dataset.day;
+    const day   = +btn.dataset.day;
     const label = btn.dataset.label || `Day ${day}`;
     document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
     const body = document.getElementById('disc-modal-body');
     const disc = state[day].disc;
-    if (disc) {
+    if(disc){
       body.innerHTML = `<pre>${esc(disc)}</pre>`;
     } else {
-      body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+      body.innerHTML = `<div class="disc-err">Discussion not yet available.</div>
         <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
     }
     discModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   });
 });
-document.getElementById('disc-close').addEventListener('click', closeDisc);
-discModal.addEventListener('click', e => { if (e.target === discModal) closeDisc(); });
-function closeDisc() { discModal.style.display='none'; document.body.style.overflow=''; }
+document.getElementById('disc-close').addEventListener('click', closeModal);
+discModal.addEventListener('click', e => { if(e.target===discModal) closeModal(); });
+function closeModal(){ discModal.style.display='none'; document.body.style.overflow=''; }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Day 3 label
+const d3 = new Date(); d3.setDate(d3.getDate()+2);
+const d3str = d3.toLocaleDateString('en-US',{weekday:'long'});
+document.getElementById('day3-title').textContent = d3str;
+document.getElementById('disc-btn-3').dataset.label = `Day 3 — ${d3str}`;
 
-// ---- Day 3 label ----
-const d3date = new Date(); d3date.setDate(d3date.getDate() + 2);
-const d3str = d3date.toLocaleDateString('en-US', { weekday:'long' });
-document.getElementById('day3-label').textContent = d3str;
-document.getElementById('day3-card-title').textContent = d3str;
-document.getElementById('disc-toggle-3').dataset.label = `Day 3 — ${d3str}`;
+// Boot
+window.addEventListener('DOMContentLoaded', () => { initDay(1); initDay(2); initDay(3); });
 
-// ---- Boot ----
-window.addEventListener('DOMContentLoaded', () => {
-  initDay(1);
-  initDay(2);
-  initDay(3);
+// Search
+const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
+function sa(n){return SA[n]||n;}
+function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
+let sugs=[],selIdx=-1,sCtrl=null;
+const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions'),locBtn=document.getElementById('use-location-btn');
+function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+sBar.addEventListener('input',db(async e=>{
+  const q=e.target.value.trim();
+  if(q.length<2){sugBox.style.display='none';sugs=[];return;}
+  if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
+    const d=await r.json();const seen=new Set();sugs=[];
+    for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
+    selIdx=-1;rSugs();
+  }catch(e){if(e.name!=='AbortError')console.error(e);}
+},280));
+sBar.addEventListener('keydown',e=>{
+  if(!sugs.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}
+  else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}
+  else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}
+  else if(e.key==='Escape')sugBox.style.display='none';
 });
-
-// ---- Search ----
-const STATE_ABBR = {"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
-function stateAbbr(n) { return STATE_ABBR[n] || n; }
-function parseNom(r) {
-  const a = r.address || {};
-  const city = a.city || a.town || a.village || a.hamlet || a.county || r.display_name.split(',')[0];
-  const st = stateAbbr(a.state || '');
-  return { label: st ? `${city}, ${st}` : city, city, state: st, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
+function rSugs(){
+  sugBox.innerHTML='';
+  if(!sugs.length){sugBox.style.display='none';return;}
+  sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});
+  sugBox.style.display='block';
 }
-let sugs = [], selIdx = -1, searchCtrl = null;
-const sBar = document.getElementById('search-bar');
-const sugBox = document.getElementById('suggestions');
-const locBtn = document.getElementById('use-location-btn');
-function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
-sBar.addEventListener('input', debounce(async e => {
-  const q = e.target.value.trim();
-  if (q.length < 2) { sugBox.style.display='none'; sugs=[]; return; }
-  if (searchCtrl) searchCtrl.abort();
-  searchCtrl = new AbortController();
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`, { signal: searchCtrl.signal, headers: {'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'} });
-    const data = await res.json();
-    const seen = new Set(); sugs = [];
-    for (const r of data) { const p = parseNom(r); if (!seen.has(p.label)) { seen.add(p.label); sugs.push(p); } if (sugs.length >= 6) break; }
-    selIdx = -1; renderSugs();
-  } catch(e) { if (e.name !== 'AbortError') console.error(e); }
-}, 280));
-sBar.addEventListener('keydown', e => {
-  if (!sugs.length) return;
-  if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%sugs.length; renderSugs(); }
-  else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+sugs.length)%sugs.length; renderSugs(); }
-  else if (e.key==='Enter') { if (selIdx>=0) pickLoc(sugs[selIdx]); else if (sugs[0]) pickLoc(sugs[0]); }
-  else if (e.key==='Escape') sugBox.style.display='none';
+document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==sBar){sugBox.style.display='none';selIdx=-1;}});
+function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
+locBtn.addEventListener('click',()=>{
+  if(!navigator.geolocation)return alert('Geolocation not supported.');
+  locBtn.disabled=true;
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;let loc={label:'Your Location',city:'Your Location',state:'',lat,lng};
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}
+    localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';
+  },()=>{alert('Unable to get location.');locBtn.disabled=false;});
 });
-function renderSugs() {
-  sugBox.innerHTML = '';
-  if (!sugs.length) { sugBox.style.display='none'; return; }
-  sugs.forEach((loc, i) => {
-    const li = document.createElement('li');
-    if (i===selIdx) li.classList.add('active');
-    li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
-    li.addEventListener('mousedown', e => { e.preventDefault(); pickLoc(loc); });
-    sugBox.appendChild(li);
-  });
-  sugBox.style.display = 'block';
-}
-document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.target !== sBar) { sugBox.style.display='none'; selIdx=-1; } });
-function pickLoc(loc) { localStorage.setItem('jweather_last_location', JSON.stringify(loc)); window.location.href = 'index.html'; }
-locBtn.addEventListener('click', () => {
-  if (!navigator.geolocation) return alert('Geolocation not supported.');
-  locBtn.disabled = true;
-  navigator.geolocation.getCurrentPosition(async pos => {
-    const { latitude:lat, longitude:lng } = pos.coords;
-    let loc = { label:'Your Location', city:'Your Location', state:'', lat, lng };
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, { headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'} });
-      const data = await res.json(); const p = parseNom(data); if (p.city) loc = p;
-    } catch {}
-    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-    window.location.href = 'index.html';
-  }, () => { alert('Unable to get location.'); locBtn.disabled = false; });
-});
-window.addEventListener('DOMContentLoaded', () => {
-  try { const s = JSON.parse(localStorage.getItem('jweather_last_location')); if (s?.label) sBar.value = s.label; } catch {}
-});
+window.addEventListener('DOMContentLoaded',()=>{try{const s=JSON.parse(localStorage.getItem('jweather_last_location'));if(s?.label)sBar.value=s.label;}catch{}});
 </script>
 </body>
 </html>
