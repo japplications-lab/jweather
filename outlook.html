@@ -274,16 +274,16 @@
       </div>
       <div class="cat-list" id="cats-1">
         <button class="cat-btn active" data-day="1" data-mode="cat">
-          <div class="cat-dot" style="background:#ef4444;"></div>Overall
+          <div class="cat-dot" style="background:#ff6600;"></div>Overall
         </button>
         <button class="cat-btn" data-day="1" data-mode="torn">
-          <div class="cat-dot" style="background:#ef4444;"></div>Tornado
+          <div class="cat-dot" style="background:#ff6600;"></div>Tornado
         </button>
         <button class="cat-btn" data-day="1" data-mode="wind">
-          <div class="cat-dot" style="background:#f97316;"></div>Wind
+          <div class="cat-dot" style="background:#ffdd00;"></div>Wind
         </button>
         <button class="cat-btn" data-day="1" data-mode="hail">
-          <div class="cat-dot" style="background:#34d399;"></div>Hail
+          <div class="cat-dot" style="background:#43e843;"></div>Hail
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
@@ -302,16 +302,16 @@
       </div>
       <div class="cat-list" id="cats-2">
         <button class="cat-btn" data-day="2" data-mode="cat">
-          <div class="cat-dot" style="background:#ef4444;"></div>Overall
+          <div class="cat-dot" style="background:#ff6600;"></div>Overall
         </button>
         <button class="cat-btn" data-day="2" data-mode="torn">
-          <div class="cat-dot" style="background:#ef4444;"></div>Tornado
+          <div class="cat-dot" style="background:#ff6600;"></div>Tornado
         </button>
         <button class="cat-btn" data-day="2" data-mode="wind">
-          <div class="cat-dot" style="background:#f97316;"></div>Wind
+          <div class="cat-dot" style="background:#ffdd00;"></div>Wind
         </button>
         <button class="cat-btn" data-day="2" data-mode="hail">
-          <div class="cat-dot" style="background:#34d399;"></div>Hail
+          <div class="cat-dot" style="background:#43e843;"></div>Hail
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
@@ -330,10 +330,10 @@
       </div>
       <div class="cat-list" id="cats-3">
         <button class="cat-btn" data-day="3" data-mode="cat">
-          <div class="cat-dot" style="background:#ef4444;"></div>Overall
+          <div class="cat-dot" style="background:#ff6600;"></div>Overall
         </button>
         <button class="cat-btn" data-day="3" data-mode="prob">
-          <div class="cat-dot" style="background:#fbbf24;"></div>Probabilistic
+          <div class="cat-dot" style="background:#ff8800;"></div>Probabilistic
         </button>
       </div>
       <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
@@ -410,7 +410,7 @@ const LAYER_IDS = {
 const SIG_LAYER_IDS = {
   '1-torn':2,  '1-hail':4,  '1-wind':6,
   '2-torn':10, '2-hail':12, '2-wind':14,
-  '3-prob':19
+  // Day 3 sig layer excluded for now
 };
 // Human-readable sig threat labels per mode
 const SIG_LABELS = {
@@ -426,28 +426,27 @@ const SIG_DESC = {
   prob:'This area has an elevated risk of particularly destructive severe weather — including EF2+ tornadoes, 65+ mph winds, and/or 2"+ hail — any of which can cause major structural damage.',
 };
 
-// Custom modern color scheme — saturated, dramatic, clean
-// Designed to bleed visually like the FOX11 gradient but refined
+// FOX11-style color scheme — saturated broadcast gradient
 const CAT = {
-  'TSTM':{ fill:'#d1fae5', stroke:'#6ee7b7', label:'General Thunder' },
-  'MRGL':{ fill:'#34d399', stroke:'#059669', label:'Level 1 · Marginal' },
-  'SLGT':{ fill:'#fbbf24', stroke:'#d97706', label:'Level 2 · Slight' },
-  'ENH': { fill:'#f97316', stroke:'#c2410c', label:'Level 3 · Enhanced' },
-  'MDT': { fill:'#ef4444', stroke:'#b91c1c', label:'Level 4 · Moderate' },
-  'HIGH':{ fill:'#a855f7', stroke:'#7e22ce', label:'Level 5 · High' },
+  'TSTM':{ fill:'#a8d5a2', stroke:'#5a9e52', label:'General Thunder' },
+  'MRGL':{ fill:'#43e843', stroke:'#1db81d', label:'Level 1 · Marginal' },
+  'SLGT':{ fill:'#ccff00', stroke:'#88aa00', label:'Level 2 · Slight' },
+  'ENH': { fill:'#ffdd00', stroke:'#cc9900', label:'Level 3 · Enhanced' },
+  'MDT': { fill:'#ff6600', stroke:'#cc4400', label:'Level 4 · Moderate' },
+  'HIGH':{ fill:'#ff1493', stroke:'#cc0066', label:'Level 5 · High' },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
 
-// Probabilistic thresholds — modern saturated palette matching CAT scale
+// Probabilistic thresholds — FOX11-style gradient
 const PROB = [
-  { dn:2,  fill:'#34d399', stroke:'#059669', label:'Very Low',  pct:'2%'  },
-  { dn:5,  fill:'#86efac', stroke:'#16a34a', label:'Low',       pct:'5%'  },
-  { dn:10, fill:'#fde047', stroke:'#ca8a04', label:'Elevated',  pct:'10%' },
-  { dn:15, fill:'#fbbf24', stroke:'#d97706', label:'Moderate',  pct:'15%' },
-  { dn:30, fill:'#f97316', stroke:'#c2410c', label:'High',      pct:'30%' },
-  { dn:45, fill:'#ef4444', stroke:'#b91c1c', label:'Very High', pct:'45%' },
-  { dn:60, fill:'#a855f7', stroke:'#7e22ce', label:'Extreme',   pct:'60%' },
+  { dn:2,  fill:'#43e843', stroke:'#1db81d', label:'Very Low',  pct:'2%'  },
+  { dn:5,  fill:'#99ee00', stroke:'#66aa00', label:'Low',       pct:'5%'  },
+  { dn:10, fill:'#ccff00', stroke:'#88aa00', label:'Elevated',  pct:'10%' },
+  { dn:15, fill:'#ffdd00', stroke:'#cc9900', label:'Moderate',  pct:'15%' },
+  { dn:30, fill:'#ff8800', stroke:'#cc5500', label:'High',      pct:'30%' },
+  { dn:45, fill:'#ff6600', stroke:'#cc4400', label:'Very High', pct:'45%' },
+  { dn:60, fill:'#ff1493', stroke:'#cc0066', label:'Extreme',   pct:'60%' },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
