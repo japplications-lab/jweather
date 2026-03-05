@@ -214,6 +214,16 @@
     }
     #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
     #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
+    .spc-alert-row { display:flex; align-items:flex-start; gap:12px; padding:11px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; text-decoration:none; }
+    .spc-alert-row:first-child { padding-top:4px; }
+    .spc-alert-row:last-child { border-bottom:none; padding-bottom:0; }
+    .spc-alert-row:hover { background:var(--red-dim); margin:0 -8px; padding-left:8px; padding-right:8px; border-radius:var(--r-xs); }
+    .spc-pip { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+    .spc-alert-info { flex:1; }
+    .spc-alert-event { font-size:0.83rem; font-weight:600; color:var(--text); }
+    .spc-alert-sub { font-size:0.72rem; color:var(--text-3); margin-top:2px; }
+    .spc-alert-chevron { font-size:16px; color:var(--text-4); flex-shrink:0; margin-top:1px; transition:color .15s; }
+    .spc-alert-row:hover .spc-alert-chevron { color:var(--red); }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
@@ -401,20 +411,65 @@ function parseNominatim(r) {
   return { label, city, state, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
 }
 
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+
+// SPC categorical risk colors + labels
+const SPC_CAT = {
+  'TSTM': { color:'#c8eec8', label:'General Storms'  },
+  'MRGL': { color:'#6abf6a', label:'Low Risk'         },
+  'SLGT': { color:'#f0e040', label:'Some Risk'        },
+  'ENH':  { color:'#e88020', label:'Elevated Risk'    },
+  'MDT':  { color:'#e04040', label:'High Risk'        },
+  'HIGH': { color:'#ee30a0', label:'Extreme Risk'     },
+};
+const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+
 let alerts=[], curLoc=null, sugs=[], selIdx=-1, searchController=null;
 const sBar=document.getElementById('search-bar'), sugBox=document.getElementById('suggestions'),
       locBtn=document.getElementById('use-location-btn'), spin=document.getElementById('spinner-overlay');
 
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-  // Restore last location or default to Baconton, GA
   const saved = (() => { try { const l = JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
   if (saved) {
+    // Already have a saved location — use it
     curLoc = saved;
     sBar.value = saved.label || (saved.city && saved.state ? `${saved.city}, ${saved.state}` : 'Your Location');
     loadWeather(saved); updateRadar(saved.lat, saved.lng);
+  } else if (navigator.geolocation) {
+    // First visit — silently request location
+    locBtn.disabled = true;
+    locBtn.innerHTML = `<span class="material-symbols-rounded" style="animation:spin .65s linear infinite;display:inline-block">progress_activity</span> Locating…`;
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        let loc = { label: 'Your Location', city: 'Your Location', state: '', lat, lng };
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+            headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
+          });
+          const data = await res.json();
+          const parsed = parseNominatim(data);
+          if (parsed.city) loc = parsed;
+        } catch {}
+        curLoc = loc;
+        sBar.value = loc.label;
+        localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+        loadWeather(loc); updateRadar(loc.lat, loc.lng);
+        locBtn.disabled = false;
+        locBtn.innerHTML = `<span class="material-symbols-rounded">my_location</span> Locate me`;
+      },
+      () => {
+        // User denied or error — fall back to default
+        locBtn.disabled = false;
+        locBtn.innerHTML = `<span class="material-symbols-rounded">my_location</span> Locate me`;
+        const def = { label: 'Baconton, GA', city: 'Baconton', state: 'GA', lat: 31.3776, lng: -84.1607 };
+        curLoc = def; sBar.value = def.label; loadWeather(def); updateRadar(def.lat, def.lng);
+      },
+      { timeout: 10000 }
+    );
   } else {
-    // Default location
+    // Geolocation not supported — use default
     const def = { label: 'Baconton, GA', city: 'Baconton', state: 'GA', lat: 31.3776, lng: -84.1607 };
     curLoc = def; sBar.value = def.label; loadWeather(def); updateRadar(def.lat, def.lng);
   }
@@ -509,6 +564,59 @@ locBtn.addEventListener('click', () => {
   }, () => { alert('Unable to get location.'); locBtn.disabled=false; locBtn.innerHTML=`<span class="material-symbols-rounded">my_location</span> Locate me`; });
 });
 
+// ── Ray-casting point-in-polygon ──
+function pointInRing(pt, ring) {
+  let inside = false;
+  const [x, y] = pt;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInFeature(pt, feature) {
+  const geom = feature.geometry;
+  if (!geom) return false;
+  const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : [];
+  for (const poly of polys) {
+    if (pointInRing(pt, poly[0])) return true; // outer ring only
+  }
+  return false;
+}
+
+async function fetchSpcOutlookForPoint(lat, lng) {
+  const days = [
+    { day: 1, url: 'day1otlk.json',  label: 'Today'          },
+    { day: 2, url: 'day2otlk.json',  label: 'Tomorrow'       },
+    { day: 3, url: 'day3otlk.json',  label: 'in 2 Days'      },
+  ];
+  const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
+  const pt = [lng, lat]; // GeoJSON is [lon, lat]
+
+  for (const { url, label } of days) {
+    try {
+      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${url}`);
+      if (!res.ok) continue;
+      const gj = await res.json();
+      if (!gj.features?.length) continue;
+
+      let best = null, bestOrder = -1;
+      for (const feat of gj.features) {
+        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
+        const key = SPC_CAT[raw] ? raw : (DN_TO_CAT[raw] || null);
+        if (!key || key === 'TSTM') continue;
+        const rank = order.indexOf(key);
+        if (rank > bestOrder && pointInFeature(pt, feat)) {
+          best = key; bestOrder = rank;
+        }
+      }
+      if (best) return { risk: best, dayLabel: label };
+    } catch(e) { console.warn(`SPC day check failed:`, e); }
+  }
+  return null;
+}
+
 async function loadWeather(loc) {
   curLoc=loc; localStorage.setItem('jweather_last_location', JSON.stringify(loc)); spin.style.display='flex';
   try {
@@ -542,9 +650,10 @@ async function loadWeather(loc) {
     }
     const periods = fcR.ok ? (await fcR.json()).properties.periods : [];
     const alData = alR.ok ? await alR.json() : { features: [] };
+    const spcResult = await fetchSpcOutlookForPoint(Number(loc.lat), Number(loc.lng));
     renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime);
     renderForecast(periods);
-    renderAlerts(alData);
+    renderAlerts(alData, spcResult);
   } catch(e) { console.error(e); document.getElementById('current-loc').textContent='Unavailable'; }
   finally { spin.style.display='none'; }
 }
@@ -581,12 +690,32 @@ function renderForecast(periods) {
   });
 }
 
-function renderAlerts(data) {
-  alerts = data.features || []; const c = document.getElementById('alerts-content'); c.innerHTML = '';
-  if (!alerts.length) {
+function renderAlerts(data, spcResult) {
+  alerts = data.features || [];
+  const c = document.getElementById('alerts-content');
+  c.innerHTML = '';
+
+  // Inject SPC outlook banner if location is inside an outlook polygon
+  if (spcResult && SPC_CAT[spcResult.risk]) {
+    const info = SPC_CAT[spcResult.risk];
+    const banner = document.createElement('a');
+    banner.className = 'spc-alert-row';
+    banner.href = 'outlook.html';
+    banner.innerHTML = `
+      <div class="spc-pip" style="background:${info.color};box-shadow:0 0 0 3px ${info.color}44"></div>
+      <div class="spc-alert-info">
+        <div class="spc-alert-event">Severe Weather Possible ${spcResult.dayLabel}</div>
+        <div class="spc-alert-sub">Tap for additional details</div>
+      </div>
+      <span class="material-symbols-rounded spc-alert-chevron">chevron_right</span>`;
+    c.appendChild(banner);
+  }
+
+  if (!alerts.length && !spcResult) {
     c.innerHTML = `<div class="no-alerts-row"><div class="no-alerts-pip"></div><div><div class="no-alerts-label">No active alerts</div><div class="no-alerts-sub">All clear.</div></div></div>`;
     return;
   }
+
   alerts.forEach((feat, i) => {
     const a = feat.properties;
     const exp = a.expires ? new Date(a.expires).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : 'N/A';

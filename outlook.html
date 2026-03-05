@@ -1324,8 +1324,29 @@ window.addEventListener('DOMContentLoaded', () => {
   initMap();
   loadHazard(1, 'cat');
 
-  // Restore search
-  try { const s=JSON.parse(localStorage.getItem('jweather_last_location')); if(s?.label) document.getElementById('search-bar').value=s.label; } catch{}
+  // Restore search bar — or silently request location on first visit
+  const _saved = (() => { try { const l=JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
+  if (_saved) {
+    document.getElementById('search-bar').value = _saved.label || '';
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        let loc = { label: 'Your Location', city: 'Your Location', state: '', lat, lng };
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+            headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
+          });
+          const d = await r.json();
+          const p = pn(d);
+          if (p.city) loc = p;
+        } catch {}
+        localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+        document.getElementById('search-bar').value = loc.label;
+      },
+      () => {} // denied — no fallback needed on this page
+    , { timeout: 10000 });
+  }
 });
 
 // ─────────────────────────────────────────────
