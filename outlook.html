@@ -442,12 +442,12 @@ const SIG_DESC = {
 
 // Exact SPC colors
 const CAT = {
-  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Thunder' },
-  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Level 1 · Marginal' },
-  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Level 2 · Slight' },
-  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Level 3 · Enhanced' },
-  'MDT': { fill:'#e04040', stroke:'#a81818', label:'Level 4 · Moderate' },
-  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Level 5 · High' },
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Low Risk' },
+  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Some Risk' },
+  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Elevated Risk' },
+  'MDT': { fill:'#e04040', stroke:'#a81818', label:'High Risk' },
+  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Extreme Risk' },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
@@ -455,13 +455,13 @@ const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excl
 // Exact SPC probability colors sampled directly from official SPC legend
 // 5% = green per user preference (SPC uses brown #c5a392)
 const PROB = [
-  { dn:2,  fill:'#6abf6a', stroke:'#3d8c3d', label:'Very Low',  pct:'2%'  },
-  { dn:5,  fill:'#55a855', stroke:'#337733', label:'Low',       pct:'5%'  },
-  { dn:10, fill:'#f0e040', stroke:'#b8a800', label:'Elevated',  pct:'10%' },
-  { dn:15, fill:'#ffff00', stroke:'#cccc00', label:'Moderate',  pct:'15%' },
-  { dn:30, fill:'#ff0000', stroke:'#cc0000', label:'High',      pct:'30%' },
-  { dn:45, fill:'#ff00ff', stroke:'#cc00cc', label:'Very High', pct:'45%' },
-  { dn:60, fill:'#871aec', stroke:'#5a00a8', label:'Extreme',   pct:'60%' },
+  { dn:2,  fill:'#6abf6a', stroke:'#3d8c3d', label:'Very Low Risk'  },
+  { dn:5,  fill:'#55a855', stroke:'#337733', label:'Low Risk'        },
+  { dn:10, fill:'#f0e040', stroke:'#b8a800', label:'Possible'        },
+  { dn:15, fill:'#ffff00', stroke:'#cccc00', label:'Likely'          },
+  { dn:30, fill:'#ff0000', stroke:'#cc0000', label:'High Risk'       },
+  { dn:45, fill:'#ff00ff', stroke:'#cc00cc', label:'Very High Risk'  },
+  { dn:60, fill:'#871aec', stroke:'#5a00a8', label:'Extreme Risk'    },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
@@ -717,41 +717,51 @@ function styleFeature(f, mode) {
   }
 }
 
-// Plain-English descriptions for categorical risks
+// Plain, direct descriptions
 const CAT_DESC = {
-  TSTM: { short:'General Thunder',  stat:'Storm coverage: widespread',          desc:'Organized severe weather is unlikely, but strong thunderstorms producing gusty winds or small hail are possible across this area.' },
-  MRGL: { short:'Level 1 · Marginal',  stat:'Roughly 1-in-20 chance of severe weather', desc:'Isolated severe storms are possible but are expected to be brief or short-lived. Impacts are likely to be limited in coverage.' },
-  SLGT: { short:'Level 2 · Slight',    stat:'Roughly 1-in-10 chance of severe weather', desc:'Scattered severe storms are possible. Not everyone in this area will see severe weather, but some locations could be significantly impacted.' },
-  ENH:  { short:'Level 3 · Enhanced',  stat:'Roughly 1-in-5 chance of severe weather',  desc:'Numerous severe storms are possible. Widespread damaging impacts are expected across portions of this area — preparation is advised.' },
-  MDT:  { short:'Level 4 · Moderate',  stat:'Significant severe weather likely',         desc:'Widespread severe storms with the potential for long-track tornadoes, very large hail, or destructive straight-line winds. Life-threatening weather is likely for some locations.' },
-  HIGH: { short:'Level 5 · High',      stat:'Particularly dangerous situation (PDS)',    desc:'An outbreak of severe weather is expected. Violent, long-track tornadoes or widespread damaging winds are likely. Take shelter plans seriously — this is the highest alert SPC issues.' },
+  TSTM: { short:'General Storms',  stat:'No severe weather expected',
+    desc:'Thunderstorms are possible but severe weather is not anticipated. You may see lightning, brief heavy rain, or gusty winds — nothing out of the ordinary.' },
+  MRGL: { short:'Low Risk',        stat:'Isolated severe storms possible',
+    desc:'A isolated storm or two could turn severe, but most of the area will see nothing. The threat is real but limited — a quick check of your local forecast before heading out is all you need.' },
+  SLGT: { short:'Some Risk',       stat:'Scattered severe storms expected',
+    desc:'Some storms today will produce damaging winds, large hail, or a brief tornado. Not every storm will be severe, but enough will that it's worth having a plan before things kick off.' },
+  ENH:  { short:'Elevated Risk',   stat:'Several severe storms expected, some intense',
+    desc:'Multiple severe storms are likely across this area. Damaging winds, large hail, and tornadoes are all possible. Some locations will see significant impacts — know where you're going if a warning is issued.' },
+  MDT:  { short:'High Risk',       stat:'Widespread severe storms, some potentially violent',
+    desc:'This is a dangerous weather day. Widespread severe storms — including the potential for violent, long-track tornadoes and destructive winds — are expected. Have your shelter plan ready well before storms arrive.' },
+  HIGH: { short:'Extreme Risk',    stat:'Major outbreak expected — life-threatening',
+    desc:'A significant severe weather outbreak is likely. Violent tornadoes, extremely destructive winds, and very large hail are all expected across this area. This level is issued only a few times per year. Take it seriously and have your shelter ready.' },
 };
 
-// Plain-English descriptions for probabilistic hazards
 function probDesc(dn, hazard) {
-  // Day 3 "prob" is a combined severe probability (tornado + wind + hail combined)
-  const isCombined = hazard === 'prob';
-  const h       = isCombined ? 'severe weather event (tornado, damaging wind, or large hail)'
-                : hazard === 'torn' ? 'tornado'
-                : hazard === 'wind' ? 'damaging wind event'
-                : 'large hail event';
-  const hPlural = isCombined ? 'severe weather events — including potential tornadoes, damaging winds, and large hail'
-                : hazard === 'torn' ? 'tornadoes'
-                : hazard === 'wind' ? 'damaging wind events'
-                : 'large hail events';
-  const midCtx  = isCombined ? 'Severe storms are expected in this area — not necessarily near you, but you should have a plan ready.'
-                : hazard === 'torn' ? 'Tornadoes are expected in this area — not necessarily near you, but you should have a plan ready.'
-                : 'Significant events are expected in this area — not necessarily near you, but you should have a plan ready.';
+  const thing = {
+    torn: { s:'tornado',             p:'tornadoes'          },
+    wind: { s:'damaging wind event', p:'damaging wind gusts'},
+    hail: { s:'large hail event',    p:'large hail'         },
+    prob: { s:'severe weather event','p':'severe storms'    },
+  }[hazard] || { s:'severe weather event', p:'severe storms' };
 
-  // Technical framing: kept for accuracy but phrased to not undersell the threat
-  const techFrame = `Within any 25-mile stretch in this area, there is a ${dn}% chance of a ${h} occurring.`;
-  if (dn <= 2)  return { frame:techFrame, context:`The odds are low for any single location, but ${hPlural} are expected to occur somewhere in this zone — stay weather-aware.` };
-  if (dn <= 5)  return { frame:techFrame, context:`Low overall odds, but the threat is real and events are expected in this zone. Scattered ${hPlural} are possible.` };
-  if (dn <= 10) return { frame:techFrame, context:midCtx };
-  if (dn <= 15) return { frame:techFrame, context:`Multiple ${hPlural} are likely somewhere in this zone. Know your shelter options and have a plan before storms arrive.` };
-  if (dn <= 30) return { frame:techFrame, context:`Numerous ${hPlural} are expected. A significant portion of this area will be directly impacted — preparation is strongly advised.` };
-  if (dn <= 45) return { frame:techFrame, context:`Widespread ${hPlural} are expected across much of this area. This is a serious, potentially life-threatening weather situation. Take immediate preparedness steps.` };
-  return        { frame:techFrame, context:`A major ${h} outbreak is expected — this is a particularly dangerous situation (PDS). Treat this as a life-safety emergency and take shelter plans seriously.` };
+  if (dn <= 2)  return {
+    frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are possible somewhere in this area, but the overall chance for any one location is low.`,
+    context: `Stay generally weather-aware today. Most spots here will see nothing, but a stray event is possible.` };
+  if (dn <= 5)  return {
+    frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are possible in this area.`,
+    context: `The risk is real but not high for any given location. Worth keeping an eye on forecasts as the day progresses.` };
+  if (dn <= 10) return {
+    frame: `There is a noticeable chance of ${thing.p} somewhere in this area.`,
+    context: `Storms are expected in this zone — they won't affect everyone, but some spots will see significant impacts. Have a plan before storms develop.` };
+  if (dn <= 15) return {
+    frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are likely in parts of this area.`,
+    context: `Multiple events are expected across this zone. Know your shelter options before storms arrive — don't wait until a warning is issued.` };
+  if (dn <= 30) return {
+    frame: `Significant ${thing.p} are expected across a broad area.`,
+    context: `A substantial portion of this zone will see direct impacts. This is a serious weather setup — preparation should happen now, not when storms are on the doorstep.` };
+  if (dn <= 45) return {
+    frame: `Widespread, dangerous ${thing.p} are expected across most of this area.`,
+    context: `This is a high-end weather event. The majority of this zone faces a serious threat. Shelter plans should already be in place.` };
+  return {
+    frame: `A major outbreak of ${thing.p} is expected. This is an extremely dangerous situation.`,
+    context: `This level of risk is rare. Violent, life-threatening weather is expected across this zone. Get to your safest location and stay there.` };
 }
 
 function popupContent(f, mode, day) {
@@ -783,7 +793,7 @@ function popupContent(f, mode, day) {
     return `<div class="popup-inner">
       <div class="popup-header">
         <div class="popup-swatch" style="background:${probC.fill};border-color:${probC.stroke}"></div>
-        <div><div class="popup-risk">${probC.label} Threat</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]} · ${probC.pct} probability</div></div>
+        <div><div class="popup-risk">${probC.label}</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div></div>
       </div>
       <div class="popup-divider"></div>
       <div class="popup-desc">${frame}</div>
