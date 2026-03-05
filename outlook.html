@@ -458,7 +458,7 @@ const PROB = [
   { dn:2,  fill:'#6abf6a', stroke:'#3d8c3d', label:'Very Low',  pct:'2%'  },
   { dn:5,  fill:'#55a855', stroke:'#337733', label:'Low',       pct:'5%'  },
   { dn:10, fill:'#f0e040', stroke:'#b8a800', label:'Elevated',  pct:'10%' },
-  { dn:15, fill:'#ff9400', stroke:'#cc6200', label:'Moderate',  pct:'15%' },
+  { dn:15, fill:'#ffff00', stroke:'#cccc00', label:'Moderate',  pct:'15%' },
   { dn:30, fill:'#ff0000', stroke:'#cc0000', label:'High',      pct:'30%' },
   { dn:45, fill:'#ff00ff', stroke:'#cc00cc', label:'Very High', pct:'45%' },
   { dn:60, fill:'#871aec', stroke:'#5a00a8', label:'Extreme',   pct:'60%' },
@@ -669,22 +669,23 @@ function initMap() {
     states:     L.svg({ pane:'statesPane' }).addTo(theMap),
   };
 
-  // Inject hatch <defs> directly into the sigOutline renderer's SVG element
-  // so url(#sig-hatch) resolves correctly when Leaflet draws polygons into it
-  const sigSvgEl = theMap.getPane('sigOutlinePane').querySelector('svg');
-  if (sigSvgEl) {
+  // Inject hatch pattern into sigOutline SVG — deferred so Leaflet has time to create the SVG el
+  function injectHatchPattern() {
+    const sigSvgEl = theMap.getPane('sigOutlinePane')?.querySelector('svg');
+    if (!sigSvgEl) { setTimeout(injectHatchPattern, 50); return; }
+    // Remove any existing defs to avoid duplicates
+    sigSvgEl.querySelectorAll('defs').forEach(d => d.remove());
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     defs.innerHTML = `
       <pattern id="sig-hatch" x="0" y="0" width="10" height="10"
                patternUnits="userSpaceOnUse" patternTransform="rotate(45 0 0)">
-        <rect width="10" height="10" fill="#b06050" fill-opacity="0.72"/>
-        <line x1="5" y1="0" x2="5" y2="10" stroke="#111" stroke-width="2" stroke-opacity="0.5"/>
+        <rect width="10" height="10" fill="#b06050" fill-opacity="0.8"/>
+        <line x1="5" y1="0" x2="5" y2="10" stroke="#000" stroke-width="2.5" stroke-opacity="0.6"/>
       </pattern>`;
     sigSvgEl.insertBefore(defs, sigSvgEl.firstChild);
-    console.log('[jWeather] sig-hatch pattern injected into renderer SVG');
-  } else {
-    console.warn('[jWeather] Could not find sigOutline SVG element for hatch injection');
+    theMap._hatchReady = true;
   }
+  setTimeout(injectHatchPattern, 0);
 
   makeBaseTiles().addTo(theMap);
 
@@ -920,23 +921,42 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render sig zone: brownish-pink hatch fill + solid dark border, matching SPC style
+    // Render sig zone with solid brownish fill first (Leaflet sanitizes fillColor)
+    // then patch SVG path fill attributes directly to url(#sig-hatch)
     activeSigLayer = L.geoJSON(gj, {
       style: {
-        color: '#333',          // dark outline like SPC
-        weight: 1.5,
-        opacity: 0.9,
-        fillColor: 'url(#sig-hatch)',  // SVG pattern — brown/pink + diagonal lines
-        fillOpacity: 1,
+        color: '#111',
+        weight: 2,
+        opacity: 1,
+        fillColor: '#b06050',   // fallback brownish — gets patched to url(#sig-hatch) below
+        fillOpacity: 0.85,
       },
       renderer: theMap._renderers?.sigOutline || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:2.5, color:'#000' }); });
-        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:3, color:'#000' }); });
+        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); this._applyHatch && this._applyHatch(); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
     }).addTo(theMap);
+
+    // Patch all rendered path elements to use the hatch pattern fill
+    // Must run after Leaflet flushes paths to DOM
+    function applyHatchFill() {
+      if (!theMap._hatchReady) { setTimeout(applyHatchFill, 50); return; }
+      activeSigLayer.eachLayer(lyr => {
+        const el = lyr.getElement ? lyr.getElement() : null;
+        if (el) {
+          el.setAttribute('fill', 'url(#sig-hatch)');
+          el.setAttribute('fill-opacity', '1');
+          lyr._applyHatch = () => {
+            el.setAttribute('fill', 'url(#sig-hatch)');
+            el.setAttribute('fill-opacity', '1');
+          };
+        }
+      });
+    }
+    setTimeout(applyHatchFill, 0);
 
     // Single badge anchored to the overall bounding box center of ALL sig features
     try {
@@ -1001,14 +1021,14 @@ function sigPopupContent(f, mode, day) {
     probLine = `<div class="popup-stat" style="margin-top:8px;">Base probability: ${probC.label} (${probC.pct})</div>`;
   }
 
-  // Hatch swatch — CSS diagonal lines matching map pattern
+  // Hatch swatch matching the SVG pattern (brown base + diagonal lines)
   const hatchSwatch = `<div class="popup-swatch" style="
     background: repeating-linear-gradient(
       45deg,
-      rgba(0,0,0,0.45) 0px, rgba(0,0,0,0.45) 2px,
-      rgba(176,96,80,0.8) 2px, rgba(176,96,80,0.8) 8px
+      rgba(0,0,0,0.6) 0px, rgba(0,0,0,0.6) 2.5px,
+      rgba(176,96,80,0.85) 2.5px, rgba(176,96,80,0.85) 10px
     );
-    border:1.5px solid #333;box-sizing:border-box;border-radius:3px;
+    border:2px solid #111;box-sizing:border-box;border-radius:3px;
   "></div>`;
 
   return `<div class="popup-sig-bar">
