@@ -1220,7 +1220,8 @@ Respond ONLY with a valid JSON object (no markdown fences, no extra text) with t
 
 Keep every field plain-spoken. Do not use abbreviations like CAPE, SRH, hodograph, Z, mb, kt, or any meteorological jargon. If you must reference a location, use city names not coordinates. Write like you are texting a friend who is worried about the weather.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Route through Cloudflare Worker to keep API key server-side and avoid CORS
+    const response = await fetch(`${WORKER_URL}/ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
