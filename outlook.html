@@ -538,13 +538,14 @@ let activeMode = 'cat';
 
 // ─────────────────────────────────────────────
 //  TILE LAYERS
-//  Base:   CARTO Positron no-labels (free, no API key)
-//  States: US Census GeoJSON overlay (crisp borders)
-//  Labels: CARTO Positron labels-only on top
+//  Single layer: CARTO Voyager — Google Maps style with full city labels at all zooms
+//  Outlook polygons render above the base but below the label tile layer
+//  so city/road names always show through on top of the weather polygons.
 // ─────────────────────────────────────────────
 function makeBaseTiles() {
+  // Voyager no-labels — base roads/geography without text
   return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
     {
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains:'abcd', maxZoom:19,
@@ -553,8 +554,9 @@ function makeBaseTiles() {
   );
 }
 function makeLabelTiles() {
+  // Voyager labels-only — city names, roads, POIs on top of everything
   return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
     {
       subdomains:'abcd', maxZoom:19,
       r: window.devicePixelRatio > 1 ? '@2x' : '',
