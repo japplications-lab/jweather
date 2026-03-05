@@ -1225,7 +1225,7 @@ Keep every field plain-spoken. Do not use abbreviations like CAPE, SRH, hodograp
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: 1000,
         system: systemPrompt,
         messages: [{ role: 'user', content: discCache[day] }]
