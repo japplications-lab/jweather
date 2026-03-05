@@ -533,6 +533,10 @@ const CAT = {
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
+const ENH_PLUS   = ['ENH','MDT','HIGH'];
+const RISK_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
+// Stores the highest ENH+ risk detected per day's categorical layer as it loads
+const highestRiskByDay = { 1: null, 2: null, 3: null };
 
 // Exact SPC probability colors sampled directly from official SPC legend
 // 5% = green per user preference (SPC uses brown #c5a392)
@@ -970,28 +974,26 @@ async function loadHazard(day, mode) {
 
     buildLegend(gj, mode);
 
-    // Pulse the sidebar button if ENH or higher is present in this layer
+    // Detect highest ENH+ risk in any categorical layer and store + pulse
     if (mode === 'cat') {
-      const ENH_PLUS = ['ENH','MDT','HIGH'];
-      const riskOrder = ['ENH','MDT','HIGH'];
       let highestRisk = null;
       for (const feat of gj.features) {
         const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
         const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
         if (ENH_PLUS.includes(key)) {
-          const rank = riskOrder.indexOf(key);
-          if (highestRisk === null || rank > riskOrder.indexOf(highestRisk)) highestRisk = key;
+          const rank = RISK_ORDER.indexOf(key);
+          if (highestRisk === null || rank > RISK_ORDER.indexOf(highestRisk)) highestRisk = key;
         }
       }
+      // Always store (even null) so we know this day was checked
+      highestRiskByDay[day] = highestRisk;
       if (highestRisk) {
         const pulseClass = 'pulse-' + highestRisk.toLowerCase();
         const activeBtn = document.querySelector(`.cat-btn[data-day="${day}"][data-mode="${mode}"]`);
         if (activeBtn) {
-          // Remove any existing pulse classes then re-add to restart animation
           activeBtn.classList.remove('pulse-enh','pulse-mdt','pulse-high');
-          void activeBtn.offsetWidth; // force reflow to restart animation
+          void activeBtn.offsetWidth;
           activeBtn.classList.add(pulseClass);
-          // Clean up after animation finishes (3 × 0.6s = 1.8s)
           setTimeout(() => activeBtn.classList.remove(pulseClass), 1900);
         }
       }
@@ -1361,29 +1363,18 @@ async function openDisc(day, label) {
 
 document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
-    await openDisc(+btn.dataset.day, btn.dataset.label);
-    // Pulse the modal title if the current loaded layer has ENH+ risk
-    if (activeDay === +btn.dataset.day && activeMode === 'cat' && activeLayer) {
-      const ENH_PLUS = ['ENH','MDT','HIGH'];
-      const riskOrder = ['ENH','MDT','HIGH'];
-      let highestRisk = null;
-      activeLayer.eachLayer(lyr => {
-        const p = lyr.feature?.properties || {};
-        const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
-        const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
-        if (ENH_PLUS.includes(key)) {
-          const rank = riskOrder.indexOf(key);
-          if (highestRisk === null || rank > riskOrder.indexOf(highestRisk)) highestRisk = key;
-        }
-      });
-      if (highestRisk) {
-        const pulseClass = 'pulse-' + highestRisk.toLowerCase();
-        const title = document.getElementById('disc-modal-title');
-        title.classList.remove('pulse-enh','pulse-mdt','pulse-high');
-        void title.offsetWidth;
-        title.classList.add(pulseClass);
-        setTimeout(() => title.classList.remove(pulseClass), 1900);
-      }
+    const day = +btn.dataset.day;
+    await openDisc(day, btn.dataset.label);
+    // Pulse the modal title using the stored highest risk for this day
+    // Works regardless of which mode (cat/prob/torn/etc.) is currently active
+    const highestRisk = highestRiskByDay[day];
+    if (highestRisk) {
+      const pulseClass = 'pulse-' + highestRisk.toLowerCase();
+      const title = document.getElementById('disc-modal-title');
+      title.classList.remove('pulse-enh','pulse-mdt','pulse-high');
+      void title.offsetWidth;
+      title.classList.add(pulseClass);
+      setTimeout(() => title.classList.remove(pulseClass), 1900);
     }
   });
 });
