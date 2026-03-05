@@ -154,9 +154,9 @@
       100% { background: #e5182a; }
     }
     @keyframes pulse-tstm {
-      0%   { background: #f59e0b; }
-      40%  { background: #fcd34d; }
-      100% { background: #f59e0b; }
+      0%   { background: #ffe600; }
+      40%  { background: #fff176; }
+      100% { background: #ffe600; }
     }
 
     .alert-row-tornado {
@@ -170,13 +170,15 @@
     }
     .alert-row-tornado .alert-event { color: #fff; font-weight: 700; }
     .alert-row-tornado .alert-expires { color: rgba(255,255,255,0.75); }
-    .alert-row-tornado .alert-pip { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+    .alert-row-tornado .alert-pip { display: none; }
+    .alert-row-tornado .alert-type-icon { font-size: 18px; color: #fff; flex-shrink: 0; margin-top: 2px;
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .alert-row-tornado .alert-chevron { color: rgba(255,255,255,0.7); }
     .alert-row-tornado:hover { background: #c8101f !important; }
     .alert-row-tornado:hover .alert-chevron { color: #fff; }
 
     .alert-row-tstm {
-      background: #f59e0b;
+      background: #ffe600;
       border-radius: var(--r-xs);
       margin: 0 -8px;
       padding-left: 8px !important;
@@ -186,9 +188,11 @@
     }
     .alert-row-tstm .alert-event { color: #1a1000; font-weight: 700; }
     .alert-row-tstm .alert-expires { color: rgba(0,0,0,0.55); }
-    .alert-row-tstm .alert-pip { background: #92400e; box-shadow: 0 0 0 3px rgba(146,64,14,0.25); }
+    .alert-row-tstm .alert-pip { display: none; }
+    .alert-row-tstm .alert-type-icon { font-size: 18px; color: #92400e; flex-shrink: 0; margin-top: 2px;
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .alert-row-tstm .alert-chevron { color: rgba(0,0,0,0.4); }
-    .alert-row-tstm:hover { background: #d97706 !important; }
+    .alert-row-tstm:hover { background: #f5da00 !important; }
 
     /* ===== RADAR ===== */
     .radar-body { width: 100%; aspect-ratio: 16 / 10; }
@@ -728,7 +732,12 @@ function renderAlerts(data, spcResult) {
     const isTstm = evt.includes('severe thunderstorm warning');
     const row = document.createElement('div');
     row.className = 'alert-row' + (isTornado ? ' alert-row-tornado' : isTstm ? ' alert-row-tstm' : '');
-    row.innerHTML = `<div class="alert-pip"></div><div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
+    const leadIcon = isTornado
+      ? `<span class="material-symbols-rounded alert-type-icon">tornado</span>`
+      : isTstm
+        ? `<span class="material-symbols-rounded alert-type-icon">bolt</span>`
+        : `<div class="alert-pip"></div>`;
+    row.innerHTML = `${leadIcon}<div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
     row.addEventListener('click', () => showModal(i)); c.appendChild(row);
   });
 }
