@@ -95,9 +95,10 @@
     .cat-btn:hover .cat-icon{color:var(--text-2);}
 
     /* Discussion button in sidebar */
-    .disc-sidebar-btn{display:flex;align-items:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 7px;padding:5px 9px;border:1px solid var(--border-2);background:var(--bg);border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:border-color .15s,color .15s;}
-    .disc-sidebar-btn:hover{border-color:var(--red);color:var(--red);}
-    .disc-sidebar-btn .material-symbols-rounded{font-size:13px;}
+    .disc-sidebar-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 10px;padding:7px 9px;border:none;background:var(--red);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:700;color:#fff;letter-spacing:0.02em;transition:opacity .15s,transform .1s;}
+    .disc-sidebar-btn:hover{opacity:0.88;transform:translateY(-1px);}
+    .disc-sidebar-btn:active{transform:translateY(0);opacity:1;}
+    .disc-sidebar-btn .material-symbols-rounded{font-size:14px;}
 
     /* ── MAP PANEL ── */
     .map-panel{flex:1;position:relative;background:#e8eaed;min-width:0;}
@@ -136,6 +137,21 @@
     .disc-err{color:var(--red);font-size:0.82rem;padding:6px 0;}
     .disc-fallback{font-size:0.82rem;color:var(--text-3);margin-top:10px;}
     .disc-fallback a{color:var(--red);text-decoration:none;}
+    .disc-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+    .disc-tab{flex:1;padding:9px 0;font-size:0.72rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--text-4);font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;}
+    .disc-tab.active{color:var(--red);border-bottom-color:var(--red);}
+    .disc-tab:hover:not(.active){color:var(--text-2);}
+    .disc-ai-wrap{padding:18px 22px 24px;overflow-y:auto;flex:1;}
+    .disc-ai-section{margin-bottom:18px;}
+    .disc-ai-section:last-child{margin-bottom:0;}
+    .disc-ai-label{font-size:0.62rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+    .disc-ai-urgent{background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;padding:11px 14px;margin-bottom:14px;}
+    .disc-ai-urgent .disc-ai-label{color:#be123c;}
+    .disc-ai-urgent p{font-size:0.78rem;color:#881337;line-height:1.65;margin:0;}
+    .disc-ai-body p{font-size:0.79rem;color:var(--text-2);line-height:1.7;margin:0 0 10px;}
+    .disc-ai-body p:last-child{margin-bottom:0;}
+    .disc-ai-thinking{display:flex;align-items:center;gap:10px;padding:28px 0;color:var(--text-4);font-size:0.82rem;}
+    .disc-ai-thinking .spin-ring{border-color:rgba(0,0,0,.08);border-top-color:var(--red);}
 
     /* Leaflet overrides */
     .leaflet-container{font-family:var(--font);}
@@ -299,7 +315,7 @@
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
-        <span class="material-symbols-rounded">description</span>Discussion
+        <span class="material-symbols-rounded">open_in_new</span>Open Discussion
       </button>
     </div>
 
@@ -327,7 +343,7 @@
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
-        <span class="material-symbols-rounded">description</span>Discussion
+        <span class="material-symbols-rounded">open_in_new</span>Open Discussion
       </button>
     </div>
 
@@ -349,7 +365,7 @@
         </button>
       </div>
       <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
-        <span class="material-symbols-rounded">description</span>Discussion
+        <span class="material-symbols-rounded">open_in_new</span>Open Discussion
       </button>
     </div>
 
@@ -393,6 +409,10 @@
       <div class="disc-pip"></div>
       <div id="disc-modal-title" class="disc-modal-title">SPC Discussion</div>
       <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="disc-tabs">
+      <button class="disc-tab active" id="tab-plain">Plain English</button>
+      <button class="disc-tab" id="tab-original">Original</button>
     </div>
     <div class="disc-modal-body" id="disc-modal-body">
       <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
@@ -821,7 +841,7 @@ function buildLegend(geojson, mode) {
   } else {
     const dns = new Set();
     geojson.features.forEach(f => { const d=parseInt(f.properties.DN||f.properties.dn||0); if(d>0) dns.add(d); });
-    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:`${p.label} (${p.pct})` }); });
+    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:p.label }); });
   }
 
   if (!items.length) { box.style.display='none'; return; }
@@ -1096,37 +1116,153 @@ document.querySelectorAll('.cat-btn').forEach(btn => {
 // ─────────────────────────────────────────────
 const discModal = document.getElementById('disc-modal');
 
-async function openDisc(day, label) {
-  document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
+// disc state per day
+const discAiCache = {};
+let discActiveDay = null;
+let discActiveTab = 'plain'; // 'plain' | 'original'
+
+function setDiscTab(tab) {
+  discActiveTab = tab;
+  document.getElementById('tab-plain').classList.toggle('active', tab === 'plain');
+  document.getElementById('tab-original').classList.toggle('active', tab === 'original');
+  renderDiscBody();
+}
+
+function renderDiscBody() {
   const body = document.getElementById('disc-modal-body');
-  body.innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading…</div>';
+  const day = discActiveDay;
+  const raw = discCache[day];
+  const ai  = discAiCache[day];
+
+  if (discActiveTab === 'original') {
+    if (raw) {
+      body.innerHTML = `<pre>${esc(raw)}</pre>`;
+    } else {
+      body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+    }
+    return;
+  }
+
+  // Plain English tab
+  if (!raw) {
+    body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+    return;
+  }
+  if (ai === 'loading') {
+    body.innerHTML = `<div class="disc-ai-thinking"><div class="spin-ring"></div>Translating into plain English…</div>`;
+    return;
+  }
+  if (ai && ai.error) {
+    body.innerHTML = `<div class="disc-err">Could not translate: ${esc(ai.error)}</div>
+      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read original on SPC website ↗</a></div>`;
+    return;
+  }
+  if (ai) {
+    // Render structured AI response
+    let html = '';
+    if (ai.urgent) {
+      html += `<div class="disc-ai-urgent"><div class="disc-ai-label">⚠ Heads Up</div><p>${esc(ai.urgent)}</p></div>`;
+    }
+    if (ai.summary) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">What's Happening</div><div class="disc-ai-body"><p>${esc(ai.summary)}</p></div></div>`;
+    }
+    if (ai.threats) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">Main Threats</div><div class="disc-ai-body"><p>${esc(ai.threats)}</p></div></div>`;
+    }
+    if (ai.timing) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">When to Expect It</div><div class="disc-ai-body"><p>${esc(ai.timing)}</p></div></div>`;
+    }
+    if (ai.confidence) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">How Confident Are Forecasters?</div><div class="disc-ai-body"><p>${esc(ai.confidence)}</p></div></div>`;
+    }
+    body.innerHTML = html || '<div class="disc-ai-body"><p>Translation complete, but no content was returned.</p></div>';
+    return;
+  }
+  // AI not started yet — shouldn't happen
+  body.innerHTML = `<div class="disc-ai-thinking"><div class="spin-ring"></div>Translating…</div>`;
+}
+
+async function fetchRawDisc(day) {
+  if (discCache[day] !== undefined) return;
+  discCache[day] = null;
+  try {
+    const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const pre  = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+    if (pre) {
+      discCache[day] = pre[1]
+        .replace(/<script[\s\S]*?<\/script>/gi,'')
+        .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
+        .replace(/<[^>]+>/g,'')
+        .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
+        .trim();
+    }
+  } catch(e) { discCache[day] = null; }
+}
+
+async function fetchAiSummary(day) {
+  if (discAiCache[day]) return; // already done or loading
+  if (!discCache[day]) return;  // no raw text to translate
+  discAiCache[day] = 'loading';
+  renderDiscBody();
+  try {
+    const systemPrompt = `You are a weather translator. You receive official Storm Prediction Center forecast discussions — dense, technical meteorological text written for professionals. Your job is to translate them into clear, plain language for a general audience who just wants to understand what the weather will do and whether they need to worry.
+
+Respond ONLY with a valid JSON object (no markdown fences, no extra text) with these keys:
+- "urgent": string or null — If the discussion contains any particularly dangerous situation (PDS), tornado emergency, extreme risk, or explicit urgent warning, summarize it here in 1-2 direct sentences. This should feel alarming if warranted. Null if nothing urgent.
+- "summary": string — 2-4 sentences. What is the overall weather setup? What is the atmosphere doing? Skip the jargon entirely.
+- "threats": string — 2-4 sentences. What specific threats are expected — tornadoes, large hail, damaging winds? How bad could it get? Where is the worst area?
+- "timing": string — 1-3 sentences. When do storms develop? When is the peak threat? When does it end?
+- "confidence": string — 1-2 sentences. How confident are forecasters? Are there any major uncertainties they flagged?
+
+Keep every field plain-spoken. Do not use abbreviations like CAPE, SRH, hodograph, Z, mb, kt, or any meteorological jargon. If you must reference a location, use city names not coordinates. Write like you are texting a friend who is worried about the weather.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: discCache[day] }]
+      })
+    });
+    if (!response.ok) throw new Error(`API ${response.status}`);
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    // Strip any accidental markdown fences
+    const clean = text.replace(/^```json\s*/i,'').replace(/```\s*$/,'').trim();
+    discAiCache[day] = JSON.parse(clean);
+  } catch(e) {
+    discAiCache[day] = { error: e.message };
+  }
+  renderDiscBody();
+}
+
+async function openDisc(day, label) {
+  discActiveDay = day;
+  document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
   discModal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  if (!discCache[day]) {
-    try {
-      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const html = await res.text();
-      const pre  = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-      if (pre) {
-        discCache[day] = pre[1]
-          .replace(/<script[\s\S]*?<\/script>/gi,'')
-          .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
-          .replace(/<[^>]+>/g,'')
-          .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
-          .trim();
-      }
-    } catch(e) { discCache[day] = null; }
-  }
+  // Default to Plain English tab
+  discActiveTab = 'plain';
+  document.getElementById('tab-plain').classList.add('active');
+  document.getElementById('tab-original').classList.remove('active');
 
-  const disc = discCache[day];
-  if (disc) {
-    body.innerHTML = `<pre>${esc(disc)}</pre>`;
-  } else {
-    body.innerHTML = `<div class="disc-err">Discussion not available.</div>
-      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
-  }
+  // Show loading state
+  document.getElementById('disc-modal-body').innerHTML =
+    '<div class="disc-loading"><div class="spin-ring"></div>Loading…</div>';
+
+  // Fetch raw discussion first
+  await fetchRawDisc(day);
+
+  // Start AI translation in parallel (or render immediately if already cached)
+  renderDiscBody();
+  fetchAiSummary(day); // fire and forget — renderDiscBody called when done
 }
 
 document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
@@ -1134,6 +1270,8 @@ document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
 });
 document.getElementById('disc-close').addEventListener('click', closeDisc);
 discModal.addEventListener('click', e => { if(e.target===discModal) closeDisc(); });
+document.getElementById('tab-plain').addEventListener('click',    () => setDiscTab('plain'));
+document.getElementById('tab-original').addEventListener('click', () => setDiscTab('original'));
 function closeDisc(){ discModal.style.display='none'; document.body.style.overflow=''; }
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
