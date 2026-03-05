@@ -408,10 +408,9 @@
 const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
 const SPC_BASE   = 'https://www.spc.noaa.gov';
 const NOAA_BASE  = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer';
-// Bounds for initial view — encompasses CONUS + Hawaii + Alaska
-const CONUS = [[18, -170], [72, -60]];
-// Restrict panning so users can't scroll into empty ocean endlessly
-const MAX_BOUNDS = [[10, -180], [75, -50]];
+// Lower 48 only — tight fit with max bounds to block Canada/Mexico/ocean
+const CONUS = [[24.3, -124.8], [49.4, -66.8]];
+const MAX_BOUNDS = [[22, -128], [52, -63]];
 
 // NOAA ArcGIS layer IDs — confirmed from MapServer pjson
 // Day 1 subLayers [1-7]: 1=cat, 2=sig_torn, 3=prob_torn, 4=sig_hail, 5=prob_hail, 6=sig_wind, 7=prob_wind
@@ -633,9 +632,12 @@ async function addStatesOverlay(map) {
 function initMap() {
   theMap = L.map('main-map', {
     center:[38,-96], zoom:4,
-    zoomControl:false,      // we add it manually to control position
+    zoomControl:false,
     scrollWheelZoom:true,
     attributionControl:true,
+    minZoom:4,
+    maxBounds: MAX_BOUNDS,
+    maxBoundsViscosity: 1.0,  // hard stop — no elastic bounce outside bounds
   });
   L.control.zoom({ position:'topright' }).addTo(theMap);
 
