@@ -564,57 +564,15 @@ locBtn.addEventListener('click', () => {
   }, () => { alert('Unable to get location.'); locBtn.disabled=false; locBtn.innerHTML=`<span class="material-symbols-rounded">my_location</span> Locate me`; });
 });
 
-// ── Ray-casting point-in-polygon ──
-function pointInRing(pt, ring) {
-  let inside = false;
-  const [x, y] = pt;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i], [xj, yj] = ring[j];
-    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
-  }
-  return inside;
-}
-
-function pointInFeature(pt, feature) {
-  const geom = feature.geometry;
-  if (!geom) return false;
-  const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : [];
-  for (const poly of polys) {
-    if (pointInRing(pt, poly[0])) return true; // outer ring only
-  }
-  return false;
-}
-
 async function fetchSpcOutlookForPoint(lat, lng) {
-  const days = [
-    { day: 1, url: 'day1otlk.json',  label: 'Today'          },
-    { day: 2, url: 'day2otlk.json',  label: 'Tomorrow'       },
-    { day: 3, url: 'day3otlk.json',  label: 'in 2 Days'      },
-  ];
-  const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
-  const pt = [lng, lat]; // GeoJSON is [lon, lat]
-
-  for (const { url, label } of days) {
-    try {
-      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${url}`);
-      if (!res.ok) continue;
-      const gj = await res.json();
-      if (!gj.features?.length) continue;
-
-      let best = null, bestOrder = -1;
-      for (const feat of gj.features) {
-        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
-        const key = SPC_CAT[raw] ? raw : (DN_TO_CAT[raw] || null);
-        if (!key || key === 'TSTM') continue;
-        const rank = order.indexOf(key);
-        if (rank > bestOrder && pointInFeature(pt, feat)) {
-          best = key; bestOrder = rank;
-        }
-      }
-      if (best) return { risk: best, dayLabel: label };
-    } catch(e) { console.warn(`SPC day check failed:`, e); }
+  try {
+    const res = await fetch(`${WORKER_URL}/outlook?lat=${lat}&lng=${lng}`);
+    if (!res.ok) return null;
+    return await res.json(); // null or { risk, dayLabel, color, label }[]
+  } catch(e) {
+    console.warn('SPC outlook fetch failed:', e);
+    return null;
   }
-  return null;
 }
 
 async function loadWeather(loc) {
@@ -695,23 +653,26 @@ function renderAlerts(data, spcResult) {
   const c = document.getElementById('alerts-content');
   c.innerHTML = '';
 
-  // Inject SPC outlook banner if location is inside an outlook polygon
-  if (spcResult && SPC_CAT[spcResult.risk]) {
-    const info = SPC_CAT[spcResult.risk];
+  // Inject SPC outlook banners — one row per day that has a risk
+  const spcDays = Array.isArray(spcResult) ? spcResult : (spcResult ? [spcResult] : []);
+  for (const day of spcDays) {
+    if (!day || !SPC_CAT[day.risk]) continue;
+    const info = SPC_CAT[day.risk];
     const banner = document.createElement('a');
     banner.className = 'spc-alert-row';
     banner.href = 'outlook.html';
     banner.innerHTML = `
       <div class="spc-pip" style="background:${info.color};box-shadow:0 0 0 3px ${info.color}44"></div>
       <div class="spc-alert-info">
-        <div class="spc-alert-event">Severe Weather Possible ${spcResult.dayLabel}</div>
-        <div class="spc-alert-sub">Tap for additional details</div>
+        <div class="spc-alert-event">${info.label} — Severe Weather ${day.dayLabel}</div>
+        <div class="spc-alert-sub">SPC Convective Outlook · Tap for details</div>
       </div>
       <span class="material-symbols-rounded spc-alert-chevron">chevron_right</span>`;
     c.appendChild(banner);
   }
 
-  if (!alerts.length && !spcResult) {
+  const hasSpc = Array.isArray(spcResult) ? spcResult.length > 0 : !!spcResult;
+  if (!alerts.length && !hasSpc) {
     c.innerHTML = `<div class="no-alerts-row"><div class="no-alerts-pip"></div><div><div class="no-alerts-label">No active alerts</div><div class="no-alerts-sub">All clear.</div></div></div>`;
     return;
   }
