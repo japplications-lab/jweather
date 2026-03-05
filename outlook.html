@@ -94,6 +94,49 @@
       font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .cat-btn:hover .cat-icon{color:var(--text-2);}
 
+    /* ── ENH+ PULSE ANIMATIONS ── */
+    @keyframes pulse-enh {
+      0%   { background: #e88020; color: #fff; }
+      40%  { background: #f5a04a; color: #fff; }
+      100% { background: #e88020; color: #fff; }
+    }
+    @keyframes pulse-mdt {
+      0%   { background: #e04040; color: #fff; }
+      40%  { background: #f06060; color: #fff; }
+      100% { background: #e04040; color: #fff; }
+    }
+    @keyframes pulse-high {
+      0%   { background: #ee30a0; color: #fff; }
+      40%  { background: #f560bb; color: #fff; }
+      100% { background: #ee30a0; color: #fff; }
+    }
+    @keyframes pulse-text-enh {
+      0%   { color: var(--text); }
+      40%  { color: #e88020; }
+      100% { color: var(--text); }
+    }
+    @keyframes pulse-text-mdt {
+      0%   { color: var(--text); }
+      40%  { color: #e04040; }
+      100% { color: var(--text); }
+    }
+    @keyframes pulse-text-high {
+      0%   { color: var(--text); }
+      40%  { color: #ee30a0; }
+      100% { color: var(--text); }
+    }
+
+    .cat-btn.pulse-enh  { animation: pulse-enh  0.6s ease-in-out 3; background: #e88020 !important; color: #fff !important; font-weight: 700 !important; border-radius: 6px; }
+    .cat-btn.pulse-mdt  { animation: pulse-mdt  0.6s ease-in-out 3; background: #e04040 !important; color: #fff !important; font-weight: 700 !important; border-radius: 6px; }
+    .cat-btn.pulse-high { animation: pulse-high 0.6s ease-in-out 3; background: #ee30a0 !important; color: #fff !important; font-weight: 700 !important; border-radius: 6px; }
+    .cat-btn.pulse-enh  .cat-icon,
+    .cat-btn.pulse-mdt  .cat-icon,
+    .cat-btn.pulse-high .cat-icon { color: #fff !important; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+    .disc-modal-title.pulse-enh  { animation: pulse-text-enh  0.6s ease-in-out 3; }
+    .disc-modal-title.pulse-mdt  { animation: pulse-text-mdt  0.6s ease-in-out 3; }
+    .disc-modal-title.pulse-high { animation: pulse-text-high 0.6s ease-in-out 3; }
+
     /* Discussion button in sidebar */
     .disc-sidebar-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 10px;padding:7px 9px;border:none;background:var(--red);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:700;color:#fff;letter-spacing:0.02em;transition:opacity .15s,transform .1s;}
     .disc-sidebar-btn:hover{opacity:0.88;transform:translateY(-1px);}
@@ -927,6 +970,33 @@ async function loadHazard(day, mode) {
 
     buildLegend(gj, mode);
 
+    // Pulse the sidebar button if ENH or higher is present in this layer
+    if (mode === 'cat') {
+      const ENH_PLUS = ['ENH','MDT','HIGH'];
+      const riskOrder = ['ENH','MDT','HIGH'];
+      let highestRisk = null;
+      for (const feat of gj.features) {
+        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
+        const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+        if (ENH_PLUS.includes(key)) {
+          const rank = riskOrder.indexOf(key);
+          if (highestRisk === null || rank > riskOrder.indexOf(highestRisk)) highestRisk = key;
+        }
+      }
+      if (highestRisk) {
+        const pulseClass = 'pulse-' + highestRisk.toLowerCase();
+        const activeBtn = document.querySelector(`.cat-btn[data-day="${day}"][data-mode="${mode}"]`);
+        if (activeBtn) {
+          // Remove any existing pulse classes then re-add to restart animation
+          activeBtn.classList.remove('pulse-enh','pulse-mdt','pulse-high');
+          void activeBtn.offsetWidth; // force reflow to restart animation
+          activeBtn.classList.add(pulseClass);
+          // Clean up after animation finishes (3 × 0.6s = 1.8s)
+          setTimeout(() => activeBtn.classList.remove(pulseClass), 1900);
+        }
+      }
+    }
+
 
 
     // Valid time badge
@@ -1290,7 +1360,32 @@ async function openDisc(day, label) {
 }
 
 document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
-  btn.addEventListener('click', () => openDisc(+btn.dataset.day, btn.dataset.label));
+  btn.addEventListener('click', async () => {
+    await openDisc(+btn.dataset.day, btn.dataset.label);
+    // Pulse the modal title if the current loaded layer has ENH+ risk
+    if (activeDay === +btn.dataset.day && activeMode === 'cat' && activeLayer) {
+      const ENH_PLUS = ['ENH','MDT','HIGH'];
+      const riskOrder = ['ENH','MDT','HIGH'];
+      let highestRisk = null;
+      activeLayer.eachLayer(lyr => {
+        const p = lyr.feature?.properties || {};
+        const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+        const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+        if (ENH_PLUS.includes(key)) {
+          const rank = riskOrder.indexOf(key);
+          if (highestRisk === null || rank > riskOrder.indexOf(highestRisk)) highestRisk = key;
+        }
+      });
+      if (highestRisk) {
+        const pulseClass = 'pulse-' + highestRisk.toLowerCase();
+        const title = document.getElementById('disc-modal-title');
+        title.classList.remove('pulse-enh','pulse-mdt','pulse-high');
+        void title.offsetWidth;
+        title.classList.add(pulseClass);
+        setTimeout(() => title.classList.remove(pulseClass), 1900);
+      }
+    }
+  });
 });
 document.getElementById('disc-close').addEventListener('click', closeDisc);
 discModal.addEventListener('click', e => { if(e.target===discModal) closeDisc(); });
