@@ -199,6 +199,21 @@
     .modal-instruction { margin-top: 14px; padding: 12px 14px; background: var(--red-dim); border: 1px solid var(--red-border); border-radius: var(--r-sm); font-size: 0.8rem; line-height: 1.7; color: var(--text-2); }
     .modal-instruction strong { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--red); margin-bottom: 5px; }
 
+
+    /* Coming soon toast */
+    #coming-soon-toast{
+      position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+      background:#1a1a1a;color:#fff;
+      font-family:var(--font);font-size:0.82rem;font-weight:600;
+      padding:11px 22px;border-radius:10px;
+      box-shadow:0 6px 24px rgba(0,0,0,.25);
+      display:flex;align-items:center;gap:9px;
+      opacity:0;pointer-events:none;
+      transition:opacity .2s,transform .2s;
+      z-index:9999;white-space:nowrap;
+    }
+    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
@@ -224,7 +239,7 @@
       <ul id="suggestions"></ul>
     </div>
     <nav class="header-nav">
-      <a href="index.html">Home</a>
+      <a href="index.html">Forecast</a>
       <div class="nav-dropdown">
         <button class="nav-dropdown-btn">
           Severe Weather <span class="material-symbols-rounded">expand_more</span>
@@ -232,14 +247,14 @@
         <div class="nav-dropdown-menu">
           <div class="nav-dropdown-menu-inner">
             <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-            <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-            <a href="parameters.html"><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-            <a href="101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
           </div>
         </div>
       </div>
-      <a href="contact.html">Contact</a>
-      <a href="about.html">About</a>
+      <a href="#" data-coming-soon>Contact</a>
+      <a href="#" data-coming-soon>About</a>
     </nav>
   </div>
 </header>
@@ -345,6 +360,11 @@
     <div id="modal-meta" class="modal-meta"></div>
     <div id="modal-body" class="modal-body"></div>
   </div>
+</div>
+
+<div id="coming-soon-toast">
+  <span class="material-symbols-rounded">construction</span>
+  This feature is still under development
 </div>
 
 <script>
@@ -597,6 +617,18 @@ function closeModal() { document.getElementById('alert-modal').style.display='no
 function updateRadar(lat, lng) {
   document.getElementById('radar-iframe').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=10&overlay=radar&product=radar&level=surface&lat=${+lat}&lon=${+lng}`;
 }
+
+// Coming soon toast
+let _toastTimer = null;
+function showComingSoon() {
+  const t = document.getElementById('coming-soon-toast');
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+document.querySelectorAll('[data-coming-soon]').forEach(el => {
+  el.addEventListener('click', e => { e.preventDefault(); showComingSoon(); });
+});
 </script>
 </body>
 </html>
