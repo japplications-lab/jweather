@@ -430,14 +430,14 @@ const SIG_LAYER_IDS = {
 const SIG_LABELS = {
   torn:'Significant Tornado (EF2+)',
   wind:'Significant Wind (65+ mph)',
-  hail:'Significant Hail (2"+ diameter)',
-  prob:'Significant Severe (EF2+ / 65mph+ / 2"+ hail)',
+  hail:'Significant Hail (2\"+ diameter)',
+  prob:'Significant Severe (EF2+ / 65mph+ / 2\"+ hail)',
 };
 const SIG_DESC = {
   torn:'This area has an elevated risk of violent EF2 or stronger tornadoes capable of destroying well-built homes and snapping large trees.',
   wind:'This area has an elevated risk of extremely damaging straight-line winds exceeding 65 mph — comparable to a weak hurricane gust — that can level structures and create widespread power outages.',
   hail:'This area has an elevated risk of very large hail at least 2 inches in diameter (roughly golf ball size), capable of destroying crops, denting vehicles, and breaking windows.',
-  prob:'This area has an elevated risk of particularly destructive severe weather — including EF2+ tornadoes, 65+ mph winds, and/or 2"+ hail — any of which can cause major structural damage.',
+  prob:'This area has an elevated risk of particularly destructive severe weather — including EF2+ tornadoes, 65+ mph winds, and/or 2\"+ hail — any of which can cause major structural damage.',
 };
 
 // Exact SPC colors
@@ -724,9 +724,9 @@ const CAT_DESC = {
   MRGL: { short:'Low Risk',        stat:'Isolated severe storms possible',
     desc:'A isolated storm or two could turn severe, but most of the area will see nothing. The threat is real but limited — a quick check of your local forecast before heading out is all you need.' },
   SLGT: { short:'Some Risk',       stat:'Scattered severe storms expected',
-    desc:'Some storms today will produce damaging winds, large hail, or a brief tornado. Not every storm will be severe, but enough will that it's worth having a plan before things kick off.' },
+    desc:'Some storms today will produce damaging winds, large hail, or a brief tornado. Not every storm will be severe, but enough will that it\'s worth having a plan before things kick off.' },
   ENH:  { short:'Elevated Risk',   stat:'Several severe storms expected, some intense',
-    desc:'Multiple severe storms are likely across this area. Damaging winds, large hail, and tornadoes are all possible. Some locations will see significant impacts — know where you're going if a warning is issued.' },
+    desc:'Multiple severe storms are likely across this area. Damaging winds, large hail, and tornadoes are all possible. Some locations will see significant impacts — know where you\'re going if a warning is issued.' },
   MDT:  { short:'High Risk',       stat:'Widespread severe storms, some potentially violent',
     desc:'This is a dangerous weather day. Widespread severe storms — including the potential for violent, long-track tornadoes and destructive winds — are expected. Have your shelter plan ready well before storms arrive.' },
   HIGH: { short:'Extreme Risk',    stat:'Major outbreak expected — life-threatening',
@@ -735,10 +735,10 @@ const CAT_DESC = {
 
 function probDesc(dn, hazard) {
   const thing = {
-    torn: { s:'tornado',             p:'tornadoes'          },
-    wind: { s:'damaging wind event', p:'damaging wind gusts'},
-    hail: { s:'large hail event',    p:'large hail'         },
-    prob: { s:'severe weather event','p':'severe storms'    },
+    torn: { s:'tornado',             p:'tornadoes'           },
+    wind: { s:'damaging wind event', p:'damaging wind gusts' },
+    hail: { s:'large hail event',    p:'large hail'          },
+    prob: { s:'severe weather event', p:'severe storms'      },
   }[hazard] || { s:'severe weather event', p:'severe storms' };
 
   if (dn <= 2)  return {
@@ -749,10 +749,10 @@ function probDesc(dn, hazard) {
     context: `The risk is real but not high for any given location. Worth keeping an eye on forecasts as the day progresses.` };
   if (dn <= 10) return {
     frame: `There is a noticeable chance of ${thing.p} somewhere in this area.`,
-    context: `Storms are expected in this zone — they won't affect everyone, but some spots will see significant impacts. Have a plan before storms develop.` };
+    context: `Storms are expected in this zone — they won\'t affect everyone, but some spots will see significant impacts. Have a plan before storms develop.` };
   if (dn <= 15) return {
     frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are likely in parts of this area.`,
-    context: `Multiple events are expected across this zone. Know your shelter options before storms arrive — don't wait until a warning is issued.` };
+    context: `Multiple events are expected across this zone. Know your shelter options before storms arrive — don\'t wait until a warning is issued.` };
   if (dn <= 30) return {
     frame: `Significant ${thing.p} are expected across a broad area.`,
     context: `A substantial portion of this zone will see direct impacts. This is a serious weather setup — preparation should happen now, not when storms are on the doorstep.` };
