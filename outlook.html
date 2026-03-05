@@ -425,7 +425,7 @@
       <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
     </div>
     <div class="disc-tabs">
-      <button class="disc-tab active" id="tab-plain">Plain English</button>
+      <button class="disc-tab active" id="tab-plain">AI Summary</button>
       <button class="disc-tab" id="tab-original">Original</button>
     </div>
     <div class="disc-modal-body" id="disc-modal-body">
@@ -1163,14 +1163,14 @@ function renderDiscBody() {
     return;
   }
 
-  // Plain English tab
+  // AI Summary tab
   if (!raw) {
     body.innerHTML = `<div class="disc-err">Discussion not available.</div>
       <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
     return;
   }
   if (ai === 'loading') {
-    body.innerHTML = `<div class="disc-ai-thinking"><div class="spin-ring"></div>Translating into plain English…</div>`;
+    body.innerHTML = `<div class="disc-ai-thinking"><div class="spin-ring"></div>Translating into AI Summary…</div>`;
     return;
   }
   if (ai && ai.error) {
@@ -1272,7 +1272,7 @@ async function openDisc(day, label) {
   discModal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  // Default to Plain English tab
+  // Default to AI Summary tab
   discActiveTab = 'plain';
   document.getElementById('tab-plain').classList.add('active');
   document.getElementById('tab-original').classList.remove('active');
