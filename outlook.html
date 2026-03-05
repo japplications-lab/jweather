@@ -153,6 +153,20 @@
     .disc-ai-thinking{display:flex;align-items:center;gap:10px;padding:28px 0;color:var(--text-4);font-size:0.82rem;}
     .disc-ai-thinking .spin-ring{border-color:rgba(0,0,0,.08);border-top-color:var(--red);}
 
+    /* Coming soon toast */
+    #coming-soon-toast{
+      position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+      background:#1a1a1a;color:#fff;
+      font-family:var(--font);font-size:0.82rem;font-weight:600;
+      padding:11px 22px;border-radius:10px;
+      box-shadow:0 6px 24px rgba(0,0,0,.25);
+      display:flex;align-items:center;gap:9px;
+      opacity:0;pointer-events:none;
+      transition:opacity .2s,transform .2s;
+      z-index:9999;white-space:nowrap;
+    }
+    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:none;}
+    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
     /* Leaflet overrides */
     .leaflet-container{font-family:var(--font);}
     .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.16);border:1px solid var(--border-2);font-family:var(--font);padding:0;min-width:240px;max-width:280px;}
@@ -264,20 +278,20 @@
       <ul id="suggestions"></ul>
     </div>
     <nav class="header-nav">
-      <a href="index.html">Home</a>
+      <a href="index.html">Forecast</a>
       <div class="nav-dropdown">
         <button class="nav-dropdown-btn">Severe Weather <span class="material-symbols-rounded">expand_more</span></button>
         <div class="nav-dropdown-menu">
           <div class="nav-dropdown-menu-inner">
             <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-            <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-            <a href="parameters.html"><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-            <a href="101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
           </div>
         </div>
       </div>
-      <a href="contact.html">Contact</a>
-      <a href="about.html">About</a>
+      <a href="#" data-coming-soon>Contact</a>
+      <a href="#" data-coming-soon>About</a>
     </nav>
   </div>
 </header>
@@ -418,6 +432,11 @@
       <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
     </div>
   </div>
+</div>
+
+<div id="coming-soon-toast">
+  <span class="material-symbols-rounded">construction</span>
+  This feature is still under development
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -1231,7 +1250,11 @@ Keep every field plain-spoken. Do not use abbreviations like CAPE, SRH, hodograp
         messages: [{ role: 'user', content: discCache[day] }]
       })
     });
-    if (!response.ok) throw new Error(`API ${response.status}`);
+    if (!response.ok) {
+      let errDetail = `API ${response.status}`;
+      try { const e = await response.json(); errDetail += ': ' + (e.error?.message || e.error || JSON.stringify(e)); } catch {}
+      throw new Error(errDetail);
+    }
     const data = await response.json();
     const text = data.content?.[0]?.text || '';
     // Strip any accidental markdown fences
@@ -1274,6 +1297,18 @@ discModal.addEventListener('click', e => { if(e.target===discModal) closeDisc();
 document.getElementById('tab-plain').addEventListener('click',    () => setDiscTab('plain'));
 document.getElementById('tab-original').addEventListener('click', () => setDiscTab('original'));
 function closeDisc(){ discModal.style.display='none'; document.body.style.overflow=''; }
+
+// Coming soon toast
+let _toastTimer = null;
+function showComingSoon() {
+  const t = document.getElementById('coming-soon-toast');
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+document.querySelectorAll('[data-coming-soon]').forEach(el => {
+  el.addEventListener('click', e => { e.preventDefault(); showComingSoon(); });
+});
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ─────────────────────────────────────────────
