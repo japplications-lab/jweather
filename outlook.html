@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>jWeather — SPC Convective Outlooks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <style>
+    :root {
+      --red:#e5182a; --red-dim:rgba(229,24,42,0.08);
+      --bg:#f2f3f5; --surface:#ffffff;
+      --border:rgba(0,0,0,0.07); --border-2:rgba(0,0,0,0.11);
+      --text:#0f1115; --text-2:#3a3d45; --text-3:#7c818f; --text-4:#b0b4be;
+      --sidebar:240px; --header:58px;
+      --r:12px; --r-sm:8px; --font:'Geist',system-ui,sans-serif;
+      --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
+    .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
+
+    /* ── HEADER ── */
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
+    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+    .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+    .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+    .logo-name span{color:var(--red);}
+    .search-wrap{flex:1;max-width:440px;position:relative;}
+    .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
+    .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
+    .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
+    #search-bar{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-bar::placeholder{color:var(--text-4);}
+    .loc-btn{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);border-radius:6px;padding:5px 11px;font-family:var(--font);font-size:0.77rem;font-weight:500;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;}
+    .loc-btn:hover{border-color:var(--red);color:var(--red);}
+    .loc-btn .material-symbols-rounded{font-size:14px;}
+    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+    #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
+    #suggestions li:last-child{border-bottom:none;}
+    #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
+    #suggestions li .material-symbols-rounded{font-size:13px;color:var(--red);}
+    .sug-city{font-weight:500;flex:1;}
+    .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
+    .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
+    .header-nav a:hover{color:var(--text);background:var(--bg);}
+    .nav-dropdown{position:relative;}
+    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--red);background:var(--red-dim);border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);white-space:nowrap;}
+    .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
+    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
+    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
+    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
+    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
+    .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;}
+    .nav-dropdown-menu a:last-child{border-bottom:none;}
+    .nav-dropdown-menu a.active,.nav-dropdown-menu a:hover{background:var(--red-dim);color:var(--red);}
+    .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
+
+    /* ── APP BODY: sidebar + map ── */
+    .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+    /* ── LEFT SIDEBAR ── */
+    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+    .sidebar::-webkit-scrollbar{width:3px;}
+    .sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
+
+    /* Sidebar header */
+    .sidebar-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .sidebar-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.11em;color:var(--text-4);}
+
+    /* Day sections — compact to fit all 3 days without scrolling */
+    .day-section{border-bottom:1px solid var(--border);}
+    .day-section-head{padding:8px 14px 6px;display:flex;align-items:center;justify-content:space-between;}
+    .day-section-label{display:flex;flex-direction:column;gap:1px;}
+    .day-eyebrow{font-size:0.57rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
+    .day-name{font-size:0.83rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
+    .day-badge{font-size:0.57rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:1px 5px;white-space:nowrap;}
+
+    /* Category buttons */
+    .cat-list{padding:2px 8px 4px;}
+    .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
+    .cat-btn:hover{background:var(--bg);color:var(--text-2);}
+    .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
+    .cat-icon{font-size:15px;flex-shrink:0;color:var(--text-3);
+      font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
+    .cat-btn.active .cat-icon{color:var(--red);
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .cat-btn:hover .cat-icon{color:var(--text-2);}
+
+    /* Discussion button in sidebar */
+    .disc-sidebar-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 10px;padding:7px 9px;border:none;background:var(--red);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:700;color:#fff;letter-spacing:0.02em;transition:opacity .15s,transform .1s;}
+    .disc-sidebar-btn:hover{opacity:0.88;transform:translateY(-1px);}
+    .disc-sidebar-btn:active{transform:translateY(0);opacity:1;}
+    .disc-sidebar-btn .material-symbols-rounded{font-size:14px;}
+
+    /* ── MAP PANEL ── */
+    .map-panel{flex:1;position:relative;background:#e8eaed;min-width:0;}
+    #main-map{position:absolute;inset:0;width:100%;height:100%;}
+
+    /* Map top bar */
+    .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
+    .map-context-pill{background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
+    .map-context-pill span{color:var(--red);}
+
+    /* Legend overlay */
+    .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
+    .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
+    .legend-items{display:flex;flex-direction:column;gap:5px;}
+    .legend-item{display:flex;align-items:center;gap:8px;font-size:0.72rem;font-weight:500;color:var(--text-2);}
+    .legend-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
+
+    /* Loading overlay */
+    .map-loading{position:absolute;inset:0;z-index:410;background:rgba(242,243,245,0.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
+    .map-loading.hidden{opacity:0;pointer-events:none;}
+    .spin-ring{width:24px;height:24px;border:2.5px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── DISCUSSION MODAL ── */
+    #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
+    .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.2);}
+    .disc-head{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .disc-pip{width:9px;height:9px;background:var(--red);border-radius:50%;flex-shrink:0;}
+    .disc-modal-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
+    .disc-close{background:none;border:none;color:var(--text-4);cursor:pointer;line-height:1;transition:color .15s;}
+    .disc-close:hover{color:var(--red);}
+    .disc-close .material-symbols-rounded{font-size:18px;}
+    .disc-modal-body{padding:18px 22px 24px;overflow-y:auto;flex:1;}
+    .disc-modal-body pre{white-space:pre-wrap;font-family:var(--font);font-size:0.8rem;line-height:1.85;color:var(--text-2);}
+    .disc-loading{display:flex;align-items:center;gap:12px;padding:32px 0;color:var(--text-4);font-size:0.83rem;}
+    .disc-err{color:var(--red);font-size:0.82rem;padding:6px 0;}
+    .disc-fallback{font-size:0.82rem;color:var(--text-3);margin-top:10px;}
+    .disc-fallback a{color:var(--red);text-decoration:none;}
+    .disc-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+    .disc-tab{flex:1;padding:9px 0;font-size:0.72rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--text-4);font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;}
+    .disc-tab.active{color:var(--red);border-bottom-color:var(--red);}
+    .disc-tab:hover:not(.active){color:var(--text-2);}
+    .disc-ai-wrap{padding:18px 22px 24px;overflow-y:auto;flex:1;}
+    .disc-ai-section{margin-bottom:18px;}
+    .disc-ai-section:last-child{margin-bottom:0;}
+    .disc-ai-label{font-size:0.62rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+    .disc-ai-urgent{background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;padding:11px 14px;margin-bottom:14px;}
+    .disc-ai-urgent .disc-ai-label{color:#be123c;}
+    .disc-ai-urgent p{font-size:0.78rem;color:#881337;line-height:1.65;margin:0;}
+    .disc-ai-body p{font-size:0.79rem;color:var(--text-2);line-height:1.7;margin:0 0 10px;}
+    .disc-ai-body p:last-child{margin-bottom:0;}
+    .disc-ai-thinking{display:flex;align-items:center;gap:10px;padding:28px 0;color:var(--text-4);font-size:0.82rem;}
+    .disc-ai-thinking .spin-ring{border-color:rgba(0,0,0,.08);border-top-color:var(--red);}
+
+    /* Coming soon toast */
+    #coming-soon-toast{
+      position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+      background:#1a1a1a;color:#fff;
+      font-family:var(--font);font-size:0.82rem;font-weight:600;
+      padding:11px 22px;border-radius:10px;
+      box-shadow:0 6px 24px rgba(0,0,0,.25);
+      display:flex;align-items:center;gap:9px;
+      opacity:0;pointer-events:none;
+      transition:opacity .2s,transform .2s;
+      z-index:9999;white-space:nowrap;
+    }
+    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:none;}
+    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
+    /* Leaflet overrides */
+    .leaflet-container{font-family:var(--font);}
+    .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.16);border:1px solid var(--border-2);font-family:var(--font);padding:0;min-width:240px;max-width:280px;}
+    .leaflet-popup-content{margin:0;font-size:0.78rem;line-height:1.5;}
+    .popup-inner{padding:13px 15px 14px;} .popup-sig-bar + .popup-inner{border-radius:0;}
+    .popup-header{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+    .popup-swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
+    .popup-risk{font-size:0.9rem;font-weight:700;letter-spacing:-0.01em;color:var(--text);}
+    .popup-sub{font-size:0.68rem;color:var(--text-4);font-weight:500;}
+    .popup-divider{height:1px;background:var(--border);margin:0 0 10px;}
+    .popup-desc{font-size:0.74rem;color:var(--text-2);line-height:1.6;}
+    .popup-stat{display:inline-block;font-size:0.68rem;font-weight:600;color:var(--text-3);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 7px;margin-top:8px;}
+    .leaflet-popup-tip-container{display:none;}
+    /* Significant threat overlay */
+    .sig-zone-badge{
+      background:#111827; color:#fff;
+      font-family:var(--font); font-size:0.65rem; font-weight:700;
+      letter-spacing:0.05em; text-transform:uppercase;
+      padding:4px 9px; border-radius:5px;
+      display:flex; align-items:center; gap:5px;
+      box-shadow:0 2px 10px rgba(0,0,0,.35);
+      white-space:nowrap; cursor:pointer;
+      border:none; pointer-events:auto;
+    }
+    .sig-zone-badge .sig-icon{ color:#f59e0b; font-size:12px;
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+    /* Sig popup warning bar */
+    .popup-sig-bar{
+      background:#1c1917; color:#fef3c7;
+      padding:8px 14px; display:flex; align-items:center; gap:7px;
+      font-size:0.7rem; font-weight:700; letter-spacing:0.03em;
+      border-radius:10px 10px 0 0;
+    }
+    .popup-sig-bar .material-symbols-rounded{
+      font-size:15px; color:#f59e0b;
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+    /* Significant threat overlay */
+    .sig-zone-badge{
+      background:#111827; color:#fff;
+      font-family:var(--font); font-size:0.65rem; font-weight:700;
+      letter-spacing:0.05em; text-transform:uppercase;
+      padding:4px 9px; border-radius:5px;
+      display:flex; align-items:center; gap:5px;
+      box-shadow:0 2px 10px rgba(0,0,0,.35);
+      white-space:nowrap; cursor:pointer;
+      border:none; pointer-events:auto;
+    }
+    .sig-zone-badge .sig-icon{ color:#f59e0b; font-size:12px;
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+    /* Sig popup warning bar */
+    .popup-sig-bar{
+      background:#1c1917; color:#fef3c7;
+      padding:8px 14px; display:flex; align-items:center; gap:7px;
+      font-size:0.7rem; font-weight:700; letter-spacing:0.03em;
+      border-radius:10px 10px 0 0;
+    }
+    .popup-sig-bar .material-symbols-rounded{
+      font-size:15px; color:#f59e0b;
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+    /* City marker labels */
+    .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:10px !important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12) !important;}
+    .leaflet-control-zoom a{
+      font-family:var(--font) !important;color:var(--text-2) !important;
+      background:rgba(255,255,255,0.97) !important;backdrop-filter:blur(8px);
+      width:36px !important;height:36px !important;line-height:36px !important;
+      font-size:18px !important;font-weight:400 !important;
+      display:flex !important;align-items:center;justify-content:center;
+    }
+    .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
+    .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
+    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(255,255,255,0.8) !important;backdrop-filter:blur(4px);}
+
+    /* Permanent threat level labels on polygons */
+    .poly-label{
+      background:none !important; border:none !important; box-shadow:none !important;
+      padding:0 !important;
+    }
+    .poly-label div{
+      font-family:var(--font) !important;
+      font-size:0.7rem !important; font-weight:800 !important;
+      letter-spacing:0.04em !important; text-transform:uppercase !important;
+      text-shadow:0 1px 3px rgba(0,0,0,.25), 0 0 6px rgba(0,0,0,.15);
+      white-space:nowrap; pointer-events:none;
+      color: inherit;
+    }
+    ::-webkit-scrollbar{width:4px;}
+    ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">
+      <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+      <span class="logo-name">j<span>Weather</span></span>
+    </a>
+    <div class="search-wrap">
+      <div class="search-row">
+        <span class="material-symbols-rounded">search</span>
+        <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        <button class="loc-btn" id="use-location-btn">
+          <span class="material-symbols-rounded">my_location</span>Locate me
+        </button>
+      </div>
+      <ul id="suggestions"></ul>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Forecast</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Severe Weather <span class="material-symbols-rounded">expand_more</span></button>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dropdown-menu-inner">
+            <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+          </div>
+        </div>
+      </div>
+      <a href="#" data-coming-soon>Contact</a>
+      <a href="#" data-coming-soon>About</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── APP BODY ── -->
+<div class="app-body">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title">SPC Outlooks</div>
+    </div>
+
+    <!-- Day 1 -->
+    <div class="day-section">
+      <div class="day-section-head">
+        <div class="day-section-label">
+          <div class="day-eyebrow">Day 1</div>
+          <div class="day-name">Today</div>
+        </div>
+        
+      </div>
+      <div class="cat-list" id="cats-1">
+        <button class="cat-btn active" data-day="1" data-mode="cat">
+          <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
+        </button>
+        <button class="cat-btn" data-day="1" data-mode="torn">
+          <span class="material-symbols-rounded cat-icon">tornado</span>Tornado
+        </button>
+        <button class="cat-btn" data-day="1" data-mode="wind">
+          <span class="material-symbols-rounded cat-icon">air</span>Wind
+        </button>
+        <button class="cat-btn" data-day="1" data-mode="hail">
+          <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
+        </button>
+      </div>
+      <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
+        <span class="material-symbols-rounded">open_in_new</span>Open Discussion
+      </button>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-section">
+      <div class="day-section-head">
+        <div class="day-section-label">
+          <div class="day-eyebrow">Day 2</div>
+          <div class="day-name">Tomorrow</div>
+        </div>
+        
+      </div>
+      <div class="cat-list" id="cats-2">
+        <button class="cat-btn" data-day="2" data-mode="cat">
+          <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
+        </button>
+        <button class="cat-btn" data-day="2" data-mode="torn">
+          <span class="material-symbols-rounded cat-icon">tornado</span>Tornado
+        </button>
+        <button class="cat-btn" data-day="2" data-mode="wind">
+          <span class="material-symbols-rounded cat-icon">air</span>Wind
+        </button>
+        <button class="cat-btn" data-day="2" data-mode="hail">
+          <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
+        </button>
+      </div>
+      <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
+        <span class="material-symbols-rounded">open_in_new</span>Open Discussion
+      </button>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="day-section">
+      <div class="day-section-head">
+        <div class="day-section-label">
+          <div class="day-eyebrow">Day 3</div>
+          <div class="day-name" id="day3-name">—</div>
+        </div>
+        
+      </div>
+      <div class="cat-list" id="cats-3">
+        <button class="cat-btn" data-day="3" data-mode="cat">
+          <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
+        </button>
+        <button class="cat-btn" data-day="3" data-mode="prob">
+          <span class="material-symbols-rounded cat-icon">percent</span>Probabilistic
+        </button>
+      </div>
+      <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
+        <span class="material-symbols-rounded">open_in_new</span>Open Discussion
+      </button>
+    </div>
+
+    <!-- Attribution -->
+    <div style="margin-top:auto;padding:10px 14px 12px;border-top:1px solid var(--border);flex-shrink:0;">
+      <p style="font-size:0.6rem;color:var(--text-4);line-height:1.55;">
+        Data: <a href="https://www.spc.noaa.gov" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">NOAA/SPC</a> &nbsp;·&nbsp;
+        Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">OpenStreetMap</a>, © <a href="https://carto.com/attributions" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;">CARTO</a>
+      </p>
+    </div>
+  </aside>
+
+  <!-- MAP PANEL -->
+  <div class="map-panel">
+    <div id="main-map"></div>
+
+    <!-- Context pill top-left -->
+    <div class="map-topbar">
+      <div class="map-context-pill" id="context-pill">
+        <span id="pill-day">Day 1</span> · <span id="pill-mode">Overall</span>
+      </div>
+      <div class="map-context-pill" id="valid-pill" style="display:none;"></div>
+    </div>
+
+    <!-- Legend bottom-left -->
+    <div class="map-legend" id="map-legend" style="display:none;">
+      <div class="legend-title">Risk Level</div>
+      <div class="legend-items" id="legend-items"></div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="map-loading" id="map-loading"><div class="spin-ring"></div></div>
+  </div>
+
+</div>
+
+<!-- Discussion Modal -->
+<div id="disc-modal">
+  <div class="disc-box">
+    <div class="disc-head">
+      <div class="disc-pip"></div>
+      <div id="disc-modal-title" class="disc-modal-title">SPC Discussion</div>
+      <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
+    </div>
+    <div class="disc-tabs">
+      <button class="disc-tab active" id="tab-plain">AI Summary</button>
+      <button class="disc-tab" id="tab-original">Original</button>
+    </div>
+    <div class="disc-modal-body" id="disc-modal-body">
+      <div class="disc-loading"><div class="spin-ring"></div>Loading…</div>
+    </div>
+  </div>
+</div>
+
+<div id="coming-soon-toast">
+  <span class="material-symbols-rounded">construction</span>
+  This feature is still under development
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+const SPC_BASE   = 'https://www.spc.noaa.gov';
+const NOAA_BASE  = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer';
+// Lower 48 only — tight fit with max bounds to block Canada/Mexico/ocean
+const CONUS = [[24.3, -124.8], [49.4, -66.8]];
+const MAX_BOUNDS = [[22, -128], [52, -63]];
+
+// NOAA ArcGIS layer IDs — confirmed from MapServer pjson
+// Day 1 subLayers [1-7]: 1=cat, 2=sig_torn, 3=prob_torn, 4=sig_hail, 5=prob_hail, 6=sig_wind, 7=prob_wind
+// Day 2 subLayers [9-15]: same pattern offset by 8
+// Day 3 subLayers [17-19]: 17=cat, 18=prob_severe, 19=sig_severe
+const LAYER_IDS = {
+  '1-cat':1,  '1-torn':3,  '1-wind':7,  '1-hail':5,
+  '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
+  '3-cat':17, '3-prob':18
+};
+const SIG_LAYER_IDS = {
+  '1-torn':2,  '1-hail':4,  '1-wind':6,
+  '2-torn':10, '2-hail':12, '2-wind':14,
+  // Day 3 sig layer excluded for now
+};
+// Human-readable sig threat labels per mode
+const SIG_LABELS = {
+  torn:'Significant Tornado (EF2+)',
+  wind:'Significant Wind (65+ mph)',
+  hail:'Significant Hail (2\"+ diameter)',
+  prob:'Significant Severe (EF2+ / 65mph+ / 2\"+ hail)',
+};
+// Plain-language sig zone content — what it means, what to expect, what to do
+const SIG_INFO = {
+  torn: {
+    headline: '⚠️ Higher tornado danger here',
+    what: 'Forecasters flagged this area as having a notably higher chance of strong, long-track tornadoes — the kind that can destroy homes and stay on the ground for miles.',
+    expect: 'If a tornado does hit here, it\'s more likely to be violent (EF2 or stronger) than anywhere else in the surrounding outlook.',
+    action: 'Have a shelter plan ready before storms arrive. Don\'t wait for a warning to start moving.',
+  },
+  wind: {
+    headline: '⚠️ Exceptionally damaging winds possible',
+    what: 'This isn\'t just a typical thunderstorm wind threat. Forecasters see a real chance of straight-line winds topping 65 mph — strong enough to down large trees, damage roofs, and knock out power for days.',
+    expect: 'These winds can hit fast with little warning. Anything unsecured outside becomes a projectile.',
+    action: 'Stay indoors during storms. Move vehicles under cover if possible.',
+  },
+  hail: {
+    headline: '⚠️ Very large hail likely',
+    what: 'Hail 2 inches or larger — roughly the size of a golf ball — is a real possibility here. Large enough to dent cars, break windows, and injure anyone caught outside.',
+    expect: 'Large hail can fall fast and without much warning. Even a brief storm can cause significant damage.',
+    action: 'Get your car under cover if you can. Stay inside when storms are near.',
+  },
+  prob: {
+    headline: '⚠️ Particularly dangerous severe weather possible',
+    what: 'This is the highest-confidence area on the Day 3 outlook. Forecasters believe there\'s a meaningful chance of destructive severe weather — strong tornadoes, damaging winds, or large hail.',
+    expect: 'Day 3 forecasts carry more uncertainty, but being flagged here means confidence is already high enough to take seriously.',
+    action: 'Keep an eye on forecasts over the next couple of days. Have a plan in place early.',
+  },
+};
+const SIG_DESC = SIG_INFO; // legacy alias
+
+// Exact SPC colors
+const CAT = {
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Low Risk' },
+  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Some Risk' },
+  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Elevated Risk' },
+  'MDT': { fill:'#e04040', stroke:'#a81818', label:'High Risk' },
+  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Extreme Risk' },
+};
+const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
+
+// Exact SPC probability colors sampled directly from official SPC legend
+// 5% = green per user preference (SPC uses brown #c5a392)
+const PROB = [
+  { dn:2,  fill:'#6abf6a', stroke:'#3d8c3d', label:'Very Low Risk'  },
+  { dn:5,  fill:'#55a855', stroke:'#337733', label:'Low Risk'        },
+  { dn:10, fill:'#f0e040', stroke:'#b8a800', label:'Possible'        },
+  { dn:15, fill:'#ffff00', stroke:'#cccc00', label:'Likely'          },
+  { dn:30, fill:'#ff0000', stroke:'#cc0000', label:'High Risk'       },
+  { dn:45, fill:'#ff00ff', stroke:'#cc00cc', label:'Very High Risk'  },
+  { dn:60, fill:'#871aec', stroke:'#5a00a8', label:'Extreme Risk'    },
+];
+
+const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
+const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
+
+// ─────────────────────────────────────────────
+//  COLOR HELPERS
+// ─────────────────────────────────────────────
+// Returns '#000' or '#fff' for best contrast against a hex fill
+function contrastColor(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  // Perceived luminance
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.55 ? '#1a1a1a' : '#ffffff';
+}
+
+// Short label for tooltip overlay (no "Level X ·" prefix)
+function shortLabel(mode, f) {
+  const p = f.properties || {};
+  if (mode === 'cat') {
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+    if (key === 'TSTM' || !CAT[key]) return null;
+    // Return just the word after "· "
+    return CAT[key].label.replace(/^Level \d+ · /, '');
+  } else {
+    const dn = parseInt(p.DN || p.dn || 0);
+    let c = PROB[0]; for (const x of PROB) { if (dn >= x.dn) c = x; }
+    return c.label; // e.g. "Moderate"
+  }
+}
+
+// ─────────────────────────────────────────────
+//  GEOMETRY HELPERS
+// ─────────────────────────────────────────────
+// Shoelace formula for a ring's approximate area (in deg² — just for sorting)
+function ringArea(coords) {
+  let area = 0;
+  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+    area += (coords[j][0] + coords[i][0]) * (coords[j][1] - coords[i][1]);
+  }
+  return Math.abs(area / 2);
+}
+
+// Bounding-box area of a GeoJSON feature — fast proxy for sorting largest→smallest
+function featureArea(feature) {
+  const geom = feature.geometry;
+  if (!geom) return 0;
+  const rings = geom.type === 'Polygon'
+    ? geom.coordinates
+    : geom.type === 'MultiPolygon'
+      ? geom.coordinates.flat(1)
+      : [];
+  return rings.reduce((sum, ring) => sum + ringArea(ring), 0);
+}
+
+// Sort GeoJSON features largest-first so Leaflet renders smallest on top
+function sortByAreaDesc(geojson) {
+  return {
+    ...geojson,
+    features: [...geojson.features].sort((a, b) => featureArea(b) - featureArea(a))
+  };
+}
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let theMap = null;
+let activeLayer = null;
+let activeSigLayer = null;   // significant threat overlay
+let activeSigMarkers = [];   // badge markers for sig zones
+const discCache = {};
+let activeDay  = 1;
+let activeMode = 'cat';
+
+// ─────────────────────────────────────────────
+//  TILE LAYERS
+//  Single layer: CARTO Voyager — Google Maps style with full city labels at all zooms
+//  Outlook polygons render above the base but below the label tile layer
+//  so city/road names always show through on top of the weather polygons.
+// ─────────────────────────────────────────────
+function makeBaseTiles() {
+  // Voyager no-labels — base roads/geography without text
+  return L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+    {
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains:'abcd', maxZoom:19,
+      r: window.devicePixelRatio > 1 ? '@2x' : ''
+    }
+  );
+}
+function makeLabelTiles() {
+  // Voyager labels-only — city names, roads, POIs on top of everything
+  return L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+    {
+      subdomains:'abcd', maxZoom:19,
+      r: window.devicePixelRatio > 1 ? '@2x' : '',
+      pane:'labelTilePane'
+    }
+  );
+}
+
+// ─────────────────────────────────────────────
+//  CITY MARKERS
+// ─────────────────────────────────────────────
+const CITIES = [
+  // Northeast
+  {n:'New York',    lat:40.71, lng:-74.01}, {n:'Boston',      lat:42.36, lng:-71.06},
+  {n:'Philadelphia',lat:39.95, lng:-75.16}, {n:'Washington DC',lat:38.91,lng:-77.04},
+  {n:'Baltimore',   lat:39.29, lng:-76.61},
+  // Southeast
+  {n:'Atlanta',     lat:33.75, lng:-84.39}, {n:'Miami',        lat:25.77, lng:-80.19},
+  {n:'Tampa',       lat:27.95, lng:-82.46}, {n:'Orlando',      lat:28.54, lng:-81.38},
+  {n:'Charlotte',   lat:35.23, lng:-80.84}, {n:'Nashville',    lat:36.17, lng:-86.78},
+  {n:'Memphis',     lat:35.15, lng:-90.05}, {n:'New Orleans',  lat:29.95, lng:-90.07},
+  {n:'Jacksonville',lat:30.33, lng:-81.66}, {n:'Richmond',     lat:37.54, lng:-77.43},
+  // Midwest
+  {n:'Chicago',     lat:41.88, lng:-87.63}, {n:'Detroit',      lat:42.33, lng:-83.05},
+  {n:'Cleveland',   lat:41.50, lng:-81.69}, {n:'Columbus',     lat:39.96, lng:-82.99},
+  {n:'Cincinnati',  lat:39.10, lng:-84.51}, {n:'Indianapolis', lat:39.77, lng:-86.16},
+  {n:'Milwaukee',   lat:43.04, lng:-87.91}, {n:'Minneapolis',  lat:44.98, lng:-93.27},
+  {n:'St. Louis',   lat:38.63, lng:-90.20}, {n:'Kansas City',  lat:39.10, lng:-94.58},
+  {n:'Omaha',       lat:41.26, lng:-95.94}, {n:'Des Moines',   lat:41.59, lng:-93.62},
+  // South / Central
+  {n:'Dallas',      lat:32.78, lng:-96.80}, {n:'Houston',      lat:29.76, lng:-95.37},
+  {n:'San Antonio', lat:29.42, lng:-98.49}, {n:'Austin',       lat:30.27, lng:-97.74},
+  {n:'Oklahoma City',lat:35.47,lng:-97.52}, {n:'Tulsa',        lat:36.15, lng:-95.99},
+  {n:'Little Rock', lat:34.75, lng:-92.29}, {n:'Birmingham',   lat:33.52, lng:-86.80},
+  {n:'Louisville',  lat:38.25, lng:-85.76},
+  // West
+  {n:'Denver',      lat:39.74, lng:-104.98},{n:'Phoenix',      lat:33.45, lng:-112.07},
+  {n:'Las Vegas',   lat:36.17, lng:-115.14},{n:'Salt Lake City',lat:40.76,lng:-111.89},
+  {n:'Albuquerque', lat:35.08, lng:-106.65},{n:'El Paso',      lat:31.76, lng:-106.49},
+  {n:'Tucson',      lat:32.22, lng:-110.93},
+  // Pacific
+  {n:'Los Angeles', lat:34.05, lng:-118.24},{n:'San Francisco', lat:37.77, lng:-122.42},
+  {n:'San Diego',   lat:32.72, lng:-117.16},{n:'Seattle',       lat:47.61, lng:-122.33},
+  {n:'Portland',    lat:45.52, lng:-122.68},{n:'Sacramento',    lat:38.58, lng:-121.49},
+  // Northern
+  {n:'Billings',    lat:45.78, lng:-108.50},{n:'Fargo',         lat:46.88, lng:-96.79},
+  {n:'Sioux Falls', lat:43.55, lng:-96.73}, {n:'Rapid City',   lat:44.08, lng:-103.23},
+  {n:'Boise',       lat:43.62, lng:-116.20},{n:'Reno',          lat:39.53, lng:-119.81},
+  {n:'Spokane',     lat:47.66, lng:-117.43},
+];
+
+// City overlay removed — CARTO tiles provide city labels at all zoom levels
+
+let statesLayer = null;
+async function addStatesOverlay(map) {
+  const url = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+  try {
+    const res = await fetch(url);
+    const gj  = await res.json();
+    // Use renderer from map if available, otherwise fall back to default (still renders, just default pane)
+    const opts = { style: { color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive: false };
+    if (map._renderers?.states) opts.renderer = map._renderers.states;
+    statesLayer = L.geoJSON(gj, opts).addTo(map);
+  } catch(e) { console.warn('State borders failed', e); }
+}
+
+// ─────────────────────────────────────────────
+//  INIT MAP
+// ─────────────────────────────────────────────
+function initMap() {
+  theMap = L.map('main-map', {
+    center:[38,-96], zoom:4,
+    zoomControl:false,
+    scrollWheelZoom:true,
+    attributionControl:true,
+    minZoom:4,
+    maxBounds: MAX_BOUNDS,
+    maxBoundsViscosity: 1.0,  // hard stop — no elastic bounce outside bounds
+  });
+  L.control.zoom({ position:'topright' }).addTo(theMap);
+
+  // ── Pane z-index stack (Leaflet defaults: tilePane=200, overlayPane=400, markerPane=600) ──
+  // 200  baseTiles       (default tilePane — CARTO no-labels base)
+  // 310  outlookPane     outlook risk polygons
+  // 330  sigOutlinePane  significant threat dashed outline
+  // 360  statesPane      US state border lines
+  // 420  labelTilePane   CARTO city/road labels tile layer
+  // 450  sigBadgePane    significant threat badge markers
+  // (popup pane stays at Leaflet default 700)
+
+  function mkPane(name, z, noPointer) {
+    theMap.createPane(name);
+    theMap.getPane(name).style.zIndex = z;
+    if (noPointer) theMap.getPane(name).style.pointerEvents = 'none';
+  }
+
+  mkPane('outlookPane',    310, false);
+  mkPane('sigOutlinePane', 330, false);
+  mkPane('statesPane',     360, true);   // state lines — no clicks
+  mkPane('labelTilePane',  420, true);   // tile labels — no clicks
+  mkPane('sigBadgePane',   450, false);  // sig badges — clickable
+
+  // SVG renderers bound to their panes — required for path fills to respect pane z-order
+  theMap._renderers = {
+    outlook:    L.svg({ pane:'outlookPane' }).addTo(theMap),
+    sigOutline: L.svg({ pane:'sigOutlinePane' }).addTo(theMap),
+    states:     L.svg({ pane:'statesPane' }).addTo(theMap),
+  };
+
+  // Mark hatch ready immediately — we use CSS dashArray approach, no SVG pattern needed
+  theMap._hatchReady = true;
+
+  makeBaseTiles().addTo(theMap);
+
+
+  // Ensure container dimensions are known before fitting, then fit with no padding
+  theMap.invalidateSize();
+  theMap.setMaxBounds(MAX_BOUNDS);
+  theMap.fitBounds(CONUS, { padding:[10,10], animate:false });
+  addStatesOverlay(theMap);
+  makeLabelTiles().addTo(theMap);
+}
+
+// ─────────────────────────────────────────────
+//  STYLE
+// ─────────────────────────────────────────────
+function styleFeature(f, mode) {
+  const p = f.properties || {};
+  if (mode === 'cat') {
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+    if (key === 'TSTM') return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
+    const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
+    return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
+  } else {
+    const dn = parseInt(p.DN || p.dn || 0);
+    let c = PROB[0];
+    for (const x of PROB) { if (dn >= x.dn) c = x; }
+    return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
+  }
+}
+
+// Plain, direct descriptions
+const CAT_DESC = {
+  TSTM: { short:'General Storms',  stat:'No severe weather expected',
+    desc:'Thunderstorms are possible but severe weather is not anticipated. You may see lightning, brief heavy rain, or gusty winds — nothing out of the ordinary.' },
+  MRGL: { short:'Low Risk',        stat:'Isolated severe storms possible',
+    desc:'A isolated storm or two could turn severe, but most of the area will see nothing. The threat is real but limited — a quick check of your local forecast before heading out is all you need.' },
+  SLGT: { short:'Some Risk',       stat:'Scattered severe storms expected',
+    desc:'Some storms today will produce damaging winds, large hail, or a brief tornado. Not every storm will be severe, but enough will that it\'s worth having a plan before things kick off.' },
+  ENH:  { short:'Elevated Risk',   stat:'Several severe storms expected, some intense',
+    desc:'Multiple severe storms are likely across this area. Damaging winds, large hail, and tornadoes are all possible. Some locations will see significant impacts — know where you\'re going if a warning is issued.' },
+  MDT:  { short:'High Risk',       stat:'Widespread severe storms, some potentially violent',
+    desc:'This is a dangerous weather day. Widespread severe storms — including the potential for violent, long-track tornadoes and destructive winds — are expected. Have your shelter plan ready well before storms arrive.' },
+  HIGH: { short:'Extreme Risk',    stat:'Major outbreak expected — life-threatening',
+    desc:'A significant severe weather outbreak is likely. Violent tornadoes, extremely destructive winds, and very large hail are all expected across this area. This level is issued only a few times per year. Take it seriously and have your shelter ready.' },
+};
+
+function probDesc(dn, hazard) {
+  const thing = {
+    torn: { s:'tornado',             p:'tornadoes'           },
+    wind: { s:'damaging wind event', p:'damaging wind gusts' },
+    hail: { s:'large hail event',    p:'large hail'          },
+    prob: { s:'severe weather event', p:'severe storms'      },
+  }[hazard] || { s:'severe weather event', p:'severe storms' };
+
+  if (dn <= 2)  return {
+    frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are possible somewhere in this area, but the overall chance for any one location is low.`,
+    context: `Stay generally weather-aware today. Most spots here will see nothing, but a stray event is possible.` };
+  if (dn <= 5)  return {
+    frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are possible in this area.`,
+    context: `The risk is real but not high for any given location. Worth keeping an eye on forecasts as the day progresses.` };
+  if (dn <= 10) return {
+    frame: `There is a noticeable chance of ${thing.p} somewhere in this area.`,
+    context: `Storms are expected in this zone — they won\'t affect everyone, but some spots will see significant impacts. Have a plan before storms develop.` };
+  if (dn <= 15) return {
+    frame: `${thing.p.charAt(0).toUpperCase()+thing.p.slice(1)} are likely in parts of this area.`,
+    context: `Multiple events are expected across this zone. Know your shelter options before storms arrive — don\'t wait until a warning is issued.` };
+  if (dn <= 30) return {
+    frame: `Significant ${thing.p} are expected across a broad area.`,
+    context: `A substantial portion of this zone will see direct impacts. This is a serious weather setup — preparation should happen now, not when storms are on the doorstep.` };
+  if (dn <= 45) return {
+    frame: `Widespread, dangerous ${thing.p} are expected across most of this area.`,
+    context: `This is a high-end weather event. The majority of this zone faces a serious threat. Shelter plans should already be in place.` };
+  return {
+    frame: `A major outbreak of ${thing.p} is expected. This is an extremely dangerous situation.`,
+    context: `This level of risk is rare. Violent, life-threatening weather is expected across this zone. Get to your safest location and stay there.` };
+}
+
+function popupContent(f, mode, day) {
+  const p = f.properties || {};
+
+  if (mode === 'cat') {
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+    const c = CAT[key];
+    const d = CAT_DESC[key];
+    const swatchColor  = c?.fill   || '#ccc';
+    const swatchBorder = c?.stroke || '#999';
+    const label = d?.short || key || '—';
+    const stat  = d?.stat  || '';
+    const desc  = d?.desc  || 'Severe weather is possible in this area.';
+    return `<div class="popup-inner">
+      <div class="popup-header">
+        <div class="popup-swatch" style="background:${swatchColor};border-color:${swatchBorder}"></div>
+        <div><div class="popup-risk">${label}</div><div class="popup-sub">${DAY_LABELS[day]} · Categorical</div></div>
+      </div>
+      <div class="popup-divider"></div>
+      <div class="popup-desc">${desc}</div>
+      ${stat ? `<div class="popup-stat">${stat}</div>` : ''}
+    </div>`;
+  } else {
+    const dn = parseInt(p.DN || p.dn || 0);
+    const { frame, context } = probDesc(dn, mode);
+    let probC = PROB[0]; for (const x of PROB) { if (dn >= x.dn) probC = x; }
+    return `<div class="popup-inner">
+      <div class="popup-header">
+        <div class="popup-swatch" style="background:${probC.fill};border-color:${probC.stroke}"></div>
+        <div><div class="popup-risk">${probC.label}</div><div class="popup-sub">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div></div>
+      </div>
+      <div class="popup-divider"></div>
+      <div class="popup-desc">${frame}</div>
+      <div class="popup-desc" style="margin-top:7px;color:var(--text-3)">${context}</div>
+    </div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  LEGEND
+// ─────────────────────────────────────────────
+function buildLegend(geojson, mode) {
+  const el = document.getElementById('legend-items');
+  const box = document.getElementById('map-legend');
+  const items = [];
+
+  if (mode === 'cat') {
+    const seen = new Set();
+    geojson.features.forEach(f => {
+      const raw = (f.properties.LABEL||f.properties.label||f.properties.DN||'').toString().toUpperCase().trim();
+      const key = CAT[raw] ? raw : (DN_TO_CAT[raw]||'');
+      if (CAT[key]) seen.add(key);
+    });
+    CAT_ORDER.forEach(k => { if (seen.has(k)) items.push({ fill:CAT[k].fill, stroke:CAT[k].stroke, label:CAT[k].label }); });
+  } else {
+    const dns = new Set();
+    geojson.features.forEach(f => { const d=parseInt(f.properties.DN||f.properties.dn||0); if(d>0) dns.add(d); });
+    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:p.label }); });
+  }
+
+  if (!items.length) { box.style.display='none'; return; }
+  box.style.display='block';
+  el.innerHTML = items.map(i =>
+    `<div class="legend-item"><div class="legend-swatch" style="background:${i.fill};border-color:${i.stroke}"></div>${i.label}</div>`
+  ).join('');
+}
+
+// ─────────────────────────────────────────────
+//  LOAD HAZARD LAYER
+// ─────────────────────────────────────────────
+function clearSigLayer() {
+  if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
+  activeSigMarkers.forEach(m => theMap.removeLayer(m));
+  activeSigMarkers = [];
+}
+
+async function loadHazard(day, mode) {
+  activeDay  = day;
+  activeMode = mode;
+
+  document.getElementById('pill-day').textContent  = DAY_LABELS[day];
+  document.getElementById('pill-mode').textContent = MODE_LABELS[mode];
+
+  const loading = document.getElementById('map-loading');
+  loading.classList.remove('hidden');
+
+  if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
+  clearSigLayer();
+
+  const layerId = LAYER_IDS[`${day}-${mode}`];
+  if (!layerId) { loading.classList.add('hidden'); return; }
+
+  try {
+    const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+    console.log(`[jWeather] Fetching layer ${layerId} for day=${day} mode=${mode}:`, url);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const gjRaw = await res.json();
+    console.log(`[jWeather] Layer ${layerId} returned ${gjRaw.features?.length ?? 0} features`);
+    if (!gjRaw.features || gjRaw.features.length === 0) {
+      console.warn(`[jWeather] Layer ${layerId} has no features — outlook may not be issued yet`);
+      document.getElementById('map-loading').classList.add('hidden');
+      return;
+    }
+    const gj = sortByAreaDesc(gjRaw); // largest polygon first → smallest rendered on top
+
+    activeLayer = L.geoJSON(gj, {
+      style: f => styleFeature(f, mode),
+      renderer: theMap._renderers?.outlook || L.svg(),
+      onEachFeature: (f, lyr) => {
+        // Skip TSTM — no popup on invisible polygons
+        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+        const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
+        if (mode === 'cat' && key === 'TSTM') return;
+        lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
+        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
+        lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
+        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
+
+      }
+    }).addTo(theMap);
+
+    buildLegend(gj, mode);
+
+
+
+    // Valid time badge
+    const vp = document.getElementById('valid-pill');
+    const expire = gj.features?.[0]?.properties?.expire || gj.features?.[0]?.properties?.EXPIRE;
+    if (expire) {
+      vp.textContent = `Until ${fmtValid(expire)}`;
+      vp.style.display = 'block';
+      // badge display removed
+    } else {
+      vp.style.display = 'none';
+    }
+
+    // Load significant layer if it exists for this day+mode
+    loadSigLayer(day, mode);
+
+  } catch(e) {
+    console.error(e);
+    document.getElementById('legend-items').innerHTML = '';
+    document.getElementById('map-legend').style.display = 'none';
+  }
+
+  loading.classList.add('hidden');
+}
+
+async function loadSigLayer(day, mode) {
+  // Sig layers only exist for specific hazard modes, not categorical
+  const sigLayerId = SIG_LAYER_IDS[`${day}-${mode}`];
+  if (!sigLayerId) return;
+
+  try {
+    const url = `${NOAA_BASE}/${sigLayerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+    console.log(`[jWeather] Fetching sig layer ${sigLayerId}:`, url);
+    const res = await fetch(url);
+    if (!res.ok) { console.warn(`[jWeather] Sig layer ${sigLayerId} HTTP ${res.status}`); return; }
+    const gj = await res.json();
+    console.log(`[jWeather] Sig layer ${sigLayerId} returned ${gj.features?.length ?? 0} features`);
+    if (!gj.features || !gj.features.length) return;
+
+    // Merge all features into a single bounding area for the badge — one badge per outbreak
+    // (individual features are concentric rings of the same system, not separate events)
+    const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
+
+    // Render sig zone — SPC style: thick black dashed outline, no fill
+    activeSigLayer = L.geoJSON(gj, {
+      style: {
+        color: '#000',
+        weight: 3,
+        opacity: 1,
+        dashArray: '8 6',
+        fillColor: '#000',
+        fillOpacity: 0.08,
+      },
+      renderer: theMap._renderers?.sigOutline || L.svg(),
+      onEachFeature: (f, lyr) => {
+        lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, color:'#000', dashArray:'8 6' }); });
+        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
+        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
+      }
+    }).addTo(theMap);
+
+    // Single badge anchored to the overall bounding box center of ALL sig features
+    try {
+      const overallCenter = activeSigLayer.getBounds().getCenter();
+      const icon = L.divIcon({
+        className: '',
+        html: `<button class="sig-zone-badge" title="${sigLabel}">
+                 <span class="material-symbols-rounded sig-icon">bolt</span>${sigLabel}
+               </button>`,
+        iconAnchor: [0, 10],
+        iconSize: null,
+      });
+      const marker = L.marker(overallCenter, {
+        icon, interactive:true, keyboard:false,
+        pane:'sigBadgePane', zIndexOffset:1000
+      });
+      // Badge popup uses the largest feature for context
+      const largestFeature = sortByAreaDesc(gj).features[0];
+      marker.bindPopup(sigPopupContent(largestFeature, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
+      marker.addTo(theMap);
+      activeSigMarkers.push(marker);
+    } catch(e) {}
+
+    // Add sig zone entry to legend
+    const legendEl = document.getElementById('legend-items');
+    const sigEntry = document.createElement('div');
+    sigEntry.className = 'legend-item sig-legend-entry';
+    sigEntry.innerHTML = `
+      <div class="legend-swatch" style="
+        background: rgba(0,0,0,0.06);
+        border: 2px dashed #000;
+        box-sizing: border-box;
+        border-radius: 2px;
+      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
+    legendEl.appendChild(sigEntry);
+    document.getElementById('map-legend').style.display = 'block';
+
+  } catch(e) { console.warn('Sig layer failed', e); }
+}
+
+// Per-hazard significant threat upgrade language
+// SIG_UPGRADE merged into SIG_INFO above
+const SIG_UPGRADE = {};
+
+function sigPopupContent(f, mode, day) {
+  const info = SIG_INFO[mode] || {
+    headline: '⚠️ Significant Threat Zone',
+    what: 'Forecasters have flagged this area as having a higher risk of severe weather.',
+    expect: 'Conditions here are more dangerous than the surrounding outlook area.',
+    action: 'Stay weather-aware and have a plan ready.',
+  };
+
+  return `<div class="popup-sig-bar">
+      <span class="material-symbols-rounded">warning</span>${SIG_LABELS[mode] || 'Significant Threat'}
+    </div>
+    <div class="popup-inner">
+      <div style="font-size:0.87rem;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.3;">${info.headline}</div>
+      <div class="popup-divider"></div>
+      <div style="font-size:0.75rem;color:var(--text-2);line-height:1.65;margin-bottom:8px;">
+        <strong style="color:var(--text);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;">What it means</strong><br>
+        ${info.what}
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-2);line-height:1.65;margin-bottom:8px;">
+        <strong style="color:var(--text);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;">What to expect</strong><br>
+        ${info.expect}
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-2);line-height:1.65;background:var(--red-dim);border:1px solid var(--red-border);border-radius:6px;padding:8px 10px;">
+        <strong style="color:var(--red);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;">What to do</strong><br>
+        <span style="color:var(--text-2);">${info.action}</span>
+      </div>
+      <div style="font-size:0.65rem;color:var(--text-4);margin-top:8px;">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  FORMAT HELPERS
+// ─────────────────────────────────────────────
+function fmtValid(s) {
+  if (!s || s.length < 8) return s;
+  try {
+    const dt = new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(8,10)||'00'}:${s.slice(10,12)||'00'}:00Z`);
+    return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  } catch{ return s; }
+}
+function fmtBadge(s) {
+  if (!s || s.length < 8) return 'Live';
+  try {
+    const dt = new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(8,10)||'00'}:${s.slice(10,12)||'00'}:00Z`);
+    return dt.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  } catch{ return 'Live'; }
+}
+
+// ─────────────────────────────────────────────
+//  SIDEBAR BUTTON CLICKS
+// ─────────────────────────────────────────────
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day  = +btn.dataset.day;
+    const mode = btn.dataset.mode;
+    // Remove active from ALL cat-btns
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadHazard(day, mode);
+  });
+});
+
+// ─────────────────────────────────────────────
+//  DISCUSSION MODAL
+// ─────────────────────────────────────────────
+const discModal = document.getElementById('disc-modal');
+
+// disc state per day
+const discAiCache = {};
+let discActiveDay = null;
+let discActiveTab = 'plain'; // 'plain' | 'original'
+
+function setDiscTab(tab) {
+  discActiveTab = tab;
+  document.getElementById('tab-plain').classList.toggle('active', tab === 'plain');
+  document.getElementById('tab-original').classList.toggle('active', tab === 'original');
+  renderDiscBody();
+}
+
+function renderDiscBody() {
+  const body = document.getElementById('disc-modal-body');
+  const day = discActiveDay;
+  const raw = discCache[day];
+  const ai  = discAiCache[day];
+
+  if (discActiveTab === 'original') {
+    if (raw) {
+      body.innerHTML = `<pre>${esc(raw)}</pre>`;
+    } else {
+      body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+        <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+    }
+    return;
+  }
+
+  // AI Summary tab
+  if (!raw) {
+    body.innerHTML = `<div class="disc-err">Discussion not available.</div>
+      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read on SPC website ↗</a></div>`;
+    return;
+  }
+  if (ai === 'loading') {
+    body.innerHTML = `<div class="disc-ai-thinking"><div class="spin-ring"></div>Translating into AI Summary…</div>`;
+    return;
+  }
+  if (ai && ai.error) {
+    body.innerHTML = `<div class="disc-err">Could not translate: ${esc(ai.error)}</div>
+      <div class="disc-fallback"><a href="${SPC_BASE}/products/outlook/day${day}otlk.html" target="_blank" rel="noopener">Read original on SPC website ↗</a></div>`;
+    return;
+  }
+  if (ai) {
+    // Render structured AI response
+    let html = '';
+    if (ai.urgent) {
+      html += `<div class="disc-ai-urgent"><div class="disc-ai-label">⚠ Heads Up</div><p>${esc(ai.urgent)}</p></div>`;
+    }
+    if (ai.summary) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">What's Happening</div><div class="disc-ai-body"><p>${esc(ai.summary)}</p></div></div>`;
+    }
+    if (ai.threats) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">Main Threats</div><div class="disc-ai-body"><p>${esc(ai.threats)}</p></div></div>`;
+    }
+    if (ai.timing) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">When to Expect It</div><div class="disc-ai-body"><p>${esc(ai.timing)}</p></div></div>`;
+    }
+    if (ai.confidence) {
+      html += `<div class="disc-ai-section"><div class="disc-ai-label">How Confident Are Forecasters?</div><div class="disc-ai-body"><p>${esc(ai.confidence)}</p></div></div>`;
+    }
+    body.innerHTML = html || '<div class="disc-ai-body"><p>Translation complete, but no content was returned.</p></div>';
+    return;
+  }
+  // AI not started yet — shouldn't happen
+  body.innerHTML = `<div class="disc-ai-thinking"><div class="spin-ring"></div>Translating…</div>`;
+}
+
+async function fetchRawDisc(day) {
+  if (discCache[day] !== undefined) return;
+  discCache[day] = null;
+  try {
+    const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const pre  = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+    if (pre) {
+      discCache[day] = pre[1]
+        .replace(/<script[\s\S]*?<\/script>/gi,'')
+        .replace(/<a\s[^>]*>([\s\S]*?)<\/a>/gi,'$1')
+        .replace(/<[^>]+>/g,'')
+        .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
+        .trim();
+    }
+  } catch(e) { discCache[day] = null; }
+}
+
+async function fetchAiSummary(day) {
+  if (discAiCache[day]) return; // already done or loading
+  if (!discCache[day]) return;  // no raw text to translate
+  discAiCache[day] = 'loading';
+  renderDiscBody();
+  try {
+    const systemPrompt = `You are a weather translator. You receive official Storm Prediction Center forecast discussions — dense, technical meteorological text written for professionals. Your job is to translate them into clear, plain language for a general audience who just wants to understand what the weather will do and whether they need to worry.
+
+Respond ONLY with a valid JSON object (no markdown fences, no extra text) with these keys:
+- "urgent": string or null — If the discussion contains any particularly dangerous situation (PDS), tornado emergency, extreme risk, or explicit urgent warning, summarize it here in 1-2 direct sentences. This should feel alarming if warranted. Null if nothing urgent.
+- "summary": string — 2-4 sentences. What is the overall weather setup? What is the atmosphere doing? Skip the jargon entirely.
+- "threats": string — 2-4 sentences. What specific threats are expected — tornadoes, large hail, damaging winds? How bad could it get? Where is the worst area?
+- "timing": string — 1-3 sentences. When do storms develop? When is the peak threat? When does it end?
+- "confidence": string — 1-2 sentences. How confident are forecasters? Are there any major uncertainties they flagged?
+
+Keep every field plain-spoken. Do not use abbreviations like CAPE, SRH, hodograph, Z, mb, kt, or any meteorological jargon. If you must reference a location, use city names not coordinates. Write like you are texting a friend who is worried about the weather.`;
+
+    // Route through Cloudflare Worker to keep API key server-side and avoid CORS
+    const response = await fetch(`${WORKER_URL}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: discCache[day] }]
+      })
+    });
+    if (!response.ok) {
+      let errDetail = `API ${response.status}`;
+      try { const e = await response.json(); errDetail += ': ' + (e.error?.message || e.error || JSON.stringify(e)); } catch {}
+      throw new Error(errDetail);
+    }
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    // Strip any accidental markdown fences
+    const clean = text.replace(/^```json\s*/i,'').replace(/```\s*$/,'').trim();
+    discAiCache[day] = JSON.parse(clean);
+  } catch(e) {
+    discAiCache[day] = { error: e.message };
+  }
+  renderDiscBody();
+}
+
+async function openDisc(day, label) {
+  discActiveDay = day;
+  document.getElementById('disc-modal-title').textContent = `${label} — SPC Forecast Discussion`;
+  discModal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Default to AI Summary tab
+  discActiveTab = 'plain';
+  document.getElementById('tab-plain').classList.add('active');
+  document.getElementById('tab-original').classList.remove('active');
+
+  // Show loading state
+  document.getElementById('disc-modal-body').innerHTML =
+    '<div class="disc-loading"><div class="spin-ring"></div>Loading…</div>';
+
+  // Fetch raw discussion first
+  await fetchRawDisc(day);
+
+  // Start AI translation in parallel (or render immediately if already cached)
+  renderDiscBody();
+  fetchAiSummary(day); // fire and forget — renderDiscBody called when done
+}
+
+document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
+  btn.addEventListener('click', () => openDisc(+btn.dataset.day, btn.dataset.label));
+});
+document.getElementById('disc-close').addEventListener('click', closeDisc);
+discModal.addEventListener('click', e => { if(e.target===discModal) closeDisc(); });
+document.getElementById('tab-plain').addEventListener('click',    () => setDiscTab('plain'));
+document.getElementById('tab-original').addEventListener('click', () => setDiscTab('original'));
+function closeDisc(){ discModal.style.display='none'; document.body.style.overflow=''; }
+
+// Coming soon toast
+let _toastTimer = null;
+function showComingSoon() {
+  const t = document.getElementById('coming-soon-toast');
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+document.querySelectorAll('[data-coming-soon]').forEach(el => {
+  el.addEventListener('click', e => { e.preventDefault(); showComingSoon(); });
+});
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Day 3 name
+  const d3 = new Date(); d3.setDate(d3.getDate()+2);
+  const d3str = d3.toLocaleDateString('en-US',{weekday:'long'});
+  document.getElementById('day3-name').textContent = d3str;
+  document.getElementById('disc-btn-3').dataset.label = `Day 3 — ${d3str}`;
+
+  initMap();
+  loadHazard(1, 'cat');
+
+  // Restore search bar — or silently request location on first visit
+  const _saved = (() => { try { const l=JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
+  if (_saved) {
+    document.getElementById('search-bar').value = _saved.label || '';
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        let loc = { label: 'Your Location', city: 'Your Location', state: '', lat, lng };
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+            headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
+          });
+          const d = await r.json();
+          const p = pn(d);
+          if (p.city) loc = p;
+        } catch {}
+        localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+        document.getElementById('search-bar').value = loc.label;
+      },
+      () => {} // denied — no fallback needed on this page
+    , { timeout: 10000 });
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SEARCH
+// ─────────────────────────────────────────────
+const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
+function sa(n){return SA[n]||n;}
+function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
+let sugs=[],selIdx=-1,sCtrl=null;
+const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions'),locBtn=document.getElementById('use-location-btn');
+function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+sBar.addEventListener('input',db(async e=>{
+  const q=e.target.value.trim();if(q.length<2){sugBox.style.display='none';sugs=[];return;}
+  if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
+  const d=await r.json();const seen=new Set();sugs=[];
+  for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
+  selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
+},280));
+sBar.addEventListener('keydown',e=>{if(!sugs.length)return;if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}else if(e.key==='Escape')sugBox.style.display='none';});
+function rSugs(){sugBox.innerHTML='';if(!sugs.length){sugBox.style.display='none';return;}sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});sugBox.style.display='block';}
+document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
+function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
+locBtn.addEventListener('click',()=>{if(!navigator.geolocation)return alert('Geolocation not supported.');locBtn.disabled=true;navigator.geolocation.getCurrentPosition(async pos=>{const{latitude:lat,longitude:lng}=pos.coords;let loc={label:'Your Location',city:'Your Location',state:'',lat,lng};try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';},()=>{alert('Unable to get location.');locBtn.disabled=false;});});
+</script>
+</body>
+</html>
