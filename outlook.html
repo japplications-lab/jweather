@@ -467,10 +467,10 @@ const SIG_LAYER_IDS = {
 };
 // Human-readable sig threat labels per mode
 const SIG_LABELS = {
-  torn:'Significant Tornado (EF2+)',
-  wind:'Significant Wind (65+ mph)',
-  hail:'Significant Hail (2\"+ diameter)',
-  prob:'Significant Severe (EF2+ / 65mph+ / 2\"+ hail)',
+  torn:'⚠ Particularly Dangerous — EF2+ Tornado',
+  wind:'⚠ Particularly Dangerous — 65+ mph Wind',
+  hail:'⚠ Particularly Dangerous — 2\"+ Hail',
+  prob:'⚠ Particularly Dangerous Situation',
 };
 // Plain-language sig zone content — what it means, what to expect, what to do
 const SIG_INFO = {
@@ -517,13 +517,13 @@ const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excl
 // 5% = green per user preference (SPC uses brown #c5a392)
 // SPC official probability colors
 const PROB = [
-  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'2% Probability'  },
-  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'5% Probability'  },
-  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'10% Probability' },
-  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'15% Probability' },
-  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'30% Probability' },
-  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'45% Probability' },
-  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'60% Probability' },
+  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'Very Low Risk'   },
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'        },
+  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'Some Risk'       },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'   },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'       },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk'  },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'    },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
