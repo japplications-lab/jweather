@@ -775,11 +775,13 @@ function initMap() {
     const ns = 'http://www.w3.org/2000/svg';
     const defs = document.createElementNS(ns, 'defs');
     defs.innerHTML = `
-      <pattern id="sig-hatch" x="0" y="0" width="8" height="8"
+      <pattern id="sig-hatch" x="0" y="0" width="10" height="10"
                patternUnits="userSpaceOnUse">
-        <rect width="8" height="8" fill="rgba(0,0,0,0)"/>
-        <line x1="0" y1="8" x2="8" y2="0"
-              stroke="#000" stroke-width="1.8" stroke-opacity="0.55"/>
+        <rect width="10" height="10" fill="rgba(0,0,0,0)"/>
+        <line x1="0" y1="10" x2="10" y2="0"
+              stroke="#000" stroke-width="1.6" stroke-opacity="0.6"/>
+        <line x1="0" y1="0" x2="10" y2="10"
+              stroke="#000" stroke-width="1.6" stroke-opacity="0.6"/>
       </pattern>`;
     svgEl.insertBefore(defs, svgEl.firstChild);
     theMap._hatchReady = true;
@@ -960,7 +962,7 @@ function buildLegend(geojson, mode) {
         hail: '2"+ Hail Possible',
       }[mode] || 'Particularly Dangerous';
       html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-        <div class="legend-swatch" style="background:repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 4px,rgba(0,0,0,0.55) 4px,rgba(0,0,0,0.55) 5.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
+        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
         <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
         <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
       </div>`;
