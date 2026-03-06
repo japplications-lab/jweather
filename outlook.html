@@ -521,16 +521,44 @@ const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excl
 
 // Exact SPC probability colors sampled directly from official SPC legend
 // 5% = green per user preference (SPC uses brown #c5a392)
-// SPC official probability colors
-const PROB = [
-  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'Very Low Risk'   },
-  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'        },
-  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'Some Risk'       },
-  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'   },
-  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'       },
-  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk'  },
-  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'    },
+// Per-hazard probability scales — each has different thresholds per SPC
+const PROB_TORN = [
+  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'Very Low Risk'  },
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'       },
+  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'Some Risk'      },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'  },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'      },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk' },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'   },
 ];
+const PROB_WIND = [
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'       },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'  },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'      },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk' },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'   },
+  { dn:75, fill:'#00ffff', stroke:'#00aaaa', label:'Critical Risk'  },
+  { dn:90, fill:'#ff69b4', stroke:'#cc4488', label:'Maximum Risk'   },
+];
+const PROB_HAIL = [
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'       },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'  },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'      },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk' },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'   },
+];
+// Day 3 probabilistic uses same scale as tornado
+const PROB_D3 = PROB_TORN;
+
+// Helper: get the right PROB array for the current mode
+function getProbScale(mode) {
+  if (mode === 'wind') return PROB_WIND;
+  if (mode === 'hail') return PROB_HAIL;
+  if (mode === 'prob') return PROB_D3;
+  return PROB_TORN; // torn + fallback
+}
+// Legacy alias used by styleFeature — resolved per-call via getProbScale
+const PROB = PROB_TORN;
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
 const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
@@ -725,7 +753,7 @@ function initMap() {
   }
 
   mkPane('outlookPane',    310, false);
-  mkPane('sigOutlinePane', 330, false);
+  mkPane('sigOutlinePane', 390, false);  // above states so sig clicks always win
   mkPane('statesPane',     360, true);   // state lines — no clicks
   mkPane('labelTilePane',  420, true);   // tile labels — no clicks
   mkPane('sigBadgePane',   450, false);  // sig badges — clickable
@@ -781,13 +809,11 @@ function styleFeature(f, mode) {
     const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   } else {
-    // Log ALL raw property keys/values so we can see exactly what the layer returns
-    console.log('[jWeather] styleFeature props:', JSON.stringify(p));
-    const dnRaw = p.DN ?? p.dn ?? p.Dn ?? p.LABEL ?? p.label ?? 0;
-    const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1)); // handle 0.15 → 15
-    console.log('[jWeather] dnRaw:', dnRaw, '→ dn:', dn);
-    let c = PROB[0];
-    for (const x of PROB) { if (dn >= x.dn) c = x; }
+    const dnRaw = p.DN ?? p.dn ?? p.Dn ?? 0;
+    const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
+    const scale = getProbScale(mode);
+    let c = scale[0];
+    for (const x of scale) { if (dn >= x.dn) c = x; }
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   }
 }
@@ -864,7 +890,8 @@ function popupContent(f, mode, day) {
   } else {
     const dn = parseInt(p.DN || p.dn || 0);
     const { frame, context } = probDesc(dn, mode);
-    let probC = PROB[0]; for (const x of PROB) { if (dn >= x.dn) probC = x; }
+    const _scale = getProbScale(mode);
+    let probC = _scale[0]; for (const x of _scale) { if (dn >= x.dn) probC = x; }
     return `<div class="popup-inner">
       <div class="popup-header">
         <div class="popup-swatch" style="background:${probC.fill};border-color:${probC.stroke}"></div>
@@ -914,16 +941,31 @@ function buildLegend(geojson, mode) {
       </div>`;
     }).join('');
   } else {
-    // Always show all PROB levels; dim ones not present on the map
-    el.innerHTML = PROB.map((p, i) => {
-      const num = p.dn + '%';
+    // Always show all levels for this hazard type; dim ones not present on the map
+    const scale = getProbScale(mode);
+    const hasSig = !!SIG_LAYER_IDS[`${activeDay}-${mode}`];
+    let html = scale.map(p => {
       const isActive = active.has(p.dn);
       return `<div class="legend-item${isActive ? ' legend-active' : ' legend-dim'}">
         <div class="legend-swatch" style="background:${p.fill};border-color:${p.stroke}"></div>
-        <span class="legend-num">${num}</span>
+        <span class="legend-num">${p.dn}%</span>
         <span class="legend-label">${p.label}</span>
       </div>`;
     }).join('');
+    // Always append sig hatch entry for hazard types that have a sig layer
+    if (hasSig) {
+      const sigShortLabel = {
+        torn: 'EF2+ Tornado Possible',
+        wind: '65+ mph Wind Possible',
+        hail: '2"+ Hail Possible',
+      }[mode] || 'Particularly Dangerous';
+      html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+        <div class="legend-swatch" style="background:repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 4px,rgba(0,0,0,0.55) 4px,rgba(0,0,0,0.55) 5.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
+        <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
+        <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
+      </div>`;
+    }
+    el.innerHTML = html;
   }
 }
 
@@ -993,7 +1035,21 @@ async function loadHazard(day, mode) {
         lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
-        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
+        lyr.on('click', function(e) {
+          // If click is inside the sig layer area, show sig popup instead
+          if (activeSigLayer) {
+            let inSig = false;
+            activeSigLayer.eachLayer(sl => {
+              if (!inSig && sl.getBounds && sl.getBounds().contains(e.latlng)) {
+                // Rough bounds check — close enough for click routing
+                inSig = true;
+                sl.openPopup(e.latlng);
+              }
+            });
+            if (inSig) return;
+          }
+          this.openPopup(e.latlng);
+        });
 
       }
     }).addTo(theMap);
@@ -1044,7 +1100,6 @@ async function loadSigLayer(day, mode) {
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
     // Render sig zone — SPC style: diagonal hatch fill + solid black border
-    // Use the sigOutline renderer so the pattern defs are in the same SVG element
     activeSigLayer = L.geoJSON(gj, {
       style: {
         color: '#111',
@@ -1052,13 +1107,17 @@ async function loadSigLayer(day, mode) {
         opacity: 1,
         fillColor: '#555',   // temporary — patched to url(#sig-hatch) after render
         fillOpacity: 0.9,
+        pane: 'sigOutlinePane',
       },
       renderer: theMap._renderers?.sigOutline || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ weight:3, color:'#000' }); });
         lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); applyHatch(); });
-        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
+        lyr.on('click', function(e) {
+          L.DomEvent.stopPropagation(e); // prevent click falling through to underlying polygon
+          this.openPopup(e.latlng);
+        });
       }
     }).addTo(theMap);
 
