@@ -731,8 +731,26 @@ function initMap() {
     states:     L.svg({ pane:'statesPane' }).addTo(theMap),
   };
 
-  // Mark hatch ready immediately — we use CSS dashArray approach, no SVG pattern needed
-  theMap._hatchReady = true;
+  // Inject diagonal hatch pattern into the sigOutline renderer's SVG.
+  // Must defer until Leaflet has created and attached the SVG element to the DOM.
+  // patternUnits="userSpaceOnUse" with small pixel coords = consistent visible lines at all zooms.
+  function injectSigHatch() {
+    const svgEl = theMap._renderers?.sigOutline?._container;
+    if (!svgEl) { setTimeout(injectSigHatch, 50); return; }
+    svgEl.querySelectorAll('defs').forEach(d => d.remove());
+    const ns = 'http://www.w3.org/2000/svg';
+    const defs = document.createElementNS(ns, 'defs');
+    defs.innerHTML = `
+      <pattern id="sig-hatch" x="0" y="0" width="8" height="8"
+               patternUnits="userSpaceOnUse">
+        <rect width="8" height="8" fill="rgba(0,0,0,0)"/>
+        <line x1="0" y1="8" x2="8" y2="0"
+              stroke="#000" stroke-width="1.8" stroke-opacity="0.55"/>
+      </pattern>`;
+    svgEl.insertBefore(defs, svgEl.firstChild);
+    theMap._hatchReady = true;
+  }
+  setTimeout(injectSigHatch, 100);
 
   makeBaseTiles().addTo(theMap);
 
@@ -978,27 +996,37 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render sig zone — SPC style: thick black dashed outline
-    // Use default Leaflet SVG renderer (not custom pane renderer) so dashArray works reliably
+    // Render sig zone — SPC style: diagonal hatch fill + solid black border
+    // Use the sigOutline renderer so the pattern defs are in the same SVG element
     activeSigLayer = L.geoJSON(gj, {
       style: {
         color: '#111',
-        weight: 4,
+        weight: 2,
         opacity: 1,
-        dashArray: '10 7',
-        lineCap: 'butt',
-        lineJoin: 'miter',
-        fillColor: '#111',
-        fillOpacity: 0.07,
-        pane: 'sigOutlinePane',
+        fillColor: '#555',   // temporary — patched to url(#sig-hatch) after render
+        fillOpacity: 0.9,
       },
+      renderer: theMap._renderers?.sigOutline || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:5.5, color:'#000', dashArray:'10 7' }); });
-        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:3, color:'#000' }); });
+        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); applyHatch(); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
     }).addTo(theMap);
+
+    // Patch path fills to url(#sig-hatch) — must run after Leaflet flushes to DOM
+    function applyHatch() {
+      if (!theMap._hatchReady) { setTimeout(applyHatch, 50); return; }
+      activeSigLayer.eachLayer(lyr => {
+        const el = lyr.getElement ? lyr.getElement() : null;
+        if (el) {
+          el.setAttribute('fill', 'url(#sig-hatch)');
+          el.setAttribute('fill-opacity', '1');
+        }
+      });
+    }
+    setTimeout(applyHatch, 0);
 
     // Single badge anchored to the overall bounding box center of ALL sig features
     try {
