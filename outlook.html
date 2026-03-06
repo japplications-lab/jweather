@@ -765,28 +765,9 @@ function initMap() {
     states:     L.svg({ pane:'statesPane' }).addTo(theMap),
   };
 
-  // Inject diagonal hatch pattern into the sigOutline renderer's SVG.
-  // Must defer until Leaflet has created and attached the SVG element to the DOM.
-  // patternUnits="userSpaceOnUse" with small pixel coords = consistent visible lines at all zooms.
-  function injectSigHatch() {
-    const svgEl = theMap._renderers?.sigOutline?._container;
-    if (!svgEl) { setTimeout(injectSigHatch, 50); return; }
-    svgEl.querySelectorAll('defs').forEach(d => d.remove());
-    const ns = 'http://www.w3.org/2000/svg';
-    const defs = document.createElementNS(ns, 'defs');
-    defs.innerHTML = `
-      <pattern id="sig-hatch" x="0" y="0" width="10" height="10"
-               patternUnits="userSpaceOnUse">
-        <rect width="10" height="10" fill="rgba(0,0,0,0)"/>
-        <line x1="0" y1="10" x2="10" y2="0"
-              stroke="#000" stroke-width="1.6" stroke-opacity="0.6"/>
-        <line x1="0" y1="0" x2="10" y2="10"
-              stroke="#000" stroke-width="1.6" stroke-opacity="0.6"/>
-      </pattern>`;
-    svgEl.insertBefore(defs, svgEl.firstChild);
-    theMap._hatchReady = true;
-  }
-  setTimeout(injectSigHatch, 100);
+  // Canvas renderer for sig layer — avoids SVG pattern scoping issues entirely
+  theMap._sigCanvas = L.canvas({ pane: 'sigOutlinePane' });
+  theMap._hatchReady = true;
 
   makeBaseTiles().addTo(theMap);
 
@@ -978,6 +959,7 @@ function clearSigLayer() {
   if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
   activeSigMarkers.forEach(m => theMap.removeLayer(m));
   activeSigMarkers = [];
+  clearSigHatch();
 }
 
 async function loadHazard(day, mode) {
@@ -1083,6 +1065,65 @@ async function loadHazard(day, mode) {
   loading.classList.add('hidden');
 }
 
+// Draw crosshatch overlay on a canvas element positioned over the map
+let _hatchCanvas = null;
+function drawSigHatch(geojson) {
+  // Remove any existing hatch canvas
+  if (_hatchCanvas) { _hatchCanvas.remove(); _hatchCanvas = null; }
+
+  const mapEl = theMap.getContainer();
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:385;`;
+  canvas.width  = mapEl.offsetWidth;
+  canvas.height = mapEl.offsetHeight;
+  mapEl.appendChild(canvas);
+  _hatchCanvas = canvas;
+
+  const ctx = canvas.getContext('2d');
+
+  // Create crosshatch pattern on an offscreen canvas
+  const pat = document.createElement('canvas');
+  pat.width = pat.height = 10;
+  const pc = pat.getContext('2d');
+  pc.strokeStyle = 'rgba(0,0,0,0.55)';
+  pc.lineWidth = 1.5;
+  pc.beginPath(); pc.moveTo(0,10); pc.lineTo(10,0); pc.stroke(); // ╲ direction
+  pc.beginPath(); pc.moveTo(0,0);  pc.lineTo(10,10); pc.stroke(); // ╱ direction
+  const pattern = ctx.createPattern(pat, 'repeat');
+
+  // Project each GeoJSON polygon ring to pixel coords and fill with pattern
+  function projectRing(ring) {
+    return ring.map(([lng, lat]) => theMap.latLngToContainerPoint(L.latLng(lat, lng)));
+  }
+
+  ctx.fillStyle = pattern;
+  geojson.features.forEach(feat => {
+    const geom = feat.geometry;
+    const polys = geom.type === 'Polygon' ? [geom.coordinates]
+                : geom.type === 'MultiPolygon' ? geom.coordinates : [];
+    polys.forEach(poly => {
+      ctx.beginPath();
+      poly.forEach((ring, i) => {
+        const pts = projectRing(ring);
+        pts.forEach((p, j) => j === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+      });
+      ctx.fill('evenodd');
+    });
+  });
+
+  // Redraw on map move/zoom
+  theMap.off('moveend zoomend', _redrawSigHatch);
+  _redrawSigHatch = () => { if (geojson) drawSigHatch(geojson); };
+  theMap.on('moveend zoomend', _redrawSigHatch);
+}
+let _redrawSigHatch = null;
+
+function clearSigHatch() {
+  if (_hatchCanvas) { _hatchCanvas.remove(); _hatchCanvas = null; }
+  if (_redrawSigHatch) { theMap.off('moveend zoomend', _redrawSigHatch); _redrawSigHatch = null; }
+}
+
 async function loadSigLayer(day, mode) {
   // Sig layers only exist for specific hazard modes, not categorical
   const sigLayerId = SIG_LAYER_IDS[`${day}-${mode}`];
@@ -1101,40 +1142,31 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render sig zone — SPC style: diagonal hatch fill + solid black border
+    // Render sig zone using Canvas renderer — crosshatch drawn natively, no SVG pattern needed
     activeSigLayer = L.geoJSON(gj, {
       style: {
         color: '#111',
-        weight: 2,
+        weight: 2.5,
         opacity: 1,
-        fillColor: '#555',   // temporary — patched to url(#sig-hatch) after render
-        fillOpacity: 0.9,
+        fillColor: '#000',
+        fillOpacity: 0,       // canvas handles fill via _updateStyle override below
         pane: 'sigOutlinePane',
       },
-      renderer: theMap._renderers?.sigOutline || L.svg(),
+      renderer: theMap._sigCanvas,
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:3, color:'#000' }); });
-        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); applyHatch(); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:4, color:'#000' }); });
+        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
         lyr.on('click', function(e) {
-          L.DomEvent.stopPropagation(e); // prevent click falling through to underlying polygon
+          L.DomEvent.stopPropagation(e);
           this.openPopup(e.latlng);
         });
       }
     }).addTo(theMap);
 
-    // Patch path fills to url(#sig-hatch) — must run after Leaflet flushes to DOM
-    function applyHatch() {
-      if (!theMap._hatchReady) { setTimeout(applyHatch, 50); return; }
-      activeSigLayer.eachLayer(lyr => {
-        const el = lyr.getElement ? lyr.getElement() : null;
-        if (el) {
-          el.setAttribute('fill', 'url(#sig-hatch)');
-          el.setAttribute('fill-opacity', '1');
-        }
-      });
-    }
-    setTimeout(applyHatch, 0);
+    // After canvas renders the polygon outlines, draw crosshatch fill on top
+    // using a dedicated overlay canvas sized to the map container
+    drawSigHatch(gj);
 
     // Single badge anchored to the overall bounding box center of ALL sig features
     try {
