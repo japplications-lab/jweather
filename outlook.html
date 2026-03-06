@@ -113,8 +113,14 @@
     .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
     .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
     .legend-items{display:flex;flex-direction:column;gap:5px;}
-    .legend-item{display:flex;align-items:center;gap:8px;font-size:0.72rem;font-weight:500;color:var(--text-2);}
-    .legend-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12);}
+    .legend-item{display:flex;align-items:center;gap:7px;font-size:0.72rem;font-weight:500;color:var(--text-2);padding:1px 0;}
+    .legend-swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.15);}
+    .legend-num{font-size:0.65rem;font-weight:700;color:var(--text-4);min-width:26px;font-variant-numeric:tabular-nums;letter-spacing:0.01em;}
+    .legend-label{color:var(--text-2);}
+    .legend-active .legend-label{color:var(--text);font-weight:600;}
+    .legend-active .legend-num{color:var(--text-3);}
+    .legend-dim{opacity:0.38;}
+    .legend-dim .legend-swatch{filter:saturate(0.3);}
 
     /* Loading overlay */
     .map-loading{position:absolute;inset:0;z-index:410;background:rgba(242,243,245,0.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
@@ -875,29 +881,50 @@ function popupContent(f, mode, day) {
 //  LEGEND
 // ─────────────────────────────────────────────
 function buildLegend(geojson, mode) {
-  const el = document.getElementById('legend-items');
+  const el  = document.getElementById('legend-items');
   const box = document.getElementById('map-legend');
-  const items = [];
 
+  // Track which levels are actually on the map (highlighted)
+  const active = new Set();
   if (mode === 'cat') {
-    const seen = new Set();
     geojson.features.forEach(f => {
       const raw = (f.properties.LABEL||f.properties.label||f.properties.DN||'').toString().toUpperCase().trim();
       const key = CAT[raw] ? raw : (DN_TO_CAT[raw]||'');
-      if (CAT[key]) seen.add(key);
+      if (CAT[key] && key !== 'TSTM') active.add(key);
     });
-    CAT_ORDER.forEach(k => { if (seen.has(k)) items.push({ fill:CAT[k].fill, stroke:CAT[k].stroke, label:CAT[k].label }); });
   } else {
-    const dns = new Set();
-    geojson.features.forEach(f => { const d=parseInt(f.properties.DN||f.properties.dn||0); if(d>0) dns.add(d); });
-    PROB.forEach(p => { if (dns.has(p.dn)) items.push({ fill:p.fill, stroke:p.stroke, label:p.label }); });
+    geojson.features.forEach(f => {
+      const d = parseInt(f.properties.DN||f.properties.dn||0);
+      if (d > 0) active.add(d);
+    });
   }
 
-  if (!items.length) { box.style.display='none'; return; }
-  box.style.display='block';
-  el.innerHTML = items.map(i =>
-    `<div class="legend-item"><div class="legend-swatch" style="background:${i.fill};border-color:${i.stroke}"></div>${i.label}</div>`
-  ).join('');
+  box.style.display = 'block';
+
+  if (mode === 'cat') {
+    // Always show all CAT levels; dim ones not present on the map
+    el.innerHTML = CAT_ORDER.map((k, i) => {
+      const c = CAT[k];
+      const num = i + 1;
+      const isActive = active.has(k);
+      return `<div class="legend-item${isActive ? ' legend-active' : ' legend-dim'}">
+        <div class="legend-swatch" style="background:${c.fill};border-color:${c.stroke}"></div>
+        <span class="legend-num">${num}</span>
+        <span class="legend-label">${c.label}</span>
+      </div>`;
+    }).join('');
+  } else {
+    // Always show all PROB levels; dim ones not present on the map
+    el.innerHTML = PROB.map((p, i) => {
+      const num = p.dn + '%';
+      const isActive = active.has(p.dn);
+      return `<div class="legend-item${isActive ? ' legend-active' : ' legend-dim'}">
+        <div class="legend-swatch" style="background:${p.fill};border-color:${p.stroke}"></div>
+        <span class="legend-num">${num}</span>
+        <span class="legend-label">${p.label}</span>
+      </div>`;
+    }).join('');
+  }
 }
 
 // ─────────────────────────────────────────────
