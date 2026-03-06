@@ -937,7 +937,23 @@ async function loadHazard(day, mode) {
       document.getElementById('map-loading').classList.add('hidden');
       return;
     }
-    const gj = sortByAreaDesc(gjRaw); // largest polygon first → smallest rendered on top
+    // For prob/hazard layers: sort by DN ascending so lowest-risk (largest) polygons
+    // render first (bottom) and highest-risk (smallest) polygons render last (top).
+    // For cat layers: sortByAreaDesc still applies (largest area = lowest risk = bottom).
+    let gj;
+    if (mode === 'cat') {
+      gj = sortByAreaDesc(gjRaw);
+    } else {
+      // Sort by DN ascending: 2% at bottom, 15%+ on top
+      gj = {
+        ...gjRaw,
+        features: [...gjRaw.features].sort((a, b) => {
+          const dnA = parseFloat(a.properties?.DN ?? a.properties?.dn ?? 0);
+          const dnB = parseFloat(b.properties?.DN ?? b.properties?.dn ?? 0);
+          return dnA - dnB; // ascending: lowest DN first (rendered at bottom)
+        })
+      };
+    }
 
     activeLayer = L.geoJSON(gj, {
       style: f => styleFeature(f, mode),
