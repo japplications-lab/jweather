@@ -775,7 +775,11 @@ function styleFeature(f, mode) {
     const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   } else {
-    const dn = parseInt(p.DN || p.dn || 0);
+    // Log ALL raw property keys/values so we can see exactly what the layer returns
+    console.log('[jWeather] styleFeature props:', JSON.stringify(p));
+    const dnRaw = p.DN ?? p.dn ?? p.Dn ?? p.LABEL ?? p.label ?? 0;
+    const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1)); // handle 0.15 → 15
+    console.log('[jWeather] dnRaw:', dnRaw, '→ dn:', dn);
     let c = PROB[0];
     for (const x of PROB) { if (dn >= x.dn) c = x; }
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
