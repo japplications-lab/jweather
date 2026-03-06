@@ -515,14 +515,15 @@ const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excl
 
 // Exact SPC probability colors sampled directly from official SPC legend
 // 5% = green per user preference (SPC uses brown #c5a392)
+// SPC official probability colors
 const PROB = [
-  { dn:2,  fill:'#6abf6a', stroke:'#3d8c3d', label:'Very Low Risk'  },
-  { dn:5,  fill:'#55a855', stroke:'#337733', label:'Low Risk'        },
-  { dn:10, fill:'#f0e040', stroke:'#b8a800', label:'Possible'        },
-  { dn:15, fill:'#ffff00', stroke:'#cccc00', label:'Likely'          },
-  { dn:30, fill:'#ff0000', stroke:'#cc0000', label:'High Risk'       },
-  { dn:45, fill:'#ff00ff', stroke:'#cc00cc', label:'Very High Risk'  },
-  { dn:60, fill:'#871aec', stroke:'#5a00a8', label:'Extreme Risk'    },
+  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'2% Probability'  },
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'5% Probability'  },
+  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'10% Probability' },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'15% Probability' },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'30% Probability' },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'45% Probability' },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'60% Probability' },
 ];
 
 const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
@@ -977,20 +978,23 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render sig zone — SPC style: thick black dashed outline, no fill
+    // Render sig zone — SPC style: thick black dashed outline
+    // Use default Leaflet SVG renderer (not custom pane renderer) so dashArray works reliably
     activeSigLayer = L.geoJSON(gj, {
       style: {
-        color: '#000',
-        weight: 3,
+        color: '#111',
+        weight: 4,
         opacity: 1,
-        dashArray: '8 6',
-        fillColor: '#000',
-        fillOpacity: 0.08,
+        dashArray: '10 7',
+        lineCap: 'butt',
+        lineJoin: 'miter',
+        fillColor: '#111',
+        fillOpacity: 0.07,
+        pane: 'sigOutlinePane',
       },
-      renderer: theMap._renderers?.sigOutline || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, color:'#000', dashArray:'8 6' }); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:5.5, color:'#000', dashArray:'10 7' }); });
         lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
