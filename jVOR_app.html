@@ -391,6 +391,9 @@
     #suggestions li:last-child { border-bottom: none; }
     #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
     #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
+    .sug-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); padding: 8px 14px 4px; }
+    .sug-remove { font-size: 11px; color: var(--text-4); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-family: var(--font); line-height: 1; flex-shrink: 0; }
+    .sug-remove:hover { color: var(--red); background: var(--red-dim); }
     .nav-dropdown { position: relative; }
     .nav-dropdown-btn { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; font-weight: 500; color: var(--text-3); background: none; border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-family: var(--font); transition: color 0.15s, background 0.15s; white-space: nowrap; }
     .nav-dropdown-btn:hover, .nav-dropdown:hover .nav-dropdown-btn { color: var(--text); background: var(--bg); }
@@ -402,6 +405,58 @@
     .nav-dropdown-menu a:hover { background: var(--red-dim); color: var(--red); }
     .nav-dropdown-menu a .material-symbols-rounded { font-size: 15px; color: var(--text-4); }
     .nav-dropdown-menu a:hover .material-symbols-rounded { color: var(--red); }
+
+    /* ── Disclaimer Modal ─────────────────────────────────────── */
+    #disclaimer-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #disclaimer-box {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 14px; max-width: 480px; width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .disc-header {
+      background: var(--red); padding: 18px 22px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .disc-header .material-symbols-rounded {
+      font-size: 26px; color: #fff;
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    .disc-header-text { flex: 1; }
+    .disc-header-title {
+      font-size: 1rem; font-weight: 700; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .disc-header-sub {
+      font-size: 0.72rem; color: rgba(255,255,255,0.8);
+      margin-top: 2px; font-weight: 500;
+    }
+    .disc-body { padding: 20px 22px 22px; }
+    .disc-body p {
+      font-size: 0.83rem; color: var(--text-2); line-height: 1.65;
+      margin: 0 0 12px;
+    }
+    .disc-body p:last-of-type { margin-bottom: 18px; }
+    .disc-body strong { color: var(--text); }
+    .disc-ack-btn {
+      width: 100%; padding: 11px; background: var(--red);
+      border: none; border-radius: 8px; color: #fff;
+      font-family: var(--font); font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.01em;
+      transition: opacity 0.15s;
+    }
+    .disc-ack-btn:hover { opacity: 0.88; }
+    .disc-ack-check {
+      display: flex; align-items: center; gap: 9px;
+      margin-bottom: 14px; cursor: pointer;
+    }
+    .disc-ack-check input { accent-color: var(--red); width: 15px; height: 15px; cursor: pointer; }
+    .disc-ack-check span { font-size: 0.78rem; color: var(--text-3); }
   </style>
 </head>
 <body>
@@ -1255,6 +1310,137 @@ document.getElementById('confThresh').addEventListener('input', e => document.ge
 
 window.addEventListener('resize', () => { sigMap && sigMap.invalidateSize(); });
 
+
+// ── Search + Recent Searches ─────────────────────────────────────────────────
+const sBar   = document.getElementById('search-bar');
+const sugBox = document.getElementById('suggestions');
+let sugs = [], selIdx = -1, sCtrl = null;
+
+const RECENTS_KEY = 'jweather_recents';
+const MAX_RECENTS = 5;
+function getRecents() { try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch { return []; } }
+function saveRecent(loc) {
+  let r = getRecents().filter(x => x.label !== loc.label);
+  r.unshift(loc);
+  if (r.length > MAX_RECENTS) r = r.slice(0, MAX_RECENTS);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(r));
+}
+function removeRecent(label) {
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(getRecents().filter(r => r.label !== label)));
+}
+
+function pick(loc) {
+  saveRecent(loc);
+  localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+  window.location.href = 'index.html';
+}
+
+function parseNominatim(item) {
+  const a = item.address || {};
+  const city  = a.city || a.town || a.village || a.county || item.display_name.split(',')[0];
+  const state = a.state || '';
+  const label = state ? `${city}, ${state}` : city;
+  return { label, city, state, lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+}
+
+function renderSugs() {
+  sugBox.innerHTML = '';
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  if (!sugs.length && !recents.length) { sugBox.style.display='none'; return; }
+
+  // Search results section
+  if (sugs.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label';
+    label.textContent = 'Locations';
+    sugBox.appendChild(label);
+    sugs.forEach((loc, i) => {
+      const li = document.createElement('li');
+      if (i===selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
+      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc); });
+      sugBox.appendChild(li);
+    });
+  }
+
+  // Recents section below
+  if (recents.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label';
+    label.textContent = 'Recent Searches';
+    sugBox.appendChild(label);
+    recents.forEach((loc, i) => {
+      const li = document.createElement('li');
+      const allIdx = sugs.length + i;
+      if (allIdx===selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">history</span><span class="sug-city">${loc.label}</span><button class="sug-remove" title="Remove">✕</button>`;
+      li.querySelector('.sug-remove').addEventListener('mousedown', e => {
+        e.stopPropagation(); e.preventDefault();
+        removeRecent(loc.label);
+        sugs = sugs.filter(s => s.label !== loc.label);
+        renderSugs();
+      });
+      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc); });
+      sugBox.appendChild(li);
+    });
+  }
+
+  sugBox.style.display = 'block';
+}
+
+function showRecents() { sugs = []; renderSugs(); }
+
+sBar.addEventListener('focus', () => { if (sBar.value.trim().length < 2) showRecents(); });
+sBar.addEventListener('input', e => {
+  const q = e.target.value.trim();
+  if (q.length < 2) { sugBox.style.display = 'none'; sugs = []; return; }
+  if (sCtrl) sCtrl.abort();
+  sCtrl = new AbortController();
+  setTimeout(async () => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=8&countrycodes=us`, { signal: sCtrl.signal, headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' } });
+      const data = await res.json();
+      const seen = new Set();
+      sugs = [];
+      for (const x of data) {
+        const p = parseNominatim(x);
+        if (!seen.has(p.label)) { seen.add(p.label); sugs.push(p); }
+        if (sugs.length >= 6) break;
+      }
+      selIdx = -1; renderSugs();
+    } catch(e) { if (e.name !== 'AbortError') console.error(e); }
+  }, 280);
+});
+sBar.addEventListener('keydown', e => {
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  const all = [...sugs, ...recents];
+  if (!all.length) return;
+  if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%all.length; renderSugs(); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+all.length)%all.length; renderSugs(); }
+  else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx]); else if (all[0]) pick(all[0]); }
+  else if (e.key==='Escape') { sugBox.style.display='none'; selIdx=-1; }
+});
+document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.target !== sBar) { sugBox.style.display = 'none'; selIdx = -1; } });
+
+
+// ── Disclaimer ───────────────────────────────────────────────────────────────
+(function() {
+  const DISC_KEY = 'jvor_disclaimer_acked';
+  const overlay  = document.getElementById('disclaimer-overlay');
+  const ackBtn   = document.getElementById('disc-ack-btn');
+  const checkbox = document.getElementById('disc-dont-show');
+
+  if (localStorage.getItem(DISC_KEY) === '1') {
+    overlay.style.display = 'none';
+    return;
+  }
+
+  ackBtn.addEventListener('click', () => {
+    if (checkbox.checked) localStorage.setItem(DISC_KEY, '1');
+    overlay.style.display = 'none';
+  });
+})();
+
 // INIT
 buildStations();
 drawEmptyRadar();
@@ -1271,5 +1457,28 @@ document.querySelectorAll('[data-coming-soon]').forEach(el => {
 });
 </script>
 </script>
+
+<!-- ── Disclaimer Modal ──────────────────────────────────────── -->
+<div id="disclaimer-overlay">
+  <div id="disclaimer-box">
+    <div class="disc-header">
+      <span class="material-symbols-rounded">warning</span>
+      <div class="disc-header-text">
+        <div class="disc-header-title">Experimental Tool</div>
+        <div class="disc-header-sub">jVOR Beta — Read before continuing</div>
+      </div>
+    </div>
+    <div class="disc-body">
+      <p><strong>jVOR is an experimental research tool</strong> and is not intended for use in making safety decisions or taking protective action.</p>
+      <p>Rotation signatures displayed here are algorithmically derived from simulated data and <strong>may be inaccurate, delayed, or missing entirely.</strong> This tool does not replace official NWS warnings, trained meteorological analysis, or any certified severe weather detection system.</p>
+      <p><strong>Always rely on official sources</strong> such as the National Weather Service, local emergency management, and NOAA Weather Radio for life-safety decisions.</p>
+      <label class="disc-ack-check">
+        <input type="checkbox" id="disc-dont-show"> 
+        <span>Don't show this again on this device</span>
+      </label>
+      <button class="disc-ack-btn" id="disc-ack-btn">I Understand — Continue to jVOR</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

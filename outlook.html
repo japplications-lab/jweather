@@ -46,6 +46,9 @@
     #suggestions li:last-child{border-bottom:none;}
     #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
     #suggestions li .material-symbols-rounded{font-size:13px;color:var(--red);}
+    .sug-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); padding: 8px 14px 4px; }
+    .sug-remove { font-size: 11px; color: var(--text-4); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-family: var(--font); line-height: 1; flex-shrink: 0; }
+    .sug-remove:hover { color: var(--red); background: var(--red-dim); }
     .sug-city{font-weight:500;flex:1;}
     .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
     .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
@@ -1530,17 +1533,68 @@ let sugs=[],selIdx=-1,sCtrl=null;
 const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions');
 function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 sBar.addEventListener('input',db(async e=>{
-  const q=e.target.value.trim();if(q.length<2){sugBox.style.display='none';sugs=[];return;}
+  const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs();return;}
   if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
   try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
   const d=await r.json();const seen=new Set();sugs=[];
   for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
   selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
 },280));
-sBar.addEventListener('keydown',e=>{if(!sugs.length)return;if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}else if(e.key==='Escape')sugBox.style.display='none';});
-function rSugs(){sugBox.innerHTML='';if(!sugs.length){sugBox.style.display='none';return;}sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});sugBox.style.display='block';}
+sBar.addEventListener('keydown',e=>{
+  const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
+  const all=[...sugs,...recents];
+  if(!all.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs();}
+  else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs();}
+  else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
+  else if(e.key==='Escape')sugBox.style.display='none';
+});
+function rSugs(){
+  sugBox.innerHTML='';
+  const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
+  if(!sugs.length&&!recents.length){sugBox.style.display='none';return;}
+  if(sugs.length){
+    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';sugBox.appendChild(lbl);
+    sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});
+  }
+  if(recents.length){
+    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';sugBox.appendChild(lbl);
+    recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs();});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});sugBox.appendChild(li);});
+  }
+  sugBox.style.display='block';
+}
 document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
-function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
+
+sBar.addEventListener('focus', () => {
+  if (sBar.value.trim().length < 2) showRecents();
+});
+
+function showRecents() { sugs=[]; rSugs(); }
+
+// ── Recent searches ──────────────────────────────────────────────────────────
+const RECENTS_KEY = 'jweather_recents';
+const MAX_RECENTS = 5;
+
+function getRecents() {
+  try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch { return []; }
+}
+
+function saveRecent(loc) {
+  let recents = getRecents().filter(r => r.label !== loc.label);
+  recents.unshift(loc);
+  if (recents.length > MAX_RECENTS) recents = recents.slice(0, MAX_RECENTS);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+}
+
+function removeRecent(label) {
+  const recents = getRecents().filter(r => r.label !== label);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+}
+function pick(l) {
+  saveRecent(l);
+  localStorage.setItem('jweather_last_location', JSON.stringify(l));
+  window.location.href = 'index.html';
+}
 </script>
 </body>
 </html>

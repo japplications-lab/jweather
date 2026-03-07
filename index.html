@@ -59,6 +59,9 @@
     #suggestions li:last-child { border-bottom: none; }
     #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
     #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
+    .sug-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); padding: 8px 14px 4px; }
+    .sug-remove { font-size: 11px; color: var(--text-4); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-family: var(--font); line-height: 1; flex-shrink: 0; }
+    .sug-remove:hover { color: var(--red); background: var(--red-dim); }
     .sug-city { font-weight: 500; flex: 1; }
 
     .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
@@ -593,52 +596,105 @@ async function fetchSuggestions(q) {
 
 sBar.addEventListener('input', debounce(async e => {
   const q = e.target.value.trim();
-  if (q.length < 2) { sugBox.style.display='none'; sugs=[]; return; }
+  if (q.length < 2) { sugs=[]; renderSugs(); return; }
   const results = await fetchSuggestions(q);
   if (results === null) return; // aborted
   sugs = results; selIdx = -1; renderSugs();
 }, 280));
 
 sBar.addEventListener('keydown', e => {
-  if (!sugs.length) return;
-  if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%sugs.length; renderSugs(); }
-  else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+sugs.length)%sugs.length; renderSugs(); }
-  else if (e.key==='Enter') { if (selIdx>=0) pick(sugs[selIdx]); else if (sugs.length) pick(sugs[0]); }
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  const all = [...sugs, ...recents];
+  if (!all.length) return;
+  if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%all.length; renderSugs(); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+all.length)%all.length; renderSugs(); }
+  else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx]); else if (all[0]) pick(all[0]); }
   else if (e.key==='Escape') { sugBox.style.display='none'; selIdx=-1; }
 });
 
 function renderSugs() {
   sugBox.innerHTML = '';
-  if (!sugs.length) { sugBox.style.display='none'; return; }
-  sugs.forEach((loc, i) => {
-    const li = document.createElement('li');
-    if (i===selIdx) li.classList.add('active');
-    li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
-    li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc); });
-    sugBox.appendChild(li);
-  });
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  if (!sugs.length && !recents.length) { sugBox.style.display='none'; return; }
+
+  // Search results section
+  if (sugs.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label';
+    label.textContent = 'Locations';
+    sugBox.appendChild(label);
+    sugs.forEach((loc, i) => {
+      const li = document.createElement('li');
+      if (i===selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
+      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc); });
+      sugBox.appendChild(li);
+    });
+  }
+
+  // Recents section below
+  if (recents.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label';
+    label.textContent = 'Recent Searches';
+    sugBox.appendChild(label);
+    recents.forEach((loc, i) => {
+      const li = document.createElement('li');
+      const allIdx = sugs.length + i;
+      if (allIdx===selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">history</span><span class="sug-city">${loc.label}</span><button class="sug-remove" title="Remove">✕</button>`;
+      li.querySelector('.sug-remove').addEventListener('mousedown', e => {
+        e.stopPropagation(); e.preventDefault();
+        removeRecent(loc.label);
+        sugs = sugs.filter(s => s.label !== loc.label);
+        renderSugs();
+      });
+      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc); });
+      sugBox.appendChild(li);
+    });
+  }
+
   sugBox.style.display = 'block';
 }
 
 document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.target!==sBar) { sugBox.style.display='none'; selIdx=-1; } });
 
+sBar.addEventListener('focus', () => {
+  if (sBar.value.trim().length < 2) showRecents();
+});
+
+function showRecents() {
+  sugs = [];
+  renderSugs();
+}
+
+
+// ── Recent searches ──────────────────────────────────────────────────────────
+const RECENTS_KEY = 'jweather_recents';
+const MAX_RECENTS = 5;
+
+function getRecents() {
+  try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch { return []; }
+}
+
+function saveRecent(loc) {
+  let recents = getRecents().filter(r => r.label !== loc.label);
+  recents.unshift(loc);
+  if (recents.length > MAX_RECENTS) recents = recents.slice(0, MAX_RECENTS);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+}
+
+function removeRecent(label) {
+  const recents = getRecents().filter(r => r.label !== label);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+}
 function pick(loc) {
   curLoc = loc; sBar.value = loc.label; sugBox.style.display='none'; selIdx=-1;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+  saveRecent(loc);
   loadWeather(loc); updateRadar(loc.lat, loc.lng);
 }
 
-// ---- Use My Location ----
-      const data = await res.json();
-      const parsed = parseNominatim(data);
-      if (parsed.city) loc = parsed;
-    } catch {}
-    curLoc = loc; sBar.value = loc.label;
-    localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-    loadWeather(loc); updateRadar(loc.lat, loc.lng);
-    locBtn.disabled=false; locBtn.innerHTML=`<span class="material-symbols-rounded">my_location</span> Locate me`;
-  }, () => { alert('Unable to get location.'); locBtn.disabled=false; locBtn.innerHTML=`<span class="material-symbols-rounded">my_location</span> Locate me`; });
-});
 
 // ── Ray-casting point-in-polygon ──
 function pointInRing(pt, ring) {
