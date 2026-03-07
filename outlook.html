@@ -15,7 +15,7 @@
       --sidebar:240px; --header:58px;
       --bg:#0f1115; --surface:#1a1d24;
       --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
-      --text:#f4f5f7; --text-2:#d4d8e0; --text-3:#9197a3; --text-4:#5c6270;
+      --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
       --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
       --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
       --r:12px; --r-sm:8px; --r-xs:6px;
@@ -1540,7 +1540,7 @@ sBar.addEventListener('input',db(async e=>{
 sBar.addEventListener('keydown',e=>{if(!sugs.length)return;if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}else if(e.key==='Escape')sugBox.style.display='none';});
 function rSugs(){sugBox.innerHTML='';if(!sugs.length){sugBox.style.display='none';return;}sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});sugBox.style.display='block';}
 document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
-function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';},()=>{alert('Unable to get location.');locBtn.disabled=false;});});
+function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
 </script>
 </body>
 </html>
