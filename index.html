@@ -59,6 +59,28 @@
     #suggestions li:last-child { border-bottom: none; }
     #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
     #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
+    .recents-bar { display: none; align-items: center; gap: 8px; padding: 6px 24px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: nowrap; overflow-x: auto; flex-shrink: 0; }
+    .recents-bar.visible { display: flex; }
+    .recent-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 20px; padding: 3px 10px 3px 8px;
+      font-size: 0.72rem; font-weight: 500; color: var(--text-3);
+      cursor: pointer; white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      font-family: var(--font);
+    }
+    .recent-chip:hover { border-color: var(--red); color: var(--text); background: var(--red-dim); }
+    .recent-chip .material-symbols-rounded { font-size: 12px; color: var(--text-4); }
+    .recent-chip:hover .material-symbols-rounded { color: var(--red); }
+    .recents-clear {
+      font-size: 0.68rem; font-weight: 500; color: var(--text-4);
+      background: none; border: none; cursor: pointer;
+      padding: 2px 4px; margin-left: 2px; white-space: nowrap;
+      font-family: var(--font); flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .recents-clear:hover { color: var(--red); }
     .sug-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); padding: 8px 14px 4px; }
     .sug-remove { font-size: 11px; color: var(--text-4); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-family: var(--font); line-height: 1; flex-shrink: 0; }
     .sug-remove:hover { color: var(--red); background: var(--red-dim); }
@@ -333,6 +355,7 @@
     </nav>
   </div>
 </header>
+<div class="recents-bar" id="recents-bar"></div>
 
 <!-- MAIN: left col + right col -->
 <main>
@@ -694,6 +717,34 @@ function removeRecent(label) {
   const recents = getRecents().filter(r => r.label !== label);
   localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
 }
+
+// ── Recents bar (chips below search) ─────────────────────────────────────────
+function renderRecentsBar() {
+  const bar = document.getElementById('recents-bar');
+  if (!bar) return;
+  const recents = getRecents();
+  bar.innerHTML = '';
+  if (!recents.length) { bar.classList.remove('visible'); return; }
+
+  recents.slice(0, 3).forEach(loc => {
+    const chip = document.createElement('button');
+    chip.className = 'recent-chip';
+    const city = loc.city || loc.label.split(',')[0];
+    chip.innerHTML = `<span class="material-symbols-rounded">history</span>${city}`;
+    chip.addEventListener('click', () => pick(loc));
+    bar.appendChild(chip);
+  });
+
+  const clear = document.createElement('button');
+  clear.className = 'recents-clear';
+  clear.textContent = 'Clear';
+  clear.addEventListener('click', () => {
+    localStorage.removeItem(RECENTS_KEY);
+    renderRecentsBar();
+  });
+  bar.appendChild(clear);
+  bar.classList.add('visible');
+}
 function pick(loc) {
   curLoc = loc; sBar.value = loc.label; sugBox.style.display='none'; selIdx=-1;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
@@ -701,6 +752,8 @@ function pick(loc) {
   loadWeather(loc); updateRadar(loc.lat, loc.lng);
 }
 
+
+renderRecentsBar();
 
 // ── Ray-casting point-in-polygon ──
 function pointInRing(pt, ring) {
