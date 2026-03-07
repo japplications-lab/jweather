@@ -1393,7 +1393,8 @@ function showRecents() { sugs = []; renderSugs(); }
 sBar.addEventListener('focus', () => { if (sBar.value.trim().length < 2) showRecents(); });
 sBar.addEventListener('input', e => {
   const q = e.target.value.trim();
-  if (q.length < 2) { sugBox.style.display = 'none'; sugs = []; return; }
+  if (q.length < 2) { sugs = []; renderSugs(); return; }
+  renderSugs(); // show recents immediately
   if (sCtrl) sCtrl.abort();
   sCtrl = new AbortController();
   setTimeout(async () => {

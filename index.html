@@ -594,13 +594,19 @@ async function fetchSuggestions(q) {
   }
 }
 
-sBar.addEventListener('input', debounce(async e => {
+sBar.addEventListener('input', e => {
   const q = e.target.value.trim();
   if (q.length < 2) { sugs=[]; renderSugs(); return; }
+  // Show recents immediately while waiting for fetch
+  renderSugs();
+  debouncedFetch(q);
+});
+
+const debouncedFetch = debounce(async q => {
   const results = await fetchSuggestions(q);
-  if (results === null) return; // aborted
+  if (results === null) return;
   sugs = results; selIdx = -1; renderSugs();
-}, 280));
+}, 280);
 
 sBar.addEventListener('keydown', e => {
   const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));

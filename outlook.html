@@ -1532,14 +1532,17 @@ function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet
 let sugs=[],selIdx=-1,sCtrl=null;
 const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions');
 function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
-sBar.addEventListener('input',db(async e=>{
+sBar.addEventListener('input', e => {
   const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs();return;}
+  rSugs(); // show recents immediately
   if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
+  db(async()=>{
   try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
   const d=await r.json();const seen=new Set();sugs=[];
   for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
   selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
-},280));
+  })();
+});
 sBar.addEventListener('keydown',e=>{
   const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
   const all=[...sugs,...recents];
