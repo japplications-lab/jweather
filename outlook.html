@@ -88,6 +88,9 @@
     .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
     .cat-btn:hover{background:var(--bg);color:var(--text-2);}
     .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
+    .cat-btn-sig{border-color:rgba(109,40,217,0.3);}
+    .cat-btn-sig.active{background:rgba(109,40,217,0.12);border-color:rgba(109,40,217,0.4);color:#7c3aed;}
+    .cat-btn-sig .cat-icon{color:#7c3aed;}
     .cat-icon{font-size:15px;flex-shrink:0;color:var(--text-3);
       font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
     .cat-btn.active .cat-icon{color:var(--red);
@@ -342,6 +345,9 @@
         <button class="cat-btn" data-day="1" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
+        <button class="cat-btn cat-btn-sig" data-day="1" data-mode="sig">
+          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
+        </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -369,6 +375,9 @@
         </button>
         <button class="cat-btn" data-day="2" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
+        </button>
+        <button class="cat-btn cat-btn-sig" data-day="2" data-mode="sig">
+          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
@@ -565,9 +574,16 @@ function getProbScale(mode) {
 }
 const PROB = PROB_TORN; // legacy alias
 
-const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
+const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic',sig:'Sig Severe' };
 const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
 
+
+// Sig Severe — one color per hazard type
+const SIG_COLORS = {
+  torn: { fill:'#7c3aed', stroke:'#5b21b6', label:'Sig Tornado'  },
+  wind: { fill:'#0369a1', stroke:'#075985', label:'Sig Wind'     },
+  hail: { fill:'#0f766e', stroke:'#0d5d56', label:'Sig Hail'     },
+};
 // ─────────────────────────────────────────────
 //  COLOR HELPERS
 // ─────────────────────────────────────────────
@@ -962,6 +978,111 @@ function buildLegend(geojson, mode) {
   }
 }
 
+
+// ─────────────────────────────────────────────
+//  SIG SEVERE — combined all-hazard sig view
+// ─────────────────────────────────────────────
+let activeSigSevereLayer = null;
+
+async function loadSigSevere(day) {
+  activeDay  = day;
+  activeMode = 'sig';
+
+  document.getElementById('pill-day').textContent  = DAY_LABELS[day];
+  document.getElementById('pill-mode').textContent = 'Sig Severe';
+
+  const loading = document.getElementById('map-loading');
+  loading.classList.remove('hidden');
+
+  if (activeLayer)          { theMap.removeLayer(activeLayer); activeLayer = null; }
+  if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
+  clearSigLayer();
+
+  // Helper: fetch with timeout so we never hang
+  function fetchWithTimeout(url, ms = 10000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { signal: ctrl.signal })
+      .then(r => { clearTimeout(timer); return r; })
+      .catch(() => { clearTimeout(timer); return null; });
+  }
+
+  // Keep hazard paired with its layer ID — don't filter separately
+  const hazardDefs = ['torn','wind','hail']
+    .map(h => ({ hazard: h, layerId: SIG_LAYER_IDS[`${day}-${h}`] }))
+    .filter(d => d.layerId);
+
+  const results = await Promise.allSettled(
+    hazardDefs.map(async ({ hazard, layerId }) => {
+      const res = await fetchWithTimeout(
+        `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`
+      );
+      if (!res || !res.ok) return { hazard, gj: null };
+      const gj = await res.json();
+      return { hazard, gj };
+    })
+  );
+
+  const allLayers    = [];
+  const legendEntries = [];
+  let anyFeatures    = false;
+
+  results.forEach(res => {
+    if (res.status !== 'fulfilled' || !res.value?.gj?.features?.length) return;
+    const { hazard, gj } = res.value;
+    const col = SIG_COLORS[hazard];
+    anyFeatures = true;
+    legendEntries.push(hazard);
+
+    gj.features.forEach(f => {
+      const layer = L.geoJSON(f, {
+        style: {
+          fillColor: col.fill, fillOpacity: 0.45,
+          color: col.stroke, weight: 1.5,
+        },
+        interactive: true,
+        pane: 'outlookPane',
+      }).bindPopup(`
+        <div style="font-family:var(--font);line-height:1.7;min-width:160px;">
+          <div style="font-weight:800;color:${col.fill};margin-bottom:4px;">⚠ ${col.label}</div>
+          <div style="font-size:0.78rem;color:#444;">
+            Significant <strong>${hazard}</strong> threat area.<br>
+            ${hazard==='torn'?'EF2+ tornadoes possible.':hazard==='wind'?'65+ mph winds possible.':'2"+ hail possible.'}
+          </div>
+          <div style="font-size:0.7rem;color:#888;margin-top:6px;">Day ${day} · Sig ${hazard.charAt(0).toUpperCase()+hazard.slice(1)}</div>
+        </div>
+      `, { maxWidth: 240 });
+      allLayers.push(layer);
+    });
+  });
+
+  if (allLayers.length) {
+    activeSigSevereLayer = L.layerGroup(allLayers).addTo(theMap);
+  }
+
+  updateSigLegend(legendEntries, anyFeatures);
+  loading.classList.add('hidden'); // always clears, no matter what
+}
+
+function updateSigLegend(hazards, anyFeatures) {
+  const box = document.getElementById('legend-box');
+  const el  = document.getElementById('legend-items');
+  box.style.display = 'block';
+
+  if (!anyFeatures || !hazards.length) {
+    el.innerHTML = `<div style="font-size:0.78rem;color:var(--text-3);padding:4px 0;">No significant areas issued for this day.</div>`;
+    return;
+  }
+
+  el.innerHTML = hazards.map(h => {
+    const col = SIG_COLORS[h];
+    return `<div class="legend-item legend-active">
+      <div class="legend-swatch" style="background:${col.fill};border-color:${col.stroke};opacity:0.8;"></div>
+      <span class="legend-label" style="font-weight:600;">${col.label}</span>
+    </div>`;
+  }).join('') + `<div style="font-size:0.68rem;color:var(--text-4);margin-top:8px;line-height:1.5;">Shaded areas indicate where the SPC has highlighted a significant severe weather threat within the broader outlook.</div>`;
+}
+
 // ─────────────────────────────────────────────
 //  LOAD HAZARD LAYER
 // ─────────────────────────────────────────────
@@ -972,6 +1093,7 @@ function clearSigLayer() {
 }
 
 async function loadHazard(day, mode) {
+  if (mode === 'sig') { await loadSigSevere(day); return; }
   activeDay  = day;
   activeMode = mode;
 
@@ -982,6 +1104,7 @@ async function loadHazard(day, mode) {
   loading.classList.remove('hidden');
 
   if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
+  if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
   clearSigLayer();
 
   const layerId = LAYER_IDS[`${day}-${mode}`];
