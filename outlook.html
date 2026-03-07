@@ -108,6 +108,7 @@
     #main-map{position:absolute;inset:0;width:100%;height:100%;}
 
     /* Map top bar */
+    .build-stamp{font-size:0.6rem;color:var(--text-4);font-weight:500;white-space:nowrap;letter-spacing:0.02em;background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);padding:3px 8px;border-radius:5px;border:1px solid var(--border);}
     .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
     .map-context-pill{background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
@@ -422,6 +423,7 @@
 
     <!-- Context pill top-left -->
     <div class="map-topbar">
+      <div class="build-stamp" title="Build time">⚙ 2026-03-07 19:45 UTC</div>
       <div class="map-context-pill" id="context-pill">
         <span id="pill-day">Day 1</span> · <span id="pill-mode">Overall</span>
       </div>
