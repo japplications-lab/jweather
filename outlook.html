@@ -1005,21 +1005,15 @@ async function loadSigSevere(day) {
     .map(h => ({ hazard: h, layerId: SIG_LAYER_IDS[`${day}-${h}`] }))
     .filter(d => d.layerId);
 
-  console.log('[jWeather] Sig severe fetching', hazardDefs.length, 'layers via worker:', NOAA_BASE);
-
   const results = await Promise.allSettled(
     hazardDefs.map(async ({ hazard, layerId }) => {
       const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-      console.log(`[jWeather] Sig fetch: ${hazard} layer ${layerId}`, url);
       try {
         const res = await fetch(url);
-        console.log(`[jWeather] Sig response: ${hazard} status=${res.status} ok=${res.ok}`);
         if (!res.ok) return { hazard, gj: null };
         const gj = await res.json();
-        console.log(`[jWeather] Sig GeoJSON: ${hazard} features=${gj.features?.length ?? 0}`);
         return { hazard, gj };
       } catch(e) {
-        console.error(`[jWeather] Sig fetch error: ${hazard}`, e);
         return { hazard, gj: null };
       }
     })
@@ -1117,11 +1111,9 @@ async function loadHazard(day, mode) {
 
   try {
     const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-    console.log(`[jWeather] Fetching layer ${layerId} for day=${day} mode=${mode}:`, url);
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gjRaw = await res.json();
-    console.log(`[jWeather] Layer ${layerId} returned ${gjRaw.features?.length ?? 0} features`);
     if (!gjRaw.features || gjRaw.features.length === 0) {
       console.warn(`[jWeather] Layer ${layerId} has no features — outlook may not be issued yet`);
       document.getElementById('map-loading').classList.add('hidden');
@@ -1191,11 +1183,9 @@ async function loadSigLayer(day, mode) {
 
   try {
     const url = `${NOAA_BASE}/${sigLayerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-    console.log(`[jWeather] Fetching sig layer ${sigLayerId}:`, url);
     const res = await fetch(url);
     if (!res.ok) { console.warn(`[jWeather] Sig layer ${sigLayerId} HTTP ${res.status}`); return; }
     const gj = await res.json();
-    console.log(`[jWeather] Sig layer ${sigLayerId} returned ${gj.features?.length ?? 0} features`);
     if (!gj.features || !gj.features.length) return;
 
     // Merge all features into a single bounding area for the badge — one badge per outbreak
