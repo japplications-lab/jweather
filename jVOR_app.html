@@ -211,6 +211,29 @@
       0%,100% { opacity: 0.9; }
       50%      { opacity: 0.35; }
     }
+    /* Probable tornado — aggressive red glow pulse */
+    @keyframes tornado-glow {
+      0%,100% { opacity: 1;   filter: drop-shadow(0 0 6px #e5182a); }
+      50%      { opacity: 0.5; filter: drop-shadow(0 0 18px #ff3344); }
+    }
+    .tornado-sig-ring path {
+      animation: tornado-glow 0.8s ease-in-out infinite !important;
+    }
+    .tornado-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #e5182a; color: #fff;
+      font-family: var(--font); font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 9px; border-radius: 5px;
+      white-space: nowrap;
+      text-shadow: none;
+      box-shadow: 0 0 12px rgba(229,24,42,0.7), 0 2px 6px rgba(0,0,0,0.5);
+      animation: tornado-badge-pulse 0.8s ease-in-out infinite;
+    }
+    @keyframes tornado-badge-pulse {
+      0%,100% { box-shadow: 0 0 10px rgba(229,24,42,0.7), 0 2px 6px rgba(0,0,0,0.5); }
+      50%      { box-shadow: 0 0 24px rgba(255,50,50,0.95), 0 2px 6px rgba(0,0,0,0.5); }
+    }
 
     .radar-coord-bar {
       padding: 7px 14px;
@@ -816,21 +839,43 @@ function updateSigMap(station, mesos) {
 
   mesos.forEach((m, i) => {
     const [lat, lng] = polarToLatLng(station.lat, station.lon, m.az, m.range);
-    const color   = m.severity==='high'?'#e5182a':m.severity==='medium'?'#d97706':'#3b82f6';
-    const radiusM = (10 + m.depth * 2.5) * 1000;
+    const isTornado = m.severity === 'high';
+    const color     = isTornado ? '#e5182a' : m.severity==='medium' ? '#d97706' : '#3b82f6';
+    const radiusM   = (10 + m.depth * 2.5) * 1000;
 
-    // Outer pulsing ring (CSS animation via className hack)
+    // Probable tornado: extra concentric glow rings
+    if (isTornado) {
+      const glow = L.circle([lat, lng], {
+        radius: radiusM * 1.45, color: '#ff3344', weight: 3,
+        fillColor: '#e5182a', fillOpacity: 0.06, interactive: false,
+        className: 'tornado-sig-ring'
+      }).addTo(sigMap);
+      mesoLayers.push(glow);
+      const glow2 = L.circle([lat, lng], {
+        radius: radiusM * 1.15, color: '#ff3344', weight: 2, dashArray: '8 4',
+        fillColor: '#e5182a', fillOpacity: 0.04, interactive: false,
+        className: 'tornado-sig-ring'
+      }).addTo(sigMap);
+      mesoLayers.push(glow2);
+    }
+
+    // Outer main ring
     const outer = L.circle([lat, lng], {
-      radius: radiusM, color, weight:2, dashArray:'6 4',
-      fillColor: color, fillOpacity: 0.07, interactive: false,
-      className: 'meso-ring-' + m.severity
+      radius: radiusM,
+      color, weight: isTornado ? 3 : 2,
+      dashArray: isTornado ? null : '6 4',
+      fillColor: color, fillOpacity: isTornado ? 0.14 : 0.07,
+      interactive: false,
+      className: isTornado ? 'tornado-sig-ring' : ('meso-ring-' + m.severity)
     }).addTo(sigMap);
     mesoLayers.push(outer);
 
     // Inner solid dot
     const inner = L.circle([lat, lng], {
-      radius: radiusM * 0.22, color, weight: 2,
-      fillColor: color, fillOpacity: 0.6, interactive: false
+      radius: radiusM * (isTornado ? 0.32 : 0.22),
+      color, weight: isTornado ? 3 : 2,
+      fillColor: color, fillOpacity: isTornado ? 0.85 : 0.6,
+      interactive: false
     }).addTo(sigMap);
     mesoLayers.push(inner);
 
@@ -878,14 +923,19 @@ function updateSigMap(station, mesos) {
       }
     }
 
-    // Severity label
+    // Severity label / tornado badge
     if (overlayOn.labels) {
-      const sevLabel = m.severity==='high' ? '⚠ MESO' : m.severity==='medium' ? '↻ SHEAR' : '↻ ROT';
-      const lblIcon = L.divIcon({
-        className: '',
-        html: `<div style="font-family:var(--font);font-size:0.62rem;font-weight:800;color:${color};white-space:nowrap;text-shadow:0 0 5px #000,0 0 5px #000;letter-spacing:0.05em;">${sevLabel} M${i+1}</div>`,
-        iconAnchor:[0, -radiusM * 0.00009 + 14], iconSize: null
-      });
+      const lblIcon = isTornado
+        ? L.divIcon({
+            className: '',
+            html: `<div class="tornado-badge">🌪 TORNADO PROBABLE</div>`,
+            iconAnchor: [-4, -radiusM * 0.00012 + 20], iconSize: null
+          })
+        : L.divIcon({
+            className: '',
+            html: `<div style="font-family:var(--font);font-size:0.62rem;font-weight:800;color:${color};white-space:nowrap;text-shadow:0 0 5px #000,0 0 5px #000;letter-spacing:0.05em;">${m.severity==='medium'?'↻ SHEAR':'↻ ROT'} M${i+1}</div>`,
+            iconAnchor:[0, -radiusM * 0.00009 + 14], iconSize: null
+          });
       mesoLayers.push(L.marker([lat, lng], { icon: lblIcon, interactive: false }).addTo(sigMap));
     }
 
@@ -895,7 +945,7 @@ function updateSigMap(station, mesos) {
     }).bindPopup(`
       <div style="font-family:var(--font);font-size:0.78rem;line-height:1.9;min-width:180px;">
         <div style="font-weight:800;font-size:0.85rem;color:${color};margin-bottom:4px;">${
-          m.severity==='high'?'⚠ HIGH — Possible Tornado':m.severity==='medium'?'↻ MEDIUM — Elevated Shear':'↻ LOW — Weak Rotation'
+          isTornado?'🌪 PROBABLE TORNADO — Imminent Threat':m.severity==='medium'?'↻ MEDIUM — Elevated Shear':'↻ LOW — Weak Rotation'
         }</div>
         <div><b>Az:</b> ${Math.round(m.az)}° &nbsp; <b>Range:</b> ${m.range.toFixed(1)} km</div>
         <div><b>Rot Vel:</b> ${Math.round(m.rotVel)} kt &nbsp; <b>Depth:</b> ${m.depth.toFixed(1)} km</div>
