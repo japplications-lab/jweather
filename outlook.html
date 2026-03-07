@@ -27,8 +27,8 @@
     .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
 
     /* ── HEADER ── */
-    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
-    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
+    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:500;}
+    .header-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;gap:20px;}
     .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
@@ -40,9 +40,6 @@
     .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
     #search-bar{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
     #search-bar::placeholder{color:var(--text-4);}
-    .loc-btn{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);border-radius:6px;padding:5px 11px;font-family:var(--font);font-size:0.77rem;font-weight:500;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;}
-    .loc-btn:hover{border-color:var(--red);color:var(--red);}
-    .loc-btn .material-symbols-rounded{font-size:14px;}
     #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
     #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
     #suggestions li:last-child{border-bottom:none;}
@@ -53,7 +50,8 @@
     .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
     .header-nav a:hover{color:var(--text);background:var(--bg);}
     .nav-dropdown{position:relative;}
-    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--red);background:var(--red-dim);border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);white-space:nowrap;}
+    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--text-3);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
+    .nav-dropdown-btn:hover,.nav-dropdown:hover .nav-dropdown-btn{color:var(--text);background:var(--bg);}
     .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
     .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
     .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
@@ -292,16 +290,15 @@
       <div class="search-row">
         <span class="material-symbols-rounded">search</span>
         <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-        <button class="loc-btn" id="use-location-btn">
-          <span class="material-symbols-rounded">my_location</span>Locate me
-        </button>
       </div>
       <ul id="suggestions"></ul>
     </div>
     <nav class="header-nav">
       <a href="index.html">Forecast</a>
       <div class="nav-dropdown">
-        <button class="nav-dropdown-btn">Severe Weather <span class="material-symbols-rounded">expand_more</span></button>
+        <button class="nav-dropdown-btn">
+          Severe Weather <span class="material-symbols-rounded">expand_more</span>
+        </button>
         <div class="nav-dropdown-menu">
           <div class="nav-dropdown-menu-inner">
             <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
@@ -1529,26 +1526,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Restore search bar — or silently request location on first visit
   const _saved = (() => { try { const l=JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
   if (_saved) {
-    document.getElementById('search-bar').value = _saved.label || '';
-  } else if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        let loc = { label: 'Your Location', city: 'Your Location', state: '', lat, lng };
-        try {
-          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
-            headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
-          });
-          const d = await r.json();
-          const p = pn(d);
-          if (p.city) loc = p;
-        } catch {}
-        localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-        document.getElementById('search-bar').value = loc.label;
-      },
-      () => {} // denied — no fallback needed on this page
-    , { timeout: 10000 });
-  }
+    document.getElementById('search-bar').value = _saved.label || '';}
 });
 
 // ─────────────────────────────────────────────
@@ -1558,7 +1536,7 @@ const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","Californi
 function sa(n){return SA[n]||n;}
 function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
 let sugs=[],selIdx=-1,sCtrl=null;
-const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions'),locBtn=document.getElementById('use-location-btn');
+const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions');
 function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 sBar.addEventListener('input',db(async e=>{
   const q=e.target.value.trim();if(q.length<2){sugBox.style.display='none';sugs=[];return;}
@@ -1571,8 +1549,7 @@ sBar.addEventListener('input',db(async e=>{
 sBar.addEventListener('keydown',e=>{if(!sugs.length)return;if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%sugs.length;rSugs();}else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+sugs.length)%sugs.length;rSugs();}else if(e.key==='Enter'){if(selIdx>=0)pick(sugs[selIdx]);else if(sugs[0])pick(sugs[0]);}else if(e.key==='Escape')sugBox.style.display='none';});
 function rSugs(){sugBox.innerHTML='';if(!sugs.length){sugBox.style.display='none';return;}sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});sugBox.style.display='block';}
 document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
-function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
-locBtn.addEventListener('click',()=>{if(!navigator.geolocation)return alert('Geolocation not supported.');locBtn.disabled=true;navigator.geolocation.getCurrentPosition(async pos=>{const{latitude:lat,longitude:lng}=pos.coords;let loc={label:'Your Location',city:'Your Location',state:'',lat,lng};try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';},()=>{alert('Unable to get location.');locBtn.disabled=false;});});
+function pick(l){localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}const d=await r.json();const p=pn(d);if(p.city)loc=p;}catch{}localStorage.setItem('jweather_last_location',JSON.stringify(loc));window.location.href='index.html';},()=>{alert('Unable to get location.');locBtn.disabled=false;});});
 </script>
 </body>
 </html>
