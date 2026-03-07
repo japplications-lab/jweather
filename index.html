@@ -18,10 +18,10 @@
       --surface: #1a1d24;
       --border: rgba(255,255,255,0.07);
       --border-2: rgba(255,255,255,0.11);
-      --text: #f0f1f3;
-      --text-2: #c8ccd4;
-      --text-3: #7c818f;
-      --text-4: #4a4f5a;
+      --text: #f4f5f7;
+      --text-2: #d4d8e0;
+      --text-3: #9197a3;
+      --text-4: #5c6270;
       --green: #22c55e;
       --green-dim: rgba(34,197,94,0.12);
       --amber: #f59e0b;
@@ -29,6 +29,7 @@
       --r: 12px;
       --r-sm: 8px;
       --r-xs: 6px;
+      --sidebar:240px; --header:58px;
       --font: 'Geist', system-ui, sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,8 +39,8 @@
     .fi { font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 48; }
 
     /* ===== HEADER ===== */
-    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-    .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 58px; display: flex; align-items: center; gap: 20px; }
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
+    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
     .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
     .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -52,9 +53,6 @@
     .search-row .material-symbols-rounded { color: var(--text-4); font-size: 16px; flex-shrink: 0; }
     #search-bar { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 0.83rem; color: var(--text); padding: 9px 8px; }
     #search-bar::placeholder { color: var(--text-4); }
-    .loc-btn { display: flex; align-items: center; gap: 5px; background: var(--surface); border: 1px solid var(--border-2); color: var(--text-2); border-radius: 6px; padding: 5px 11px; font-family: var(--font); font-size: 0.77rem; font-weight: 500; cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap; }
-    .loc-btn:hover { border-color: var(--red); color: var(--red); }
-    .loc-btn .material-symbols-rounded { font-size: 14px; }
 
     #suggestions { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); overflow: hidden; z-index: 200; display: none; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
     #suggestions li { list-style: none; padding: 9px 14px; cursor: pointer; font-size: 0.83rem; color: var(--text); display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
@@ -308,9 +306,6 @@
       <div class="search-row">
         <span class="material-symbols-rounded">search</span>
         <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-        <button class="loc-btn" id="use-location-btn">
-          <span class="material-symbols-rounded">my_location</span>Locate me
-        </button>
       </div>
       <ul id="suggestions"></ul>
     </div>
@@ -492,8 +487,7 @@ const SPC_CAT = {
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 
 let alerts=[], curLoc=null, sugs=[], selIdx=-1, searchController=null;
-const sBar=document.getElementById('search-bar'), sugBox=document.getElementById('suggestions'),
-      locBtn=document.getElementById('use-location-btn'), spin=document.getElementById('spinner-overlay');
+const sBar=document.getElementById('search-bar'), sugBox=document.getElementById('suggestions'), spin=document.getElementById('spinner-overlay');
 
 
 // ── TORNADO WARNING OVERLAY ───────────────────────────────────────────────────
@@ -559,42 +553,9 @@ window.addEventListener('DOMContentLoaded', () => {
     // Already have a saved location — use it
     curLoc = saved;
     sBar.value = saved.label || (saved.city && saved.state ? `${saved.city}, ${saved.state}` : 'Your Location');
-    loadWeather(saved); updateRadar(saved.lat, saved.lng);
-  } else if (navigator.geolocation) {
-    // First visit — silently request location
-    locBtn.disabled = true;
-    locBtn.innerHTML = `<span class="material-symbols-rounded" style="animation:spin .65s linear infinite;display:inline-block">progress_activity</span> Locating…`;
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        let loc = { label: 'Your Location', city: 'Your Location', state: '', lat, lng };
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
-            headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
-          });
-          const data = await res.json();
-          const parsed = parseNominatim(data);
-          if (parsed.city) loc = parsed;
-        } catch {}
-        curLoc = loc;
-        sBar.value = loc.label;
-        localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-        loadWeather(loc); updateRadar(loc.lat, loc.lng);
-        locBtn.disabled = false;
-        locBtn.innerHTML = `<span class="material-symbols-rounded">my_location</span> Locate me`;
-      },
-      () => {
-        // User denied or error — fall back to default
-        locBtn.disabled = false;
-        locBtn.innerHTML = `<span class="material-symbols-rounded">my_location</span> Locate me`;
-        const def = { label: 'Baconton, GA', city: 'Baconton', state: 'GA', lat: 31.3776, lng: -84.1607 };
-        curLoc = def; sBar.value = def.label; loadWeather(def); updateRadar(def.lat, def.lng);
-      },
-      { timeout: 10000 }
-    );
-  } else {
+    loadWeather(saved); updateRadar(saved.lat, saved.lng);} else {
     // Geolocation not supported — use default
-    const def = { label: 'Baconton, GA', city: 'Baconton', state: 'GA', lat: 31.3776, lng: -84.1607 };
+    const def = { label: 'Kansas City, MO', city: 'Kansas City', state: 'MO', lat: 39.0997, lng: -94.5786 };
     curLoc = def; sBar.value = def.label; loadWeather(def); updateRadar(def.lat, def.lng);
   }
 });
@@ -668,15 +629,6 @@ function pick(loc) {
 }
 
 // ---- Use My Location ----
-locBtn.addEventListener('click', () => {
-  if (!navigator.geolocation) return alert('Geolocation not supported.');
-  locBtn.disabled=true; locBtn.innerHTML=`<span class="material-symbols-rounded" style="animation:spin .65s linear infinite;display:inline-block">progress_activity</span> Locating…`;
-  navigator.geolocation.getCurrentPosition(async pos => {
-    const { latitude:lat, longitude:lng } = pos.coords;
-    // Reverse geocode with Nominatim
-    let loc = { label:'Your Location', city:'Your Location', state:'', lat, lng };
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, { headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'} });
       const data = await res.json();
       const parsed = parseNominatim(data);
       if (parsed.city) loc = parsed;
