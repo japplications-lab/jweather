@@ -1090,6 +1090,9 @@ function clearSigLayer() {
   if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
   activeSigMarkers.forEach(m => theMap.removeLayer(m));
   activeSigMarkers = [];
+  // Re-enable pointer events on outlook polygons now that sig layer is gone
+  const outlookPaneEl = theMap.getPane('outlookPane');
+  if (outlookPaneEl) outlookPaneEl.style.pointerEvents = '';
 }
 
 async function loadHazard(day, mode) {
@@ -1215,6 +1218,10 @@ async function loadSigLayer(day, mode) {
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
     }).addTo(theMap);
+
+    // Disable pointer events on the outlook pane so sig layer clicks win
+    const outlookPaneEl = theMap.getPane('outlookPane');
+    if (outlookPaneEl) outlookPaneEl.style.pointerEvents = 'none';
 
     // Single badge anchored to the overall bounding box center of ALL sig features
     try {
