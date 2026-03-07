@@ -386,6 +386,122 @@
         font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       }
     }
+
+    /* ===== TORNADO WARNING OVERLAY ===== */
+    #tornado-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 700;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    #tornado-overlay.show { display: flex; }
+    .tornado-box {
+      background: var(--surface);
+      border-radius: 16px;
+      max-width: 420px; width: 100%;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      animation: tornadoSlideIn 0.2s ease-out;
+    }
+    @keyframes tornadoSlideIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)    scale(1);    }
+    }
+    .tornado-banner {
+      background: #e5182a;
+      padding: 20px 22px 18px;
+      display: flex; align-items: center; gap: 14px;
+      animation: pulse-tornado-banner 0.7s ease-in-out 2;
+    }
+    @keyframes pulse-tornado-banner {
+      0%   { background: #e5182a; }
+      40%  { background: #ff3344; }
+      100% { background: #e5182a; }
+    }
+    /* OBSERVED tornado — more urgent, magenta/dark red */
+    .tornado-box.observed .tornado-banner {
+      background: #7b0000;
+      animation: pulse-observed-banner 0.4s ease-in-out 4;
+    }
+    @keyframes pulse-observed-banner {
+      0%   { background: #7b0000; }
+      40%  { background: #bb0000; }
+      100% { background: #7b0000; }
+    }
+    .tornado-box.observed .tornado-btn { background: #7b0000; }
+    .tornado-box.observed .tornado-action {
+      background: #fff0f0;
+      border-color: #ffaaaa;
+    }
+    .tornado-box.observed .tornado-action strong { color: #7b0000; }
+    .tornado-observed-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #7b0000; color: #fff;
+      font-size: 0.72rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 5px 12px; border-radius: 20px;
+      margin-bottom: 12px;
+      animation: pulse-observed-badge 0.5s ease-in-out 4;
+    }
+    @keyframes pulse-observed-badge {
+      0%,100% { transform: scale(1);    opacity: 1; }
+      50%      { transform: scale(1.05); opacity: 0.85; }
+    }
+    .tornado-observed-badge .material-symbols-rounded { font-size: 14px; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+    .tornado-banner-icon {
+      width: 46px; height: 46px; border-radius: 11px;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .tornado-banner-icon .material-symbols-rounded {
+      font-size: 26px; color: #fff;
+      font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+    .tornado-banner-text { flex: 1; }
+    .tornado-banner-eyebrow {
+      font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: rgba(255,255,255,0.75); margin-bottom: 3px;
+    }
+    .tornado-banner-title {
+      font-size: 1.1rem; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .tornado-body { padding: 18px 22px 22px; }
+    .tornado-location {
+      font-size: 0.82rem; font-weight: 600; color: var(--text);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+    }
+    .tornado-location .material-symbols-rounded { font-size: 15px; color: var(--red); }
+    .tornado-message {
+      font-size: 0.82rem; color: var(--text-2); line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .tornado-action {
+      background: #fff1f2; border: 1px solid #fecdd3;
+      border-radius: 8px; padding: 11px 14px;
+      font-size: 0.8rem; color: #881337; line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .tornado-action strong { color: #be123c; display: block; margin-bottom: 3px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; }
+    .tornado-expires {
+      font-size: 0.72rem; color: var(--text-4); margin-bottom: 16px;
+    }
+    .tornado-btn {
+      width: 100%; padding: 12px;
+      border: none; border-radius: 9px;
+      background: #e5182a;
+      font-family: var(--font); font-size: 0.85rem; font-weight: 700;
+      color: #fff; cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .tornado-btn:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .tornado-btn:active { opacity: 1;    transform: none; }
+    @media (max-width: 640px) {
+      #tornado-overlay { align-items: flex-end; padding: 0; }
+      .tornado-box { border-radius: 16px 16px 0 0; max-width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -728,6 +844,60 @@ locBtn.addEventListener('click', () => {
   }, () => { alert('Unable to get location.'); locBtn.disabled=false; locBtn.innerHTML=`<span class="material-symbols-rounded">my_location</span> Locate me`; });
 });
 
+
+// ── TORNADO WARNING OVERLAY ───────────────────────────────────────────────────
+function maybeShowTornadoOverlay(alertFeatures, locationLabel) {
+  const tornadoWarning = alertFeatures.find(f =>
+    (f.properties?.event || '').toLowerCase().includes('tornado warning')
+  );
+  if (!tornadoWarning) return;
+
+  const a = tornadoWarning.properties;
+  const desc = (a.description || '').trim();
+
+  // Detect OBSERVED tornado — NWS uses "OBSERVED" in caps in the description
+  const isObserved = /\bOBSERVED\b/.test(desc) || /tornado.*observed/i.test(desc);
+
+  const expires = a.expires
+    ? new Date(a.expires).toLocaleString('en-US', { weekday:'short', hour:'numeric', minute:'2-digit', timeZoneName:'short' })
+    : null;
+
+  const firstSentence = desc.split(/(?<=[.!?])\s+/)[0] || desc.slice(0, 160);
+
+  // Switch overlay into observed mode if needed
+  const box = document.getElementById('tornado-box');
+  const badge = document.getElementById('tornado-observed-badge');
+
+  if (isObserved) {
+    box.classList.add('observed');
+    badge.style.display = 'block';
+    document.getElementById('tornado-eyebrow').textContent = '🚨 CONFIRMED TORNADO';
+    document.getElementById('tornado-title').textContent   = 'Tornado on the Ground';
+    document.getElementById('tornado-action-title').textContent = '🚨 TAKE SHELTER IMMEDIATELY';
+    document.getElementById('tornado-action-body').textContent  =
+      'A tornado has been OBSERVED by trained spotters or radar. This is not a drill. Get underground or to an interior room on the lowest floor NOW. Do not wait — every second counts.';
+  } else {
+    box.classList.remove('observed');
+    badge.style.display = 'none';
+    document.getElementById('tornado-eyebrow').textContent = 'Active Warning';
+    document.getElementById('tornado-title').textContent   = 'Tornado Warning';
+    document.getElementById('tornado-action-title').textContent = '⚡ Take shelter now';
+    document.getElementById('tornado-action-body').textContent  =
+      'Go to the lowest floor of a sturdy building. Get to an interior room, away from windows. Do not wait to see the tornado.';
+  }
+
+  document.getElementById('tornado-location').innerHTML =
+    `<span class="material-symbols-rounded">location_on</span>${locationLabel}`;
+  document.getElementById('tornado-message').textContent = firstSentence;
+  document.getElementById('tornado-expires').textContent = expires
+    ? `Warning in effect until ${expires}` : '';
+
+  document.getElementById('tornado-overlay').classList.add('show');
+}
+
+document.getElementById('tornado-continue').addEventListener('click', () => {
+  document.getElementById('tornado-overlay').classList.remove('show');
+});
 // ── Ray-casting point-in-polygon (client-side fallback) ──
 function pointInRing(pt, ring) {
   let inside = false;
@@ -940,6 +1110,12 @@ function renderAlerts(data, spcResult) {
     row.innerHTML = `${leadIcon}<div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
     row.addEventListener('click', () => showModal(i)); c.appendChild(row);
   });
+
+  // Show tornado warning overlay if one is active for this location
+  if (alerts.length) {
+    const locLabel = curLoc?.label || curLoc?.city || 'Your Location';
+    maybeShowTornadoOverlay(alerts, locLabel);
+  }
 }
 
 function showModal(i) {
@@ -996,5 +1172,35 @@ document.querySelectorAll('[data-coming-soon]').forEach(el => {
     More
   </a>
 </nav>
+
+<!-- Tornado Warning Overlay -->
+<div id="tornado-overlay">
+  <div class="tornado-box" id="tornado-box">
+    <div class="tornado-banner">
+      <div class="tornado-banner-icon">
+        <span class="material-symbols-rounded">tornado</span>
+      </div>
+      <div class="tornado-banner-text">
+        <div class="tornado-banner-eyebrow" id="tornado-eyebrow">Active Warning</div>
+        <div class="tornado-banner-title" id="tornado-title">Tornado Warning</div>
+      </div>
+    </div>
+    <div class="tornado-body">
+      <div id="tornado-observed-badge" style="display:none">
+        <div class="tornado-observed-badge">
+          <span class="material-symbols-rounded">visibility</span>TORNADO OBSERVED
+        </div>
+      </div>
+      <div class="tornado-location" id="tornado-location"></div>
+      <div class="tornado-message" id="tornado-message"></div>
+      <div class="tornado-action" id="tornado-action">
+        <strong id="tornado-action-title">⚡ Take shelter now</strong>
+        <span id="tornado-action-body">Go to the lowest floor of a sturdy building. Get to an interior room, away from windows. Do not wait to see the tornado.</span>
+      </div>
+      <div class="tornado-expires" id="tornado-expires"></div>
+      <button class="tornado-btn" id="tornado-continue">I understand — View Forecast</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
