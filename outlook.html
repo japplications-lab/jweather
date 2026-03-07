@@ -11,13 +11,15 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <style>
     :root {
-      --red:#e5182a; --red-dim:rgba(229,24,42,0.08);
-      --bg:#f2f3f5; --surface:#ffffff;
-      --border:rgba(0,0,0,0.07); --border-2:rgba(0,0,0,0.11);
-      --text:#0f1115; --text-2:#3a3d45; --text-3:#7c818f; --text-4:#b0b4be;
-      --sidebar:240px; --header:58px;
-      --r:12px; --r-sm:8px; --font:'Geist',system-ui,sans-serif;
-      --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+      --red:#e5182a; --red-dim:rgba(229,24,42,0.12); --red-border:rgba(229,24,42,0.25);
+      --bg:#0f1115; --surface:#1a1d24;
+      --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
+      --text:#f0f1f3; --text-2:#c8ccd4; --text-3:#7c818f; --text-4:#4a4f5a;
+      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
+      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
+      --r:12px; --r-sm:8px; --r-xs:6px;
+      --font:'Geist',system-ui,sans-serif;
+      --shadow:0 1px 3px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.2);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;overflow:hidden;}
@@ -41,7 +43,7 @@
     .loc-btn{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border-2);color:var(--text-2);border-radius:6px;padding:5px 11px;font-family:var(--font);font-size:0.77rem;font-weight:500;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap;}
     .loc-btn:hover{border-color:var(--red);color:var(--red);}
     .loc-btn .material-symbols-rounded{font-size:14px;}
-    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
     #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
     #suggestions li:last-child{border-bottom:none;}
     #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
@@ -55,7 +57,7 @@
     .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
     .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
     .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
-    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
+    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
     .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
     .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;}
     .nav-dropdown-menu a:last-child{border-bottom:none;}
@@ -109,11 +111,11 @@
 
     /* Map top bar */
     .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
-    .map-context-pill{background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
+    .map-context-pill{background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
 
     /* Legend overlay */
-    .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(255,255,255,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
+    .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
     .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
     .legend-items{display:flex;flex-direction:column;gap:5px;}
     .legend-item{display:flex;align-items:center;gap:7px;font-size:0.72rem;font-weight:500;color:var(--text-2);padding:1px 0;}
@@ -126,7 +128,7 @@
     .legend-dim .legend-swatch{filter:saturate(0.3);}
 
     /* Loading overlay */
-    .map-loading{position:absolute;inset:0;z-index:410;background:rgba(242,243,245,0.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
+    .map-loading{position:absolute;inset:0;z-index:410;background:rgba(15,17,21,0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
     .spin-ring{width:24px;height:24px;border:2.5px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
@@ -165,7 +167,7 @@
     /* Coming soon toast */
     #coming-soon-toast{
       position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
-      background:#1a1a1a;color:#fff;
+      background:#1a1d24;color:#f0f1f3;
       font-family:var(--font);font-size:0.82rem;font-weight:600;
       padding:11px 22px;border-radius:10px;
       box-shadow:0 6px 24px rgba(0,0,0,.25);
@@ -191,7 +193,7 @@
     .leaflet-popup-tip-container{display:none;}
     /* Significant threat overlay */
     .sig-zone-badge{
-      background:#111827; color:#fff;
+      background:#1a1d24; color:#f0f1f3;
       font-family:var(--font); font-size:0.65rem; font-weight:700;
       letter-spacing:0.05em; text-transform:uppercase;
       padding:4px 9px; border-radius:5px;
@@ -215,7 +217,7 @@
     }
     /* Significant threat overlay */
     .sig-zone-badge{
-      background:#111827; color:#fff;
+      background:#1a1d24; color:#f0f1f3;
       font-family:var(--font); font-size:0.65rem; font-weight:700;
       letter-spacing:0.05em; text-transform:uppercase;
       padding:4px 9px; border-radius:5px;
@@ -241,7 +243,7 @@
     .city-label{background:none;border:none;box-shadow:none;}
     .city-label-inner{
       font-family:var(--font);font-size:0.62rem;font-weight:600;
-      color:#222;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;
+      color:#f0f1f3;text-shadow:0 0 3px #000,0 0 3px #000,0 0 3px #000,0 0 3px #000;
       white-space:nowrap;pointer-events:none;
       display:flex;align-items:center;gap:3px;
     }
@@ -249,7 +251,7 @@
     .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:10px !important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12) !important;}
     .leaflet-control-zoom a{
       font-family:var(--font) !important;color:var(--text-2) !important;
-      background:rgba(255,255,255,0.97) !important;backdrop-filter:blur(8px);
+      background:rgba(26,29,36,0.97) !important;backdrop-filter:blur(8px);
       width:36px !important;height:36px !important;line-height:36px !important;
       font-size:18px !important;font-weight:400 !important;
       display:flex !important;align-items:center;justify-content:center;
@@ -273,6 +275,8 @@
     }
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#1a1d24 !important;color:#f0f1f3 !important;border:1px solid rgba(255,255,255,0.1);box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+    .leaflet-popup-close-button{color:#7c818f !important;}
   </style>
 </head>
 <body>
@@ -594,7 +598,7 @@ function contrastColor(hex) {
   const b = parseInt(hex.slice(5,7),16);
   // Perceived luminance
   const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
-  return lum > 0.55 ? '#1a1a1a' : '#ffffff';
+  return lum > 0.35 ? '#1a1a1a' : '#ffffff';
 }
 
 // Short label for tooltip overlay (no "Level X ·" prefix)
@@ -676,7 +680,7 @@ function makeBaseTiles() {
 function makeLabelTiles() {
   // Voyager labels-only — city names, roads, POIs on top of everything
   return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+    'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}{r}.png',
     {
       subdomains:'abcd', maxZoom:19,
       r: window.devicePixelRatio > 1 ? '@2x' : '',
@@ -1045,11 +1049,11 @@ async function loadSigSevere(day) {
       }).bindPopup(`
         <div style="font-family:var(--font);line-height:1.7;min-width:160px;">
           <div style="font-weight:800;color:${col.fill};margin-bottom:4px;">⚠ ${col.label}</div>
-          <div style="font-size:0.78rem;color:#444;">
+          <div style="font-size:0.78rem;color:#c8ccd4;">
             Significant <strong>${hazard}</strong> threat area.<br>
             ${hazard==='torn'?'EF2+ tornadoes possible.':hazard==='wind'?'65+ mph winds possible.':'2"+ hail possible.'}
           </div>
-          <div style="font-size:0.7rem;color:#888;margin-top:6px;">Day ${day} · Sig ${hazard.charAt(0).toUpperCase()+hazard.slice(1)}</div>
+          <div style="font-size:0.7rem;color:#7c818f;margin-top:6px;">Day ${day} · Sig ${hazard.charAt(0).toUpperCase()+hazard.slice(1)}</div>
         </div>
       `, { maxWidth: 240 });
       allLayers.push(layer);
@@ -1251,7 +1255,7 @@ async function loadSigLayer(day, mode) {
     sigEntry.className = 'legend-item sig-legend-entry';
     sigEntry.innerHTML = `
       <div class="legend-swatch" style="
-        background: rgba(0,0,0,0.06);
+        background: rgba(255,255,255,0.04);
         border: 2px dashed #000;
         box-sizing: border-box;
         border-radius: 2px;
