@@ -137,6 +137,32 @@
     .no-alerts-label { font-size: 0.83rem; font-weight: 500; color: var(--text-2); }
     .no-alerts-sub { font-size: 0.72rem; color: var(--text-4); margin-top: 1px; }
     .alert-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+    /* Tornado Warning row */
+    @keyframes pulse-tornado-row {
+      0%   { background: #e5182a; }
+      50%  { background: #ff3344; }
+      100% { background: #e5182a; }
+    }
+    .alert-row-tornado { background: #e5182a; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tornado-row 0.7s ease-in-out 3; }
+    .alert-row-tornado .alert-event { color: #fff; font-weight: 700; }
+    .alert-row-tornado .alert-expires { color: rgba(255,255,255,0.75); }
+    .alert-row-tornado .alert-pip { display: none; }
+    .alert-row-tornado .alert-type-icon { font-size: 18px; color: #fff; flex-shrink: 0; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+    .alert-row-tornado .alert-chevron { color: rgba(255,255,255,0.7); }
+    .alert-row-tornado:hover { background: #c8101f !important; }
+    /* Severe Thunderstorm Warning row */
+    @keyframes pulse-tstm-row {
+      0%   { background: #d4a000; }
+      50%  { background: #f0bc00; }
+      100% { background: #d4a000; }
+    }
+    .alert-row-tstm { background: #d4a000; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tstm-row 0.7s ease-in-out 3; }
+    .alert-row-tstm .alert-event { color: #fff; font-weight: 700; }
+    .alert-row-tstm .alert-expires { color: rgba(255,255,255,0.8); }
+    .alert-row-tstm .alert-pip { display: none; }
+    .alert-row-tstm .alert-type-icon { font-size: 18px; color: #fff; flex-shrink: 0; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+    .alert-row-tstm .alert-chevron { color: rgba(255,255,255,0.7); }
+    .alert-row-tstm:hover { background: #b08800 !important; }
     .alert-row:first-child { padding-top: 4px; }
     .alert-row:last-child { border-bottom: none; padding-bottom: 0; }
     .alert-row:hover { background: var(--red-dim); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: var(--r-xs); }
@@ -294,6 +320,7 @@
         <div class="nav-dropdown-menu">
           <div class="nav-dropdown-menu-inner">
             <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+            <a href="jVOR_app.html"><span class="material-symbols-rounded">radar</span>jVOR <span style="font-size:0.65rem;font-weight:700;background:var(--red);color:#fff;padding:1px 5px;border-radius:4px;margin-left:4px;letter-spacing:0.04em;">BETA</span></a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
@@ -813,8 +840,17 @@ function renderAlerts(data, spcResult) {
   alerts.forEach((feat, i) => {
     const a = feat.properties;
     const exp = a.expires ? new Date(a.expires).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : 'N/A';
-    const row = document.createElement('div'); row.className='alert-row';
-    row.innerHTML = `<div class="alert-pip"></div><div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
+    const evt = (a.event || '').toLowerCase();
+    const isTornado = evt.includes('tornado warning');
+    const isTstm    = evt.includes('severe thunderstorm warning');
+    const row = document.createElement('div');
+    row.className = 'alert-row' + (isTornado ? ' alert-row-tornado' : isTstm ? ' alert-row-tstm' : '');
+    const leadIcon = isTornado
+      ? `<span class="material-symbols-rounded alert-type-icon">tornado</span>`
+      : isTstm
+        ? `<span class="material-symbols-rounded alert-type-icon">bolt</span>`
+        : `<div class="alert-pip"></div>`;
+    row.innerHTML = `${leadIcon}<div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
     row.addEventListener('click', () => showModal(i)); c.appendChild(row);
   });
 

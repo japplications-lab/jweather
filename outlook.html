@@ -235,6 +235,14 @@
       font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
     }
     /* City marker labels */
+    .city-label{background:none;border:none;box-shadow:none;}
+    .city-label-inner{
+      font-family:var(--font);font-size:0.62rem;font-weight:600;
+      color:#222;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;
+      white-space:nowrap;pointer-events:none;
+      display:flex;align-items:center;gap:3px;
+    }
+    .city-dot{width:4px;height:4px;border-radius:50%;background:#444;flex-shrink:0;}
     .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:10px !important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12) !important;}
     .leaflet-control-zoom a{
       font-family:var(--font) !important;color:var(--text-2) !important;
@@ -290,6 +298,7 @@
         <div class="nav-dropdown-menu">
           <div class="nav-dropdown-menu-inner">
             <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+            <a href="jVOR_app.html"><span class="material-symbols-rounded">radar</span>jVOR <span style="font-size:0.65rem;font-weight:700;background:var(--red);color:#fff;padding:1px 5px;border-radius:4px;margin-left:4px;letter-spacing:0.04em;">BETA</span></a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
@@ -703,7 +712,25 @@ const CITIES = [
   {n:'Spokane',     lat:47.66, lng:-117.43},
 ];
 
-// City overlay removed — CARTO tiles provide city labels at all zoom levels
+function addCityLabels(map) {
+  // Render city labels in a pane above everything so they're always visible
+  const pane = map.getPane('cityLabelPane') || (() => {
+    map.createPane('cityLabelPane');
+    map.getPane('cityLabelPane').style.zIndex = 460;
+    map.getPane('cityLabelPane').style.pointerEvents = 'none';
+    return map.getPane('cityLabelPane');
+  })();
+
+  CITIES.forEach(c => {
+    const icon = L.divIcon({
+      className: 'city-label',
+      html: `<div class="city-label-inner"><div class="city-dot"></div>${c.n}</div>`,
+      iconAnchor: [0, 6],
+      iconSize: null,
+    });
+    L.marker([c.lat, c.lng], { icon, interactive:false, keyboard:false, pane:'cityLabelPane' }).addTo(map);
+  });
+}
 
 let statesLayer = null;
 async function addStatesOverlay(map) {
@@ -772,6 +799,7 @@ function initMap() {
   theMap.setMaxBounds(MAX_BOUNDS);
   theMap.fitBounds(CONUS, { padding:[10,10], animate:false });
   addStatesOverlay(theMap);
+  addCityLabels(theMap);
   makeLabelTiles().addTo(theMap);
 }
 
