@@ -998,10 +998,7 @@ async function loadSigSevere(day) {
   const loading = document.getElementById('map-loading');
   loading.classList.remove('hidden');
 
-  if (activeLayer) {
-    if (activeLayer._probClickHandler) theMap.off('click', activeLayer._probClickHandler);
-    theMap.removeLayer(activeLayer); activeLayer = null;
-  }
+  if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
   clearSigLayer();
 
@@ -1091,9 +1088,7 @@ function clearSigLayer() {
   if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
   activeSigMarkers.forEach(m => theMap.removeLayer(m));
   activeSigMarkers = [];
-  // Re-enable pointer events on outlook polygons now that sig layer is gone
-  const outlookPaneEl = theMap.getPane('outlookPane');
-  if (outlookPaneEl) outlookPaneEl.style.pointerEvents = '';
+
 }
 
 async function loadHazard(day, mode) {
@@ -1138,14 +1133,6 @@ async function loadHazard(day, mode) {
       };
     }
 
-    // For prob modes: make each polygon only interactive in its own exclusive ring
-    // (the area NOT covered by any higher-DN polygon above it).
-    // We do this by making ALL layers interactive but having the click handler
-    // find the SMALLEST (highest DN) feature that actually contains the click point,
-    // then walking DOWN to find the smallest-area feature at that point.
-    // For cat mode: largest area on bottom, smallest on top — standard z stacking works.
-    const featLayers = [];
-
     activeLayer = L.geoJSON(gj, {
       style: f => styleFeature(f, mode),
       renderer: theMap._renderers?.outlook || L.svg(),
@@ -1154,47 +1141,12 @@ async function loadHazard(day, mode) {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
         if (mode === 'cat' && key === 'TSTM') return;
-
-        if (mode !== 'cat') {
-          // Prob mode: disable pointer events on all layers, handle via map click
-          lyr.options.interactive = false;
-          featLayers.push({ f, lyr });
-        } else {
-          lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-          lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
-          lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
-          lyr.on('click',     function(e){ this.openPopup(e.latlng); });
-        }
+        lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
+        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
+        lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
+        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
     }).addTo(theMap);
-
-    // Prob mode: single map-level click finds the smallest-area feature at that point
-    if (mode !== 'cat' && featLayers.length) {
-      activeLayer._probClickHandler = function(e) {
-        const pt = [e.latlng.lng, e.latlng.lat];
-        // Find all features containing the click point
-        const hits = featLayers.filter(({ f }) => {
-          const geom = f.geometry;
-          if (!geom) return false;
-          const polys = geom.type === 'Polygon' ? [geom.coordinates]
-                      : geom.type === 'MultiPolygon' ? geom.coordinates : [];
-          return polys.some(poly => pointInRing(pt, poly[0]));
-        });
-        if (!hits.length) return;
-        // Pick the smallest-area (highest DN) hit — that's the topmost meaningful zone
-        hits.sort((a, b) => featureArea(a.f) - featureArea(b.f));
-        const { f, lyr } = hits[0];
-        // Highlight briefly
-        const orig = styleFeature(f, mode);
-        lyr.setStyle({ fillOpacity: 0.92, weight: 2.5 });
-        setTimeout(() => { if (activeLayer) activeLayer.resetStyle(lyr); }, 1200);
-        L.popup({ closeButton:false, autoPan:true, maxWidth:290 })
-          .setLatLng(e.latlng)
-          .setContent(popupContent(f, mode, day))
-          .openOn(theMap);
-      };
-      theMap.on('click', activeLayer._probClickHandler);
-    }
 
     buildLegend(gj, mode);
 
@@ -1249,18 +1201,9 @@ async function loadSigLayer(day, mode) {
         fillColor: '#000',
         fillOpacity: 0.08,
       },
+      interactive: false,
       renderer: theMap._renderers?.sigOutline || L.svg(),
-      onEachFeature: (f, lyr) => {
-        lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, color:'#000', dashArray:'8 6' }); });
-        lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
-        lyr.on('click',     function(e){ this.openPopup(e.latlng); });
-      }
     }).addTo(theMap);
-
-    // Disable pointer events on the outlook pane so sig layer clicks win
-    const outlookPaneEl = theMap.getPane('outlookPane');
-    if (outlookPaneEl) outlookPaneEl.style.pointerEvents = 'none';
 
     // Single badge anchored to the overall bounding box center of ALL sig features
     try {
