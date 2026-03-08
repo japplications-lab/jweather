@@ -584,9 +584,9 @@ const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
 
 // Sig Severe — one color per hazard type
 const SIG_COLORS = {
-  torn: { fill:'#7c3aed', stroke:'#5b21b6', label:'Sig Tornado'  },
-  wind: { fill:'#0369a1', stroke:'#075985', label:'Sig Wind'     },
-  hail: { fill:'#0f766e', stroke:'#0d5d56', label:'Sig Hail'     },
+  torn: { fill:'#00cccc', stroke:'#009999', label:'Sig Tornado'  },
+  wind: { fill:'#00cccc', stroke:'#009999', label:'Sig Wind'     },
+  hail: { fill:'#00cccc', stroke:'#009999', label:'Sig Hail'     },
 };
 // ─────────────────────────────────────────────
 //  COLOR HELPERS
@@ -973,7 +973,7 @@ function buildLegend(geojson, mode) {
     if (hasSig) {
       const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
       html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
+        <div class="legend-swatch" style="background:#00cccc;border-color:#009999;opacity:0.85;"></div>
         <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
         <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
       </div>`;
@@ -1194,12 +1194,12 @@ async function loadSigLayer(day, mode) {
     // Render sig zone — SPC style: thick black dashed outline, no fill
     activeSigLayer = L.geoJSON(gj, {
       style: {
-        color: '#000',
-        weight: 3,
-        opacity: 1,
-        dashArray: '8 6',
-        fillColor: '#000',
-        fillOpacity: 0.08,
+        color: '#00cccc',
+        weight: 2.5,
+        opacity: 0.9,
+        dashArray: null,
+        fillColor: '#00cccc',
+        fillOpacity: 0.28,
       },
       interactive: false,
       renderer: theMap._renderers?.sigOutline || L.svg(),
