@@ -650,6 +650,7 @@ function sortByAreaDesc(geojson) {
 // ─────────────────────────────────────────────
 let theMap = null;
 let activeLayer = null;
+let activeCigLayer = null;  // hatch overlay for CIG features
 let activeSigLayer = null;   // significant threat overlay
 let activeSigMarkers = [];   // badge markers for sig zones
 const discCache = {};
@@ -1125,6 +1126,7 @@ async function loadHazard(day, mode) {
   loading.classList.remove('hidden');
 
   if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
+  if (activeCigLayer) { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
   clearSigLayer();
 
@@ -1181,7 +1183,7 @@ async function loadHazard(day, mode) {
         return label.startsWith('CIG') || dn === 2;
       });
       if (cigFeatures.length) {
-        L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
+        activeCigLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
           style: {
             fillColor: 'url(#cig-hatch)',
             fillOpacity: 1,
