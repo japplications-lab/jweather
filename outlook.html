@@ -1193,16 +1193,14 @@ async function loadSigLayer(day, mode) {
 
     // Render sig zone — SPC style: thick black dashed outline, no fill
     activeSigLayer = L.geoJSON(gj, {
-      style: {
+      style: () => ({
         color: '#00cccc',
-        weight: 2.5,
-        opacity: 0.9,
+        weight: 3,
+        opacity: 1,
         fillColor: '#00cccc',
-        fillOpacity: 0.28,
-        interactive: false,
-      },
-      renderer: theMap._renderers?.sigOutline || L.svg(),
-      onEachFeature: (f, lyr) => { lyr.options.interactive = false; },
+        fillOpacity: 0.30,
+      }),
+      pane: 'sigOutlinePane',
     }).addTo(theMap);
 
     // Single badge anchored to the overall bounding box center of ALL sig features
