@@ -1148,6 +1148,7 @@ async function loadHazard(day, mode) {
       }
     }).addTo(theMap);
 
+    console.log('[jWeather] Prob features props:', gj.features.map(f => f.properties));
     buildLegend(gj, mode);
 
 
