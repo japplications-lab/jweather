@@ -1241,73 +1241,39 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render sig zone — SPC style: thick black dashed outline, no fill
+    // Render sig zone using same hatch pattern as CIG areas
+    _injectHatchPattern();
     activeSigLayer = L.geoJSON(gj, {
       style: {
+        fillColor: 'url(#cig-hatch)',
+        fillOpacity: 1,
         color: '#000',
-        weight: 3,
+        weight: 1.5,
         opacity: 1,
-        dashArray: '8 6',
-        fillColor: '#000',
-        fillOpacity: 0.08,
       },
-      renderer: theMap._renderers?.sigOutline || L.svg(),
+      renderer: theMap._renderers?.outlook || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, color:'#000', dashArray:'8 6' }); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:3, color:'#000' }); });
         lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
     }).addTo(theMap);
 
-    // Disable pointer events on the outlook pane so sig layer clicks win
-    const outlookPaneEl = theMap.getPane('outlookPane');
-    if (outlookPaneEl) outlookPaneEl.style.pointerEvents = 'none';
-
-    // Single badge anchored to the overall bounding box center of ALL sig features
-    try {
-      const overallCenter = activeSigLayer.getBounds().getCenter();
-      const icon = L.divIcon({
-        className: '',
-        html: `<button class="sig-zone-badge" title="${sigLabel}">
-                 <span class="material-symbols-rounded sig-icon">bolt</span>${sigLabel}
-               </button>`,
-        iconAnchor: [0, 10],
-        iconSize: null,
-      });
-      const marker = L.marker(overallCenter, {
-        icon, interactive:true, keyboard:false,
-        pane:'sigBadgePane', zIndexOffset:1000
-      });
-      // Badge popup uses the largest feature for context
-      const largestFeature = sortByAreaDesc(gj).features[0];
-      marker.bindPopup(sigPopupContent(largestFeature, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-      marker.addTo(theMap);
-      activeSigMarkers.push(marker);
-    } catch(e) {}
-
-    // Add sig zone entries to legend (only when features actually exist)
-    const legendEl = document.getElementById('legend-items');
+    // Add hatch legend entry
+    if (activeSigLayer) {
+      const legendEl = document.getElementById('legend-items');
       const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible', prob:'Particularly Dangerous Situation' }[mode] || 'Particularly Dangerous';
-    const hatchEntry = document.createElement('div');
-    hatchEntry.className = 'legend-item legend-sig-entry';
-    hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
-    hatchEntry.innerHTML = `
-      <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
-      <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
-    legendEl.appendChild(hatchEntry);
-    const sigEntry = document.createElement('div');
-    sigEntry.className = 'legend-item sig-legend-entry';
-    sigEntry.innerHTML = `
-      <div class="legend-swatch" style="
-        background: rgba(255,255,255,0.04);
-        border: 2px dashed #000;
-        box-sizing: border-box;
-        border-radius: 2px;
-      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
-    legendEl.appendChild(sigEntry);
-    document.getElementById('map-legend').style.display = 'block';
+      const hatchEntry = document.createElement('div');
+      hatchEntry.className = 'legend-item legend-sig-entry';
+      hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
+      hatchEntry.innerHTML = `
+        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
+        <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
+        <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
+      legendEl.appendChild(hatchEntry);
+      document.getElementById('map-legend').style.display = 'block';
+    }
 
   } catch(e) { console.warn('Sig layer failed', e); }
 }
