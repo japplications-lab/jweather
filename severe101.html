@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>jWeather — Severe Weather 101</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #e5182a;
+      --red-dim: rgba(229,24,42,0.12);
+      --red-border: rgba(229,24,42,0.25);
+      --bg: #0f1115;
+      --surface: #1a1d24;
+      --surface-2: #20242d;
+      --border: rgba(255,255,255,0.07);
+      --border-2: rgba(255,255,255,0.11);
+      --text: #ffffff;
+      --text-2: #f0f2f4;
+      --text-3: #c8cdd6;
+      --text-4: #9ba0aa;
+      --green: #22c55e;
+      --green-dim: rgba(34,197,94,0.12);
+      --green-border: rgba(34,197,94,0.25);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --amber-border: rgba(245,158,11,0.25);
+      --blue: #3b82f6;
+      --blue-dim: rgba(59,130,246,0.12);
+      --blue-border: rgba(59,130,246,0.25);
+      --r: 12px;
+      --r-sm: 8px;
+      --r-xs: 6px;
+      --header: 58px;
+      --font: 'Geist', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; line-height: 1; display: inline-block; }
+    .msr-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+    /* ── HEADER ── */
+    header { background: var(--surface); border-bottom: 1px solid var(--border); z-index: 500; position: sticky; top: 0; height: var(--header); }
+    .header-inner { height: 100%; max-width: 100%; padding: 0 24px; display: flex; align-items: center; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
+    .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .logo-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .logo-name span { color: var(--red); }
+    .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+    .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
+    .header-nav a:hover { color: var(--text); background: var(--bg); }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-btn { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; font-weight: 500; color: var(--text-3); background: none; border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-family: var(--font); transition: color 0.15s, background 0.15s; white-space: nowrap; }
+    .nav-dropdown-btn:hover, .nav-dropdown:hover .nav-dropdown-btn { color: var(--text); background: var(--bg); }
+    .nav-dropdown-btn .material-symbols-rounded { font-size: 14px; transition: transform 0.2s; }
+    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded { transform: rotate(180deg); }
+    .nav-dropdown-menu { position: absolute; top: 100%; right: 0; padding-top: 8px; min-width: 210px; z-index: 200; }
+    .nav-dropdown-menu-inner { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.4); overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s; }
+    .nav-dropdown:hover .nav-dropdown-menu-inner { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .nav-dropdown-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 0.8rem; font-weight: 500; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.1s, color 0.1s; white-space: nowrap; }
+    .nav-dropdown-menu a:last-child { border-bottom: none; }
+    .nav-dropdown-menu a.active, .nav-dropdown-menu a:hover { background: var(--red-dim); color: var(--red); }
+    .nav-dropdown-menu a .material-symbols-rounded { font-size: 15px; color: var(--text-4); }
+    .nav-dropdown-menu a.active .material-symbols-rounded, .nav-dropdown-menu a:hover .material-symbols-rounded { color: var(--red); }
+
+    /* ── PAGE ── */
+    .page-wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* HERO */
+    .hero { margin-bottom: 48px; }
+    .hero-eyebrow { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--red); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .hero-eyebrow .material-symbols-rounded { font-size: 13px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; color: var(--text); margin-bottom: 16px; }
+    .hero h1 em { color: var(--red); font-style: normal; }
+    .hero-lead { font-size: 1rem; color: var(--text-3); line-height: 1.75; max-width: 600px; }
+    .hero-divider { margin-top: 32px; height: 1px; background: var(--border); }
+
+    /* TOC */
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 48px; }
+    .toc-item { display: flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 20px; border: 1px solid var(--border-2); background: var(--surface); font-size: 0.76rem; font-weight: 600; color: var(--text-3); text-decoration: none; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .toc-item:hover { border-color: var(--red-border); color: var(--red); background: var(--red-dim); }
+    .toc-item .material-symbols-rounded { font-size: 13px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+    /* SECTION */
+    .section { margin-bottom: 60px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .section-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .section-icon .material-symbols-rounded { font-size: 20px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .icon-amber { background: var(--amber-dim); color: var(--amber); }
+    .icon-red { background: var(--red-dim); color: var(--red); }
+    .icon-blue { background: var(--blue-dim); color: var(--blue); }
+    .section-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.025em; color: var(--text); }
+    .section-subtitle { font-size: 0.78rem; color: var(--text-4); margin-top: 2px; }
+
+    /* WATCH vs WARNING */
+    .ww-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
+    @media (max-width: 580px) { .ww-grid { grid-template-columns: 1fr; } }
+    .ww-card { border-radius: var(--r); padding: 22px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+    .ww-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .ww-watch { background: linear-gradient(160deg, rgba(245,158,11,0.07), rgba(245,158,11,0.02)); }
+    .ww-watch .ww-accent { background: var(--amber); }
+    .ww-warning { background: linear-gradient(160deg, rgba(229,24,42,0.09), rgba(229,24,42,0.02)); }
+    .ww-warning .ww-accent { background: var(--red); }
+    .ww-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+    .ww-badge .material-symbols-rounded { font-size: 11px; font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+    .badge-watch { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-warning { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+    .ww-card h3 { font-size: 1rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .ww-watch h3 { color: var(--amber); }
+    .ww-warning h3 { color: var(--red); }
+    .ww-card p { font-size: 0.82rem; color: var(--text-3); line-height: 1.72; margin-bottom: 10px; }
+    .ww-cta { display: flex; align-items: center; gap: 7px; font-size: 0.76rem; font-weight: 700; padding: 9px 13px; border-radius: var(--r-sm); margin-top: 4px; }
+    .ww-cta .material-symbols-rounded { font-size: 14px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .cta-watch { background: var(--amber-dim); color: var(--amber); }
+    .cta-warning { background: var(--red-dim); color: var(--red); }
+
+    /* info note */
+    .info-note { display: flex; align-items: flex-start; gap: 11px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); }
+    .info-note .material-symbols-rounded { font-size: 16px; color: var(--text-4); flex-shrink: 0; margin-top: 1px; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .info-note p { font-size: 0.8rem; color: var(--text-3); line-height: 1.7; }
+    .info-note strong { color: var(--text); }
+
+    /* EF SCALE */
+    .ef-list { display: flex; flex-direction: column; gap: 8px; }
+    .ef-row { display: grid; grid-template-columns: 72px 1fr; border-radius: var(--r-sm); border: 1px solid var(--border); overflow: hidden; transition: border-color 0.15s; }
+    .ef-row:hover { border-color: var(--border-2); }
+    .ef-num-col { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 8px; gap: 3px; }
+    .ef-label { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+    .ef-mph { font-size: 0.57rem; font-weight: 600; opacity: 0.75; text-align: center; line-height: 1.4; }
+    .ef-body { padding: 14px 16px; }
+    .ef-body h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; }
+    .ef-body p { font-size: 0.78rem; color: var(--text-3); line-height: 1.65; }
+    .ef0 .ef-num-col { background: rgba(100,200,90,0.13); color: #5cba52; border-right: 2px solid #5cba52; }
+    .ef0 .ef-body h4 { color: #5cba52; }
+    .ef1 .ef-num-col { background: rgba(240,220,40,0.13); color: #c8b800; border-right: 2px solid #c8b800; }
+    .ef1 .ef-body h4 { color: #c8b800; }
+    .ef2 .ef-num-col { background: rgba(232,128,32,0.14); color: #e07818; border-right: 2px solid #e07818; }
+    .ef2 .ef-body h4 { color: #e07818; }
+    .ef3 .ef-num-col { background: rgba(220,60,60,0.14); color: #d83838; border-right: 2px solid #d83838; }
+    .ef3 .ef-body h4 { color: #d83838; }
+    .ef4 .ef-num-col { background: rgba(180,40,190,0.14); color: #c035c8; border-right: 2px solid #c035c8; }
+    .ef4 .ef-body h4 { color: #c035c8; }
+    .ef5 .ef-num-col { background: rgba(100,60,200,0.16); color: #7855e0; border-right: 2px solid #7855e0; }
+    .ef5 .ef-body h4 { color: #7855e0; }
+
+    /* WIND SCALE */
+    .wind-rows { display: flex; flex-direction: column; gap: 8px; }
+    .wind-row { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px 16px; transition: border-color 0.15s; }
+    .wind-row:hover { border-color: var(--border-2); }
+    .wind-row-top { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; flex-wrap: wrap; }
+    .wind-spd { font-size: 0.78rem; font-weight: 700; padding: 3px 9px; border-radius: 5px; white-space: nowrap; flex-shrink: 0; }
+    .wind-title { font-size: 0.85rem; font-weight: 700; color: var(--text-2); }
+    .wind-desc { font-size: 0.79rem; color: var(--text-3); line-height: 1.65; }
+    .wind-bar-track { margin-top: 10px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .wind-bar-fill { height: 100%; border-radius: 2px; }
+    .nws-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; padding: 2px 7px; border-radius: 4px; margin-left: 4px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); vertical-align: middle; }
+    .nws-tag .material-symbols-rounded { font-size: 10px; font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+
+    /* HAIL */
+    .hail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+    .hail-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 16px 12px; text-align: center; transition: border-color 0.15s; }
+    .hail-item:hover { border-color: var(--border-2); }
+    .hail-ball { border-radius: 50%; margin: 0 auto 10px; border: 2px solid currentColor; }
+    .hail-sev { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); background: var(--red-dim); border: 1px solid var(--red-border); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 5px; }
+    .hail-size { font-size: 0.83rem; font-weight: 700; margin-bottom: 3px; }
+    .hail-ref { font-size: 0.7rem; color: var(--text-4); margin-bottom: 8px; }
+    .hail-damage { font-size: 0.7rem; color: var(--text-3); line-height: 1.55; }
+
+    /* FLOOD */
+    .flood-callout { border: 1px solid var(--blue-border); background: linear-gradient(160deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); border-radius: var(--r); padding: 20px 22px; margin-bottom: 14px; }
+    .flood-callout-title { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 800; color: var(--blue); margin-bottom: 8px; }
+    .flood-callout-title .material-symbols-rounded { font-size: 17px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .flood-callout p { font-size: 0.82rem; color: var(--text-3); line-height: 1.75; }
+    .flood-callout strong { color: var(--text); }
+    .flood-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .flood-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 16px; }
+    .flood-stat-num { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+    .flood-stat-label { font-size: 0.72rem; color: var(--text-4); margin-top: 4px; line-height: 1.5; }
+    .flood-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .flood-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 18px; transition: border-color 0.15s, transform 0.15s; }
+    .flood-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+    .flood-card-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .flood-card-icon .material-symbols-rounded { font-size: 17px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .flood-card h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; color: var(--text-2); }
+    .flood-card p { font-size: 0.78rem; color: var(--text-3); line-height: 1.68; margin-bottom: 11px; }
+    .flood-tip { font-size: 0.73rem; font-weight: 600; display: flex; align-items: flex-start; gap: 6px; padding: 8px 10px; border-radius: 6px; line-height: 1.5; }
+    .flood-tip .material-symbols-rounded { font-size: 13px; flex-shrink: 0; margin-top: 1px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+    /* PAGE FOOTER */
+    .page-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 36px; border-top: 1px solid var(--border); }
+    .page-footer a { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8rem; font-weight: 600; color: var(--red); text-decoration: none; padding: 9px 15px; border-radius: var(--r-sm); border: 1px solid var(--red-border); background: var(--red-dim); transition: opacity 0.15s; }
+    .page-footer a:hover { opacity: 0.8; }
+    .page-footer a .material-symbols-rounded { font-size: 15px; }
+
+    /* coming soon toast */
+    #cs-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border-2); color: var(--text-2); font-family: var(--font); font-size: 0.8rem; font-weight: 600; padding: 10px 20px; border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 9999; white-space: nowrap; }
+    #cs-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #cs-toast .material-symbols-rounded { font-size: 15px; color: var(--amber); font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">
+      <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+      <span class="logo-name">j<span>Weather</span></span>
+    </a>
+    <nav class="header-nav">
+      <a href="index.html">Forecast</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">
+          Severe Weather <span class="material-symbols-rounded">expand_more</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dropdown-menu-inner">
+            <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+            <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">warning_amber</span>Current Watches</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+            <a href="severe101.html" class="active"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+          </div>
+        </div>
+      </div>
+      <a href="#" data-coming-soon>Contact</a>
+      <a href="#" data-coming-soon>About</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="material-symbols-rounded msr-fill">school</span>
+      Severe Weather 101
+    </div>
+    <h1>Know the difference.<br><em>Stay alive.</em></h1>
+    <p class="hero-lead">No meteorology degree required. Here's everything a regular person needs to understand severe weather alerts, what the numbers mean, and what to actually do when things get dangerous.</p>
+    <div class="hero-divider"></div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <a class="toc-item" href="#watches-warnings"><span class="material-symbols-rounded" style="color:var(--amber);">warning</span>Watches & Warnings</a>
+    <a class="toc-item" href="#tornadoes"><span class="material-symbols-rounded" style="color:var(--red);">tornado</span>Tornado / EF Scale</a>
+    <a class="toc-item" href="#wind"><span class="material-symbols-rounded" style="color:var(--amber);">air</span>Damaging Wind</a>
+    <a class="toc-item" href="#hail"><span class="material-symbols-rounded" style="color:var(--blue);">weather_hail</span>Large Hail</a>
+    <a class="toc-item" href="#flooding"><span class="material-symbols-rounded" style="color:var(--blue);">flood</span>Flash Flooding</a>
+  </div>
+
+  <!-- ═══ WATCHES & WARNINGS ═══ -->
+  <div class="section" id="watches-warnings">
+    <div class="section-header">
+      <div class="section-icon icon-amber"><span class="material-symbols-rounded">warning</span></div>
+      <div>
+        <div class="section-title">Watches & Warnings</div>
+        <div class="section-subtitle">The single most important distinction in severe weather</div>
+      </div>
+    </div>
+
+    <div class="ww-grid">
+      <div class="ww-card ww-watch">
+        <div class="ww-accent"></div>
+        <div class="ww-badge badge-watch"><span class="material-symbols-rounded">visibility</span>Watch</div>
+        <h3>Conditions are right for it</h3>
+        <p>A watch means the atmosphere has the right ingredients for severe weather to develop. <strong style="color:var(--text);">Nothing is happening yet</strong> — but it could. Think of it as "be ready."</p>
+        <p>Watches cover large areas and can last several hours. This is your time to plan: know where your shelter is, charge your phone, and stay tuned to local alerts.</p>
+        <div class="ww-cta cta-watch"><span class="material-symbols-rounded">notifications_active</span>Stay informed and be ready to act</div>
+      </div>
+      <div class="ww-card ww-warning">
+        <div class="ww-accent"></div>
+        <div class="ww-badge badge-warning"><span class="material-symbols-rounded">emergency</span>Warning</div>
+        <h3>It's happening — act now</h3>
+        <p>A warning means a severe storm has been detected on radar or confirmed by a trained spotter. The threat is <strong style="color:var(--text);">imminent or already occurring</strong> in your area.</p>
+        <p>Warnings cover smaller, more specific areas and typically last 30–60 minutes. Don't wait to see or hear the storm — move to shelter immediately.</p>
+        <div class="ww-cta cta-warning"><span class="material-symbols-rounded">crisis_alert</span>Seek shelter immediately — don't wait</div>
+      </div>
+    </div>
+
+    <div class="info-note">
+      <span class="material-symbols-rounded">info</span>
+      <p><strong>Advisory</strong> sits below a watch — issued for hazardous but less severe conditions like dense fog, frost, or gusty winds. Worth paying attention to, but not an emergency. The full escalation chain is: <strong>Advisory → Watch → Warning</strong>.</p>
+    </div>
+  </div>
+
+  <!-- ═══ EF SCALE ═══ -->
+  <div class="section" id="tornadoes">
+    <div class="section-header">
+      <div class="section-icon icon-red"><span class="material-symbols-rounded">tornado</span></div>
+      <div>
+        <div class="section-title">Tornadoes — The EF Scale</div>
+        <div class="section-subtitle">Enhanced Fujita Scale — rated by damage after the tornado, not by radar</div>
+      </div>
+    </div>
+
+    <div class="ef-list">
+      <div class="ef-row ef0">
+        <div class="ef-num-col"><div class="ef-label">EF0</div><div class="ef-mph">65–85 mph</div></div>
+        <div class="ef-body">
+          <h4>Weak — Minor Damage</h4>
+          <p>Branches snapped, shallow-rooted trees toppled, minor roof and sign damage. EF0s account for over half of all recorded tornadoes. Still dangerous to be outside — never try to outrun or watch one.</p>
+        </div>
+      </div>
+      <div class="ef-row ef1">
+        <div class="ef-num-col"><div class="ef-label">EF1</div><div class="ef-mph">86–110 mph</div></div>
+        <div class="ef-body">
+          <h4>Weak — Moderate Damage</h4>
+          <p>Roofs peeled off, mobile homes flipped or heavily damaged, cars pushed off roads. At EF1 a tornado becomes genuinely life-threatening — go to your interior shelter immediately.</p>
+        </div>
+      </div>
+      <div class="ef-row ef2">
+        <div class="ef-num-col"><div class="ef-label">EF2</div><div class="ef-mph">111–135 mph</div></div>
+        <div class="ef-body">
+          <h4>Strong — Considerable Damage</h4>
+          <p>Roofs torn off well-built homes, large trees snapped or uprooted, mobile homes destroyed, cars lifted. This is the "significant tornado" threshold — only the lowest interior room provides real safety above ground.</p>
+        </div>
+      </div>
+      <div class="ef-row ef3">
+        <div class="ef-num-col"><div class="ef-label">EF3</div><div class="ef-mph">136–165 mph</div></div>
+        <div class="ef-body">
+          <h4>Strong — Severe Damage</h4>
+          <p>Entire stories of well-built homes destroyed, trains overturned, trees stripped of bark, heavy vehicles thrown. Exterior walls offer almost no protection — underground shelter is strongly recommended.</p>
+        </div>
+      </div>
+      <div class="ef-row ef4">
+        <div class="ef-num-col"><div class="ef-label">EF4</div><div class="ef-mph">166–200 mph</div></div>
+        <div class="ef-body">
+          <h4>Violent — Devastating Damage</h4>
+          <p>Well-constructed homes leveled and swept away, cars thrown hundreds of yards, large debris becomes lethal at extreme speeds. Only a hardened underground shelter or reinforced safe room provides real protection.</p>
+        </div>
+      </div>
+      <div class="ef-row ef5">
+        <div class="ef-num-col"><div class="ef-label">EF5</div><div class="ef-mph">200+ mph</div></div>
+        <div class="ef-body">
+          <h4>Violent — Incredible Damage</h4>
+          <p>Strong framed homes swept completely off foundations, reinforced concrete structures critically damaged, cars reduced to unrecognizable debris. EF5 tornadoes are extremely rare — less than 0.1% of all tornadoes — but represent total destruction along their paths. Underground is the only survivable option.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ WIND ═══ -->
+  <div class="section" id="wind">
+    <div class="section-header">
+      <div class="section-icon icon-amber"><span class="material-symbols-rounded">air</span></div>
+      <div>
+        <div class="section-title">Damaging Wind</div>
+        <div class="section-subtitle">Straight-line winds from thunderstorms — no rotation, just raw speed</div>
+      </div>
+    </div>
+
+    <div class="wind-rows">
+      <div class="wind-row">
+        <div class="wind-row-top">
+          <div class="wind-spd" style="background:rgba(34,197,94,0.12);color:#22c55e;">Under 40 mph</div>
+          <div class="wind-title">Gusty but manageable</div>
+        </div>
+        <div class="wind-desc">Typical gusty thunderstorm breezes. Small branches sway, loose lightweight objects shift. No structural damage expected.</div>
+        <div class="wind-bar-track"><div class="wind-bar-fill" style="width:18%;background:#22c55e;"></div></div>
+      </div>
+      <div class="wind-row">
+        <div class="wind-row-top">
+          <div class="wind-spd" style="background:rgba(163,230,53,0.12);color:#84cc16;">40–57 mph</div>
+          <div class="wind-title">Elevated hazard</div>
+        </div>
+        <div class="wind-desc">Large branches break, unsecured outdoor items become projectiles. Minor damage to weak structures and poorly-maintained trees. Stay indoors when these are forecast.</div>
+        <div class="wind-bar-track"><div class="wind-bar-fill" style="width:36%;background:#84cc16;"></div></div>
+      </div>
+      <div class="wind-row" style="border-color:rgba(245,158,11,0.3);">
+        <div class="wind-row-top">
+          <div class="wind-spd" style="background:var(--amber-dim);color:var(--amber);">58+ mph</div>
+          <div class="wind-title">Severe threshold <span class="nws-tag"><span class="material-symbols-rounded">warning</span>NWS Warning</span></div>
+        </div>
+        <div class="wind-desc">Trees uprooted, power lines downed, roof damage common, vehicles rocked on highways. At 58 mph the National Weather Service issues a Severe Thunderstorm Warning. These winds cause the majority of all severe thunderstorm deaths and injuries.</div>
+        <div class="wind-bar-track"><div class="wind-bar-fill" style="width:55%;background:var(--amber);"></div></div>
+      </div>
+      <div class="wind-row" style="border-color:rgba(249,115,22,0.3);">
+        <div class="wind-row-top">
+          <div class="wind-spd" style="background:rgba(249,115,22,0.12);color:#fb923c;">75+ mph</div>
+          <div class="wind-title">Destructive</div>
+        </div>
+        <div class="wind-desc">Widespread tree and power line failure, significant roof and wall damage. These speeds overlap with EF0–EF1 tornado damage and can be life-threatening even inside a sturdy building.</div>
+        <div class="wind-bar-track"><div class="wind-bar-fill" style="width:72%;background:#fb923c;"></div></div>
+      </div>
+      <div class="wind-row" style="border-color:rgba(229,24,42,0.3);">
+        <div class="wind-row-top">
+          <div class="wind-spd" style="background:var(--red-dim);color:var(--red);">100+ mph</div>
+          <div class="wind-title">Extremely destructive</div>
+        </div>
+        <div class="wind-desc">Associated with violent derechos and large bow echoes. Comparable to a weak tornado's damage corridor but can extend for hundreds of miles. Extremely rare, extremely deadly.</div>
+        <div class="wind-bar-track"><div class="wind-bar-fill" style="width:100%;background:var(--red);"></div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div class="info-note">
+        <span class="material-symbols-rounded">info</span>
+        <p><strong>Derecho</strong> — A widespread, long-lived straight-line windstorm produced by a band of fast-moving thunderstorms. It can travel hundreds of miles and produce tornado-equivalent damage across a massive swath of land, often outpacing warning systems. If a derecho is forecast, treat the entire threatened area as you would a tornado warning zone.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HAIL ═══ -->
+  <div class="section" id="hail">
+    <div class="section-header">
+      <div class="section-icon icon-blue"><span class="material-symbols-rounded">weather_hail</span></div>
+      <div>
+        <div class="section-title">Large Hail</div>
+        <div class="section-subtitle">Size is everything — and it falls a lot faster than you'd expect</div>
+      </div>
+    </div>
+
+    <div class="hail-grid">
+      <div class="hail-item">
+        <div class="hail-ball" style="width:18px;height:18px;color:#6ee7b7;"></div>
+        <div class="hail-size" style="color:var(--text-3);">¼" — Pea</div>
+        <div class="hail-ref">Pea</div>
+        <div class="hail-damage">No damage. Nuisance only.</div>
+      </div>
+      <div class="hail-item">
+        <div class="hail-ball" style="width:24px;height:24px;color:#86efac;"></div>
+        <div class="hail-size" style="color:var(--text-3);">½" — Marble</div>
+        <div class="hail-ref">Marble</div>
+        <div class="hail-damage">Minor dings on vehicle finish. Low risk.</div>
+      </div>
+      <div class="hail-item">
+        <div class="hail-ball" style="width:30px;height:30px;color:var(--amber);"></div>
+        <div class="hail-sev">Severe</div>
+        <div class="hail-size" style="color:var(--amber);">1" — Quarter</div>
+        <div class="hail-ref">Quarter coin</div>
+        <div class="hail-damage">NWS severe threshold. Dents vehicles, damages crops and roofs.</div>
+      </div>
+      <div class="hail-item">
+        <div class="hail-ball" style="width:36px;height:36px;color:#fb923c;"></div>
+        <div class="hail-size" style="color:#fb923c;">1¾" — Golf Ball</div>
+        <div class="hail-ref">Golf ball</div>
+        <div class="hail-damage">Significant dents, breaks windows, bruises roofing.</div>
+      </div>
+      <div class="hail-item">
+        <div class="hail-ball" style="width:44px;height:44px;color:var(--red);"></div>
+        <div class="hail-size" style="color:var(--red);">2¾" — Baseball</div>
+        <div class="hail-ref">Baseball</div>
+        <div class="hail-damage">Severe roof and vehicle damage. Injurious to people outside.</div>
+      </div>
+      <div class="hail-item">
+        <div class="hail-ball" style="width:52px;height:52px;color:#c026d3;"></div>
+        <div class="hail-size" style="color:#c026d3;">4" — Softball</div>
+        <div class="hail-ref">Softball</div>
+        <div class="hail-damage">Catastrophic. Life-threatening to anyone caught outside.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div class="info-note">
+        <span class="material-symbols-rounded">priority_high</span>
+        <p>A baseball-sized hailstone hits the ground at over <strong>100 mph</strong>. Never go outside to get a closer look or retrieve your car — the storm can intensify with no warning. Get away from windows and wait for the all-clear.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FLOODING ═══ -->
+  <div class="section" id="flooding">
+    <div class="section-header">
+      <div class="section-icon icon-blue"><span class="material-symbols-rounded">flood</span></div>
+      <div>
+        <div class="section-title">Flash Flooding</div>
+        <div class="section-subtitle">The #1 weather-related killer in the United States</div>
+      </div>
+    </div>
+
+    <div class="flood-callout">
+      <div class="flood-callout-title"><span class="material-symbols-rounded">directions_car</span>Turn Around, Don't Drown</div>
+      <p>More than half of all flood deaths happen in vehicles. Water on a road is almost always <strong>deeper than it looks</strong>, and moving water has incredible force. Don't assume your truck or SUV can handle it. If a road is flooded — find another route. No destination is worth your life.</p>
+    </div>
+
+    <div class="flood-stats">
+      <div class="flood-stat">
+        <div class="flood-stat-num" style="color:#60a5fa;">6"</div>
+        <div class="flood-stat-label">of moving water can knock a full-grown adult off their feet</div>
+      </div>
+      <div class="flood-stat">
+        <div class="flood-stat-num" style="color:#3b82f6;">12"</div>
+        <div class="flood-stat-label">can sweep away a small car or sedan</div>
+      </div>
+      <div class="flood-stat">
+        <div class="flood-stat-num" style="color:#2563eb;">2 ft</div>
+        <div class="flood-stat-label">will carry away most trucks and full-size SUVs</div>
+      </div>
+      <div class="flood-stat">
+        <div class="flood-stat-num" style="color:#1d4ed8;">~90</div>
+        <div class="flood-stat-label">people die in U.S. floods every year — most in vehicles</div>
+      </div>
+    </div>
+
+    <div class="flood-cards">
+      <div class="flood-card">
+        <div class="flood-card-icon" style="background:var(--blue-dim);"><span class="material-symbols-rounded" style="color:var(--blue);">bolt</span></div>
+        <h4>Flash Flood</h4>
+        <p>Sudden, rapid flooding within 6 hours of heavy rain — sometimes within minutes in urban areas, canyons, and near streams. Can strike with little warning even under clear skies downstream.</p>
+        <div class="flood-tip" style="background:var(--blue-dim);color:var(--blue);"><span class="material-symbols-rounded">directions_run</span>Move to higher ground immediately. Don't wait for water to reach you.</div>
+      </div>
+      <div class="flood-card">
+        <div class="flood-card-icon" style="background:rgba(99,102,241,0.12);"><span class="material-symbols-rounded" style="color:#818cf8;">water</span></div>
+        <h4>River Flooding</h4>
+        <p>Slower-developing as rivers rise over hours or days from sustained upstream rainfall. Can persist for days or weeks and affect areas far from where the rain actually fell.</p>
+        <div class="flood-tip" style="background:rgba(99,102,241,0.12);color:#818cf8;"><span class="material-symbols-rounded">schedule</span>Monitor river gauges — levels can keep rising days after rain stops upstream.</div>
+      </div>
+      <div class="flood-card">
+        <div class="flood-card-icon" style="background:rgba(20,184,166,0.12);"><span class="material-symbols-rounded" style="color:#2dd4bf;">location_city</span></div>
+        <h4>Urban / Street Flooding</h4>
+        <p>Paved surfaces can't absorb rain. Even a moderate storm can overwhelm drainage systems and flood streets, underpasses, and basements within minutes — especially in dense city areas.</p>
+        <div class="flood-tip" style="background:rgba(20,184,166,0.12);color:#2dd4bf;"><span class="material-symbols-rounded">warning</span>Avoid underpasses and low-lying roads during any heavy rain event.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE FOOTER -->
+  <div class="page-footer">
+    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>View Today's Outlook</a>
+    <a href="index.html"><span class="material-symbols-rounded">home</span>Back to Forecast</a>
+  </div>
+
+</div>
+
+<div id="cs-toast">
+  <span class="material-symbols-rounded">construction</span>
+  This feature is still under development
+</div>
+
+<script>
+  let _csTimer = null;
+  document.querySelectorAll('[data-coming-soon]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      const t = document.getElementById('cs-toast');
+      t.classList.add('show');
+      clearTimeout(_csTimer);
+      _csTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    });
+  });
+</script>
+</body>
+</html>

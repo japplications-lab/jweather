@@ -306,10 +306,9 @@
         <div class="nav-dropdown-menu">
           <div class="nav-dropdown-menu-inner">
             <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-            <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">warning_amber</span>Current Watches</a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
             <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-            <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+            <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
           </div>
         </div>
       </div>
@@ -350,7 +349,9 @@
         <button class="cat-btn" data-day="1" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-
+        <button class="cat-btn cat-btn-sig" data-day="1" data-mode="sig">
+          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
+        </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -379,7 +380,9 @@
         <button class="cat-btn" data-day="2" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-
+        <button class="cat-btn cat-btn-sig" data-day="2" data-mode="sig">
+          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
+        </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -399,7 +402,9 @@
         <button class="cat-btn" data-day="3" data-mode="cat">
           <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
         </button>
-
+        <button class="cat-btn" data-day="3" data-mode="prob">
+          <span class="material-symbols-rounded cat-icon">percent</span>Probabilistic
+        </button>
       </div>
       <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -481,12 +486,12 @@ const MAX_BOUNDS = [[22, -128], [52, -63]];
 const LAYER_IDS = {
   '1-cat':1,  '1-torn':3,  '1-wind':7,  '1-hail':5,
   '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
-  '3-cat':17, '3-prob':19
+  '3-cat':17, '3-prob':18
 };
 const SIG_LAYER_IDS = {
   '1-torn':2,  '1-hail':4,  '1-wind':6,
   '2-torn':10, '2-hail':12, '2-wind':14,
-  '3-prob':18,
+  // Day 3 sig layer excluded for now
 };
 // Human-readable sig threat labels per mode
 const SIG_LABELS = {
@@ -649,7 +654,6 @@ function sortByAreaDesc(geojson) {
 // ─────────────────────────────────────────────
 let theMap = null;
 let activeLayer = null;
-let activeCigLayer = null;  // hatch overlay for CIG features
 let activeSigLayer = null;   // significant threat overlay
 let activeSigMarkers = [];   // badge markers for sig zones
 const discCache = {};
@@ -804,9 +808,7 @@ function initMap() {
     states:     L.svg({ pane:'statesPane' }).addTo(theMap),
   };
 
-  // Inject SVG hatch pattern for CIG areas
-  theMap.once('load', _injectHatchPattern);
-  setTimeout(_injectHatchPattern, 300);
+  // Mark hatch ready immediately — we use CSS dashArray approach, no SVG pattern needed
   theMap._hatchReady = true;
 
   makeBaseTiles().addTo(theMap);
@@ -819,22 +821,6 @@ function initMap() {
   addStatesOverlay(theMap);
   addCityLabels(theMap);
   makeLabelTiles().addTo(theMap);
-}
-
-// ─────────────────────────────────────────────
-//  SVG HATCH PATTERN
-// ─────────────────────────────────────────────
-function _injectHatchPattern() {
-  const svgEl = theMap.getPane('outlookPane')?.querySelector('svg');
-  if (!svgEl) return;
-  if (svgEl.querySelector('#cig-hatch')) return; // already injected
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  defs.innerHTML = `
-    <pattern id="cig-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
-      <rect width="8" height="8" fill="none"/>
-      <line x1="0" y1="0" x2="0" y2="8" stroke="#000000" stroke-width="2"/>
-    </pattern>`;
-  svgEl.insertBefore(defs, svgEl.firstChild);
 }
 
 // ─────────────────────────────────────────────
@@ -851,9 +837,6 @@ function styleFeature(f, mode) {
   } else {
     const dnRaw = p.DN ?? p.dn ?? 0;
     const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
-    const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
-    const isCIG = label.startsWith('CIG');
-    if (isCIG) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const scale = getProbScale(mode);
     let c = scale[0];
     for (const x of scale) { if (dn >= x.dn) c = x; }
@@ -976,11 +959,6 @@ function buildLegend(geojson, mode) {
       const d = parseInt(f.properties.DN||f.properties.dn||0);
       if (d > 0) active.add(d);
     });
-    const hasCIG = geojson.features.some(f => {
-      const label = (f.properties.LABEL || f.properties.label || '').toString().toUpperCase().trim();
-      const dn = parseInt(f.properties.DN || f.properties.dn || 0);
-      return label.startsWith('CIG');
-    });
     const scale = getProbScale(mode);
     box.style.display = 'block';
     let html = scale.map(p => {
@@ -990,14 +968,6 @@ function buildLegend(geojson, mode) {
         <span class="legend-label">${p.label}</span>
       </div>`;
     }).join('');
-    if (hasCIG) {
-      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible', prob:'Particularly Dangerous Situation' }[mode] || 'Particularly Dangerous';
-      html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
-        <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
-        <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
-      </div>`;
-    }
     el.innerHTML = html;
   }
 }
@@ -1019,7 +989,6 @@ async function loadSigSevere(day) {
   loading.classList.remove('hidden');
 
   if (activeLayer)          { theMap.removeLayer(activeLayer); activeLayer = null; }
-  if (activeCigLayer)       { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
   clearSigLayer();
 
@@ -1107,9 +1076,9 @@ function updateSigLegend(hazards, anyFeatures) {
 // ─────────────────────────────────────────────
 function clearSigLayer() {
   if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
-  if (activeCigLayer)  { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   activeSigMarkers.forEach(m => theMap.removeLayer(m));
   activeSigMarkers = [];
+  // Re-enable pointer events on outlook polygons now that sig layer is gone
   const outlookPaneEl = theMap.getPane('outlookPane');
   if (outlookPaneEl) outlookPaneEl.style.pointerEvents = '';
 }
@@ -1126,7 +1095,6 @@ async function loadHazard(day, mode) {
   loading.classList.remove('hidden');
 
   if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
-  if (activeCigLayer) { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
   clearSigLayer();
 
@@ -1170,32 +1138,9 @@ async function loadHazard(day, mode) {
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
+
       }
     }).addTo(theMap);
-
-    // Apply SVG hatch pattern to CIG features — use a separate overlay layer for reliable black lines
-    if (mode !== 'cat') {
-      _injectHatchPattern();
-      const cigFeatures = gj.features.filter(f => {
-        const p = f.properties || {};
-        const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
-        const dn = Math.round(parseFloat(p.DN ?? p.dn ?? 0) * (parseFloat(p.DN ?? p.dn ?? 0) <= 1 ? 100 : 1));
-        return label.startsWith('CIG');
-      });
-      if (cigFeatures.length) {
-        activeCigLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
-          style: {
-            fillColor: 'url(#cig-hatch)',
-            fillOpacity: 1,
-            color: '#000',
-            weight: 1.5,
-            opacity: 1,
-          },
-          renderer: theMap._renderers?.outlook || L.svg(),
-          interactive: false,
-        }).addTo(theMap);
-      }
-    }
 
     buildLegend(gj, mode);
 
@@ -1240,39 +1185,73 @@ async function loadSigLayer(day, mode) {
     // (individual features are concentric rings of the same system, not separate events)
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
 
-    // Render sig zone using same hatch pattern as CIG areas
-    _injectHatchPattern();
+    // Render sig zone — SPC style: thick black dashed outline, no fill
     activeSigLayer = L.geoJSON(gj, {
       style: {
-        fillColor: 'url(#cig-hatch)',
-        fillOpacity: 1,
         color: '#000',
-        weight: 1.5,
+        weight: 3,
         opacity: 1,
+        dashArray: '8 6',
+        fillColor: '#000',
+        fillOpacity: 0.08,
       },
-      renderer: theMap._renderers?.outlook || L.svg(),
+      renderer: theMap._renderers?.sigOutline || L.svg(),
       onEachFeature: (f, lyr) => {
         lyr.bindPopup(sigPopupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-        lyr.on('mouseover', function(){ this.setStyle({ weight:3, color:'#000' }); });
+        lyr.on('mouseover', function(){ this.setStyle({ weight:4.5, color:'#000', dashArray:'8 6' }); });
         lyr.on('mouseout',  function(){ activeSigLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
       }
     }).addTo(theMap);
 
-    // Add hatch legend entry
-    if (activeSigLayer) {
-      const legendEl = document.getElementById('legend-items');
-      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible', prob:'Particularly Dangerous Situation' }[mode] || 'Particularly Dangerous';
-      const hatchEntry = document.createElement('div');
-      hatchEntry.className = 'legend-item legend-sig-entry';
-      hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
-      hatchEntry.innerHTML = `
-        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
-        <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
-        <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
-      legendEl.appendChild(hatchEntry);
-      document.getElementById('map-legend').style.display = 'block';
-    }
+    // Disable pointer events on the outlook pane so sig layer clicks win
+    const outlookPaneEl = theMap.getPane('outlookPane');
+    if (outlookPaneEl) outlookPaneEl.style.pointerEvents = 'none';
+
+    // Single badge anchored to the overall bounding box center of ALL sig features
+    try {
+      const overallCenter = activeSigLayer.getBounds().getCenter();
+      const icon = L.divIcon({
+        className: '',
+        html: `<button class="sig-zone-badge" title="${sigLabel}">
+                 <span class="material-symbols-rounded sig-icon">bolt</span>${sigLabel}
+               </button>`,
+        iconAnchor: [0, 10],
+        iconSize: null,
+      });
+      const marker = L.marker(overallCenter, {
+        icon, interactive:true, keyboard:false,
+        pane:'sigBadgePane', zIndexOffset:1000
+      });
+      // Badge popup uses the largest feature for context
+      const largestFeature = sortByAreaDesc(gj).features[0];
+      marker.bindPopup(sigPopupContent(largestFeature, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
+      marker.addTo(theMap);
+      activeSigMarkers.push(marker);
+    } catch(e) {}
+
+    // Add sig zone entries to legend (only when features actually exist)
+    const legendEl = document.getElementById('legend-items');
+    const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
+    const hatchEntry = document.createElement('div');
+    hatchEntry.className = 'legend-item legend-sig-entry';
+    hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
+    hatchEntry.innerHTML = `
+      <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
+      <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
+      <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
+    legendEl.appendChild(hatchEntry);
+    const sigEntry = document.createElement('div');
+    sigEntry.className = 'legend-item sig-legend-entry';
+    sigEntry.innerHTML = `
+      <div class="legend-swatch" style="
+        background: rgba(255,255,255,0.04);
+        border: 2px dashed #000;
+        box-sizing: border-box;
+        border-radius: 2px;
+      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
+    legendEl.appendChild(sigEntry);
+    document.getElementById('map-legend').style.display = 'block';
 
   } catch(e) { console.warn('Sig layer failed', e); }
 }
