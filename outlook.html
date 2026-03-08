@@ -553,7 +553,6 @@ function sortByAreaDesc(geojson) {
 // ─────────────────────────────────────────────
 let theMap = null;
 let activeLayer = null;
-let activeSigLayer = null;   // significant threat overlay
 const discCache = {};
 let activeDay  = 1;
 let activeMode = 'cat';
@@ -912,7 +911,6 @@ async function loadHazard(day, mode) {
   loading.classList.remove('hidden');
 
   if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
-  if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
 
   const layerId = LAYER_IDS[`${day}-${mode}`];
   if (!layerId) { loading.classList.add('hidden'); return; }
