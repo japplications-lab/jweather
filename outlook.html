@@ -1117,6 +1117,7 @@ async function loadHazard(day, mode) {
     const gjRaw = await res.json();
     if (!gjRaw.features || gjRaw.features.length === 0) {
       console.warn(`[jWeather] Layer ${layerId} has no features — outlook may not be issued yet`);
+      buildLegend({ features: [] }, mode);
       document.getElementById('map-loading').classList.add('hidden');
       return;
     }
