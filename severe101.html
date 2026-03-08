@@ -198,10 +198,9 @@
     .page-footer a .material-symbols-rounded { font-size: 15px; }
 
     /* SECTION PHOTOS */
-    .section-photo { width: 100%; height: 140px; border-radius: var(--r); overflow: hidden; margin-bottom: 22px; position: relative; }
+    .section-photo { width: 100%; max-width: 880px; height: 140px; border-radius: var(--r); overflow: hidden; margin-bottom: 22px; position: relative; }
     .section-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; filter: brightness(0.85) saturate(0.95); transition: transform 0.4s, filter 0.4s; }
     .section-photo:hover img { transform: scale(1.02); filter: brightness(0.95) saturate(1); }
-    .section-photo-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 6px 14px; background: linear-gradient(transparent, rgba(0,0,0,0.55)); font-size: 0.62rem; color: rgba(255,255,255,0.5); font-style: italic; }
 
     /* coming soon toast */
     #cs-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border-2); color: var(--text-2); font-family: var(--font); font-size: 0.8rem; font-weight: 600; padding: 10px 20px; border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 9999; white-space: nowrap; }
@@ -276,7 +275,6 @@
 
     <div class="section-photo">
       <img src="https://japplications-lab.github.io/jweather/Elements/Images/TornadoBanner.png" alt="Tornado touching down on open plains" loading="lazy"/>
-      <div class="section-photo-caption">AI-generated illustration</div>
     </div>
 
     <div class="ww-grid">
@@ -318,7 +316,6 @@
 
     <div class="section-photo">
       <img src="https://japplications-lab.github.io/jweather/Elements/Images/TornadoBanner.png" alt="Tornado on the plains" loading="lazy"/>
-      <div class="section-photo-caption">AI-generated illustration</div>
     </div>
 
     <div class="ef-list">
@@ -381,7 +378,6 @@
 
     <div class="section-photo">
       <img src="https://japplications-lab.github.io/jweather/Elements/Images/WindBanner.png" alt="Severe thunderstorm with damaging winds" loading="lazy"/>
-      <div class="section-photo-caption">AI-generated illustration</div>
     </div>
 
     <div class="wind-rows">
@@ -449,7 +445,6 @@
 
     <div class="section-photo">
       <img src="https://japplications-lab.github.io/jweather/Elements/Images/HailBanner.png" alt="Large hailstones on pavement" loading="lazy"/>
-      <div class="section-photo-caption">AI-generated illustration</div>
     </div>
 
     <div class="hail-grid">
@@ -514,7 +509,6 @@
 
     <div class="section-photo">
       <img src="https://japplications-lab.github.io/jweather/Elements/Images/FloodBanner.png" alt="Road submerged in floodwater" loading="lazy"/>
-      <div class="section-photo-caption">AI-generated illustration</div>
     </div>
 
     <div class="flood-callout">
