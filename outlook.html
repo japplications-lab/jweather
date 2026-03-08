@@ -349,9 +349,7 @@
         <button class="cat-btn" data-day="1" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="1" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
+
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -380,9 +378,7 @@
         <button class="cat-btn" data-day="2" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="2" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
+
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -960,7 +956,6 @@ function buildLegend(geojson, mode) {
       if (d > 0) active.add(d);
     });
     const scale = getProbScale(mode);
-    const hasSig = !!SIG_LAYER_IDS[`${activeDay}-${mode}`];
     box.style.display = 'block';
     let html = scale.map(p => {
       const isActive = active.has(p.dn);
@@ -969,14 +964,6 @@ function buildLegend(geojson, mode) {
         <span class="legend-label">${p.label}</span>
       </div>`;
     }).join('');
-    if (hasSig) {
-      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
-      html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
-        <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
-        <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
-      </div>`;
-    }
     el.innerHTML = html;
   }
 }
@@ -1239,19 +1226,20 @@ async function loadSigLayer(day, mode) {
       activeSigMarkers.push(marker);
     } catch(e) {}
 
-    // Add sig zone entry to legend
-    const legendEl = document.getElementById('legend-items');
-    const sigEntry = document.createElement('div');
-    sigEntry.className = 'legend-item sig-legend-entry';
-    sigEntry.innerHTML = `
-      <div class="legend-swatch" style="
-        background: rgba(255,255,255,0.04);
-        border: 2px dashed #000;
-        box-sizing: border-box;
-        border-radius: 2px;
-      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
-    legendEl.appendChild(sigEntry);
-    document.getElementById('map-legend').style.display = 'block';
+    // Add hatch legend entry — only if sig layer actually has renderable features
+    if (activeSigLayer) {
+      const legendEl = document.getElementById('legend-items');
+      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
+      const hatchEntry = document.createElement('div');
+      hatchEntry.className = 'legend-item legend-sig-entry';
+      hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
+      hatchEntry.innerHTML = `
+        <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
+        <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
+        <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
+      legendEl.appendChild(hatchEntry);
+      document.getElementById('map-legend').style.display = 'block';
+    }
 
   } catch(e) { console.warn('Sig layer failed', e); }
 }
