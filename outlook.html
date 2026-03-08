@@ -1176,32 +1176,36 @@ async function loadHazard(day, mode) {
 }
 
 async function loadSigLayer(day, mode) {
-  // Sig layers only exist for specific hazard modes, not categorical
   const sigLayerId = SIG_LAYER_IDS[`${day}-${mode}`];
   if (!sigLayerId) return;
 
   try {
     const url = `${NOAA_BASE}/${sigLayerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
     const res = await fetch(url);
-    if (!res.ok) { console.warn(`[jWeather] Sig layer ${sigLayerId} HTTP ${res.status}`); return; }
+    if (!res.ok) { console.warn('[jWeather] Sig layer HTTP', res.status); return; }
     const gj = await res.json();
-    if (!gj.features || !gj.features.length) return;
+    console.log('[jWeather] Sig raw:', JSON.stringify(gj).slice(0, 600));
 
-    // Merge all features into a single bounding area for the badge — one badge per outbreak
-    // (individual features are concentric rings of the same system, not separate events)
+    const validFeatures = (gj.features || []).filter(f =>
+      f.geometry && (f.geometry.coordinates?.length || f.geometry.type)
+    );
+    console.log('[jWeather] Sig valid features:', validFeatures.length);
+    if (!validFeatures.length) return;
+
     const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
+    const sigGj = { ...gj, features: validFeatures };
 
-    // Render sig zone — SPC style: thick black dashed outline, no fill
-    activeSigLayer = L.geoJSON(gj, {
+    activeSigLayer = L.geoJSON(sigGj, {
       style: () => ({
         color: '#00cccc',
         weight: 3,
         opacity: 1,
         fillColor: '#00cccc',
-        fillOpacity: 0.30,
+        fillOpacity: 0.35,
       }),
       pane: 'sigOutlinePane',
     }).addTo(theMap);
+    console.log('[jWeather] Sig layer added, bounds:', activeSigLayer.getBounds());
 
     // Single badge anchored to the overall bounding box center of ALL sig features
     try {
