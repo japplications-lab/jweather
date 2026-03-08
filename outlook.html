@@ -966,7 +966,6 @@ function buildLegend(geojson, mode) {
       const isActive = active.has(p.dn);
       return `<div class="legend-item${isActive ? ' legend-active' : ' legend-dim'}">
         <div class="legend-swatch" style="background:${p.fill};border-color:${p.stroke}"></div>
-        <span class="legend-num">${p.dn}%</span>
         <span class="legend-label">${p.label}</span>
       </div>`;
     }).join('');
