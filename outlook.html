@@ -92,9 +92,6 @@
     .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
     .cat-btn:hover{background:var(--bg);color:var(--text-2);}
     .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
-    .cat-btn-sig{border-color:rgba(109,40,217,0.3);}
-    .cat-btn-sig.active{background:rgba(109,40,217,0.12);border-color:rgba(109,40,217,0.4);color:#7c3aed;}
-    .cat-btn-sig .cat-icon{color:#7c3aed;}
     .cat-icon{font-size:15px;flex-shrink:0;color:var(--text-3);
       font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
     .cat-btn.active .cat-icon{color:var(--red);
@@ -193,54 +190,6 @@
     .popup-desc{font-size:0.74rem;color:var(--text-2);line-height:1.6;}
     .popup-stat{display:inline-block;font-size:0.68rem;font-weight:600;color:var(--text-3);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:2px 7px;margin-top:8px;}
     .leaflet-popup-tip-container{display:none;}
-    /* Significant threat overlay */
-    .sig-zone-badge{
-      background:#1a1d24; color:#f0f1f3;
-      font-family:var(--font); font-size:0.65rem; font-weight:700;
-      letter-spacing:0.05em; text-transform:uppercase;
-      padding:4px 9px; border-radius:5px;
-      display:flex; align-items:center; gap:5px;
-      box-shadow:0 2px 10px rgba(0,0,0,.35);
-      white-space:nowrap; cursor:pointer;
-      border:none; pointer-events:auto;
-    }
-    .sig-zone-badge .sig-icon{ color:#f59e0b; font-size:12px;
-      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-    /* Sig popup warning bar */
-    .popup-sig-bar{
-      background:#1c1917; color:#fef3c7;
-      padding:8px 14px; display:flex; align-items:center; gap:7px;
-      font-size:0.7rem; font-weight:700; letter-spacing:0.03em;
-      border-radius:10px 10px 0 0;
-    }
-    .popup-sig-bar .material-symbols-rounded{
-      font-size:15px; color:#f59e0b;
-      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
-    }
-    /* Significant threat overlay */
-    .sig-zone-badge{
-      background:#1a1d24; color:#f0f1f3;
-      font-family:var(--font); font-size:0.65rem; font-weight:700;
-      letter-spacing:0.05em; text-transform:uppercase;
-      padding:4px 9px; border-radius:5px;
-      display:flex; align-items:center; gap:5px;
-      box-shadow:0 2px 10px rgba(0,0,0,.35);
-      white-space:nowrap; cursor:pointer;
-      border:none; pointer-events:auto;
-    }
-    .sig-zone-badge .sig-icon{ color:#f59e0b; font-size:12px;
-      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-    /* Sig popup warning bar */
-    .popup-sig-bar{
-      background:#1c1917; color:#fef3c7;
-      padding:8px 14px; display:flex; align-items:center; gap:7px;
-      font-size:0.7rem; font-weight:700; letter-spacing:0.03em;
-      border-radius:10px 10px 0 0;
-    }
-    .popup-sig-bar .material-symbols-rounded{
-      font-size:15px; color:#f59e0b;
-      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
-    }
     /* City marker labels */
     .city-label{background:none;border:none;box-shadow:none;}
     .city-label-inner{
@@ -349,9 +298,6 @@
         <button class="cat-btn" data-day="1" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="1" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -379,9 +325,6 @@
         </button>
         <button class="cat-btn" data-day="2" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
-        </button>
-        <button class="cat-btn cat-btn-sig" data-day="2" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
         </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
@@ -488,55 +431,17 @@ const LAYER_IDS = {
   '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
   '3-cat':17, '3-prob':18
 };
-const SIG_LAYER_IDS = {
-  '1-torn':2,  '1-hail':4,  '1-wind':6,
-  '2-torn':10, '2-hail':12, '2-wind':14,
-  // Day 3 sig layer excluded for now
-};
 // Human-readable sig threat labels per mode
-const SIG_LABELS = {
-  torn:'⚠ Particularly Dangerous — EF2+ Tornado',
-  wind:'⚠ Particularly Dangerous — 65+ mph Wind',
-  hail:'⚠ Particularly Dangerous — 2\"+ Hail',
-  prob:'⚠ Particularly Dangerous Situation',
-};
 // Plain-language sig zone content — what it means, what to expect, what to do
-const SIG_INFO = {
-  torn: {
-    headline: '⚠️ Higher tornado danger here',
-    what: 'Forecasters flagged this area as having a notably higher chance of strong, long-track tornadoes — the kind that can destroy homes and stay on the ground for miles.',
-    expect: 'If a tornado does hit here, it\'s more likely to be violent (EF2 or stronger) than anywhere else in the surrounding outlook.',
-    action: 'Have a shelter plan ready before storms arrive. Don\'t wait for a warning to start moving.',
-  },
-  wind: {
-    headline: '⚠️ Exceptionally damaging winds possible',
-    what: 'This isn\'t just a typical thunderstorm wind threat. Forecasters see a real chance of straight-line winds topping 65 mph — strong enough to down large trees, damage roofs, and knock out power for days.',
-    expect: 'These winds can hit fast with little warning. Anything unsecured outside becomes a projectile.',
-    action: 'Stay indoors during storms. Move vehicles under cover if possible.',
-  },
-  hail: {
-    headline: '⚠️ Very large hail likely',
-    what: 'Hail 2 inches or larger — roughly the size of a golf ball — is a real possibility here. Large enough to dent cars, break windows, and injure anyone caught outside.',
-    expect: 'Large hail can fall fast and without much warning. Even a brief storm can cause significant damage.',
-    action: 'Get your car under cover if you can. Stay inside when storms are near.',
-  },
-  prob: {
-    headline: '⚠️ Particularly dangerous severe weather possible',
-    what: 'This is the highest-confidence area on the Day 3 outlook. Forecasters believe there\'s a meaningful chance of destructive severe weather — strong tornadoes, damaging winds, or large hail.',
-    expect: 'Day 3 forecasts carry more uncertainty, but being flagged here means confidence is already high enough to take seriously.',
-    action: 'Keep an eye on forecasts over the next couple of days. Have a plan in place early.',
-  },
-};
-const SIG_DESC = SIG_INFO; // legacy alias
 
 // Exact SPC colors
 const CAT = {
-  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
-  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Low Risk' },
-  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Some Risk' },
-  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Elevated Risk' },
-  'MDT': { fill:'#e04040', stroke:'#a81818', label:'High Risk' },
-  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Extreme Risk' },
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Thunder' },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal Risk' },
+  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight Risk' },
+  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Enhanced Risk' },
+  'MDT': { fill:'#e04040', stroke:'#a81818', label:'Moderate Risk' },
+  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'High Risk' },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excluded
@@ -545,29 +450,29 @@ const CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH']; // TSTM intentionally excl
 // 5% = green per user preference (SPC uses brown #c5a392)
 // Per-hazard probability scales — each has different thresholds per SPC
 const PROB_TORN = [
-  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'Very Low Risk'  },
-  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'       },
-  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'Some Risk'      },
-  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'  },
-  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'      },
-  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk' },
-  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'   },
+  { dn:2,  fill:'#008b00', stroke:'#005f00', label:'Conditional'    },
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'5% Tornado'     },
+  { dn:10, fill:'#ffa500', stroke:'#b87300', label:'10% Tornado'    },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'15% Tornado'    },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'30% Tornado'    },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'45% Tornado'    },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'60% Tornado'    },
 ];
 const PROB_WIND = [
-  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'       },
-  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'  },
-  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'      },
-  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk' },
-  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'   },
-  { dn:75, fill:'#00ffff', stroke:'#00aaaa', label:'Critical Risk'  },
-  { dn:90, fill:'#ff69b4', stroke:'#cc4488', label:'Maximum Risk'   },
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'5% Wind'        },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'15% Wind'       },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'30% Wind'       },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'45% Wind'       },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'60% Wind'       },
+  { dn:75, fill:'#00ffff', stroke:'#00aaaa', label:'75% Wind'       },
+  { dn:90, fill:'#ff69b4', stroke:'#cc4488', label:'90% Wind'       },
 ];
 const PROB_HAIL = [
-  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'Low Risk'       },
-  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'Elevated Risk'  },
-  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'High Risk'      },
-  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'Very High Risk' },
-  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'Extreme Risk'   },
+  { dn:5,  fill:'#8b4726', stroke:'#5f3019', label:'5% Hail'        },
+  { dn:15, fill:'#ff0000', stroke:'#b30000', label:'15% Hail'       },
+  { dn:30, fill:'#ff00ff', stroke:'#b300b3', label:'30% Hail'       },
+  { dn:45, fill:'#912cee', stroke:'#6600aa', label:'45% Hail'       },
+  { dn:60, fill:'#104e8b', stroke:'#0a3060', label:'60% Hail'       },
 ];
 const PROB_D3 = PROB_TORN;
 function getProbScale(mode) {
@@ -578,16 +483,10 @@ function getProbScale(mode) {
 }
 const PROB = PROB_TORN; // legacy alias
 
-const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic',sig:'Sig Severe' };
+const MODE_LABELS = { cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic' };
 const DAY_LABELS  = { 1:'Day 1',2:'Day 2',3:'Day 3' };
 
 
-// Sig Severe — one color per hazard type
-const SIG_COLORS = {
-  torn: { fill:'#00cccc', stroke:'#009999', label:'Sig Tornado'  },
-  wind: { fill:'#00cccc', stroke:'#009999', label:'Sig Wind'     },
-  hail: { fill:'#00cccc', stroke:'#009999', label:'Sig Hail'     },
-};
 // ─────────────────────────────────────────────
 //  COLOR HELPERS
 // ─────────────────────────────────────────────
@@ -655,7 +554,6 @@ function sortByAreaDesc(geojson) {
 let theMap = null;
 let activeLayer = null;
 let activeSigLayer = null;   // significant threat overlay
-let activeSigMarkers = [];   // badge markers for sig zones
 const discCache = {};
 let activeDay  = 1;
 let activeMode = 'cat';
@@ -856,17 +754,17 @@ function styleFeature(f, mode) {
 
 // Plain, direct descriptions
 const CAT_DESC = {
-  TSTM: { short:'General Storms',  stat:'No severe weather expected',
+  TSTM: { short:'General Thunder', stat:'No severe weather expected',
     desc:'Thunderstorms are possible but severe weather is not anticipated. You may see lightning, brief heavy rain, or gusty winds — nothing out of the ordinary.' },
-  MRGL: { short:'Low Risk',        stat:'Isolated severe storms possible',
-    desc:'A isolated storm or two could turn severe, but most of the area will see nothing. The threat is real but limited — a quick check of your local forecast before heading out is all you need.' },
-  SLGT: { short:'Some Risk',       stat:'Scattered severe storms expected',
+  MRGL: { short:'Marginal Risk',   stat:'Isolated severe storms possible',
+    desc:'An isolated storm or two could turn severe, but most of the area will see nothing. The threat is real but limited — a quick check of your local forecast before heading out is all you need.' },
+  SLGT: { short:'Slight Risk',     stat:'Scattered severe storms possible',
     desc:'Some storms today will produce damaging winds, large hail, or a brief tornado. Not every storm will be severe, but enough will that it\'s worth having a plan before things kick off.' },
-  ENH:  { short:'Elevated Risk',   stat:'Several severe storms expected, some intense',
+  ENH:  { short:'Enhanced Risk',   stat:'Several severe storms likely, some intense',
     desc:'Multiple severe storms are likely across this area. Damaging winds, large hail, and tornadoes are all possible. Some locations will see significant impacts — know where you\'re going if a warning is issued.' },
-  MDT:  { short:'High Risk',       stat:'Widespread severe storms, some potentially violent',
+  MDT:  { short:'Moderate Risk',   stat:'Widespread severe storms expected, some violent',
     desc:'This is a dangerous weather day. Widespread severe storms — including the potential for violent, long-track tornadoes and destructive winds — are expected. Have your shelter plan ready well before storms arrive.' },
-  HIGH: { short:'Extreme Risk',    stat:'Major outbreak expected — life-threatening',
+  HIGH: { short:'High Risk',       stat:'Major outbreak expected — life-threatening',
     desc:'A significant severe weather outbreak is likely. Violent tornadoes, extremely destructive winds, and very large hail are all expected across this area. This level is issued only a few times per year. Take it seriously and have your shelter ready.' },
 };
 
@@ -996,113 +894,14 @@ function buildLegend(geojson, mode) {
 // ─────────────────────────────────────────────
 //  SIG SEVERE — combined all-hazard sig view
 // ─────────────────────────────────────────────
-let activeSigSevereLayer = null;
 
-async function loadSigSevere(day) {
-  activeDay  = day;
-  activeMode = 'sig';
 
-  document.getElementById('pill-day').textContent  = DAY_LABELS[day];
-  document.getElementById('pill-mode').textContent = 'Sig Severe';
-
-  const loading = document.getElementById('map-loading');
-  loading.classList.remove('hidden');
-
-  if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
-  if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
-  clearSigLayer();
-
-  // Keep hazard paired with its layer ID — don't filter separately
-  const hazardDefs = ['torn','wind','hail']
-    .map(h => ({ hazard: h, layerId: SIG_LAYER_IDS[`${day}-${h}`] }))
-    .filter(d => d.layerId);
-
-  const results = await Promise.allSettled(
-    hazardDefs.map(async ({ hazard, layerId }) => {
-      const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) return { hazard, gj: null };
-        const gj = await res.json();
-        return { hazard, gj };
-      } catch(e) {
-        return { hazard, gj: null };
-      }
-    })
-  );
-
-  const allLayers    = [];
-  const legendEntries = [];
-  let anyFeatures    = false;
-
-  results.forEach(res => {
-    if (res.status !== 'fulfilled' || !res.value?.gj?.features?.length) return;
-    const { hazard, gj } = res.value;
-    const col = SIG_COLORS[hazard];
-    anyFeatures = true;
-    legendEntries.push(hazard);
-
-    gj.features.forEach(f => {
-      const layer = L.geoJSON(f, {
-        style: {
-          fillColor: col.fill, fillOpacity: 0.45,
-          color: col.stroke, weight: 1.5,
-        },
-        interactive: true,
-        pane: 'outlookPane',
-      }).bindPopup(`
-        <div style="font-family:var(--font);line-height:1.7;min-width:160px;">
-          <div style="font-weight:800;color:${col.fill};margin-bottom:4px;">⚠ ${col.label}</div>
-          <div style="font-size:0.78rem;color:#c8ccd4;">
-            Significant <strong>${hazard}</strong> threat area.<br>
-            ${hazard==='torn'?'EF2+ tornadoes possible.':hazard==='wind'?'65+ mph winds possible.':'2"+ hail possible.'}
-          </div>
-          <div style="font-size:0.7rem;color:#7c818f;margin-top:6px;">Day ${day} · Sig ${hazard.charAt(0).toUpperCase()+hazard.slice(1)}</div>
-        </div>
-      `, { maxWidth: 240 });
-      allLayers.push(layer);
-    });
-  });
-
-  if (allLayers.length) {
-    activeSigSevereLayer = L.layerGroup(allLayers).addTo(theMap);
-  }
-
-  updateSigLegend(legendEntries, anyFeatures);
-  loading.classList.add('hidden'); // always clears, no matter what
-}
-
-function updateSigLegend(hazards, anyFeatures) {
-  const box = document.getElementById('map-legend');
-  const el  = document.getElementById('legend-items');
-  box.style.display = 'block';
-
-  if (!anyFeatures || !hazards.length) {
-    el.innerHTML = `<div style="font-size:0.78rem;color:var(--text-3);padding:4px 0;">No significant areas issued for this day.</div>`;
-    return;
-  }
-
-  el.innerHTML = hazards.map(h => {
-    const col = SIG_COLORS[h];
-    return `<div class="legend-item legend-active">
-      <div class="legend-swatch" style="background:${col.fill};border-color:${col.stroke};opacity:0.8;"></div>
-      <span class="legend-label" style="font-weight:600;">${col.label}</span>
-    </div>`;
-  }).join('') + `<div style="font-size:0.68rem;color:var(--text-4);margin-top:8px;line-height:1.5;">Shaded areas indicate where the SPC has highlighted a significant severe weather threat within the broader outlook.</div>`;
-}
 
 // ─────────────────────────────────────────────
 //  LOAD HAZARD LAYER
 // ─────────────────────────────────────────────
-function clearSigLayer() {
-  if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
-  activeSigMarkers.forEach(m => theMap.removeLayer(m));
-  activeSigMarkers = [];
-
-}
 
 async function loadHazard(day, mode) {
-  if (mode === 'sig') { await loadSigSevere(day); return; }
   activeDay  = day;
   activeMode = mode;
 
@@ -1114,7 +913,6 @@ async function loadHazard(day, mode) {
 
   if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
-  clearSigLayer();
 
   const layerId = LAYER_IDS[`${day}-${mode}`];
   if (!layerId) { loading.classList.add('hidden'); return; }
@@ -1180,8 +978,6 @@ async function loadHazard(day, mode) {
       vp.style.display = 'none';
     }
 
-    // Load significant layer if it exists for this day+mode
-    loadSigLayer(day, mode);
 
   } catch(e) {
     console.error(e);
@@ -1192,98 +988,9 @@ async function loadHazard(day, mode) {
   loading.classList.add('hidden');
 }
 
-async function loadSigLayer(day, mode) {
-  const sigLayerId = SIG_LAYER_IDS[`${day}-${mode}`];
-  if (!sigLayerId) return;
-
-  try {
-    const url = `${NOAA_BASE}/${sigLayerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-    const res = await fetch(url);
-    if (!res.ok) { console.warn('[jWeather] Sig layer HTTP', res.status); return; }
-    const gj = await res.json();
-    console.log('[jWeather] Sig raw:', JSON.stringify(gj).slice(0, 600));
-
-    const validFeatures = (gj.features || []).filter(f =>
-      f.geometry && (f.geometry.coordinates?.length || f.geometry.type)
-    );
-    console.log('[jWeather] Sig valid features:', validFeatures.length);
-    if (!validFeatures.length) return;
-
-    const sigLabel = SIG_LABELS[mode] || 'Significant Threat';
-    const sigGj = { ...gj, features: validFeatures };
-
-    activeSigLayer = L.geoJSON(sigGj, {
-      style: () => ({
-        color: '#00cccc',
-        weight: 3,
-        opacity: 1,
-        fillColor: '#00cccc',
-        fillOpacity: 0.35,
-      }),
-      pane: 'sigOutlinePane',
-    }).addTo(theMap);
-    console.log('[jWeather] Sig layer added, bounds:', activeSigLayer.getBounds());
-
-    // Single badge anchored to the overall bounding box center of ALL sig features
-    try {
-      const overallCenter = activeSigLayer.getBounds().getCenter();
-      const icon = L.divIcon({
-        className: '',
-        html: `<button class="sig-zone-badge" title="${sigLabel}">
-                 <span class="material-symbols-rounded sig-icon">bolt</span>${sigLabel}
-               </button>`,
-        iconAnchor: [0, 10],
-        iconSize: null,
-      });
-      const marker = L.marker(overallCenter, {
-        icon, interactive:true, keyboard:false,
-        pane:'sigBadgePane', zIndexOffset:1000
-      });
-      // Badge popup uses the largest feature for context
-      const largestFeature = sortByAreaDesc(gj).features[0];
-      marker.bindPopup(sigPopupContent(largestFeature, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
-      marker.addTo(theMap);
-      activeSigMarkers.push(marker);
-    } catch(e) {}
-
-    // Legend entry already built by buildLegend() via hasSig check — nothing to append here
-
-  } catch(e) { console.warn('Sig layer failed', e); }
-}
 
 // Per-hazard significant threat upgrade language
-// SIG_UPGRADE merged into SIG_INFO above
-const SIG_UPGRADE = {};
 
-function sigPopupContent(f, mode, day) {
-  const info = SIG_INFO[mode] || {
-    headline: '⚠️ Significant Threat Zone',
-    what: 'Forecasters have flagged this area as having a higher risk of severe weather.',
-    expect: 'Conditions here are more dangerous than the surrounding outlook area.',
-    action: 'Stay weather-aware and have a plan ready.',
-  };
-
-  return `<div class="popup-sig-bar">
-      <span class="material-symbols-rounded">warning</span>${SIG_LABELS[mode] || 'Significant Threat'}
-    </div>
-    <div class="popup-inner">
-      <div style="font-size:0.87rem;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.3;">${info.headline}</div>
-      <div class="popup-divider"></div>
-      <div style="font-size:0.75rem;color:var(--text-2);line-height:1.65;margin-bottom:8px;">
-        <strong style="color:var(--text);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;">What it means</strong><br>
-        ${info.what}
-      </div>
-      <div style="font-size:0.75rem;color:var(--text-2);line-height:1.65;margin-bottom:8px;">
-        <strong style="color:var(--text);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;">What to expect</strong><br>
-        ${info.expect}
-      </div>
-      <div style="font-size:0.75rem;color:var(--text-2);line-height:1.65;background:var(--red-dim);border:1px solid var(--red-border);border-radius:6px;padding:8px 10px;">
-        <strong style="color:var(--red);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;">What to do</strong><br>
-        <span style="color:var(--text-2);">${info.action}</span>
-      </div>
-      <div style="font-size:0.65rem;color:var(--text-4);margin-top:8px;">${DAY_LABELS[day]} · ${MODE_LABELS[mode]}</div>
-    </div>`;
-}
 
 // ─────────────────────────────────────────────
 //  FORMAT HELPERS
