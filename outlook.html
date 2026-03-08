@@ -853,12 +853,10 @@ function styleFeature(f, mode) {
     const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
     const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
     const isCIG = label.startsWith('CIG') || dn === 2;
+    if (isCIG) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const scale = getProbScale(mode);
     let c = scale[0];
     for (const x of scale) { if (dn >= x.dn) c = x; }
-    if (isCIG) {
-      return { fillColor:c.fill, fillOpacity:0.82, color:'#222', weight:1.5, opacity:1 };
-    }
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   }
 }
