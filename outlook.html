@@ -349,9 +349,7 @@
         <button class="cat-btn" data-day="1" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="1" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
+
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -380,9 +378,7 @@
         <button class="cat-btn" data-day="2" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="2" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
+
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -808,7 +804,9 @@ function initMap() {
     states:     L.svg({ pane:'statesPane' }).addTo(theMap),
   };
 
-  // Mark hatch ready immediately — we use CSS dashArray approach, no SVG pattern needed
+  // Inject SVG hatch pattern for CIG areas
+  theMap.once('load', _injectHatchPattern);
+  setTimeout(_injectHatchPattern, 300);
   theMap._hatchReady = true;
 
   makeBaseTiles().addTo(theMap);
@@ -821,6 +819,21 @@ function initMap() {
   addStatesOverlay(theMap);
   addCityLabels(theMap);
   makeLabelTiles().addTo(theMap);
+}
+
+// ─────────────────────────────────────────────
+//  SVG HATCH PATTERN
+// ─────────────────────────────────────────────
+function _injectHatchPattern() {
+  const svgEl = theMap.getPane('outlookPane')?.querySelector('svg');
+  if (!svgEl) return;
+  if (svgEl.querySelector('#cig-hatch')) return; // already injected
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  defs.innerHTML = `
+    <pattern id="cig-hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#000" stroke-width="2.5" stroke-opacity="0.55"/>
+    </pattern>`;
+  svgEl.insertBefore(defs, svgEl.firstChild);
 }
 
 // ─────────────────────────────────────────────
@@ -843,7 +856,7 @@ function styleFeature(f, mode) {
     let c = scale[0];
     for (const x of scale) { if (dn >= x.dn) c = x; }
     if (isCIG) {
-      return { fillColor:c.fill, color:'#000', weight:2, dashArray:'8 5', fillOpacity:0.82, opacity:1 };
+      return { fillColor:c.fill, fillOpacity:0.82, color:'#222', weight:1.5, opacity:1 };
     }
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   }
@@ -1156,9 +1169,22 @@ async function loadHazard(day, mode) {
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
         lyr.on('click',     function(e){ this.openPopup(e.latlng); });
-
       }
     }).addTo(theMap);
+
+    // Apply SVG hatch pattern to CIG features
+    if (mode !== 'cat') {
+      _injectHatchPattern();
+      activeLayer.eachLayer(lyr => {
+        const p = lyr.feature?.properties || {};
+        const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
+        const dn = Math.round(parseFloat(p.DN ?? p.dn ?? 0) * (parseFloat(p.DN ?? p.dn ?? 0) <= 1 ? 100 : 1));
+        if (label.startsWith('CIG') || dn === 2) {
+          const el = lyr.getElement?.();
+          if (el) el.style.fill = 'url(#cig-hatch)';
+        }
+      });
+    }
 
     buildLegend(gj, mode);
 
