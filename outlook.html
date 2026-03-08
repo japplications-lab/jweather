@@ -853,7 +853,7 @@ function styleFeature(f, mode) {
     const dnRaw = p.DN ?? p.dn ?? 0;
     const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
     const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
-    const isCIG = label.startsWith('CIG') || dn === 2;
+    const isCIG = label.startsWith('CIG');
     if (isCIG) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const scale = getProbScale(mode);
     let c = scale[0];
@@ -980,7 +980,7 @@ function buildLegend(geojson, mode) {
     const hasCIG = geojson.features.some(f => {
       const label = (f.properties.LABEL || f.properties.label || '').toString().toUpperCase().trim();
       const dn = parseInt(f.properties.DN || f.properties.dn || 0);
-      return label.startsWith('CIG') || dn === 2;
+      return label.startsWith('CIG');
     });
     const scale = getProbScale(mode);
     box.style.display = 'block';
@@ -1180,7 +1180,7 @@ async function loadHazard(day, mode) {
         const p = f.properties || {};
         const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
         const dn = Math.round(parseFloat(p.DN ?? p.dn ?? 0) * (parseFloat(p.DN ?? p.dn ?? 0) <= 1 ? 100 : 1));
-        return label.startsWith('CIG') || dn === 2;
+        return label.startsWith('CIG');
       });
       if (cigFeatures.length) {
         activeCigLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
