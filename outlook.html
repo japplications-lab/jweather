@@ -683,7 +683,7 @@ function makeLabelTiles() {
     'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}{r}.png',
     {
       subdomains:'abcd', maxZoom:19,
-      r: window.devicePixelRatio > 1 ? '@2x' : '',
+      r: '',
       pane:'labelTilePane'
     }
   );
@@ -1197,12 +1197,12 @@ async function loadSigLayer(day, mode) {
         color: '#00cccc',
         weight: 2.5,
         opacity: 0.9,
-        dashArray: null,
         fillColor: '#00cccc',
         fillOpacity: 0.28,
+        interactive: false,
       },
-      interactive: false,
       renderer: theMap._renderers?.sigOutline || L.svg(),
+      onEachFeature: (f, lyr) => { lyr.options.interactive = false; },
     }).addTo(theMap);
 
     // Single badge anchored to the overall bounding box center of ALL sig features
