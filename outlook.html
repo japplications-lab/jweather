@@ -830,8 +830,9 @@ function _injectHatchPattern() {
   if (svgEl.querySelector('#cig-hatch')) return; // already injected
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   defs.innerHTML = `
-    <pattern id="cig-hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
-      <line x1="0" y1="0" x2="0" y2="10" stroke="#000" stroke-width="2.5" stroke-opacity="1"/>
+    <pattern id="cig-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="none"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#000000" stroke-width="2"/>
     </pattern>`;
   svgEl.insertBefore(defs, svgEl.firstChild);
 }
@@ -1172,18 +1173,28 @@ async function loadHazard(day, mode) {
       }
     }).addTo(theMap);
 
-    // Apply SVG hatch pattern to CIG features
+    // Apply SVG hatch pattern to CIG features — use a separate overlay layer for reliable black lines
     if (mode !== 'cat') {
       _injectHatchPattern();
-      activeLayer.eachLayer(lyr => {
-        const p = lyr.feature?.properties || {};
+      const cigFeatures = gj.features.filter(f => {
+        const p = f.properties || {};
         const label = (p.LABEL || p.label || '').toString().toUpperCase().trim();
         const dn = Math.round(parseFloat(p.DN ?? p.dn ?? 0) * (parseFloat(p.DN ?? p.dn ?? 0) <= 1 ? 100 : 1));
-        if (label.startsWith('CIG') || dn === 2) {
-          const el = lyr.getElement?.();
-          if (el) el.style.fill = 'url(#cig-hatch)';
-        }
+        return label.startsWith('CIG') || dn === 2;
       });
+      if (cigFeatures.length) {
+        L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
+          style: {
+            fillColor: 'url(#cig-hatch)',
+            fillOpacity: 1,
+            color: '#000',
+            weight: 1.5,
+            opacity: 1,
+          },
+          renderer: theMap._renderers?.outlook || L.svg(),
+          interactive: false,
+        }).addTo(theMap);
+      }
     }
 
     buildLegend(gj, mode);
