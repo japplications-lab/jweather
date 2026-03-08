@@ -835,6 +835,11 @@ function styleFeature(f, mode) {
     const c = CAT[key] || { fill:'#cccccc', stroke:'#888' };
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   } else {
+    const label = (p.label || p.LABEL || '').toString().toUpperCase();
+    // CIG = Conditional Intensity Group = hatched area
+    if (label.startsWith('CIG')) {
+      return { fillColor:'#00cccc', color:'#009999', weight:2, fillOpacity:0.45, opacity:1 };
+    }
     const dnRaw = p.DN ?? p.dn ?? 0;
     const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
     const scale = getProbScale(mode);
@@ -960,7 +965,7 @@ function buildLegend(geojson, mode) {
       if (d > 0) active.add(d);
     });
     const scale = getProbScale(mode);
-    const hasSig = !!SIG_LAYER_IDS[`${activeDay}-${mode}`];
+    const hasSig = geojson.features.some(f => (f.properties?.label || f.properties?.LABEL || '').toString().toUpperCase().startsWith('CIG'));
     box.style.display = 'block';
     let html = scale.map(p => {
       const isActive = active.has(p.dn);
@@ -1126,9 +1131,13 @@ async function loadHazard(day, mode) {
       gj = {
         ...gjRaw,
         features: [...gjRaw.features].sort((a, b) => {
+          const isCigA = (a.properties?.label || '').toString().toUpperCase().startsWith('CIG');
+          const isCigB = (b.properties?.label || '').toString().toUpperCase().startsWith('CIG');
+          // CIG (hatched) always renders last = on top
+          if (isCigA !== isCigB) return isCigA ? 1 : -1;
           const dnA = parseFloat(a.properties?.DN ?? a.properties?.dn ?? 0);
           const dnB = parseFloat(b.properties?.DN ?? b.properties?.dn ?? 0);
-          return dnA - dnB; // ascending: lowest DN first (bottom), highest on top
+          return dnA - dnB;
         })
       };
     }
@@ -1141,6 +1150,9 @@ async function loadHazard(day, mode) {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
         if (mode === 'cat' && key === 'TSTM') return;
+        // CIG = hatched area — no popup, just visual indicator
+        const lbl = (f.properties?.label || f.properties?.LABEL || '').toString().toUpperCase();
+        if (lbl.startsWith('CIG')) return;
         lyr.bindPopup(popupContent(f, mode, day), { closeButton:false, autoPan:true, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.92, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeLayer.resetStyle(this); });
@@ -1148,7 +1160,6 @@ async function loadHazard(day, mode) {
       }
     }).addTo(theMap);
 
-    console.log('[jWeather] Prob features props:', gj.features.map(f => f.properties));
     buildLegend(gj, mode);
 
 
