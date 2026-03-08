@@ -1227,19 +1227,7 @@ async function loadSigLayer(day, mode) {
       activeSigMarkers.push(marker);
     } catch(e) {}
 
-    // Add sig zone entry to legend
-    const legendEl = document.getElementById('legend-items');
-    const sigEntry = document.createElement('div');
-    sigEntry.className = 'legend-item sig-legend-entry';
-    sigEntry.innerHTML = `
-      <div class="legend-swatch" style="
-        background: rgba(255,255,255,0.04);
-        border: 2px dashed #000;
-        box-sizing: border-box;
-        border-radius: 2px;
-      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
-    legendEl.appendChild(sigEntry);
-    document.getElementById('map-legend').style.display = 'block';
+    // Legend entry already built by buildLegend() via hasSig check — nothing to append here
 
   } catch(e) { console.warn('Sig layer failed', e); }
 }
