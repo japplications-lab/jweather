@@ -992,7 +992,7 @@ function buildLegend(geojson, mode) {
       </div>`;
     }).join('');
     if (hasCIG) {
-      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
+      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible', prob:'Particularly Dangerous Situation' }[mode] || 'Particularly Dangerous';
       html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
         <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
         <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
@@ -1020,6 +1020,7 @@ async function loadSigSevere(day) {
   loading.classList.remove('hidden');
 
   if (activeLayer)          { theMap.removeLayer(activeLayer); activeLayer = null; }
+  if (activeCigLayer)       { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
   clearSigLayer();
 
@@ -1107,9 +1108,9 @@ function updateSigLegend(hazards, anyFeatures) {
 // ─────────────────────────────────────────────
 function clearSigLayer() {
   if (activeSigLayer)  { theMap.removeLayer(activeSigLayer); activeSigLayer = null; }
+  if (activeCigLayer)  { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   activeSigMarkers.forEach(m => theMap.removeLayer(m));
   activeSigMarkers = [];
-  // Re-enable pointer events on outlook polygons now that sig layer is gone
   const outlookPaneEl = theMap.getPane('outlookPane');
   if (outlookPaneEl) outlookPaneEl.style.pointerEvents = '';
 }
@@ -1287,7 +1288,7 @@ async function loadSigLayer(day, mode) {
 
     // Add sig zone entries to legend (only when features actually exist)
     const legendEl = document.getElementById('legend-items');
-    const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
+      const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible', prob:'Particularly Dangerous Situation' }[mode] || 'Particularly Dangerous';
     const hatchEntry = document.createElement('div');
     hatchEntry.className = 'legend-item legend-sig-entry';
     hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
