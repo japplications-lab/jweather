@@ -836,9 +836,14 @@ function styleFeature(f, mode) {
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   } else {
     const label = (p.label || p.LABEL || '').toString().toUpperCase();
-    // CIG = Conditional Intensity Group = hatched area
+    // CIG = Conditional Intensity Group = hatched area — render as dashed outline, normal fill
     if (label.startsWith('CIG')) {
-      return { fillColor:'#00cccc', color:'#009999', weight:2, fillOpacity:0.45, opacity:1 };
+      const dnRaw = p.DN ?? p.dn ?? 0;
+      const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
+      const scale = getProbScale(mode);
+      let sc = scale[0];
+      for (const x of scale) { if (dn >= x.dn) sc = x; }
+      return { fillColor: sc.fill, color: '#000000', weight: 2.5, dashArray: '8 5', fillOpacity: 0.82, opacity: 1 };
     }
     const dnRaw = p.DN ?? p.dn ?? 0;
     const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
@@ -978,7 +983,7 @@ function buildLegend(geojson, mode) {
     if (hasSig) {
       const sigShortLabel = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible' }[mode] || 'Particularly Dangerous';
       html += `<div class="legend-item legend-sig-entry" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
-        <div class="legend-swatch" style="background:#00cccc;border-color:#009999;opacity:0.85;"></div>
+        <div class="legend-swatch" style="background:rgba(255,255,255,0.04);border:2px dashed #000;box-sizing:border-box;"></div>
         <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
         <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
       </div>`;
