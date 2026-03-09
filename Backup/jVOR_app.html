@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>jVOR Beta — Rotation Detection · jWeather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --red: #e5182a;
+      --red-dim: rgba(229,24,42,0.12);
+      --red-border: rgba(229,24,42,0.25);
+      --bg: #0f1115;
+      --surface: #1a1d24;
+      --border: rgba(255,255,255,0.07);
+      --border-2: rgba(255,255,255,0.11);
+      --text: #ffffff;
+      --text-2: #f0f2f4;
+      --text-3: #c8cdd6;
+      --text-4: #9ba0aa;
+      --green: #22c55e;
+      --green-dim: rgba(34,197,94,0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --r: 12px;
+      --r-sm: 8px;
+      --r-xs: 6px;
+      --sidebar:240px; --header:58px;
+      --font: 'Geist', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; line-height: 1; display: inline-block; }
+    .fi { font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 48; }
+
+    /* ===== HEADER ===== */
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
+    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
+    .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .logo-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .logo-name span { color: var(--red); }
+    .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+    .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
+    .header-nav a:hover { color: var(--text); background: var(--bg); }
+    .header-nav a.active { color: var(--red); background: var(--red-dim); }
+    .header-badge { font-size: 0.62rem; font-weight: 700; background: var(--red); color: #fff; padding: 1px 5px; border-radius: 4px; letter-spacing: 0.04em; margin-left: 2px; vertical-align: middle; }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+    }
+    .page-header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-title-group { display: flex; align-items: center; gap: 12px; }
+    .page-title-icon {
+      width: 40px; height: 40px;
+      background: var(--red-dim);
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .page-title-icon .material-symbols-rounded { color: var(--red); font-size: 20px; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .page-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.03em; }
+    .page-title span { color: var(--red); }
+    .page-sub { font-size: 0.75rem; color: var(--text-3); margin-top: 2px; font-weight: 400; }
+    .page-header-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font); font-size: 0.8rem; font-weight: 600;
+      padding: 7px 14px; border-radius: var(--r-xs);
+      cursor: pointer; border: 1px solid transparent;
+      transition: all 0.15s; text-decoration: none; white-space: nowrap;
+    }
+    .btn .material-symbols-rounded { font-size: 15px; }
+    .btn-primary { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn-primary:hover { background: #c41222; border-color: #c41222; }
+    .btn-secondary { background: var(--surface); color: var(--text-2); border-color: var(--border-2); }
+    .btn-secondary:hover { border-color: var(--text-3); color: var(--text); }
+    .btn-ghost { background: transparent; color: var(--text-3); border-color: transparent; }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+    .btn-scanning { background: var(--red); color: #fff; border-color: var(--red); animation: scan-btn-pulse 1.5s infinite; }
+    @keyframes scan-btn-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--red-border); }
+      50% { box-shadow: 0 0 0 4px var(--red-dim); }
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px 24px 60px;
+      display: grid;
+      grid-template-columns: 300px 1fr 280px;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) { main { grid-template-columns: 260px 1fr; } .right-col { display: none; } }
+    @media (max-width: 768px) { main { grid-template-columns: 1fr; } }
+
+    /* ===== CARD BASE ===== */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); display: flex; align-items: center; gap: 6px; }
+    .card-label .material-symbols-rounded { font-size: 13px; }
+
+    /* ===== LEFT COL ===== */
+    .left-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* STATION LIST */
+    .station-list { padding: 6px; }
+    .station-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--r-xs);
+      cursor: pointer;
+      transition: background 0.1s;
+      border: 1px solid transparent;
+    }
+    .station-item:hover { background: var(--bg); }
+    .station-item.active { background: var(--red-dim); border-color: var(--red-border); }
+    .station-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-ok { background: var(--green); }
+    .dot-warn { background: var(--amber); }
+    .dot-alert { background: var(--red); box-shadow: 0 0 0 3px rgba(229,24,42,0.15); animation: dot-pulse 1s infinite; }
+    @keyframes dot-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .station-info { flex: 1; min-width: 0; }
+    .station-id { font-size: 0.82rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .station-name { font-size: 0.72rem; color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .station-badge {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em;
+      padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0;
+    }
+    .badge-ok { background: var(--green-dim); color: var(--green); }
+    .badge-warn { background: var(--amber-dim); color: var(--amber); }
+    .badge-alert { background: var(--red-dim); color: var(--red); }
+
+    /* SETTINGS CARD */
+    .settings-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-label { font-size: 0.7rem; font-weight: 600; color: var(--text-3); letter-spacing: 0.02em; }
+    .field-select {
+      background: var(--bg); border: 1px solid var(--border-2);
+      color: var(--text); padding: 7px 10px;
+      font-family: var(--font); font-size: 0.8rem; font-weight: 500;
+      border-radius: var(--r-xs); outline: none; cursor: pointer;
+      appearance: none; -webkit-appearance: none; width: 100%;
+      transition: border-color 0.15s;
+    }
+    .field-select:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); }
+    select option { background: #1a1d24; }
+    .slider-row { display: flex; align-items: center; gap: 8px; }
+    .slider-row input[type=range] {
+      flex: 1; accent-color: var(--red); height: 4px; cursor: pointer;
+      background: var(--border-2); border-radius: 2px;
+    }
+    .slider-val { font-size: 0.75rem; font-weight: 600; color: var(--text-2); min-width: 52px; text-align: right; }
+
+    /* ===== CENTER COL ===== */
+    .center-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* RADAR CARD */
+    .radar-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .radar-toolbar {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .toolbar-group { display: flex; align-items: center; gap: 4px; }
+    .toolbar-divider { width: 1px; height: 18px; background: var(--border-2); margin: 0 4px; }
+    .toolbar-label { font-size: 0.68rem; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 2px; }
+    .seg-btn {
+      font-family: var(--font); font-size: 0.72rem; font-weight: 600;
+      padding: 4px 9px; border-radius: 5px; cursor: pointer;
+      border: 1px solid var(--border-2); background: transparent;
+      color: var(--text-3); transition: all 0.1s; letter-spacing: 0.02em;
+    }
+    .seg-btn:hover { color: var(--text); border-color: var(--text-4); background: var(--bg); }
+    .seg-btn.active { background: var(--red-dim); border-color: var(--red-border); color: var(--red); }
+    .toolbar-spacer { flex: 1; }
+    .scan-time { font-size: 0.7rem; color: var(--text-4); font-weight: 500; }
+
+    .radar-viewport { position: relative; min-height: 500px; }
+    #sigMap { height: 500px; width: 100%; }
+    .leaflet-container { font-family: var(--font); background: #0a0e14; }
+    /* Pulsing meso circle animation */
+    @keyframes meso-ring-pulse {
+      0%,100% { opacity: 0.9; }
+      50%      { opacity: 0.35; }
+    }
+    /* Probable tornado — aggressive red glow pulse */
+    @keyframes tornado-glow {
+      0%,100% { opacity: 1;   filter: drop-shadow(0 0 6px #e5182a); }
+      50%      { opacity: 0.5; filter: drop-shadow(0 0 18px #ff3344); }
+    }
+    .tornado-sig-ring path {
+      animation: tornado-glow 0.8s ease-in-out infinite !important;
+    }
+    .tornado-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #e5182a; color: #fff;
+      font-family: var(--font); font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 9px; border-radius: 5px;
+      white-space: nowrap;
+      text-shadow: none;
+      box-shadow: 0 0 12px rgba(229,24,42,0.7), 0 2px 6px rgba(0,0,0,0.5);
+      animation: tornado-badge-pulse 0.8s ease-in-out infinite;
+    }
+    @keyframes tornado-badge-pulse {
+      0%,100% { box-shadow: 0 0 10px rgba(229,24,42,0.7), 0 2px 6px rgba(0,0,0,0.5); }
+      50%      { box-shadow: 0 0 24px rgba(255,50,50,0.95), 0 2px 6px rgba(0,0,0,0.5); }
+    }
+
+    .radar-coord-bar {
+      padding: 7px 14px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface);
+    }
+    .coord-item { display: flex; align-items: center; gap: 5px; }
+    .coord-lbl { font-size: 0.65rem; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.08em; }
+    .coord-val { font-size: 0.72rem; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+    .legend-wrap { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+    .legend-lbl { font-size: 0.65rem; color: var(--text-4); font-weight: 600; }
+    .legend-bar { display: flex; gap: 0; border-radius: 3px; overflow: hidden; }
+    .legend-seg { width: 14px; height: 8px; }
+
+    /* ===== AI ASSESSMENT BANNER ===== */
+    .ai-banner {
+      border-radius: var(--r);
+      padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.3s;
+    }
+    .ai-banner.state-clear { border-color: rgba(22,163,74,0.2); background: var(--green-dim); }
+    .ai-banner.state-warn { border-color: rgba(217,119,6,0.25); background: var(--amber-dim); }
+    .ai-banner.state-danger { border-color: var(--red-border); background: var(--red-dim); }
+    .ai-icon {
+      width: 36px; height: 36px; border-radius: var(--r-xs);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      background: var(--bg);
+    }
+    .ai-banner.state-clear .ai-icon { background: rgba(22,163,74,0.12); }
+    .ai-banner.state-warn .ai-icon { background: rgba(217,119,6,0.12); }
+    .ai-banner.state-danger .ai-icon { background: rgba(229,24,42,0.12); }
+    .ai-icon .material-symbols-rounded { font-size: 18px; color: var(--text-4); font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .ai-banner.state-clear .ai-icon .material-symbols-rounded { color: var(--green); }
+    .ai-banner.state-warn .ai-icon .material-symbols-rounded { color: var(--amber); }
+    .ai-banner.state-danger .ai-icon .material-symbols-rounded { color: var(--red); }
+    .ai-body { flex: 1; min-width: 0; }
+    .ai-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); margin-bottom: 3px; }
+    .ai-banner.state-clear .ai-label { color: var(--green); }
+    .ai-banner.state-warn .ai-label { color: var(--amber); }
+    .ai-banner.state-danger .ai-label { color: var(--red); }
+    .ai-text { font-size: 0.82rem; color: var(--text-2); line-height: 1.5; }
+    .ai-conf { margin-top: 8px; }
+    .ai-conf-header { display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; color: var(--text-4); margin-bottom: 4px; }
+    .ai-conf-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .ai-conf-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+    /* ===== RIGHT COL ===== */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* METRICS */
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+    .metric-cell { background: var(--surface); padding: 14px 14px 12px; }
+    .metric-val { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1; margin-bottom: 3px; font-variant-numeric: tabular-nums; }
+    .metric-val.warn { color: var(--amber); }
+    .metric-val.danger { color: var(--red); }
+    .metric-val.safe { color: var(--green); }
+    .metric-key { font-size: 0.62rem; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* MINI CHART */
+    .chart-body { padding: 12px 14px 10px; }
+    .chart-title { font-size: 0.65rem; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    #shearChart { width: 100%; height: 55px; }
+
+    /* ALERT FEED */
+    .alert-feed { display: flex; flex-direction: column; }
+    .alert-empty { padding: 20px 16px; display: flex; align-items: center; gap: 10px; }
+    .alert-empty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .alert-empty-label { font-size: 0.8rem; font-weight: 500; color: var(--text-2); }
+    .alert-empty-sub { font-size: 0.72rem; color: var(--text-4); margin-top: 1px; }
+
+    .alert-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 10px;
+      transition: background 0.1s;
+      cursor: default;
+    }
+    .alert-item:last-child { border-bottom: none; }
+    .alert-item:hover { background: var(--bg); }
+    .alert-pip { width: 3px; border-radius: 2px; flex-shrink: 0; min-height: 40px; }
+    .pip-low { background: var(--green); }
+    .pip-medium { background: var(--amber); }
+    .pip-high { background: var(--red); }
+    .alert-content { flex: 1; min-width: 0; }
+    .alert-type-label { font-size: 0.72rem; font-weight: 700; margin-bottom: 2px; }
+    .label-low { color: var(--green); }
+    .label-medium { color: var(--amber); }
+    .label-high { color: var(--red); }
+    .alert-station { font-size: 0.78rem; font-weight: 500; color: var(--text-2); }
+    .alert-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+    .alert-stat-chip {
+      font-size: 0.65rem; font-weight: 600; color: var(--text-3);
+      background: var(--bg); padding: 2px 6px; border-radius: 4px;
+    }
+    .alert-stat-chip span { color: var(--text-2); }
+    .alert-time { font-size: 0.65rem; color: var(--text-4); font-weight: 500; margin-top: 4px; }
+
+    /* CONFIDENCE BAR */
+    .conf-row { margin-top: 6px; }
+    .conf-header { display: flex; justify-content: space-between; font-size: 0.65rem; font-weight: 600; color: var(--text-4); margin-bottom: 3px; }
+    .conf-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .conf-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+    /* ===== TOAST ===== */
+    #toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--r-sm); padding: 12px 16px; min-width: 280px; max-width: 340px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      pointer-events: all; animation: toastIn 0.25s ease;
+      border-left: 4px solid var(--text-4);
+      transition: opacity 0.4s;
+    }
+    .toast.t-warn { border-left-color: var(--amber); }
+    .toast.t-danger { border-left-color: var(--red); }
+    .toast-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 3px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .toast-title .material-symbols-rounded { font-size: 14px; }
+    .toast.t-warn .toast-title { color: var(--amber); }
+    .toast.t-danger .toast-title { color: var(--red); }
+    .toast-body { font-size: 0.75rem; color: var(--text-3); }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== STATUS PILL ===== */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.72rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      background: var(--bg); border: 1px solid var(--border-2);
+      color: var(--text-3);
+    }
+    .status-pill.scanning { background: var(--red-dim); border-color: var(--red-border); color: var(--red); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-4); }
+    .status-pill.scanning .status-dot { background: var(--red); animation: dot-pulse 1s infinite; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#1a1d24 !important;color:#f0f1f3 !important;border:1px solid rgba(255,255,255,0.1);box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+    .leaflet-popup-close-button{color:#7c818f !important;}
+
+    .search-wrap { flex: 1; max-width: 440px; position: relative; }
+    .search-row { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border-2); border-radius: 8px; padding: 0 6px 0 12px; transition: border-color 0.15s, box-shadow 0.15s; }
+    .search-row:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); background: var(--surface); }
+    .search-row .material-symbols-rounded { color: var(--text-4); font-size: 16px; flex-shrink: 0; }
+    #search-bar { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 0.83rem; color: var(--text); padding: 9px 8px; }
+    #search-bar::placeholder { color: var(--text-4); }
+    #suggestions { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); overflow: hidden; z-index: 200; display: none; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+    #suggestions li { list-style: none; padding: 9px 14px; cursor: pointer; font-size: 0.83rem; color: var(--text); display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    #suggestions li:last-child { border-bottom: none; }
+    #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
+    #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
+    .recents-bar { display: none; align-items: center; gap: 8px; padding: 6px 24px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: nowrap; overflow-x: auto; flex-shrink: 0; }
+    .recents-bar.visible { display: flex; }
+    .recent-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 20px; padding: 3px 10px 3px 8px;
+      font-size: 0.72rem; font-weight: 500; color: var(--text-3);
+      cursor: pointer; white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      font-family: var(--font);
+    }
+    .recent-chip:hover { border-color: var(--red); color: var(--text); background: var(--red-dim); }
+    .recent-chip .material-symbols-rounded { font-size: 12px; color: var(--text-4); }
+    .recent-chip:hover .material-symbols-rounded { color: var(--red); }
+    .recents-clear {
+      font-size: 0.68rem; font-weight: 500; color: var(--text-4);
+      background: none; border: none; cursor: pointer;
+      padding: 2px 4px; margin-left: 2px; white-space: nowrap;
+      font-family: var(--font); flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .recents-clear:hover { color: var(--red); }
+    .sug-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); padding: 8px 14px 4px; }
+    .sug-remove { font-size: 11px; color: var(--text-4); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-family: var(--font); line-height: 1; flex-shrink: 0; }
+    .sug-remove:hover { color: var(--red); background: var(--red-dim); }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-btn { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; font-weight: 500; color: var(--text-3); background: none; border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-family: var(--font); transition: color 0.15s, background 0.15s; white-space: nowrap; }
+    .nav-dropdown-btn:hover, .nav-dropdown:hover .nav-dropdown-btn { color: var(--text); background: var(--bg); }
+    .nav-dropdown-menu { position: absolute; top: 100%; right: 0; padding-top: 8px; min-width: 210px; z-index: 200; }
+    .nav-dropdown-menu-inner { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.4); overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s; }
+    .nav-dropdown:hover .nav-dropdown-btn { color: var(--text); background: var(--bg); }
+    .nav-dropdown-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 0.8rem; font-weight: 500; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.1s, color 0.1s; white-space: nowrap; }
+    .nav-dropdown-menu a:last-child { border-bottom: none; }
+    .nav-dropdown-menu a:hover { background: var(--red-dim); color: var(--red); }
+    .nav-dropdown-menu a .material-symbols-rounded { font-size: 15px; color: var(--text-4); }
+    .nav-dropdown-menu a:hover .material-symbols-rounded { color: var(--red); }
+
+    /* ── Disclaimer Modal ─────────────────────────────────────── */
+    #disclaimer-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #disclaimer-box {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 14px; max-width: 480px; width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .disc-header {
+      background: var(--red); padding: 18px 22px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .disc-header .material-symbols-rounded {
+      font-size: 26px; color: #fff;
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    .disc-header-text { flex: 1; }
+    .disc-header-title {
+      font-size: 1rem; font-weight: 700; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .disc-header-sub {
+      font-size: 0.72rem; color: rgba(255,255,255,0.8);
+      margin-top: 2px; font-weight: 500;
+    }
+    .disc-body { padding: 20px 22px 22px; }
+    .disc-body p {
+      font-size: 0.83rem; color: var(--text-2); line-height: 1.65;
+      margin: 0 0 12px;
+    }
+    .disc-body p:last-of-type { margin-bottom: 18px; }
+    .disc-body strong { color: var(--text); }
+    .disc-ack-btn {
+      width: 100%; padding: 11px; background: var(--red);
+      border: none; border-radius: 8px; color: #fff;
+      font-family: var(--font); font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.01em;
+      transition: opacity 0.15s;
+    }
+    .disc-ack-btn:hover { opacity: 0.88; }
+    .disc-ack-check {
+      display: flex; align-items: center; gap: 9px;
+      margin-bottom: 14px; cursor: pointer;
+    }
+    .disc-ack-check input { accent-color: var(--red); width: 15px; height: 15px; cursor: pointer; }
+    .disc-ack-check span { font-size: 0.78rem; color: var(--text-3); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">
+      <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+      <span class="logo-name">j<span>Weather</span></span>
+    </a>
+    <div class="search-wrap">
+      <div class="search-row">
+        <span class="material-symbols-rounded">search</span>
+        <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+      </div>
+      <ul id="suggestions"></ul>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Forecast</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">
+          Severe Weather <span class="material-symbols-rounded">expand_more</span>
+        </button>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dropdown-menu-inner">
+            <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+            <a href="jVOR_app.html" class="active"><span class="material-symbols-rounded">radar</span>jVOR <span style="font-size:0.65rem;font-weight:700;background:var(--red);color:#fff;padding:1px 5px;border-radius:4px;margin-left:4px;letter-spacing:0.04em;">BETA</span></a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+            <a href="#" data-coming-soon><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+          </div>
+        </div>
+      </div>
+      <a href="#" data-coming-soon>Contact</a>
+      <a href="#" data-coming-soon>About</a>
+    </nav>
+  </div>
+</header>
+<div class="recents-bar" id="recents-bar"></div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-title-group">
+      <div class="page-title-icon">
+        <span class="material-symbols-rounded">tornado</span>
+      </div>
+      <div>
+        <div class="page-title">j<span>VOR Beta</span></div>
+        <div class="page-sub">Velocity-based rotation detection · Pre-warning mesocyclone analysis</div>
+      </div>
+    </div>
+    <div class="page-header-actions">
+      <div class="status-pill" id="statusPill">
+        <div class="status-dot"></div>
+        <span id="statusLabel">Idle</span>
+      </div>
+      <button class="btn btn-primary" id="scanBtn" onclick="toggleScanning()">
+        <span class="material-symbols-rounded">radar</span>
+        Start Detection
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- LEFT COL -->
+  <div class="left-col">
+
+    <!-- STATION SELECTOR -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-label"><span class="material-symbols-rounded">cell_tower</span> Radar Stations</div>
+      </div>
+      <div class="station-list" id="stationList"></div>
+    </div>
+
+    <!-- SCAN SETTINGS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-label"><span class="material-symbols-rounded">tune</span> Settings</div>
+      </div>
+      <div class="settings-body">
+        <div class="field">
+          <div class="field-label">Scan Interval</div>
+          <select class="field-select" id="intervalSelect">
+            <option value="10000">10s — Fast (Demo)</option>
+            <option value="30000" selected>30s — Standard</option>
+            <option value="60000">60s — Slow</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Azimuthal Shear Threshold</div>
+          <div class="slider-row">
+            <input type="range" id="shearThresh" min="0.001" max="0.02" step="0.001" value="0.005">
+            <div class="slider-val" id="shearVal">0.005 s⁻¹</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Min Rotation Depth</div>
+          <div class="slider-row">
+            <input type="range" id="depthThresh" min="1" max="15" value="4">
+            <div class="slider-val" id="depthVal">4 km</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">AI Confidence Cutoff</div>
+          <div class="slider-row">
+            <input type="range" id="confThresh" min="30" max="95" value="60">
+            <div class="slider-val" id="confVal">60%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CENTER COL -->
+  <div class="center-col">
+
+    <!-- AI BANNER -->
+    <div class="ai-banner" id="aiBanner">
+      <div class="ai-icon"><span class="material-symbols-rounded">psychology</span></div>
+      <div class="ai-body">
+        <div class="ai-label">AI Assessment</div>
+        <div class="ai-text" id="aiText">Awaiting first scan cycle. Select a station and press Start Detection.</div>
+      </div>
+    </div>
+
+    <!-- RADAR CARD -->
+    <div class="radar-card">
+      <div class="radar-toolbar">
+        <span class="toolbar-label">Basemap</span>
+        <div class="toolbar-group">
+          <button class="seg-btn active" id="mapDark"  onclick="setBasemap('dark')">Dark</button>
+          <button class="seg-btn"        id="mapLight" onclick="setBasemap('light')">Light</button>
+          <button class="seg-btn"        id="mapSat"   onclick="setBasemap('sat')">Satellite</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <span class="toolbar-label">Overlay</span>
+        <div class="toolbar-group">
+          <button class="seg-btn active" id="ovRing"   onclick="toggleOverlay('ring',this)">Range</button>
+          <button class="seg-btn active" id="ovMotion" onclick="toggleOverlay('motion',this)">Motion</button>
+          <button class="seg-btn active" id="ovLabels" onclick="toggleOverlay('labels',this)">Labels</button>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <span class="scan-time" id="scanTimeLabel">No scan</span>
+      </div>
+
+      <div class="radar-viewport" id="radarViewport">
+        <div id="sigMap"></div>
+      </div>
+
+      <div class="radar-coord-bar">
+        <div class="coord-item">
+          <span class="coord-lbl">Lat</span>
+          <span class="coord-val" id="curLat">—</span>
+        </div>
+        <div class="coord-item">
+          <span class="coord-lbl">Lon</span>
+          <span class="coord-val" id="curLon">—</span>
+        </div>
+        <div class="coord-item">
+          <span class="coord-lbl">Sigs</span>
+          <span class="coord-val" id="curSigs">—</span>
+        </div>
+        <div class="coord-item">
+          <span class="coord-lbl">Station</span>
+          <span class="coord-val" id="curStation">—</span>
+        </div>
+        <div class="legend-wrap" style="gap:10px">
+          <div class="coord-item"><span style="width:8px;height:8px;border-radius:50%;background:#e5182a;display:inline-block;margin-right:4px;"></span><span class="coord-lbl">High</span></div>
+          <div class="coord-item"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;display:inline-block;margin-right:4px;"></span><span class="coord-lbl">Medium</span></div>
+          <div class="coord-item"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;margin-right:4px;"></span><span class="coord-lbl">Low</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COL -->
+  <div class="right-col">
+
+    <!-- METRICS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-label"><span class="material-symbols-rounded">monitoring</span> Live Metrics</div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-cell">
+          <div class="metric-val" id="metShear">—</div>
+          <div class="metric-key">Max Shear (s⁻¹)</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-val" id="metMeso">0</div>
+          <div class="metric-key">Meso Sigs</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-val" id="metRot">—</div>
+          <div class="metric-key">Rot Vel (kt)</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-val" id="metDepth">—</div>
+          <div class="metric-key">Depth (km)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHEAR CHART -->
+    <div class="card">
+      <div class="chart-body">
+        <div class="chart-title">Shear History — Last 10 Scans</div>
+        <canvas id="shearChart"></canvas>
+      </div>
+    </div>
+
+    <!-- ALERT FEED -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-label"><span class="material-symbols-rounded">notifications_active</span> Detection Log</div>
+      </div>
+      <div class="alert-feed" id="alertFeed">
+        <div class="alert-empty">
+          <div class="alert-empty-dot"></div>
+          <div>
+            <div class="alert-empty-label">No detections</div>
+            <div class="alert-empty-sub">Start scanning to begin monitoring.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="toastContainer"></div>
+
+<script>
+// =============================================
+// jVOR — Velocity Rotation Detection
+// Part of jWeather
+// =============================================
+
+const STATIONS = [
+  { id: 'KTLX', name: 'Oklahoma City, OK',  lat: 35.333, lon: -97.278,  status: 'alert' },
+  { id: 'KFDR', name: 'Altus, OK',           lat: 34.362, lon: -98.976,  status: 'warn'  },
+  { id: 'KVNX', name: 'Vance AFB, OK',       lat: 36.740, lon: -98.128,  status: 'ok'    },
+  { id: 'KINX', name: 'Tulsa, OK',           lat: 36.175, lon: -95.565,  status: 'ok'    },
+  { id: 'KICT', name: 'Wichita, KS',         lat: 37.654, lon: -97.443,  status: 'warn'  },
+  { id: 'KDDC', name: 'Dodge City, KS',      lat: 37.770, lon: -99.969,  status: 'ok'    },
+  { id: 'KSRX', name: 'Western AR',          lat: 35.290, lon: -94.362,  status: 'ok'    },
+  { id: 'KAMX', name: 'Miami, FL',           lat: 25.611, lon: -80.413,  status: 'ok'    },
+];
+
+const VEL_COLORS = [
+  {v:-70,c:'#4a0080'},{v:-50,c:'#7700cc'},{v:-35,c:'#0000ff'},
+  {v:-20,c:'#009bf5'},{v:-10,c:'#00e5ff'},{v:-5,c:'#80ffff'},
+  {v:0,c:'#111111'},{v:5,c:'#ffff00'},{v:10,c:'#ffaa00'},
+  {v:20,c:'#ff6600'},{v:35,c:'#ff0000'},{v:50,c:'#cc0000'},{v:70,c:'#660000'},
+];
+const REF_COLORS = [
+  {v:0,c:'#00000000'},{v:5,c:'#7fc97f'},{v:15,c:'#beae91'},
+  {v:20,c:'#00ff00'},{v:30,c:'#007700'},{v:40,c:'#ffff00'},
+  {v:45,c:'#ff8800'},{v:50,c:'#ff0000'},{v:55,c:'#cc0000'},
+  {v:60,c:'#ff00ff'},{v:65,c:'#ffffff'},
+];
+
+let activeStation = STATIONS[0];
+let currentProduct = 'VEL';
+let isScanning = false;
+let scanInterval = null;
+let shearHistory = [];
+let detections = [];
+let radarData = null;
+
+// COLOR INTERP
+function velToColor(v, product) {
+  const s = product === 'REF' ? REF_COLORS : VEL_COLORS;
+  if (v <= s[0].v) return s[0].c;
+  if (v >= s[s.length-1].v) return s[s.length-1].c;
+  for (let i = 1; i < s.length; i++) {
+    if (v <= s[i].v) {
+      const t = (v - s[i-1].v) / (s[i].v - s[i-1].v);
+      return lerpColor(s[i-1].c, s[i].c, t);
+    }
+  }
+}
+function lerpColor(a, b, t) {
+  if (!a || !b || a.length < 7 || b.length < 7) return a || '#111';
+  const ah = parseInt(a.slice(1,7), 16), bh = parseInt(b.slice(1,7), 16);
+  const r = Math.round(((ah>>16)&0xff) + (((bh>>16)&0xff)-((ah>>16)&0xff))*t);
+  const g = Math.round(((ah>>8)&0xff)  + (((bh>>8)&0xff) -((ah>>8)&0xff))*t);
+  const bl= Math.round((ah&0xff)        + ((bh&0xff)       -(ah&0xff))*t);
+  return `rgb(${r},${g},${bl})`;
+}
+
+// DATA GENERATION
+function generateRadarData(station, product, withRotation) {
+  const size = 300, beams = 360;
+  const data = new Float32Array(size * beams);
+  const bgWind = (Math.random() - 0.5) * 20;
+
+  for (let a = 0; a < beams; a++) {
+    const az = (a / beams) * Math.PI * 2;
+    for (let r = 0; r < size; r++) {
+      let vel = bgWind * Math.cos(az) + (Math.random()-0.5)*4;
+      if (r < 10) vel = (Math.random()-0.5)*60;
+      data[a * size + r] = vel;
+    }
+  }
+
+  const sigs = [];
+  if (withRotation) {
+    const n = Math.floor(Math.random()*3)+1;
+    for (let s = 0; s < n; s++) {
+      const sigAz = Math.random()*beams, sigR = 40+Math.random()*180;
+      const strength = (20+Math.random()*50)*(Math.random()>0.5?1:-1);
+      sigs.push({ az: sigAz, range: sigR, strength });
+      for (let da = -15; da <= 15; da++) {
+        const ai = Math.floor((sigAz+da+beams)%beams);
+        for (let r = Math.max(0,sigR-20); r < Math.min(size,sigR+20); r++) {
+          const dist = Math.sqrt(da*da+(r-sigR)*(r-sigR));
+          if (dist < 18) data[ai*size+r] += Math.sign(da)*strength*Math.exp(-dist*dist/80);
+        }
+      }
+    }
+  }
+
+  if (product === 'REF') {
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random()<0.05 ? 0 : 5 + Math.abs(data[i])*0.6 + Math.random()*10;
+    }
+  }
+  return { data, beams, size };
+}
+
+// SHEAR DETECTION
+function detectShear(rd) {
+  const { data, beams, size } = rd;
+  const shearField = new Float32Array(beams * size);
+  const maxShear = { value: 0, az: 0, range: 0 };
+  for (let a = 1; a < beams-1; a++) {
+    for (let r = 5; r < size-5; r++) {
+      const azSpacing = Math.max(0.01, (2*Math.PI*r*0.25)/beams);
+      const shear = Math.abs(data[(a+1)*size+r] - data[(a-1)*size+r]) / (2*azSpacing*1.944);
+      shearField[a*size+r] = shear;
+      if (shear > maxShear.value) { maxShear.value = shear; maxShear.az = a; maxShear.range = r; }
+    }
+  }
+  return { shearField, maxShear };
+}
+
+// MESO DETECTION
+function detectMesos(rd, shearResult) {
+  const { data, beams, size } = rd;
+  const { shearField } = shearResult;
+  const thresh = parseFloat(document.getElementById('shearThresh').value);
+  const mesos = [];
+
+  for (let a = 10; a < beams-10; a += 5) {
+    for (let r = 20; r < size-20; r += 5) {
+      const s = shearField[a*size+r];
+      if (s < thresh) continue;
+      let isMax = true;
+      for (let da = -5; da <= 5 && isMax; da++)
+        for (let dr = -5; dr <= 5 && isMax; dr++) {
+          const aa = Math.floor((a+da+beams)%beams), rr = Math.min(size-1,Math.max(0,r+dr));
+          if (shearField[aa*size+rr] > s+0.0005) isMax = false;
+        }
+      if (!isMax) continue;
+
+      const vL = data[Math.floor((a-4+beams)%beams)*size+r];
+      const vR = data[Math.floor((a+4+beams)%beams)*size+r];
+      const rotVel = Math.abs(vR-vL)/2;
+      const depth = 2+Math.random()*8;
+      const confidence = Math.min(95, Math.round(30+(s/0.02)*65+Math.random()*15));
+      let severity = 'low';
+      if (s > 0.015 && rotVel > 50) severity = 'high';
+      else if (s > 0.008 || rotVel > 30) severity = 'medium';
+
+      mesos.push({ az: (a/beams)*360, range: r*0.25, shear: s, rotVel, depth, confidence, severity, azIdx: a, rangeIdx: r });
+    }
+  }
+  return mesos.slice(0,5);
+}
+
+// CANVAS DRAW
+// ─── LEAFLET MAP ─────────────────────────────────────────────────────────────
+function polarToLatLng(stLat, stLon, azDeg, rangeKm) {
+  const R = 6371, az = azDeg * Math.PI / 180, d = rangeKm / R;
+  const lat1 = stLat * Math.PI / 180, lon1 = stLon * Math.PI / 180;
+  const lat2 = Math.asin(Math.sin(lat1)*Math.cos(d) + Math.cos(lat1)*Math.sin(d)*Math.cos(az));
+  const lon2 = lon1 + Math.atan2(Math.sin(az)*Math.sin(d)*Math.cos(lat1), Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
+  return [lat2*180/Math.PI, lon2*180/Math.PI];
+}
+
+const BASEMAPS = {
+  dark:  'https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+  sat:   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+};
+const LABEL_TILE = 'https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}{r}.png';
+
+const sigMap = L.map('sigMap', { zoomControl: true, attributionControl: false, scrollWheelZoom: true })
+  .setView([36.5, -97.0], 6);
+
+let baseTile = L.tileLayer(BASEMAPS.dark, { maxZoom: 14, subdomains: 'abcd' }).addTo(sigMap);
+let labelTile = L.tileLayer(LABEL_TILE, { maxZoom: 14, subdomains: 'abcd', zIndex: 500 }).addTo(sigMap);
+
+// Map mouse coords
+sigMap.on('mousemove', e => {
+  document.getElementById('curLat').textContent = e.latlng.lat.toFixed(4);
+  document.getElementById('curLon').textContent = e.latlng.lng.toFixed(4);
+});
+
+// Overlay toggle state
+const overlayOn = { ring: true, motion: true, labels: true };
+function toggleOverlay(key, btn) {
+  overlayOn[key] = !overlayOn[key];
+  btn.classList.toggle('active', overlayOn[key]);
+  updateSigMap(activeStation, lastMesos);
+}
+
+function setBasemap(key) {
+  ['Dark','Light','Sat'].forEach(k => document.getElementById('map'+k).classList.remove('active'));
+  document.getElementById('map' + key.charAt(0).toUpperCase() + key.slice(1)).classList.add('active');
+  sigMap.removeLayer(baseTile);
+  baseTile = L.tileLayer(BASEMAPS[key], { maxZoom: 14, subdomains: 'abcd' }).addTo(sigMap);
+  baseTile.bringToBack();
+  // Swap label tile color for light basemap
+  if (labelTile) sigMap.removeLayer(labelTile);
+  const labelUrl = key === 'light'
+    ? 'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png'
+    : LABEL_TILE;
+  labelTile = L.tileLayer(labelUrl, { maxZoom: 14, subdomains: 'abcd', zIndex: 500 }).addTo(sigMap);
+}
+
+// Station markers (permanent)
+STATIONS.forEach(st => {
+  const color = st.status==='alert'?'#e5182a':st.status==='warn'?'#d97706':'#16a34a';
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:11px;height:11px;border-radius:2px;background:${color};border:2px solid rgba(255,255,255,0.55);box-shadow:0 0 8px ${color}99;"></div>`,
+    iconSize:[11,11], iconAnchor:[5,5]
+  });
+  L.marker([st.lat, st.lon], { icon, zIndexOffset: 1000 })
+   .bindTooltip(`<strong>${st.id}</strong><br><span style="color:#999">${st.name}</span>`, { direction:'top', offset:[0,-10] })
+   .addTo(sigMap);
+});
+
+let mesoLayers = [];
+let lastMesos  = [];
+// Track previous meso positions per scan for motion vector
+let prevMesoPos = null;
+
+function updateSigMap(station, mesos) {
+  lastMesos = mesos;
+  mesoLayers.forEach(l => sigMap.removeLayer(l));
+  mesoLayers = [];
+
+  document.getElementById('curSigs').textContent    = mesos.length || '0';
+  document.getElementById('curStation').textContent = station.id;
+
+  // Range ring
+  if (overlayOn.ring) {
+    const ring = L.circle([station.lat, station.lon], {
+      radius: 230000, color:'rgba(255,255,255,0.18)', weight:1,
+      fillOpacity:0, dashArray:'5 7', interactive:false
+    }).addTo(sigMap);
+    mesoLayers.push(ring);
+    // Inner rings at 50/100/150km
+    [50000,100000,150000].forEach(r => {
+      const rr = L.circle([station.lat, station.lon], {
+        radius:r, color:'rgba(255,255,255,0.07)', weight:0.8,
+        fillOpacity:0, dashArray:'3 6', interactive:false
+      }).addTo(sigMap);
+      mesoLayers.push(rr);
+    });
+  }
+
+  mesos.forEach((m, i) => {
+    const [lat, lng] = polarToLatLng(station.lat, station.lon, m.az, m.range);
+    const isTornado = m.severity === 'high';
+    const color     = isTornado ? '#e5182a' : m.severity==='medium' ? '#d97706' : '#3b82f6';
+    const radiusM   = (10 + m.depth * 2.5) * 1000;
+
+    // Probable tornado: extra concentric glow rings
+    if (isTornado) {
+      const glow = L.circle([lat, lng], {
+        radius: radiusM * 1.45, color: '#ff3344', weight: 3,
+        fillColor: '#e5182a', fillOpacity: 0.06, interactive: false,
+        className: 'tornado-sig-ring'
+      }).addTo(sigMap);
+      mesoLayers.push(glow);
+      const glow2 = L.circle([lat, lng], {
+        radius: radiusM * 1.15, color: '#ff3344', weight: 2, dashArray: '8 4',
+        fillColor: '#e5182a', fillOpacity: 0.04, interactive: false,
+        className: 'tornado-sig-ring'
+      }).addTo(sigMap);
+      mesoLayers.push(glow2);
+    }
+
+    // Outer main ring
+    const outer = L.circle([lat, lng], {
+      radius: radiusM,
+      color, weight: isTornado ? 3 : 2,
+      dashArray: isTornado ? null : '6 4',
+      fillColor: color, fillOpacity: isTornado ? 0.14 : 0.07,
+      interactive: false,
+      className: isTornado ? 'tornado-sig-ring' : ('meso-ring-' + m.severity)
+    }).addTo(sigMap);
+    mesoLayers.push(outer);
+
+    // Inner solid dot
+    const inner = L.circle([lat, lng], {
+      radius: radiusM * (isTornado ? 0.32 : 0.22),
+      color, weight: isTornado ? 3 : 2,
+      fillColor: color, fillOpacity: isTornado ? 0.85 : 0.6,
+      interactive: false
+    }).addTo(sigMap);
+    mesoLayers.push(inner);
+
+    // Storm motion arrow — simulate NE/ENE typical severe storm motion
+    if (overlayOn.motion) {
+      // Use per-meso simulated storm motion based on az (storms generally move NE in plains)
+      const motionBearing = 55 + (m.az % 40) - 20; // ~NE ± variation
+      const speedKm = 40 + m.rotVel * 0.3;          // faster rotation = faster storm
+      const arrowEnd = polarToLatLng(lat, lng, motionBearing, speedKm);
+
+      const arrow = L.polyline([[lat, lng], arrowEnd], {
+        color, weight: 2.5, opacity: 0.85,
+        interactive: false
+      }).addTo(sigMap);
+      mesoLayers.push(arrow);
+
+      // Arrowhead as a small rotated marker
+      const headIcon = L.divIcon({
+        className: '',
+        html: `<div style="
+          width:0;height:0;
+          border-left:5px solid transparent;
+          border-right:5px solid transparent;
+          border-bottom:10px solid ${color};
+          transform:rotate(${motionBearing}deg);
+          transform-origin:center bottom;
+          opacity:0.85;
+        "></div>`,
+        iconSize:[10,10], iconAnchor:[5,5]
+      });
+      const head = L.marker(arrowEnd, { icon: headIcon, interactive: false }).addTo(sigMap);
+      mesoLayers.push(head);
+
+      // Speed label alongside arrow midpoint
+      if (overlayOn.labels) {
+        const midLat = (lat + arrowEnd[0]) / 2;
+        const midLng = (lng + arrowEnd[1]) / 2;
+        const speedKt = Math.round(speedKm * 0.54);
+        const speedIcon = L.divIcon({
+          className: '',
+          html: `<div style="font-family:var(--font);font-size:0.58rem;font-weight:700;color:${color};white-space:nowrap;text-shadow:0 0 4px #000,0 0 4px #000;">${speedKt}kt</div>`,
+          iconAnchor:[-4, 6], iconSize: null
+        });
+        mesoLayers.push(L.marker([midLat, midLng], { icon: speedIcon, interactive: false }).addTo(sigMap));
+      }
+    }
+
+    // Severity label / tornado badge
+    if (overlayOn.labels) {
+      const lblIcon = isTornado
+        ? L.divIcon({
+            className: '',
+            html: `<div class="tornado-badge">🌪 TORNADO PROBABLE</div>`,
+            iconAnchor: [-4, -radiusM * 0.00012 + 20], iconSize: null
+          })
+        : L.divIcon({
+            className: '',
+            html: `<div style="font-family:var(--font);font-size:0.62rem;font-weight:800;color:${color};white-space:nowrap;text-shadow:0 0 5px #000,0 0 5px #000;letter-spacing:0.05em;">${m.severity==='medium'?'↻ SHEAR':'↻ ROT'} M${i+1}</div>`,
+            iconAnchor:[0, -radiusM * 0.00009 + 14], iconSize: null
+          });
+      mesoLayers.push(L.marker([lat, lng], { icon: lblIcon, interactive: false }).addTo(sigMap));
+    }
+
+    // Clickable popup circle
+    const hit = L.circle([lat, lng], {
+      radius: radiusM, color:'transparent', weight:0, fillOpacity:0
+    }).bindPopup(`
+      <div style="font-family:var(--font);font-size:0.78rem;line-height:1.9;min-width:180px;">
+        <div style="font-weight:800;font-size:0.85rem;color:${color};margin-bottom:4px;">${
+          isTornado?'🌪 PROBABLE TORNADO — Imminent Threat':m.severity==='medium'?'↻ MEDIUM — Elevated Shear':'↻ LOW — Weak Rotation'
+        }</div>
+        <div><b>Az:</b> ${Math.round(m.az)}° &nbsp; <b>Range:</b> ${m.range.toFixed(1)} km</div>
+        <div><b>Rot Vel:</b> ${Math.round(m.rotVel)} kt &nbsp; <b>Depth:</b> ${m.depth.toFixed(1)} km</div>
+        <div><b>Shear:</b> ${m.shear.toFixed(5)} s⁻¹</div>
+        <div><b>AI Confidence:</b> ${m.confidence}%</div>
+      </div>
+    `, { maxWidth: 220 }).addTo(sigMap);
+    mesoLayers.push(hit);
+  });
+
+  // Pan to station smoothly if changed
+  sigMap.setView([station.lat, station.lon], sigMap.getZoom() < 6 ? 7 : sigMap.getZoom(), { animate: true, duration: 0.5 });
+}
+
+// Stubs to keep existing calls from breaking
+function resizeCanvas() {}
+function drawEmptyRadar() {
+  document.getElementById('curStation').textContent = activeStation?.id || '—';
+}
+function drawRadar(rd, mesos, product) {
+  updateSigMap(activeStation, mesos);
+}
+function setProduct(p) {}
+function setTilt(btn) {}
+function buildLegend() {}
+
+// SCAN CYCLE
+function runScan() {
+  const rotChance = activeStation.status==='alert'?0.8:activeStation.status==='warn'?0.5:0.2;
+  const hasRot = Math.random()<rotChance;
+
+  radarData = generateRadarData(activeStation, currentProduct, hasRot);
+  const shearResult = detectShear(radarData);
+  const mesos = detectMesos(radarData, shearResult);
+
+  drawRadar(radarData, mesos, currentProduct);
+
+  const maxS = shearResult.maxShear.value;
+  shearHistory.push(maxS);
+  if (shearHistory.length > 10) shearHistory.shift();
+
+  const best = mesos.length ? mesos.reduce((m,c)=>c.confidence>m.confidence?c:m) : null;
+
+  // Metrics
+  document.getElementById('metShear').textContent = maxS.toFixed(4);
+  document.getElementById('metShear').className = 'metric-val ' + (maxS>0.015?'danger':maxS>0.007?'warn':'');
+  document.getElementById('metMeso').textContent = mesos.length;
+  document.getElementById('metMeso').className = 'metric-val ' + (mesos.some(m=>m.severity==='high')?'danger':mesos.length?'warn':'safe');
+  document.getElementById('metRot').textContent = best ? Math.round(best.rotVel) : '—';
+  document.getElementById('metRot').className = 'metric-val ' + (best?(best.rotVel>50?'danger':'warn'):'');
+  document.getElementById('metDepth').textContent = best ? best.depth.toFixed(1) : '—';
+
+  const now = new Date();
+  document.getElementById('scanTimeLabel').textContent = now.toUTCString().slice(17,25) + ' UTC';
+
+  updateAI(mesos, maxS, best);
+  drawShearChart();
+
+  if (mesos.length) {
+    const sev = mesos.some(m=>m.severity==='high')?'high':mesos.some(m=>m.severity==='medium')?'medium':'low';
+    logDetection({ station: activeStation.id, mesos, sev, maxS, best, time: now.toUTCString().slice(17,25) });
+    if (sev==='high') showToast('Tornado Rotation Detected', `${activeStation.id} · ${Math.round(best.rotVel)}kt · AI: ${best.confidence}%`, 'danger');
+    else if (sev==='medium') showToast('Mesocyclone Signature', `${activeStation.id} · Shear: ${maxS.toFixed(4)} s⁻¹`, 'warn');
+  }
+}
+
+function updateAI(mesos, maxS, best) {
+  const banner = document.getElementById('aiBanner');
+  const text = document.getElementById('aiText');
+
+  if (!best) {
+    banner.className = 'ai-banner state-clear';
+    banner.querySelector('.material-symbols-rounded').textContent = 'check_circle';
+    banner.querySelector('.ai-label').textContent = 'No Rotation Detected';
+    text.textContent = `Analyzed ${radarData.beams * radarData.size / 1000}K radar gates. Max shear ${maxS.toFixed(5)} s⁻¹ — below detection threshold. No mesocyclone signatures found.`;
+    const conf = banner.querySelector('.ai-conf');
+    if (conf) conf.remove();
+    return;
+  }
+
+  const state = best.severity==='high'?'state-danger':best.severity==='medium'?'state-warn':'state-clear';
+  const icon = best.severity==='high'?'tornado':best.severity==='medium'?'warning':'info';
+  const label = best.severity==='high'?'Possible Pre-Tornadic Rotation':best.severity==='medium'?'Elevated Shear Signature':'Weak Rotation Present';
+  const color = best.severity==='high'?'var(--red)':best.severity==='medium'?'var(--amber)':'var(--green)';
+
+  banner.className = `ai-banner ${state}`;
+  banner.querySelector('.material-symbols-rounded').textContent = icon;
+  banner.querySelector('.ai-label').textContent = label;
+  text.textContent = `Az ${Math.round(best.az)}° · ${best.range.toFixed(1)} km range · Rot vel ${Math.round(best.rotVel)} kt · Shear ${best.shear.toFixed(4)} s⁻¹ · Est. depth ${best.depth.toFixed(1)} km`;
+
+  let confEl = banner.querySelector('.ai-conf');
+  if (!confEl) {
+    confEl = document.createElement('div');
+    confEl.className = 'ai-conf';
+    confEl.innerHTML = `<div class="ai-conf-header"><span>AI Confidence</span><span id="confPct"></span></div><div class="ai-conf-bar"><div class="ai-conf-fill" id="confFill"></div></div>`;
+    banner.querySelector('.ai-body').appendChild(confEl);
+  }
+  document.getElementById('confPct').textContent = best.confidence + '%';
+  document.getElementById('confFill').style.width = best.confidence + '%';
+  document.getElementById('confFill').style.background = color;
+}
+
+function logDetection(d) {
+  detections.unshift(d);
+  if (detections.length > 15) detections.pop();
+  renderFeed();
+}
+
+function renderFeed() {
+  const feed = document.getElementById('alertFeed');
+  if (!detections.length) {
+    feed.innerHTML = `<div class="alert-empty"><div class="alert-empty-dot"></div><div><div class="alert-empty-label">No detections</div><div class="alert-empty-sub">Start scanning to begin monitoring.</div></div></div>`;
+    return;
+  }
+  feed.innerHTML = detections.slice(0,8).map(d => {
+    const color = d.sev==='high'?'var(--red)':d.sev==='medium'?'var(--amber)':'var(--green)';
+    const label = d.sev==='high'?'Possible Tornado':d.sev==='medium'?'Mesocyclone':'Weak Rotation';
+    return `<div class="alert-item">
+      <div class="alert-pip pip-${d.sev}"></div>
+      <div class="alert-content">
+        <div class="alert-type-label label-${d.sev}">${label}</div>
+        <div class="alert-station">${d.station} · ${d.mesos.length} signature${d.mesos.length>1?'s':''}</div>
+        <div class="alert-stats">
+          <div class="alert-stat-chip">Shear <span>${d.maxS.toFixed(4)}</span></div>
+          ${d.best?`<div class="alert-stat-chip">Rot <span>${Math.round(d.best.rotVel)}kt</span></div>`:''}
+          ${d.best?`<div class="alert-stat-chip">Depth <span>${d.best.depth.toFixed(1)}km</span></div>`:''}
+        </div>
+        ${d.best?`<div class="conf-row"><div class="conf-header"><span>AI Confidence</span><span>${d.best.confidence}%</span></div><div class="conf-bar"><div class="conf-fill" style="width:${d.best.confidence}%;background:${color}"></div></div></div>`:''}
+        <div class="alert-time">${d.time} UTC</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function drawShearChart() {
+  const c = document.getElementById('shearChart');
+  const x = c.getContext('2d');
+  c.width = c.offsetWidth || 220; c.height = 55;
+  x.clearRect(0,0,c.width,c.height);
+  if (shearHistory.length < 2) return;
+
+  const max = Math.max(...shearHistory, 0.005);
+  const w=c.width, h=c.height;
+  const pts = shearHistory.map((v,i)=>[(i/(shearHistory.length-1))*w, h-(v/max)*(h-6)-2]);
+
+  // Fill
+  x.beginPath(); x.moveTo(pts[0][0], h);
+  pts.forEach(([px,py])=>x.lineTo(px,py));
+  x.lineTo(pts[pts.length-1][0],h); x.closePath();
+  const grad = x.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(229,24,42,0.2)'); grad.addColorStop(1,'rgba(229,24,42,0)');
+  x.fillStyle=grad; x.fill();
+
+  // Line
+  x.strokeStyle='rgba(229,24,42,0.8)'; x.lineWidth=1.5;
+  x.beginPath(); pts.forEach(([px,py],i)=>i===0?x.moveTo(px,py):x.lineTo(px,py)); x.stroke();
+
+  // Threshold
+  const thresh = parseFloat(document.getElementById('shearThresh').value);
+  const ty = h-(thresh/max)*(h-6)-2;
+  x.strokeStyle='rgba(217,119,6,0.5)'; x.lineWidth=1; x.setLineDash([3,3]);
+  x.beginPath(); x.moveTo(0,ty); x.lineTo(w,ty); x.stroke(); x.setLineDash([]);
+
+  // Points
+  x.fillStyle='var(--red)';
+  pts.forEach(([px,py])=>{x.beginPath();x.arc(px,py,2.5,0,Math.PI*2);x.fill();});
+}
+
+// TOGGLE SCANNING
+function toggleScanning() {
+  isScanning = !isScanning;
+  const btn = document.getElementById('scanBtn');
+  const pill = document.getElementById('statusPill');
+  const label = document.getElementById('statusLabel');
+
+  if (isScanning) {
+    btn.className = 'btn btn-scanning';
+    btn.innerHTML = '<span class="material-symbols-rounded">stop</span> Stop';
+    pill.className = 'status-pill scanning';
+    label.textContent = 'Scanning';
+
+    runScan();
+    const ms = parseInt(document.getElementById('intervalSelect').value);
+    scanInterval = setInterval(runScan, ms);
+  } else {
+    btn.className = 'btn btn-primary';
+    btn.innerHTML = '<span class="material-symbols-rounded">radar</span> Start Detection';
+    pill.className = 'status-pill';
+    label.textContent = 'Idle';
+
+    clearInterval(scanInterval);
+  }
+}
+
+// PRODUCT / TILT
+function setProduct(p) {
+  currentProduct = p;
+  ['VEL','REF','SRV'].forEach(id=>document.getElementById('prod'+id).classList.toggle('active',id===p));
+  buildLegend();
+  if (radarData) drawRadar(radarData, [], p);
+}
+function setTilt(btn) {
+  document.querySelectorAll('.radar-toolbar .seg-btn').forEach(b=>{ if(['0.5°','1.5°','2.4°','3.4°'].includes(b.textContent)) b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+// LEGEND
+function buildLegend() {
+  const s = currentProduct==='REF'?REF_COLORS:VEL_COLORS;
+  document.getElementById('legendLabel').textContent = currentProduct==='REF'?'dBZ':'kt';
+  const bar = document.getElementById('legendBar');
+  bar.innerHTML = '';
+  const min=s[0].v, max=s[s.length-1].v;
+  for(let i=0;i<=24;i++){
+    const seg=document.createElement('div'); seg.className='legend-seg';
+    seg.style.background=velToColor(min+(max-min)*(i/24),currentProduct);
+    bar.appendChild(seg);
+  }
+}
+
+// STATION LIST
+function buildStations() {
+  document.getElementById('stationList').innerHTML = STATIONS.map((s,i)=>`
+    <div class="station-item ${s===activeStation?'active':''}" onclick="selectStation(${i})">
+      <div class="station-dot dot-${s.status}"></div>
+      <div class="station-info">
+        <div class="station-id">${s.id}</div>
+        <div class="station-name">${s.name}</div>
+      </div>
+      <div class="station-badge badge-${s.status}">${s.status}</div>
+    </div>
+  `).join('');
+}
+function selectStation(i) {
+  activeStation = STATIONS[i];
+  buildStations();
+  if (isScanning) runScan();
+}
+
+// Mouse coords handled by Leaflet mousemove
+
+// TOAST
+function showToast(title, body, type) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast t-${type}`;
+  const icon = type==='danger'?'tornado':'warning';
+  t.innerHTML = `<div class="toast-title"><span class="material-symbols-rounded fi">${icon}</span>${title}</div><div class="toast-body">${body}</div>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},5000);
+}
+
+// SLIDERS
+document.getElementById('shearThresh').addEventListener('input', e => {
+  document.getElementById('shearVal').textContent = (+e.target.value).toFixed(3)+' s⁻¹';
+  drawShearChart();
+});
+document.getElementById('depthThresh').addEventListener('input', e => document.getElementById('depthVal').textContent = e.target.value+' km');
+document.getElementById('confThresh').addEventListener('input', e => document.getElementById('confVal').textContent = e.target.value+'%');
+
+window.addEventListener('resize', () => { sigMap && sigMap.invalidateSize(); });
+
+
+// ── Search + Recent Searches ─────────────────────────────────────────────────
+const sBar   = document.getElementById('search-bar');
+const sugBox = document.getElementById('suggestions');
+let sugs = [], selIdx = -1, sCtrl = null;
+
+const RECENTS_KEY = 'jweather_recents';
+const MAX_RECENTS = 5;
+function getRecents() { try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch { return []; } }
+function saveRecent(loc) {
+  let r = getRecents().filter(x => x.label !== loc.label);
+  r.unshift(loc);
+  if (r.length > MAX_RECENTS) r = r.slice(0, MAX_RECENTS);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(r));
+}
+function removeRecent(label) {
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(getRecents().filter(r => r.label !== label)));
+}
+
+
+// ── Recents bar (chips below search) ─────────────────────────────────────────
+function renderRecentsBar() {
+  const bar = document.getElementById('recents-bar');
+  if (!bar) return;
+  const recents = getRecents();
+  bar.innerHTML = '';
+  if (!recents.length) { bar.classList.remove('visible'); return; }
+
+  recents.slice(0, 3).forEach(loc => {
+    const chip = document.createElement('button');
+    chip.className = 'recent-chip';
+    const city = loc.city || loc.label.split(',')[0];
+    chip.innerHTML = `<span class="material-symbols-rounded">history</span>${city}`;
+    chip.addEventListener('click', () => pick(loc));
+    bar.appendChild(chip);
+  });
+
+  const clear = document.createElement('button');
+  clear.className = 'recents-clear';
+  clear.textContent = 'Clear';
+  clear.addEventListener('click', () => {
+    localStorage.removeItem(RECENTS_KEY);
+    renderRecentsBar();
+  });
+  bar.appendChild(clear);
+  bar.classList.add('visible');
+}
+function pick(loc) {
+  saveRecent(loc);
+  renderRecentsBar();
+  localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+  window.location.href = 'index.html';
+}
+
+function parseNominatim(item) {
+  const a = item.address || {};
+  const city  = a.city || a.town || a.village || a.county || item.display_name.split(',')[0];
+  const state = a.state || '';
+  const label = state ? `${city}, ${state}` : city;
+  return { label, city, state, lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+}
+
+function renderSugs() {
+  sugBox.innerHTML = '';
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  if (!sugs.length && !recents.length) { sugBox.style.display='none'; return; }
+
+  // Search results section
+  if (sugs.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label';
+    label.textContent = 'Locations';
+    sugBox.appendChild(label);
+    sugs.forEach((loc, i) => {
+      const li = document.createElement('li');
+      if (i===selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
+      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc); });
+      sugBox.appendChild(li);
+    });
+  }
+
+  // Recents section below
+  if (recents.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label';
+    label.textContent = 'Recent Searches';
+    sugBox.appendChild(label);
+    recents.forEach((loc, i) => {
+      const li = document.createElement('li');
+      const allIdx = sugs.length + i;
+      if (allIdx===selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">history</span><span class="sug-city">${loc.label}</span><button class="sug-remove" title="Remove">✕</button>`;
+      li.querySelector('.sug-remove').addEventListener('mousedown', e => {
+        e.stopPropagation(); e.preventDefault();
+        removeRecent(loc.label);
+        sugs = sugs.filter(s => s.label !== loc.label);
+        renderSugs();
+      });
+      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc); });
+      sugBox.appendChild(li);
+    });
+  }
+
+  sugBox.style.display = 'block';
+}
+
+function showRecents() { sugs = []; renderSugs(); }
+
+sBar.addEventListener('focus', () => { if (sBar.value.trim().length < 2) showRecents(); });
+sBar.addEventListener('input', e => {
+  const q = e.target.value.trim();
+  if (q.length < 2) { sugs = []; renderSugs(); return; }
+  renderSugs(); // show recents immediately
+  if (sCtrl) sCtrl.abort();
+  sCtrl = new AbortController();
+  setTimeout(async () => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=8&countrycodes=us`, { signal: sCtrl.signal, headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' } });
+      const data = await res.json();
+      const seen = new Set();
+      sugs = [];
+      for (const x of data) {
+        const p = parseNominatim(x);
+        if (!seen.has(p.label)) { seen.add(p.label); sugs.push(p); }
+        if (sugs.length >= 6) break;
+      }
+      selIdx = -1; renderSugs();
+    } catch(e) { if (e.name !== 'AbortError') console.error(e); }
+  }, 280);
+});
+sBar.addEventListener('keydown', e => {
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  const all = [...sugs, ...recents];
+  if (!all.length) return;
+  if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%all.length; renderSugs(); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+all.length)%all.length; renderSugs(); }
+  else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx]); else if (all[0]) pick(all[0]); }
+  else if (e.key==='Escape') { sugBox.style.display='none'; selIdx=-1; }
+});
+document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.target !== sBar) { sugBox.style.display = 'none'; selIdx = -1; } });
+renderRecentsBar();
+
+
+// ── Disclaimer ───────────────────────────────────────────────────────────────
+(function() {
+  const DISC_KEY = 'jvor_disclaimer_acked';
+  const overlay  = document.getElementById('disclaimer-overlay');
+  const ackBtn   = document.getElementById('disc-ack-btn');
+  const checkbox = document.getElementById('disc-dont-show');
+
+  if (localStorage.getItem(DISC_KEY) === '1') {
+    overlay.style.display = 'none';
+    return;
+  }
+
+  ackBtn.addEventListener('click', () => {
+    if (checkbox.checked) localStorage.setItem(DISC_KEY, '1');
+    overlay.style.display = 'none';
+  });
+})();
+
+// INIT
+buildStations();
+drawEmptyRadar();
+
+  
+
+  coming-soon-toast');
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+document.querySelectorAll('[data-coming-soon]').forEach(el => {
+  el.addEventListener('click', e => { e.preventDefault(); showComingSoon(); });
+});
+</script>
+</script>
+
+<!-- ── Disclaimer Modal ──────────────────────────────────────── -->
+<div id="disclaimer-overlay">
+  <div id="disclaimer-box">
+    <div class="disc-header">
+      <span class="material-symbols-rounded">warning</span>
+      <div class="disc-header-text">
+        <div class="disc-header-title">Experimental Tool</div>
+        <div class="disc-header-sub">jVOR Beta — Read before continuing</div>
+      </div>
+    </div>
+    <div class="disc-body">
+      <p><strong>jVOR is an experimental research tool</strong> and is not intended for use in making safety decisions or taking protective action.</p>
+      <p>Rotation signatures displayed here are algorithmically derived from simulated data and <strong>may be inaccurate, delayed, or missing entirely.</strong> This tool does not replace official NWS warnings, trained meteorological analysis, or any certified severe weather detection system.</p>
+      <p><strong>Always rely on official sources</strong> such as the National Weather Service, local emergency management, and NOAA Weather Radio for life-safety decisions.</p>
+      <label class="disc-ack-check">
+        <input type="checkbox" id="disc-dont-show"> 
+        <span>Don't show this again on this device</span>
+      </label>
+      <button class="disc-ack-btn" id="disc-ack-btn">I Understand — Continue to jVOR</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
