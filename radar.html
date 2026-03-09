@@ -490,7 +490,7 @@ map.getPane('labelPane').style.pointerEvents = 'none';
         attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }
     ).addTo(map);
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}.png',
+      'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png',
       { subdomains:'abcd', maxZoom:19, pane:'labelPane', opacity:0.9 }
     ).addTo(map);
   };

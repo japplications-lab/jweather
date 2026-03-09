@@ -774,7 +774,7 @@ function makeBaseTiles() {
 function makeLabelTiles() {
   // Voyager labels-only — city names, roads, POIs on top of everything
   return L.tileLayer(
-    `https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}${r}.png`,
+    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,
     {
       subdomains:'abcd', maxZoom:19,
       r: window.devicePixelRatio > 1 ? '@2x' : '',
