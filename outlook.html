@@ -122,7 +122,7 @@
     .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
 
     /* ── LEFT SIDEBAR ── */
-    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
     .sidebar::-webkit-scrollbar{width:3px;}
     .sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
 
@@ -1147,7 +1147,10 @@ function buildLegend(geojson, mode) {
     cigEntry.innerHTML = `
       <div class="legend-swatch" style="flex-shrink:0;background:#fff;border:1.5px solid #555;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(-45deg,#333 0px,#333 2px,#fff 2px,#fff 6px);"></div>
       <span class="legend-label" style="font-weight:600;color:var(--text-2);">${cigLabel}</span>
-      <span style="color:var(--red);font-weight:800;margin-left:auto;padding-left:4px;font-size:1rem;line-height:1;">!</span>`;
+      <svg style="margin-left:auto;padding-left:4px;flex-shrink:0;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 1L17 15H1L9 1Z" fill="#e5182a" stroke="#e5182a" stroke-linejoin="round"/>
+        <text x="9" y="13" text-anchor="middle" font-size="9" font-weight="900" font-family="system-ui,sans-serif" fill="white">!</text>
+      </svg>`;
     el.appendChild(cigEntry);
   }
 }
