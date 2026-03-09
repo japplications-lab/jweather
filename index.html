@@ -174,11 +174,11 @@
     .alert-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
     /* Tornado Warning row */
     @keyframes pulse-tornado-row {
-      0%   { background: #e5182a; }
-      50%  { background: #ff3344; }
-      100% { background: #e5182a; }
+      0%   { background: #e5182a; box-shadow: none; }
+      50%  { background: #ff2233; box-shadow: 0 0 12px rgba(229,24,42,0.7); }
+      100% { background: #e5182a; box-shadow: none; }
     }
-    .alert-row-tornado { background: #e5182a; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tornado-row 0.7s ease-in-out 3; }
+    .alert-row-tornado { background: #e5182a; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tornado-row 0.8s ease-in-out 3; }
     .alert-row-tornado .alert-event { color: #fff; font-weight: 700; }
     .alert-row-tornado .alert-expires { color: rgba(255,255,255,0.75); }
     .alert-row-tornado .alert-pip { display: none; }
@@ -187,17 +187,17 @@
     .alert-row-tornado:hover { background: #c8101f !important; }
     /* Severe Thunderstorm Warning row */
     @keyframes pulse-tstm-row {
-      0%   { background: #d4a000; }
-      50%  { background: #f0bc00; }
-      100% { background: #d4a000; }
+      0%   { background: #e07800; box-shadow: none; }
+      50%  { background: #ff8c00; box-shadow: 0 0 12px rgba(255,140,0,0.7); }
+      100% { background: #e07800; box-shadow: none; }
     }
-    .alert-row-tstm { background: #d4a000; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tstm-row 0.7s ease-in-out 3; }
+    .alert-row-tstm { background: #e07800; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tstm-row 0.8s ease-in-out 3; }
     .alert-row-tstm .alert-event { color: #fff; font-weight: 700; }
-    .alert-row-tstm .alert-expires { color: rgba(255,255,255,0.8); }
+    .alert-row-tstm .alert-expires { color: rgba(255,255,255,0.85); }
     .alert-row-tstm .alert-pip { display: none; }
     .alert-row-tstm .alert-type-icon { font-size: 18px; color: #fff; flex-shrink: 0; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
     .alert-row-tstm .alert-chevron { color: rgba(255,255,255,0.7); }
-    .alert-row-tstm:hover { background: #b08800 !important; }
+    .alert-row-tstm:hover { background: #c06800 !important; }
     .alert-row:first-child { padding-top: 4px; }
     .alert-row:last-child { border-bottom: none; padding-bottom: 0; }
     .alert-row:hover { background: var(--red-dim); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: var(--r-xs); }
@@ -925,7 +925,15 @@ function renderAlerts(data, spcResult) {
         ? `<span class="material-symbols-rounded alert-type-icon">bolt</span>`
         : `<div class="alert-pip"></div>`;
     row.innerHTML = `${leadIcon}<div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
-    row.addEventListener('click', () => showModal(i)); c.appendChild(row);
+    row.addEventListener('click', () => showModal(i));
+    c.appendChild(row);
+    // Force animation to restart in case element was already in DOM
+    if (isTornado || isTstm) {
+      void row.offsetWidth; // trigger reflow
+      row.style.animation = 'none';
+      void row.offsetWidth;
+      row.style.animation = '';
+    }
   });
 
   // Show tornado overlay if active warning found
