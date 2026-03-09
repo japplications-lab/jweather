@@ -387,24 +387,34 @@ const map = L.map('main-map', {
   attributionControl: false,
 });
 
-// Base tile
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}{r}.png', {
-  subdomains: 'abcd', maxZoom: 19, pane: 'tilePane',
-}).addTo(map);
+// Pane for labels to sit above watch polygons
+map.createPane('labelPane');
+map.getPane('labelPane').style.zIndex = 450;
+map.getPane('labelPane').style.pointerEvents = 'none';
+
+const retina = window.devicePixelRatio > 1 ? '@2x' : '';
+
+// Base tile — CARTO dark matter (no labels)
+L.tileLayer(
+  `https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}${retina}.png`,
+  { subdomains: 'abcd', maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' }
+).addTo(map);
 
 // State borders
 fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
   .then(r => r.json())
   .then(data => {
     L.geoJSON(data, {
-      style: { color: 'rgba(255,255,255,0.18)', weight: 0.7, fill: false },
+      style: { color: 'rgba(255,255,255,0.22)', weight: 0.8, fill: false },
     }).addTo(map);
   }).catch(() => {});
 
-// Label tile on top
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}{r}.png', {
-  subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', opacity: 0.8,
-}).addTo(map);
+// Label tile on top of everything
+L.tileLayer(
+  `https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}${retina}.png`,
+  { subdomains: 'abcd', maxZoom: 19, pane: 'labelPane', opacity: 0.85 }
+).addTo(map);
 
 // ─────────────────────────────────────────────
 // STATE
