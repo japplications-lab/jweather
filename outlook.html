@@ -1101,7 +1101,7 @@ function buildLegend(geojson, mode) {
     cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     cigEntry.innerHTML = `
       <div style="width:13px;height:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 13 13" width="13" height="13" xmlns="http://www.w3.org/2000/svg"><polygon points="6.5,1 12.5,12 0.5,12" fill="#e5182a" stroke="#b00"/><text x="6.5" y="11" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui">!</text></svg></div>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span><span style="color:var(--red);font-weight:700;margin-left:4px;">!</span>`;
+      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>`;
     el.appendChild(cigEntry);
   }
 }
@@ -1395,7 +1395,7 @@ async function loadSigLayer(day, mode) {
     hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     hatchEntry.innerHTML = `
       <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
-      <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
+      <span style="color:var(--red);font-weight:800;margin-right:2px;">!</span>
       <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
     legendEl.appendChild(hatchEntry);
     const sigEntry = document.createElement('div');
