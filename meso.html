@@ -35,7 +35,7 @@
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-    .logo-name span{color:var(--red);}
+    .logo-name span{color:#fff;}
     .search-wrap{flex:1;max-width:440px;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
@@ -457,6 +457,15 @@ async function fetchMDs() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gj = await res.json();
     mdData = (gj.features || []).filter(f => f.geometry);
+    // Debug: log all property keys and a sample feature so we can fix field names
+    if (mdData.length > 0) {
+      console.log('[meso] property keys:', Object.keys(mdData[0].properties));
+      console.log('[meso] sample props:', JSON.stringify(mdData[0].properties, null, 2));
+    } else if (gj.features?.length > 0) {
+      // Features without geometry — log those too
+      console.log('[meso] no-geometry feature keys:', Object.keys(gj.features[0].properties));
+      console.log('[meso] no-geometry sample:', JSON.stringify(gj.features[0].properties, null, 2));
+    }
     renderMDs();
     document.getElementById('md-updated').textContent =
       `Updated ${new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })}`;
@@ -520,10 +529,15 @@ function renderMDs() {
   list.innerHTML = mdData.map((f, idx) => {
     const p = f.properties || {};
     const mdNum = getMdId(f);
-    const concern = p.CONCERNING || p.concerning || p.PROD_TYPE || 'Mesoscale Discussion';
-    const area = p.AFFECTED || p.affected || p.AREA_DESC || p.areaDesc || extractAreaFromProps(p);
-    const issued = p.ISSUE_TIME || p.issueTime || p.ISSUANCE_TIME || null;
-    const expires = p.EXPIRE_TIME || p.expireTime || p.EXPIRATION_TIME || null;
+    // CONCERNING = subject like "Severe Thunderstorms / Tornadoes"
+    // PROD_TYPE = "MESOSCALE DISCUSSION" — not useful as badge, skip it
+    const concern = p.CONCERNING || p.concerning || p.TITLE || p.SUBJECT || null;
+    const area = p.AFFECTED || p.affected || p.AREA_DESC || p.areaDesc
+              || p.WFO_AREA || p.STATES || p.STATE || p.AREA
+              || extractAreaFromProps(p);
+    const issued = p.ISSUE_TIME || p.issueTime || p.ISSUANCE_TIME || p.ISSUETIME || null;
+    const expires = p.EXPIRE_TIME_UTC || p.EXPIRE_TIME || p.expireTime
+                 || p.EXPIRATION_TIME || p.EXPIRETIME || null;
     const expDate = expires ? new Date(expires) : null;
     const ageMin = expDate ? (expDate - Date.now()) / 60000 : null;
     const expiringSoon = ageMin !== null && ageMin < 60;
@@ -537,7 +551,7 @@ function renderMDs() {
         <div class="md-card-inner">
           <div class="md-card-header">
             <span class="md-num">MD #${mdNum || idx+1}</span>
-            <span class="md-concern-badge" title="${concern}">${concern}</span>
+            ${concern ? `<span class="md-concern-badge" title="${concern}">${concern}</span>` : ''}
           </div>
           <div class="md-card-area">${area || 'Area not specified'}</div>
           <div class="md-card-footer">
@@ -565,9 +579,17 @@ function getMdId(feature) {
 }
 
 function extractAreaFromProps(p) {
-  // Try to extract area description from any available field
-  for (const key of ['AREA', 'AREAFCST', 'STATES', 'STATE', 'PROD_SUBTYPE']) {
-    if (p[key]) return p[key];
+  // SPC MapServer known fields — try all variations
+  for (const key of ['AREA', 'AREAFCST', 'STATES', 'STATE', 'WFO', 'WFO_AREA',
+                      'PROD_SUBTYPE', 'REGION', 'LOCATIONS', 'LOCATION', 'AREA_DESC']) {
+    if (p[key] && typeof p[key] === 'string' && p[key].trim()) return p[key].trim();
+  }
+  // Last resort: scan all keys for anything that looks like a state/area description
+  for (const [k, v] of Object.entries(p)) {
+    if (typeof v === 'string' && v.length > 3 && v.length < 120 &&
+        /[A-Z]{2}/.test(v) && !['PROD_TYPE','OBJECTID'].includes(k)) {
+      return v;
+    }
   }
   return '';
 }
@@ -590,9 +612,12 @@ function selectMd(id) {
 
   const p = feature.properties || {};
   const mdNum = getMdId(feature);
-  const concern = p.CONCERNING || p.concerning || p.PROD_TYPE || 'Mesoscale Discussion';
-  const area = p.AFFECTED || p.affected || p.AREA_DESC || p.areaDesc || extractAreaFromProps(p) || 'Area not specified';
-  const expires = p.EXPIRE_TIME || p.expireTime || p.EXPIRATION_TIME || null;
+  const concern = p.CONCERNING || p.concerning || p.TITLE || p.SUBJECT || null;
+  const area = p.AFFECTED || p.affected || p.AREA_DESC || p.areaDesc
+            || p.WFO_AREA || p.STATES || p.STATE || p.AREA
+            || extractAreaFromProps(p) || 'Area not specified';
+  const expires = p.EXPIRE_TIME_UTC || p.EXPIRE_TIME || p.expireTime
+               || p.EXPIRATION_TIME || p.EXPIRETIME || null;
   const expDate = expires ? new Date(expires) : null;
   const expStr = expDate ? expDate.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : 'No expiry';
   const year = new Date().getUTCFullYear();

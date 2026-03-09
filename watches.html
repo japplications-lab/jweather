@@ -416,6 +416,10 @@
 // ─────────────────────────────────────────────
 // NWS alerts API — CORS-enabled, no proxy needed
 const WATCHES_URL = 'https://api.weather.gov/alerts/active';
+// SPC watch polygons via Cloudflare Worker proxy (CORS-blocked direct)
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+// SPC Watches MapServer — layer 0 has active watch polygons with WATCH_NUM field
+const SPC_WATCHES_URL = `${WORKER_URL}/noaa/vector/rest/services/watches/SPC_Watches/MapServer/0/query`;
 
 const WATCH_STYLES = {
   'Tornado Watch':             { cls:'tor', fill:'#ff0000', stroke:'#cc0000', label:'Tornado Watch' },
@@ -485,46 +489,77 @@ let selectedWatchId = null;
 // ─────────────────────────────────────────────
 // FETCH WATCHES
 // ─────────────────────────────────────────────
-// Fetch county polygons for a watch from its affectedZones URLs.
-// Returns a MultiPolygon geometry covering all affected counties.
-async function fetchCountyGeometry(feature) {
+// Fetch SPC watch box polygons from the ArcGIS MapServer.
+// Returns Map of watchNum(int) -> GeoJSON geometry, or empty Map on failure.
+async function fetchSpcWatchPolygons() {
+  try {
+    const url = `${SPC_WATCHES_URL}?where=1%3D1&outFields=WATCH_NUM,TYPE&f=geojson&outSR=4326`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const gj = await res.json();
+    const map = new Map();
+    for (const feat of (gj.features || [])) {
+      if (!feat.geometry) continue;
+      const num = feat.properties?.WATCH_NUM ?? feat.properties?.watch_num;
+      if (num != null) map.set(parseInt(num, 10), feat.geometry);
+    }
+    console.log('[watches] SPC polygon keys:', [...map.keys()]);
+    return map;
+  } catch (e) {
+    console.warn('[watches] SPC MapServer failed, will use county fallback:', e);
+    return new Map();
+  }
+}
+
+// Fallback geometry: merge county zone polygons for one alert feature.
+async function mergeZoneGeometry(feature) {
   const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   const zoneUrls = feature.properties.affectedZones || [];
   if (!zoneUrls.length) return null;
-  const responses = await Promise.allSettled(
-    zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null))
-  );
-  const coords = [];
-  for (const r of responses) {
-    if (r.status !== 'fulfilled' || !r.value?.geometry) continue;
-    const g = r.value.geometry;
-    if (g.type === 'Polygon') coords.push(g.coordinates);
-    else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => coords.push(p));
-  }
-  if (!coords.length) return null;
-  return coords.length === 1
-    ? { type: 'Polygon', coordinates: coords[0] }
-    : { type: 'MultiPolygon', coordinates: coords };
+  try {
+    const responses = await Promise.all(
+      zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null).catch(() => null))
+    );
+    const coords = [];
+    for (const z of responses) {
+      if (!z?.geometry) continue;
+      const g = z.geometry;
+      if (g.type === 'Polygon') coords.push(g.coordinates);
+      else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => coords.push(p));
+    }
+    if (!coords.length) return null;
+    return coords.length === 1
+      ? { type: 'Polygon', coordinates: coords[0] }
+      : { type: 'MultiPolygon', coordinates: coords };
+  } catch (e) { return null; }
 }
 
 async function fetchWatches() {
   setLoading(true);
   const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   try {
-    const [torRes, svrRes] = await Promise.all([
+    const [torRes, svrRes, spcPolygons] = await Promise.all([
       fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
       fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
+      fetchSpcWatchPolygons(),
     ]);
     if (!torRes.ok) throw new Error(`Tornado watch HTTP ${torRes.status}`);
     if (!svrRes.ok) throw new Error(`SVR watch HTTP ${svrRes.status}`);
     const [torData, svrData] = await Promise.all([torRes.json(), svrRes.json()]);
     const allFeatures = [...(torData.features || []), ...(svrData.features || [])];
 
-    // Attach county geometry to every feature
+    console.log('[watches] NWS features:', allFeatures.length, '| SPC polys:', spcPolygons.size);
+
+    // Attach geometry: SPC box polygon first, then existing geometry, then county merge fallback
     const resolved = await Promise.all(allFeatures.map(async f => {
-      if (f.geometry) return f;
-      const geom = await fetchCountyGeometry(f);
-      return { ...f, geometry: geom };
+      const watchNum = extractWatchNum(f.properties);
+      console.log('[watches] alert:', f.properties.event, 'watchNum:', watchNum);
+      const spcGeom = watchNum != null ? spcPolygons.get(watchNum) : null;
+      if (spcGeom) { console.log('[watches] using SPC geom for', watchNum); return { ...f, geometry: spcGeom }; }
+      if (f.geometry) { console.log('[watches] using NWS geom'); return f; }
+      console.log('[watches] falling back to county merge for', watchNum);
+      const merged = await mergeZoneGeometry(f);
+      return merged ? { ...f, geometry: merged } : f; // keep feature even without geometry so list still shows
     }));
 
     watchData = resolved.sort((a, b) => {
