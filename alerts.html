@@ -424,7 +424,7 @@ async function fetchAlerts() {
   try {
     // Fetch all 4 event types + counties GeoJSON in parallel
     const fetches = EVENTS.map(evt =>
-      fetch(`${NWS_URL}?event=${encodeURIComponent(evt)}&status=actual&message_type=alert`, { headers })
+      fetch(`${NWS_URL}?event=${encodeURIComponent(evt)}&status=actual`, { headers })
         .then(r => r.ok ? r.json() : { features:[] })
         .catch(() => ({ features:[] }))
     );
