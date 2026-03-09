@@ -24,66 +24,6 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;overflow:hidden;}
-
-    /* ── MOBILE NAV MENU ── */
-    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;flex-shrink:0;}
-    .mob-menu-btn .material-symbols-rounded{font-size:18px;color:var(--text-3);}
-    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.6);}
-    .mob-menu-panel{position:absolute;top:var(--header);right:0;width:240px;background:var(--surface);border-left:1px solid var(--border-2);border-bottom:1px solid var(--border-2);border-radius:0 0 0 var(--r);padding:8px 0;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
-    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:0.82rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
-    .mob-menu-panel a:last-child{border-bottom:none;}
-    .mob-menu-panel a:hover,.mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
-    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
-
-    /* ── MOBILE BOTTOM CONTROL BAR (outlook only) ── */
-    .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);box-shadow:0 -4px 20px rgba(0,0,0,0.4);}
-    .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
-    .mob-day-tab{flex:1;padding:9px 4px 7px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.68rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.06em;transition:color .15s,background .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
-    .mob-day-tab.active{color:var(--red);border-bottom-color:var(--red);}
-    .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;}
-    .mob-mode-row::-webkit-scrollbar{display:none;}
-    .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
-    .mob-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
-    .mob-mode-btn .material-symbols-rounded{font-size:13px;}
-
-    /* ── MOBILE OVERLAY (sidebar) ── */
-    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:490;opacity:0;transition:opacity 0.25s;pointer-events:none;}
-    .sidebar-overlay.open{opacity:1;pointer-events:auto;}
-
-    @media(max-width:640px){
-      /* Header */
-      .header-inner{padding:0 12px;gap:8px;}
-      .search-wrap{display:none;}
-      .header-nav{display:none;}
-      .mob-menu-btn{display:flex;}
-
-      /* Nav dropdown: switch to click-based */
-      .nav-dropdown-menu-inner{opacity:1 !important;pointer-events:auto !important;transform:none !important;}
-
-      /* Sidebar hidden completely on mobile — replaced by bottom bar */
-      .sidebar{display:none !important;}
-      .map-panel{width:100%;}
-
-      /* Bottom controls visible */
-      .mob-controls{display:block;}
-
-      /* Push map up so bottom bar doesn't cover it */
-      .app-body{padding-bottom:90px;}
-
-      /* Legend above bottom bar */
-      .map-legend{bottom:100px;left:10px;padding:8px 10px;max-width:calc(100vw - 20px);}
-      .legend-title{font-size:0.6rem;}
-      .legend-items{gap:3px;}
-      .legend-item{gap:6px;}
-      .legend-swatch{width:13px;height:13px;}
-      .legend-label{font-size:0.66rem;}
-      .legend-num{display:none;}
-
-      /* Map topbar pill */
-      .map-topbar{top:8px;left:8px;gap:5px;}
-      .map-context-pill{font-size:0.65rem;padding:4px 9px;}
-    }
     body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
     .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
 
@@ -127,6 +67,64 @@
     .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
     .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
 
+
+    /* ─── MOBILE MENU BUTTON & PANEL ─── */
+    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;}
+    .mob-menu-btn .material-symbols-rounded{font-size:19px;color:var(--text-3);}
+    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.55);}
+    .mob-menu-panel{position:absolute;top:0;right:0;width:250px;height:100%;background:var(--surface);border-left:1px solid var(--border-2);padding:12px 0;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5);}
+    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:0.83rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
+    .mob-menu-panel a:last-child{border-bottom:none;}
+    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
+    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
+
+    /* On desktop, bar divs are transparent wrappers */
+    .mob-bar-1{display:contents;}
+    .mob-bar-2{display:contents;}
+    /* ─── TWO-BAR MOBILE HEADER ─── */
+    @media(max-width:640px){
+      /* Header becomes two rows */
+      header{height:auto !important;}
+      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
+      /* Row 1: logo + hamburger */
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
+      /* Row 2: search bar */
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      /* Hide desktop nav entirely */
+      .header-nav{display:none !important;}
+      /* Show hamburger */
+      .mob-menu-btn{display:flex;margin-left:auto;}
+      /* Always show logo text */
+      .logo-name{display:block !important;}
+    }
+
+    /* ── MOBILE BOTTOM CONTROLS ── */
+    .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);box-shadow:0 -4px 20px rgba(0,0,0,0.4);}
+    .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
+    .mob-day-tab{flex:1;padding:9px 4px 7px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+    .mob-day-tab.active{color:var(--red);border-bottom-color:var(--red);}
+    .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;}
+    .mob-mode-row::-webkit-scrollbar{display:none;}
+    .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
+    .mob-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
+    .mob-mode-btn .material-symbols-rounded{font-size:13px;}
+    @media(max-width:640px){
+      .sidebar{display:none !important;}
+      .map-panel{width:100%;}
+      .mob-controls{display:block;}
+      .app-body{padding-bottom:88px;}
+      .map-legend{bottom:98px;left:10px;padding:8px 10px;max-width:calc(100vw - 20px);}
+      .legend-title{font-size:0.6rem;}
+      .legend-items{gap:3px;}
+      .legend-item{gap:6px;}
+      .legend-swatch{width:13px;height:13px;}
+      .legend-label{font-size:0.66rem;}
+      .legend-num{display:none;}
+      .map-topbar{top:8px;left:8px;gap:5px;}
+      .map-context-pill{font-size:0.65rem;padding:4px 9px;}
+    }
     /* ── APP BODY: sidebar + map ── */
     .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
 
@@ -346,39 +344,43 @@
 <!-- ── HEADER ── -->
 <header>
   <div class="header-inner">
-    <a class="logo" href="index.html">
-      <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
-      <span class="logo-name">j<span>Weather</span></span>
-    </a>
-    <div class="search-wrap">
-      <div class="search-row">
-        <span class="material-symbols-rounded">search</span>
-        <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-      </div>
-      <ul id="suggestions"></ul>
-    </div>
-    <nav class="header-nav">
-      <a href="index.html">Forecast</a>
-      <div class="nav-dropdown">
-        <button class="nav-dropdown-btn">
-          Severe Weather <span class="material-symbols-rounded">expand_more</span>
-        </button>
-        <div class="nav-dropdown-menu">
-          <div class="nav-dropdown-menu-inner">
-            <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-            <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-            <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+    <!-- Row 1: logo + nav + hamburger -->
+    <div class="mob-bar-1">
+      <a class="logo" href="index.html">
+        <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+        <span class="logo-name">j<span>Weather</span></span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">Forecast</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-btn">
+            Severe Weather <span class="material-symbols-rounded">expand_more</span>
+          </button>
+          <div class="nav-dropdown-menu">
+            <div class="nav-dropdown-menu-inner">
+              <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+              <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+              <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+              <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+            </div>
           </div>
         </div>
+        <a href="#" data-coming-soon>Contact</a>
+        <a href="#" data-coming-soon>About</a>
+      </nav>
+      <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
+    </div><!-- /.mob-bar-1 -->
+    <!-- Row 2: search bar -->
+    <div class="mob-bar-2">
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions"></ul>
       </div>
-      <a href="#" data-coming-soon>Contact</a>
-      <a href="#" data-coming-soon>About</a>
-    </nav>
-    <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu">
-      <span class="material-symbols-rounded">menu</span>
-    </button>
+    </div><!-- /.mob-bar-2 -->
   </div>
 </header>
 
@@ -395,9 +397,6 @@
     <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
   </div>
 </div>
-
-<!-- Mobile sidebar overlay -->
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <!-- ── APP BODY ── -->
 <div class="app-body">
@@ -515,7 +514,6 @@
   </div>
 
 </div>
-
 <!-- Mobile bottom controls -->
 <div class="mob-controls" id="mob-controls">
   <div class="mob-day-tabs">
@@ -1749,89 +1747,60 @@ function pick(l) {
   window.location.href = 'index.html';
 }
 
-// ── MOBILE NAV MENU ──
-(function() {
-  const btn     = document.getElementById('mob-menu-btn');
-  const overlay = document.getElementById('mob-menu-overlay');
-  if (!btn || !overlay) return;
-  btn.addEventListener('click', e => { e.stopPropagation(); overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block'; });
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+// ── Mobile nav menu ──
+(function(){
+  var btn=document.getElementById('mob-menu-btn');
+  var overlay=document.getElementById('mob-menu-overlay');
+  if(!btn||!overlay)return;
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    overlay.style.display=overlay.style.display==='block'?'none':'block';
+  });
+  overlay.addEventListener('click',function(e){
+    if(e.target===overlay)overlay.style.display='none';
+  });
 })();
 
-// ── MOBILE BOTTOM CONTROLS ──
-(function() {
-  const dayTabs  = document.querySelectorAll('.mob-day-tab');
-  const modeBtns = document.querySelectorAll('.mob-mode-btn');
-  const modeRow  = document.getElementById('mob-mode-row');
+// ── Mobile bottom controls ──
+(function(){
+  var dayTabs=document.querySelectorAll('.mob-day-tab');
+  var modeBtns=document.querySelectorAll('.mob-mode-btn');
+  var dayModes={1:['cat','torn','wind','hail'],2:['cat','torn','wind','hail'],3:['cat']};
+  var mobDay=1, mobMode='cat';
 
-  // Mode sets per day (Day 3 only has cat)
-  const dayModes = {
-    1: ['cat','torn','wind','hail'],
-    2: ['cat','torn','wind','hail'],
-    3: ['cat'],
-  };
-
-  let mobDay  = 1;
-  let mobMode = 'cat';
-
-  function updateModeRow() {
-    const allowed = dayModes[mobDay];
-    modeBtns.forEach(b => {
-      const m = b.dataset.mobMode;
-      b.style.display = allowed.includes(m) ? 'flex' : 'none';
-      b.classList.toggle('active', m === mobMode);
+  function syncModes(){
+    var allowed=dayModes[mobDay];
+    modeBtns.forEach(function(b){
+      b.style.display=allowed.includes(b.dataset.mobMode)?'flex':'none';
+      b.classList.toggle('active',b.dataset.mobMode===mobMode);
     });
   }
-
-  dayTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      mobDay = parseInt(tab.dataset.mobDay);
-      // Reset mode to cat if current mode not available for this day
-      if (!dayModes[mobDay].includes(mobMode)) mobMode = 'cat';
-      dayTabs.forEach(t => t.classList.toggle('active', t.dataset.mobDay == mobDay));
-      updateModeRow();
-      // Also sync the desktop sidebar buttons and fire loadHazard
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      const match = document.querySelector(`.cat-btn[data-day="${mobDay}"][data-mode="${mobMode}"]`);
-      if (match) match.classList.add('active');
-      loadHazard(mobDay, mobMode);
+  dayTabs.forEach(function(tab){
+    tab.addEventListener('click',function(){
+      mobDay=parseInt(tab.dataset.mobDay);
+      if(!dayModes[mobDay].includes(mobMode))mobMode='cat';
+      dayTabs.forEach(function(t){t.classList.toggle('active',t.dataset.mobDay==mobDay);});
+      syncModes();
+      loadHazard(mobDay,mobMode);
     });
   });
-
-  modeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      mobMode = btn.dataset.mobMode;
-      modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mobMode === mobMode));
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      const match = document.querySelector(`.cat-btn[data-day="${mobDay}"][data-mode="${mobMode}"]`);
-      if (match) match.classList.add('active');
-      loadHazard(mobDay, mobMode);
+  modeBtns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      mobMode=btn.dataset.mobMode;
+      modeBtns.forEach(function(b){b.classList.toggle('active',b.dataset.mobMode===mobMode);});
+      loadHazard(mobDay,mobMode);
     });
   });
-
-  // Sync day 3 tab label with the dynamic day name
-  const day3NameEl = document.getElementById('day3-name');
-  if (day3NameEl) {
-    const obs = new MutationObserver(() => {
-      const tab = document.querySelector('.mob-day-tab[data-mob-day="3"]');
-      if (tab && day3NameEl.textContent && day3NameEl.textContent !== '—') {
-        tab.textContent = 'Day 3 — ' + day3NameEl.textContent;
-      }
+  // Sync day3 tab label
+  var d3el=document.getElementById('day3-name');
+  if(d3el){
+    var obs=new MutationObserver(function(){
+      var tab=document.querySelector('.mob-day-tab[data-mob-day="3"]');
+      if(tab&&d3el.textContent&&d3el.textContent!=='—')tab.textContent='Day 3 — '+d3el.textContent;
     });
-    obs.observe(day3NameEl, { childList: true, characterData: true, subtree: true });
+    obs.observe(d3el,{childList:true,characterData:true,subtree:true});
   }
-
-  // Keep mobile controls in sync when desktop sidebar buttons are clicked
-  document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      mobDay  = parseInt(btn.dataset.day);
-      mobMode = btn.dataset.mode;
-      dayTabs.forEach(t => t.classList.toggle('active', t.dataset.mobDay == mobDay));
-      updateModeRow();
-    });
-  });
-
-  updateModeRow();
+  syncModes();
 })();
 </script>
 </body>
