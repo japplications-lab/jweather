@@ -310,7 +310,14 @@
     }
     .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
     .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
-    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(255,255,255,0.8) !important;backdrop-filter:blur(4px);}
+    .leaflet-control-attribution{display:none !important;}
+    /* ── CUSTOM ATTRIBUTION ── */
+    .map-attrib-btn{position:absolute;bottom:10px;right:10px;z-index:450;width:22px;height:22px;border-radius:50%;background:rgba(20,22,28,0.75);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);line-height:1;transition:background .15s,color .15s;user-select:none;}
+    .map-attrib-btn:hover{background:rgba(20,22,28,0.92);color:rgba(255,255,255,0.85);}
+    .map-attrib-popup{position:absolute;bottom:36px;right:10px;z-index:451;background:rgba(20,22,28,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;font-size:0.68rem;color:rgba(255,255,255,0.55);white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,0.5);display:none;line-height:1.7;}
+    .map-attrib-popup a{color:rgba(255,255,255,0.7);text-decoration:none;}
+    .map-attrib-popup a:hover{color:#fff;}
+    .map-attrib-popup.open{display:block;}
 
     /* Permanent threat level labels on polygons */
     .poly-label{
@@ -546,6 +553,14 @@
 
     <!-- Loading spinner -->
     <div class="map-loading" id="map-loading"><div class="spin-ring"></div></div>
+
+    <!-- Attribution -->
+    <div class="map-attrib-btn" id="attrib-btn" title="Map attribution">©</div>
+    <div class="map-attrib-popup" id="attrib-popup">
+      © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors<br>
+      © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a><br>
+      Outlook data: <a href="https://www.spc.noaa.gov" target="_blank" rel="noopener">NOAA/SPC</a>
+    </div>
   </div>
 
 </div>
@@ -892,7 +907,7 @@ function initMap() {
     center:[38,-96], zoom:4,
     zoomControl:false,
     scrollWheelZoom:true,
-    attributionControl:true,
+    attributionControl:false,
     minZoom:4,
     maxBounds: MAX_BOUNDS,
     maxBoundsViscosity: 1.0,  // hard stop — no elastic bounce outside bounds
@@ -1885,6 +1900,17 @@ function pick(l) {
   if(tab)tab.addEventListener('click',function(){sheet.classList.contains('open')?close():open();});
   if(bd)bd.addEventListener('click',close);
   document.body.classList.add('has-bottom-nav');
+
+  // Attribution toggle
+  const attribBtn = document.getElementById('attrib-btn');
+  const attribPopup = document.getElementById('attrib-popup');
+  if (attribBtn && attribPopup) {
+    attribBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      attribPopup.classList.toggle('open');
+    });
+    document.addEventListener('click', () => attribPopup.classList.remove('open'));
+  }
 })();
 </script>
 </body>
