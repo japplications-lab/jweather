@@ -1100,8 +1100,9 @@ function buildLegend(geojson, mode) {
     cigEntry.className = 'legend-item legend-active';
     cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     cigEntry.innerHTML = `
-      <svg viewBox="0 0 13 13" width="13" height="13" style="flex-shrink:0" xmlns="http://www.w3.org/2000/svg"><polygon points="6.5,0.5 12.8,12.5 0.2,12.5" fill="#e5182a"/><text x="6.5" y="11.2" text-anchor="middle" font-size="7.5" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>`;
+      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
+      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>
+      <svg viewBox="0 0 13 13" width="13" height="13" style="flex-shrink:0;margin-left:4px;" xmlns="http://www.w3.org/2000/svg"><polygon points="6.5,0.5 12.8,12.5 0.2,12.5" fill="#e5182a"/><text x="6.5" y="11.2" text-anchor="middle" font-size="7.5" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
     el.appendChild(cigEntry);
   }
 }
