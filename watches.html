@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>jWeather — Current Watches</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <style>
+    :root {
+      --red:#e5182a; --red-dim:rgba(229,24,42,0.12); --red-border:rgba(229,24,42,0.25);
+      --header:58px;
+      --bg:#0f1115; --surface:#1a1d24;
+      --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
+      --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
+      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
+      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
+      --blue:#3b82f6; --blue-dim:rgba(59,130,246,0.15);
+      --r:12px; --r-sm:8px; --r-xs:6px;
+      --font:'Geist',system-ui,sans-serif;
+      /* Watch type colors — SPC official */
+      --tor-watch:#ff0000;   --tor-watch-dim:rgba(255,0,0,0.15);   --tor-watch-border:rgba(255,0,0,0.35);
+      --svr-watch:#ffa500;   --svr-watch-dim:rgba(255,165,0,0.15); --svr-watch-border:rgba(255,165,0,0.35);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
+    .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
+    .msr-fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+    /* ── HEADER ── */
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
+    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+    .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+    .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+    .logo-name span{color:var(--red);}
+    .search-wrap{flex:1;max-width:440px;position:relative;}
+    .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
+    .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
+    .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
+    #search-bar{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-bar::placeholder{color:var(--text-4);}
+    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+    #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
+    #suggestions li:last-child{border-bottom:none;}
+    #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
+    #suggestions li .material-symbols-rounded{font-size:13px;color:var(--red);}
+    .sug-section-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-4);padding:8px 14px 4px;}
+    .sug-remove{font-size:11px;color:var(--text-4);background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;font-family:var(--font);line-height:1;flex-shrink:0;}
+    .sug-remove:hover{color:var(--red);background:var(--red-dim);}
+    .sug-city{font-weight:500;flex:1;}
+    .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
+    .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
+    .header-nav a:hover{color:var(--text);background:var(--bg);}
+    .header-nav a.active{color:var(--red);}
+    .nav-dropdown{position:relative;}
+    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--text-3);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
+    .nav-dropdown-btn:hover,.nav-dropdown:hover .nav-dropdown-btn{color:var(--text);background:var(--bg);}
+    .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
+    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
+    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
+    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
+    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
+    .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;}
+    .nav-dropdown-menu a:last-child{border-bottom:none;}
+    .nav-dropdown-menu a.active,.nav-dropdown-menu a:hover{background:var(--red-dim);color:var(--red);}
+    .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
+
+    /* ── MOBILE MENU ── */
+    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;}
+    .mob-menu-btn .material-symbols-rounded{font-size:19px;color:var(--text-3);}
+    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.55);}
+    .mob-menu-panel{position:absolute;top:0;right:0;width:250px;height:100%;background:var(--surface);border-left:1px solid var(--border-2);padding:12px 0;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5);}
+    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:0.83rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
+    .mob-menu-panel a:last-child{border-bottom:none;}
+    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
+    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
+
+    /* ── TWO-BAR MOBILE HEADER ── */
+    .mob-bar-1{display:contents;}
+    .mob-bar-2{display:none;}
+
+    /* ── APP BODY ── */
+    .app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
+
+    /* ── LEFT PANEL ── */
+    .watch-panel{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
+    .watch-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .watch-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
+    .watch-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
+    .watch-list{flex:1;overflow-y:auto;padding:8px;}
+    .watch-list::-webkit-scrollbar{width:4px;}
+    .watch-list::-webkit-scrollbar-track{background:transparent;}
+    .watch-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+    /* Watch cards */
+    .watch-card{border-radius:var(--r-sm);border:1px solid var(--border-2);margin-bottom:6px;cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;}
+    .watch-card:hover{border-color:var(--border-2);background:rgba(255,255,255,0.03);}
+    .watch-card.selected{border-color:var(--red-border);background:var(--red-dim);}
+    .watch-card-bar{height:4px;width:100%;}
+    .watch-card-bar.tor{background:var(--tor-watch);}
+    .watch-card-bar.svr{background:var(--svr-watch);}
+    .watch-card-inner{padding:10px 12px;}
+    .watch-card-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+    .watch-type-badge{font-size:0.58rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
+    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
+    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
+    .watch-num{font-size:0.72rem;font-weight:700;color:var(--text-3);}
+    .watch-card-states{font-size:0.72rem;color:var(--text-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .watch-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);margin-top:5px;}
+    .watch-card-expire .material-symbols-rounded{font-size:12px;}
+    .watch-card-expire.expiring-soon{color:#f59e0b;}
+    .watch-card-expire.expiring-soon .material-symbols-rounded{color:#f59e0b;}
+
+    /* Empty / loading state */
+    .watch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
+    .watch-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
+    .watch-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
+    .watch-empty-sub{font-size:0.72rem;line-height:1.5;}
+    .watch-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem;}
+    .spin-ring{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--red);animation:spin .7s linear infinite;flex-shrink:0;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* Refresh button */
+    .watch-panel-actions{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;}
+    .watch-refresh-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;background:none;border:1px solid var(--border-2);border-radius:var(--r-xs);cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:all .15s;}
+    .watch-refresh-btn:hover{background:var(--bg);color:var(--text);border-color:var(--border-2);}
+    .watch-refresh-btn .material-symbols-rounded{font-size:14px;}
+    .watch-refresh-btn.spinning .material-symbols-rounded{animation:spin .7s linear infinite;}
+
+    /* Updated timestamp */
+    .watch-updated{font-size:0.62rem;color:var(--text-4);text-align:center;padding:5px 8px 0;}
+
+    /* ── MAP ── */
+    .map-panel{flex:1;position:relative;background:#1a2030;}
+    #main-map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
+
+    /* Watch detail panel (right side on desktop, bottom sheet on mobile) */
+    .watch-detail{position:absolute;bottom:20px;right:20px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:400;display:none;overflow:hidden;max-height:calc(100% - 40px);flex-direction:column;}
+    .watch-detail.open{display:flex;}
+    .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
+    .watch-detail-bar.tor{background:var(--tor-watch);}
+    .watch-detail-bar.svr{background:var(--svr-watch);}
+    .watch-detail-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .watch-detail-type{font-size:0.65rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
+    .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
+    .watch-detail-type.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
+    .watch-detail-num{font-size:0.83rem;font-weight:700;color:var(--text);flex:1;}
+    .watch-detail-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;}
+    .watch-detail-close:hover{color:var(--text);}
+    .watch-detail-close .material-symbols-rounded{font-size:17px;}
+    .watch-detail-body{padding:12px 14px 14px;overflow-y:auto;flex:1;}
+    .wd-row{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
+    .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
+    .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
+    .wd-expire-warn{display:flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:600;color:#f59e0b;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:5px;padding:5px 9px;margin-top:4px;}
+    .wd-expire-warn .material-symbols-rounded{font-size:13px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+
+    /* Legend */
+    .map-legend{position:absolute;bottom:20px;left:20px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 14px;z-index:400;min-width:160px;}
+    .legend-title{font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:7px;}
+    .legend-items{display:flex;flex-direction:column;gap:5px;}
+    .legend-item{display:flex;align-items:center;gap:8px;}
+    .legend-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+    .legend-label{font-size:0.72rem;color:var(--text-2);font-weight:500;}
+
+    /* Map topbar status pill */
+    .map-topbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:400;display:flex;gap:8px;pointer-events:none;}
+    .map-status-pill{display:flex;align-items:center;gap:7px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px;font-size:0.73rem;font-weight:600;color:var(--text-3);white-space:nowrap;pointer-events:auto;}
+    .map-status-pill .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .map-status-pill .status-dot.green{background:var(--green);box-shadow:0 0 6px var(--green);}
+    .map-status-pill .status-dot.red{background:var(--red);box-shadow:0 0 6px var(--red);animation:pulse 1.5s ease-in-out infinite;}
+    .map-status-pill .status-dot.amber{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+    /* Leaflet customizations */
+    .leaflet-container{font-family:var(--font);}
+    .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);border:1px solid var(--border-2);font-family:var(--font);padding:0;min-width:220px;max-width:260px;background:var(--surface);}
+    .leaflet-popup-content{margin:0;font-size:0.78rem;}
+    .leaflet-popup-tip{background:var(--surface);}
+    .leaflet-popup-tip-container{display:none;}
+    .popup-bar{height:4px;width:100%;border-radius:10px 10px 0 0;}
+    .popup-bar.tor{background:var(--tor-watch);}
+    .popup-bar.svr{background:var(--svr-watch);}
+    .popup-inner{padding:11px 13px 13px;}
+    .popup-type{font-size:0.58rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:6px;}
+    .popup-type.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
+    .popup-type.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
+    .popup-title{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-0.01em;}
+    .popup-expires{font-size:0.68rem;color:var(--text-4);}
+
+    /* Coming soon toast */
+    #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
+    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
+
+    /* ── MOBILE ── */
+    @media(max-width:640px){
+      header{height:auto !important;}
+      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:10px;}
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      .header-nav{display:none !important;}
+      .logo-name{display:block !important;}
+      .mob-menu-btn{display:flex;margin-left:auto;}
+      /* Sidebar becomes bottom drawer */
+      .watch-panel{position:fixed;bottom:0;left:0;right:0;width:100%;height:280px;border-right:none;border-top:1px solid var(--border-2);z-index:450;transform:translateY(100%);transition:transform .3s ease;}
+      .watch-panel.mob-open{transform:translateY(0);}
+      .map-panel{width:100%;}
+      /* Mobile toggle for watch list */
+      .mob-watch-toggle{display:flex;}
+      .watch-detail{bottom:auto;top:60px;left:10px;right:10px;width:auto;max-height:200px;}
+      .map-legend{bottom:10px;left:10px;}
+      .map-topbar{top:8px;}
+    }
+    @media(min-width:641px){
+      .mob-watch-toggle{display:none !important;}
+    }
+
+    /* Mobile watch toggle FAB */
+    .mob-watch-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:460;align-items:center;gap:8px;background:var(--red);border:none;border-radius:24px;padding:10px 18px;cursor:pointer;font-family:var(--font);font-size:0.78rem;font-weight:700;color:#fff;box-shadow:0 4px 20px rgba(229,24,42,0.4);transition:all .15s;}
+    .mob-watch-toggle .material-symbols-rounded{font-size:17px;color:#fff;}
+    .mob-watch-toggle .mob-watch-count{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:0.68rem;}
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <div class="mob-bar-1">
+      <a class="logo" href="index.html">
+        <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+        <span class="logo-name">j<span>Weather</span></span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">Forecast</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-btn">
+            Severe Weather <span class="material-symbols-rounded">expand_more</span>
+          </button>
+          <div class="nav-dropdown-menu">
+            <div class="nav-dropdown-menu-inner">
+              <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+              <a href="watches.html" class="active"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+              <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+              <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+            </div>
+          </div>
+        </div>
+        <a href="#" data-coming-soon>Contact</a>
+        <a href="#" data-coming-soon>About</a>
+      </nav>
+      <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
+    </div>
+    <div class="mob-bar-2">
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions"></ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile nav overlay -->
+<div class="mob-menu-overlay" id="mob-menu-overlay">
+  <div class="mob-menu-panel">
+    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
+    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+    <a href="watches.html" class="active"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+    <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
+  </div>
+</div>
+
+<!-- ── APP BODY ── -->
+<div class="app-body">
+
+  <!-- LEFT PANEL: Watch List -->
+  <div class="watch-panel" id="watch-panel">
+    <div class="watch-panel-head">
+      <div class="watch-panel-title">Active Watches</div>
+      <div class="watch-panel-sub" id="panel-sub">Loading…</div>
+    </div>
+    <div class="watch-list" id="watch-list">
+      <div class="watch-loading" id="watch-loading">
+        <div class="spin-ring"></div>
+        Fetching watch data…
+      </div>
+    </div>
+    <div class="watch-updated" id="watch-updated"></div>
+    <div class="watch-panel-actions">
+      <button class="watch-refresh-btn" id="refresh-btn">
+        <span class="material-symbols-rounded">refresh</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- MAP PANEL -->
+  <div class="map-panel">
+    <div id="main-map"></div>
+
+    <!-- Status pill -->
+    <div class="map-topbar">
+      <div class="map-status-pill" id="status-pill">
+        <span class="status-dot green" id="status-dot"></span>
+        <span id="status-text">Loading…</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-title">Watch Type</div>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:var(--tor-watch);"></div>
+          <span class="legend-label">Tornado Watch</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:var(--svr-watch);"></div>
+          <span class="legend-label">Svr Thunderstorm Watch</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Watch detail card (click a watch) -->
+    <div class="watch-detail" id="watch-detail">
+      <div class="watch-detail-bar" id="wd-bar"></div>
+      <div class="watch-detail-head">
+        <span class="watch-detail-type" id="wd-type"></span>
+        <span class="watch-detail-num" id="wd-num"></span>
+        <button class="watch-detail-close" id="wd-close"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <div class="watch-detail-body" id="wd-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile: FAB to toggle watch list -->
+<button class="mob-watch-toggle" id="mob-watch-toggle">
+  <span class="material-symbols-rounded">emergency_home</span>
+  Watches
+  <span class="mob-watch-count" id="mob-watch-count">0</span>
+</button>
+
+<!-- Coming soon toast -->
+<div id="coming-soon-toast"><span class="material-symbols-rounded">construction</span><span id="coming-soon-msg">Coming soon</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+// NWS alerts API — CORS-enabled, no proxy needed
+const WATCHES_URL = 'https://api.weather.gov/alerts/active';
+
+const WATCH_STYLES = {
+  'Tornado Watch':             { cls:'tor', fill:'#ff0000', stroke:'#cc0000', label:'Tornado Watch' },
+  'Severe Thunderstorm Watch': { cls:'svr', fill:'#ffa500', stroke:'#cc7000', label:'Svr. Thunderstorm Watch' },
+};
+
+// ─────────────────────────────────────────────
+// MAP INIT
+// ─────────────────────────────────────────────
+const map = L.map('main-map', {
+  center: [38.5, -96],
+  zoom: 4,
+  zoomControl: true,
+  attributionControl: false,
+});
+
+// Base tile
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19, pane: 'tilePane',
+}).addTo(map);
+
+// State borders
+fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+  .then(r => r.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: { color: 'rgba(255,255,255,0.18)', weight: 0.7, fill: false },
+    }).addTo(map);
+  }).catch(() => {});
+
+// Label tile on top
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', opacity: 0.8,
+}).addTo(map);
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let watchLayer = null;
+let watchData = [];
+let selectedWatchId = null;
+
+// ─────────────────────────────────────────────
+// FETCH WATCHES
+// ─────────────────────────────────────────────
+async function fetchWatches() {
+  setLoading(true);
+  // NWS API: filter for Tornado Watch + Severe Thunderstorm Watch, active, CONUS
+  const url = `${WATCHES_URL}?event=Tornado%20Watch,Severe%20Thunderstorm%20Watch&status=actual&message_type=alert&limit=500`;
+  try {
+    const res = await fetch(url, { headers: { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    // NWS features use 'event' for type, 'expires' for expiry, 'onset' for issuance, 'areaDesc' for areas
+    watchData = (data.features || [])
+      .filter(f => f.geometry) // only those with geometry
+      .sort((a, b) => {
+        const aIsTor = a.properties.event === 'Tornado Watch';
+        const bIsTor = b.properties.event === 'Tornado Watch';
+        if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
+        return new Date(a.properties.expires) - new Date(b.properties.expires);
+      });
+    renderWatches();
+    updateStatus();
+    document.getElementById('watch-updated').textContent =
+      `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+  } catch (err) {
+    console.error('Fetch watches failed:', err);
+    setError();
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER WATCH LIST + MAP LAYER
+// ─────────────────────────────────────────────
+function renderWatches() {
+  const list = document.getElementById('watch-list');
+  const panelSub = document.getElementById('panel-sub');
+  const mobCount = document.getElementById('mob-watch-count');
+
+  // Remove old map layer
+  if (watchLayer) { map.removeLayer(watchLayer); watchLayer = null; }
+
+  if (!watchData.length) {
+    list.innerHTML = `
+      <div class="watch-empty">
+        <span class="material-symbols-rounded">check_circle</span>
+        <div class="watch-empty-title">No Active Watches</div>
+        <div class="watch-empty-sub">No tornado or severe thunderstorm watches are currently in effect across the U.S.</div>
+      </div>`;
+    panelSub.textContent = 'No watches in effect';
+    mobCount.textContent = '0';
+    return;
+  }
+
+  const torCount = watchData.filter(f => f.properties.event === 'Tornado Watch').length;
+  const svrCount = watchData.filter(f => f.properties.event === 'Severe Thunderstorm Watch').length;
+  const parts = [];
+  if (torCount) parts.push(`${torCount} Tornado`);
+  if (svrCount) parts.push(`${svrCount} Svr. Tstm.`);
+  panelSub.textContent = parts.join(' · ');
+  mobCount.textContent = watchData.length;
+
+  // Build watch list cards
+  list.innerHTML = watchData.map((f, idx) => {
+    const p = f.properties;
+    const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
+    const cls = style.cls;
+    const watchNum = extractWatchNum(p);
+    const states = extractStates(f);
+    const expireStr = formatExpire(p.expires);
+    const expiringSoon = isExpiringSoon(p.expires);
+    return `
+      <div class="watch-card${selectedWatchId === idx ? ' selected' : ''}" data-idx="${idx}">
+        <div class="watch-card-bar ${cls}"></div>
+        <div class="watch-card-inner">
+          <div class="watch-card-header">
+            <span class="watch-type-badge ${cls}">${cls === 'tor' ? 'Tornado' : 'Svr. Tstm.'}</span>
+            ${watchNum ? `<span class="watch-num">#${watchNum}</span>` : ''}
+          </div>
+          <div class="watch-card-states">${states || p.senderName || 'Multiple Areas'}</div>
+          <div class="watch-card-expire${expiringSoon ? ' expiring-soon' : ''}">
+            <span class="material-symbols-rounded">${expiringSoon ? 'timer' : 'schedule'}</span>
+            Expires ${expireStr}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Click handlers
+  list.querySelectorAll('.watch-card').forEach(card => {
+    card.addEventListener('click', () => selectWatch(parseInt(card.dataset.idx)));
+  });
+
+  // Draw on map
+  watchLayer = L.geoJSON({ type: 'FeatureCollection', features: watchData }, {
+    style: feat => {
+      const style = WATCH_STYLES[feat.properties.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
+      return {
+        fillColor: style.fill,
+        fillOpacity: 0.18,
+        color: style.stroke,
+        weight: 1.5,
+        opacity: 0.85,
+      };
+    },
+    onEachFeature: (feat, layer) => {
+      const p = feat.properties;
+      const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
+      const watchNum = extractWatchNum(p);
+      const expireStr = formatExpire(p.expires);
+      layer.bindPopup(`
+        <div class="popup-bar ${style.cls}"></div>
+        <div class="popup-inner">
+          <span class="popup-type ${style.cls}">${style.label}</span>
+          <div class="popup-title">${watchNum ? `Watch #${watchNum}` : p.event}</div>
+          <div class="popup-expires">Expires ${expireStr}</div>
+        </div>`, { closeButton: false, maxWidth: 260 });
+
+      layer.on('click', () => {
+        const idx = watchData.indexOf(feat);
+        if (idx >= 0) selectWatch(idx);
+      });
+    }
+  }).addTo(map);
+
+  // Fit bounds if watches exist
+  try {
+    const bounds = watchLayer.getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 7 });
+  } catch (e) {}
+}
+
+// ─────────────────────────────────────────────
+// SELECT WATCH
+// ─────────────────────────────────────────────
+function selectWatch(idx) {
+  selectedWatchId = idx;
+
+  // Update card selection
+  document.querySelectorAll('.watch-card').forEach((c, i) => {
+    c.classList.toggle('selected', i === idx);
+  });
+
+  const feat = watchData[idx];
+  if (!feat) return;
+
+  const p = feat.properties;
+  const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
+  const watchNum = extractWatchNum(p);
+  const expireStr = formatExpire(p.expires);
+  const expiringSoon = isExpiringSoon(p.expires);
+  const states = extractStates(feat);
+
+  // Populate detail panel
+  document.getElementById('wd-bar').className = `watch-detail-bar ${style.cls}`;
+  const typeEl = document.getElementById('wd-type');
+  typeEl.className = `watch-detail-type ${style.cls}`;
+  typeEl.textContent = style.cls === 'tor' ? 'Tornado Watch' : 'Svr. Thunderstorm Watch';
+  document.getElementById('wd-num').textContent = watchNum ? `Watch #${watchNum}` : p.event;
+
+  const body = document.getElementById('wd-body');
+  const fullArea = p.areaDesc || states || '—';
+  body.innerHTML = `
+    <div class="wd-row"><span class="wd-label">Areas</span><span class="wd-value">${fullArea}</span></div>
+    <div class="wd-row"><span class="wd-label">Issued</span><span class="wd-value">${formatTimestamp(p.onset)}</span></div>
+    <div class="wd-row"><span class="wd-label">Expires</span><span class="wd-value">${expireStr}</span></div>
+    ${p.senderName ? `<div class="wd-row"><span class="wd-label">Issued by</span><span class="wd-value">${p.senderName}</span></div>` : ''}
+    ${expiringSoon ? `<div class="wd-expire-warn"><span class="material-symbols-rounded">timer</span>Expiring within 30 minutes</div>` : ''}
+  `;
+
+  document.getElementById('watch-detail').className = 'watch-detail open';
+
+  // Pan map to feature
+  try {
+    const layer = watchLayer.getLayers().find(l => l.feature === feat);
+    if (layer) {
+      const bounds = layer.getBounds();
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 7 });
+    }
+  } catch (e) {}
+
+  // Scroll card into view on mobile
+  const card = document.querySelectorAll('.watch-card')[idx];
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function extractWatchNum(p) {
+  // NWS id looks like "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.XXXX.2026-..."
+  // The watch number often appears in parameters.VTEC or headline
+  if (p.parameters) {
+    const vtec = (p.parameters.VTEC || []).join('');
+    const m = vtec.match(/\.W\.(\d{4})\./);
+    if (m) return parseInt(m[1], 10);
+  }
+  // Fallback: parse from headline
+  const hl = (p.headline || p.description || '');
+  const m2 = hl.match(/Watch (\d+)/i);
+  if (m2) return parseInt(m2[1], 10);
+  return null;
+}
+
+function extractStates(feat) {
+  const p = feat.properties;
+  if (p.areaDesc) {
+    return p.areaDesc.length > 60 ? p.areaDesc.slice(0, 58) + '…' : p.areaDesc;
+  }
+  return null;
+}
+
+function formatExpire(isoStr) {
+  if (!isoStr) return '—';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+  } catch { return isoStr; }
+}
+
+function formatTimestamp(isoStr) {
+  if (!isoStr) return '—';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+  } catch { return isoStr; }
+}
+
+function isExpiringSoon(isoStr) {
+  if (!isoStr) return false;
+  const diff = new Date(isoStr) - Date.now();
+  return diff > 0 && diff < 30 * 60 * 1000;
+}
+
+function updateStatus() {
+  const dot = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  const torCount = watchData.filter(f => f.properties.event === 'Tornado Watch').length;
+  const svrCount = watchData.filter(f => f.properties.event === 'Severe Thunderstorm Watch').length;
+
+  if (!watchData.length) {
+    dot.className = 'status-dot green';
+    text.textContent = 'No watches in effect';
+  } else if (torCount > 0) {
+    dot.className = 'status-dot red';
+    const parts = [];
+    if (torCount) parts.push(`${torCount} Tornado Watch${torCount > 1 ? 'es' : ''}`);
+    if (svrCount) parts.push(`${svrCount} Severe Tstm.`);
+    text.textContent = parts.join(' · ');
+  } else {
+    dot.className = 'status-dot amber';
+    text.textContent = `${svrCount} Severe Thunderstorm Watch${svrCount > 1 ? 'es' : ''}`;
+  }
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.toggle('spinning', on);
+}
+
+function setError() {
+  document.getElementById('watch-list').innerHTML = `
+    <div class="watch-empty">
+      <span class="material-symbols-rounded">error_outline</span>
+      <div class="watch-empty-title">Couldn't Load Watches</div>
+      <div class="watch-empty-sub">Check your connection or try refreshing.</div>
+    </div>`;
+  document.getElementById('panel-sub').textContent = 'Error loading data';
+  document.getElementById('status-dot').className = 'status-dot amber';
+  document.getElementById('status-text').textContent = 'Data unavailable';
+}
+
+// ─────────────────────────────────────────────
+// DETAIL CLOSE
+// ─────────────────────────────────────────────
+document.getElementById('wd-close').addEventListener('click', () => {
+  document.getElementById('watch-detail').classList.remove('open');
+  selectedWatchId = null;
+  document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
+});
+
+// ─────────────────────────────────────────────
+// REFRESH
+// ─────────────────────────────────────────────
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  document.getElementById('watch-detail').classList.remove('open');
+  selectedWatchId = null;
+  fetchWatches();
+});
+
+// Auto-refresh every 5 minutes
+setInterval(fetchWatches, 5 * 60 * 1000);
+
+// ─────────────────────────────────────────────
+// MOBILE: toggle watch panel
+// ─────────────────────────────────────────────
+document.getElementById('mob-watch-toggle').addEventListener('click', () => {
+  document.getElementById('watch-panel').classList.toggle('mob-open');
+});
+
+// ─────────────────────────────────────────────
+// SEARCH (same as outlook — saves location → index.html)
+// ─────────────────────────────────────────────
+(function(){
+  const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
+  function sa(n){return SA[n]||n;}
+  function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
+  const RECENTS_KEY='jweather_recents',MAX_RECENTS=5;
+  function getRecents(){try{return JSON.parse(localStorage.getItem(RECENTS_KEY))||[];}catch{return[];}}
+  function saveRecent(loc){let r=getRecents().filter(x=>x.label!==loc.label);r.unshift(loc);if(r.length>MAX_RECENTS)r=r.slice(0,MAX_RECENTS);localStorage.setItem(RECENTS_KEY,JSON.stringify(r));}
+  function removeRecent(label){localStorage.setItem(RECENTS_KEY,JSON.stringify(getRecents().filter(r=>r.label!==label)));}
+  function pick(l){saveRecent(l);localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
+  const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions');
+  if(!sBar||!sugBox)return;
+  const saved=(()=>{try{const l=JSON.parse(localStorage.getItem('jweather_last_location'));return l?.lat?l:null;}catch{return null;}})();
+  if(saved)sBar.value=saved.label||'';
+  let sugs=[],selIdx=-1,sCtrl=null;
+  function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+  const dFetch=db(async q=>{
+    if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
+    const d=await r.json();const seen=new Set();sugs=[];
+    for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
+    selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
+  },280);
+  sBar.addEventListener('input',e=>{const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs();return;}rSugs();dFetch(q);});
+  sBar.addEventListener('focus',()=>{if(sBar.value.trim().length<2){sugs=[];rSugs();}});
+  sBar.addEventListener('keydown',e=>{
+    const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
+    const all=[...sugs,...recents];if(!all.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs();}
+    else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs();}
+    else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
+    else if(e.key==='Escape')sugBox.style.display='none';
+  });
+  document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==sBar){sugBox.style.display='none';selIdx=-1;}});
+  function rSugs(){
+    sugBox.innerHTML='';
+    const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
+    if(!sugs.length&&!recents.length){sugBox.style.display='none';return;}
+    if(sugs.length){const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';sugBox.appendChild(lbl);sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});}
+    if(recents.length){const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';sugBox.appendChild(lbl);recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs();});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});sugBox.appendChild(li);});}
+    sugBox.style.display='block';
+  }
+})();
+
+// ─────────────────────────────────────────────
+// MOBILE NAV
+// ─────────────────────────────────────────────
+(function(){
+  const btn=document.getElementById('mob-menu-btn');
+  const overlay=document.getElementById('mob-menu-overlay');
+  if(!btn||!overlay)return;
+  btn.addEventListener('click',e=>{e.stopPropagation();overlay.style.display=overlay.style.display==='block'?'none':'block';});
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.style.display='none';});
+})();
+
+// ─────────────────────────────────────────────
+// COMING SOON TOAST
+// ─────────────────────────────────────────────
+document.querySelectorAll('[data-coming-soon]').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    const toast = document.getElementById('coming-soon-toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  });
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+fetchWatches();
+</script>
+</body>
+</html>
