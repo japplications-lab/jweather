@@ -101,13 +101,14 @@
     .mob-mode-row::-webkit-scrollbar{display:none;}
     .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
     .mob-mode-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
+    .mob-disc-btn{border-color:rgba(255,255,255,0.2);color:var(--text-3);margin-left:4px;}
     .mob-mode-btn .material-symbols-rounded{font-size:13px;}
     @media(max-width:640px){
       .sidebar{display:none !important;}
       .map-panel{width:100%;}
       .mob-controls{display:block;}
       .app-body{padding-bottom:calc(88px + 62px);}
-      .map-legend{bottom:calc(98px + 62px);left:10px;padding:8px 10px;max-width:calc(100vw - 20px);max-height:calc(100vh - 240px);overflow-y:auto;}
+      .map-legend{bottom:calc(98px + 62px);left:10px;padding:8px 10px;max-width:calc(100vw - 20px);max-height:calc(100vh - 320px);overflow-y:auto;-webkit-overflow-scrolling:touch;}
       .legend-title{font-size:0.6rem;}
       .legend-items{gap:3px;}
       .legend-item{gap:6px;}
@@ -576,6 +577,7 @@
     <button class="mob-mode-btn" data-mob-mode="torn"><span class="material-symbols-rounded">tornado</span>Tornado</button>
     <button class="mob-mode-btn" data-mob-mode="wind"><span class="material-symbols-rounded">air</span>Wind</button>
     <button class="mob-mode-btn" data-mob-mode="hail"><span class="material-symbols-rounded">weather_hail</span>Hail</button>
+    <button class="mob-mode-btn mob-disc-btn" id="mob-disc-btn"><span class="material-symbols-rounded">chat</span>Discussion</button>
   </div>
 </div>
 
@@ -1133,16 +1135,19 @@ function buildLegend(geojson, mode) {
   }
 
   // CIG hatched entry — append if any CIG features present
-  const hasCig = geojson.features.some(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
+  // Uses toUpperCase so 'CIG1', 'Cig1', 'cig1' all match
+  const hasCig = geojson.features.some(f => (f.properties?.LABEL || f.properties?.label || '').toString().toUpperCase().startsWith('CIG'));
   if (hasCig) {
-    const cigLabel = { torn:'EF2+ Tornado Possible', wind:'65 mph Wind Possible', hail:'2" Hail Possible', cat:'Sig. Severe Possible' }[mode] || 'Sig. Severe Possible';
+    const cigLabels = { torn:'EF2+ Tornado Possible', wind:'65+ mph Wind Possible', hail:'2"+ Hail Possible', cat:'Sig. Severe Possible' };
+    const cigLabel = cigLabels[mode] || 'Sig. Severe Possible';
     const cigEntry = document.createElement('div');
+    cigEntry.id = 'legend-cig-entry';
     cigEntry.className = 'legend-item legend-active';
     cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     cigEntry.innerHTML = `
-      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>
-      <svg viewBox="0 0 13 13" width="13" height="13" style="flex-shrink:0;margin-left:4px;" xmlns="http://www.w3.org/2000/svg"><polygon points="6.5,0.5 12.8,12.5 0.2,12.5" fill="#e5182a"/><text x="6.5" y="11.2" text-anchor="middle" font-size="7.5" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
+      <div class="legend-swatch" style="flex-shrink:0;background:#fff;border:1.5px solid #555;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(-45deg,#333 0px,#333 2px,#fff 2px,#fff 6px);"></div>
+      <span class="legend-label" style="font-weight:600;color:var(--text-2);">${cigLabel}</span>
+      <span style="color:var(--red);font-weight:800;margin-left:auto;padding-left:4px;font-size:1rem;line-height:1;">!</span>`;
     el.appendChild(cigEntry);
   }
 }
@@ -1447,7 +1452,7 @@ async function loadSigLayer(day, mode) {
         border: 2px dashed #000;
         box-sizing: border-box;
         border-radius: 2px;
-      "></div><span style="font-weight:600;color:#333">${sigLabel}</span>`;
+      "></div><span style="font-weight:600;color:var(--text-2)">${sigLabel}</span>`;
     legendEl.appendChild(sigEntry);
     document.getElementById('map-legend').style.display = 'block';
 
@@ -1682,6 +1687,16 @@ async function openDisc(day, label) {
 document.querySelectorAll('.disc-sidebar-btn').forEach(btn => {
   btn.addEventListener('click', () => openDisc(+btn.dataset.day, btn.dataset.label));
 });
+
+// Mobile discussion button — opens for the currently active day
+const mobDiscBtn = document.getElementById('mob-disc-btn');
+if (mobDiscBtn) {
+  mobDiscBtn.addEventListener('click', () => {
+    const dayLabels = { 1:'Day 1 — Today', 2:'Day 2 — Tomorrow', 3:'Day 3' };
+    openDisc(activeDay || 1, dayLabels[activeDay || 1]);
+  });
+}
+
 document.getElementById('disc-close').addEventListener('click', closeDisc);
 discModal.addEventListener('click', e => { if(e.target===discModal) closeDisc(); });
 document.getElementById('tab-plain').addEventListener('click',    () => setDiscTab('plain'));
