@@ -249,15 +249,22 @@
     <div class="sidebar-section">
       <div class="sidebar-section-label">Product</div>
       <div class="product-btns">
-        <button class="product-btn active" data-product="N0B" id="btn-ref">
+        <button class="product-btn active" data-product="N0B">
           <span class="material-symbols-rounded">grain</span>Base Reflectivity
         </button>
-        <button class="product-btn" data-product="N0S" id="btn-vel">
+        <button class="product-btn" data-product="N0U">
           <span class="material-symbols-rounded">moving</span>Base Velocity
         </button>
-        <button class="product-btn" data-product="NCR" id="btn-comp">
-          <span class="material-symbols-rounded">layers</span>Composite Reflectivity
+        <button class="product-btn" data-product="N0S">
+          <span class="material-symbols-rounded">cyclone</span>Storm Rel. Velocity
         </button>
+        <button class="product-btn" data-product="N0C">
+          <span class="material-symbols-rounded">blur_circular</span>Correlation Coeff.
+        </button>
+      </div>
+      <div id="n0c-note" style="display:none;font-size:0.68rem;color:var(--amber);margin-top:6px;line-height:1.4;">
+        <span class="material-symbols-rounded" style="font-size:12px;vertical-align:middle;">info</span>
+        Single station only
       </div>
     </div>
 
@@ -266,7 +273,7 @@
       <div class="sidebar-section-label">Station</div>
       <div class="station-wrap">
         <select class="station-select" id="station-select">
-          <option value="COMPOSITE">National Composite</option>
+          <option value="COMPOSITE" id="opt-composite">National Composite</option>
           <optgroup label="Central">
             <option value="KEAX">KEAX — Kansas City, MO</option>
             <option value="KTWX">KTWX — Topeka, KS</option>
@@ -333,7 +340,7 @@
 
     <!-- dBZ Legend -->
     <div class="dbz-legend" id="dbz-legend">
-      <div class="dbz-legend-title">Reflectivity (dBZ)</div>
+      <div class="dbz-legend-title" id="dbz-legend-title">Reflectivity (dBZ)</div>
       <div class="dbz-scale" id="dbz-scale"></div>
     </div>
   </aside>
@@ -357,35 +364,91 @@
 // CONFIG
 // ─────────────────────────────────────────────
 const IEM_BASE = 'https://mesonet.agron.iastate.edu';
-const RIDGE_URL = (station, product, time) =>
-  station === 'COMPOSITE'
-    ? `${IEM_BASE}/cache/tile.py/1.0.0/nexrad-n0q-900913/${time}/{z}/{x}/{y}.png`
-    : `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${station}-${product}-0/${time}/{z}/{x}/{y}.png`;
 
-const DBZ_SCALE = [
-  { label: '< 5',   color: '#646464' },
-  { label: '5–10',  color: '#04e8f0' },
-  { label: '10–15', color: '#0198f0' },
-  { label: '15–20', color: '#0000f0' },
-  { label: '20–25', color: '#00d800' },
-  { label: '25–30', color: '#009800' },
-  { label: '30–35', color: '#007000' },
-  { label: '35–40', color: '#f0f000' },
-  { label: '40–45', color: '#e0c000' },
-  { label: '45–50', color: '#ff9000' },
-  { label: '50–55', color: '#ff0000' },
-  { label: '55–60', color: '#d00000' },
-  { label: '60–65', color: '#c000c8' },
-  { label: '65–70', color: '#ff00ff' },
-  { label: '> 70',  color: '#ffffff' },
-];
+// Products served as XYZ tiles by IEM
+const TILED_PRODUCTS = ['N0B', 'N0U', 'N0S'];
+
+// Color scales per product
+const SCALES = {
+  N0B: {
+    title: 'Reflectivity (dBZ)',
+    entries: [
+      { label:'> 70',  color:'#ffffff' },
+      { label:'65–70', color:'#ff00ff' },
+      { label:'60–65', color:'#c000c8' },
+      { label:'55–60', color:'#d00000' },
+      { label:'50–55', color:'#ff0000' },
+      { label:'45–50', color:'#ff9000' },
+      { label:'40–45', color:'#e0c000' },
+      { label:'35–40', color:'#f0f000' },
+      { label:'30–35', color:'#007000' },
+      { label:'25–30', color:'#009800' },
+      { label:'20–25', color:'#00d800' },
+      { label:'15–20', color:'#0000f0' },
+      { label:'10–15', color:'#0198f0' },
+      { label:'5–10',  color:'#04e8f0' },
+      { label:'< 5',   color:'#646464' },
+    ]
+  },
+  N0U: {
+    title: 'Velocity (kt)',
+    entries: [
+      { label:'> 64 away',  color:'#00ffff' },
+      { label:'50–64 away', color:'#0080ff' },
+      { label:'36–50 away', color:'#0000ff' },
+      { label:'25–36 away', color:'#004080' },
+      { label:'10–25 away', color:'#008040' },
+      { label:'1–10 away',  color:'#00c000' },
+      { label:'0',          color:'#808080' },
+      { label:'1–10 toward',  color:'#ff6060' },
+      { label:'10–25 toward', color:'#ff0000' },
+      { label:'25–36 toward', color:'#c00000' },
+      { label:'36–50 toward', color:'#ff8000' },
+      { label:'50–64 toward', color:'#ffff00' },
+      { label:'> 64 toward',  color:'#ffffff' },
+    ]
+  },
+  N0S: {
+    title: 'Storm Rel. Velocity (kt)',
+    entries: [
+      { label:'> 64 away',  color:'#00ffff' },
+      { label:'50–64 away', color:'#0080ff' },
+      { label:'36–50 away', color:'#0000ff' },
+      { label:'25–36 away', color:'#004080' },
+      { label:'10–25 away', color:'#008040' },
+      { label:'1–10 away',  color:'#00c000' },
+      { label:'0',          color:'#808080' },
+      { label:'1–10 toward',  color:'#ff6060' },
+      { label:'10–25 toward', color:'#ff0000' },
+      { label:'25–36 toward', color:'#c00000' },
+      { label:'36–50 toward', color:'#ff8000' },
+      { label:'50–64 toward', color:'#ffff00' },
+      { label:'> 64 toward',  color:'#ffffff' },
+    ]
+  },
+  N0C: {
+    title: 'Corr. Coefficient (ρhv)',
+    entries: [
+      { label:'> 0.97', color:'#ff00ff' },
+      { label:'0.95–0.97', color:'#ff4400' },
+      { label:'0.93–0.95', color:'#ff8800' },
+      { label:'0.90–0.93', color:'#ffcc00' },
+      { label:'0.85–0.90', color:'#ffff00' },
+      { label:'0.80–0.85', color:'#00ff00' },
+      { label:'0.70–0.80', color:'#00cc88' },
+      { label:'0.60–0.70', color:'#0088ff' },
+      { label:'0.50–0.60', color:'#0044cc' },
+      { label:'< 0.50',    color:'#220066' },
+    ]
+  },
+};
 
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let currentStation = 'COMPOSITE';
+let currentStation = 'KEAX';
 let currentProduct = 'N0B';
-let frames = [];       // array of timestamp strings
+let frames = [];
 let frameIdx = 0;
 let radarLayer = null;
 let animTimer = null;
@@ -426,31 +489,42 @@ L.tileLayer(
 ).addTo(map);
 
 // ─────────────────────────────────────────────
-// dBZ LEGEND
+// LEGEND (dynamic per product)
 // ─────────────────────────────────────────────
-(function buildLegend() {
+function buildLegend(product) {
   const scale = document.getElementById('dbz-scale');
-  [...DBZ_SCALE].reverse().forEach(({label, color}) => {
+  const title = document.getElementById('dbz-legend-title');
+  const info = SCALES[product] || SCALES.N0B;
+  title.textContent = info.title;
+  scale.innerHTML = '';
+  info.entries.forEach(({label, color}) => {
     const row = document.createElement('div');
     row.className = 'dbz-row';
-    row.innerHTML = `<div class="dbz-swatch" style="background:${color}"></div><span>${label} dBZ</span>`;
+    row.innerHTML = `<div class="dbz-swatch" style="background:${color}"></div><span>${label}</span>`;
     scale.appendChild(row);
   });
-})();
+}
+buildLegend('N0B');
 
 // ─────────────────────────────────────────────
 // FETCH AVAILABLE FRAMES FROM IEM
 // ─────────────────────────────────────────────
 async function fetchFrames(station, product) {
+  // N0C not tiled — use N0B timestamps as proxy (same scan cadence)
+  const queryProduct = product === 'N0C' ? 'N0B' : product;
+  const queryStation = station === 'COMPOSITE' ? 'COMPOSITE' : station;
   try {
-    const url = station === 'COMPOSITE'
-      ? `${IEM_BASE}/json/radar?operation=available&product=N0Q&radar=COMPOSITE&start=2000-01-01T00:00:00Z`
-      : `${IEM_BASE}/json/radar?operation=available&product=${product}&radar=${station}&start=2000-01-01T00:00:00Z`;
+    // Use a 2-hour window ending now to get the last ~12-24 frames
+    const end = new Date();
+    const start = new Date(end - 2 * 60 * 60 * 1000);
+    const fmt = d => d.toISOString().replace('.000Z','Z');
+    const url = queryStation === 'COMPOSITE'
+      ? `${IEM_BASE}/json/radar.py?operation=list&radar=COMPOSITE&product=N0Q&start=${fmt(start)}&end=${fmt(end)}`
+      : `${IEM_BASE}/json/radar.py?operation=list&radar=${queryStation}&product=${queryProduct}&start=${fmt(start)}&end=${fmt(end)}`;
     const res = await fetch(url);
     const data = await res.json();
-    // Returns array of {valid: "2024-01-01T00:00:00Z"} — take last 12 frames
     const times = (data.data || []).map(d => d.valid).filter(Boolean);
-    return times.slice(-12);
+    return times.slice(-16); // keep last 16 frames (~80 min)
   } catch(e) {
     console.warn('Frame fetch failed:', e);
     return [];
@@ -464,29 +538,53 @@ function setLoading(on) {
   document.getElementById('map-loading').classList.toggle('show', on);
 }
 
+function tKey(timeStr) {
+  const dt = new Date(timeStr);
+  const p = n => String(n).padStart(2,'0');
+  return `${dt.getUTCFullYear()}${p(dt.getUTCMonth()+1)}${p(dt.getUTCDate())}${p(dt.getUTCHours())}${p(dt.getUTCMinutes())}`;
+}
+
 function loadFrame(timeStr) {
   if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
   if (!timeStr) return;
 
-  // IEM tile URL uses time formatted as "YYYYMMDDHHII" 
-  const dt = new Date(timeStr);
-  const pad = n => String(n).padStart(2,'0');
-  const tKey = `${dt.getUTCFullYear()}${pad(dt.getUTCMonth()+1)}${pad(dt.getUTCDate())}${pad(dt.getUTCHours())}${pad(dt.getUTCMinutes())}`;
+  const tk = tKey(timeStr);
 
-  const url = currentStation === 'COMPOSITE'
-    ? `${IEM_BASE}/cache/tile.py/1.0.0/nexrad-n0q-900913/${tKey}/{z}/{x}/{y}.png`
-    : `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${currentProduct}-0/${tKey}/{z}/{x}/{y}.png`;
-
-  radarLayer = L.tileLayer(url, {
-    opacity: radarOpacity,
-    maxZoom: 19,
-    zIndex: 300,
-    tileSize: 256,
-  });
+  if (currentProduct === 'N0C') {
+    // N0C: IEM serves as raw EPSG:4326 image — use as image overlay
+    // Image covers the station's coverage area; we use a ~460km radius bbox
+    const coords = STATION_COORDS[currentStation];
+    if (!coords) return;
+    // Approximate NEXRAD range: ~230nm radius ~ 4.1° lat / 5° lon at mid-latitudes
+    const dlat = 4.1, dlon = 5.0;
+    const bounds = [
+      [coords[0] - dlat, coords[1] - dlon],
+      [coords[0] + dlat, coords[1] + dlon],
+    ];
+    const imgUrl = `${IEM_BASE}/archive/data/${timeStr.slice(0,4)}/${timeStr.slice(5,7)}/${timeStr.slice(8,10)}/GIS/ridge/${currentStation}/N0C/${currentStation}_N0C_${tk}.png`;
+    radarLayer = L.imageOverlay(imgUrl, bounds, { opacity: radarOpacity, zIndex: 300 });
+    radarLayer.on('load', () => setLoading(false));
+    radarLayer.on('error', () => {
+      setLoading(false);
+      console.warn('N0C image not found for', tk);
+    });
+  } else {
+    // Tiled products: N0B, N0U, N0S
+    const tileProd = currentProduct;
+    const url = currentStation === 'COMPOSITE'
+      ? `${IEM_BASE}/cache/tile.py/1.0.0/nexrad-n0q-900913/${tk}/{z}/{x}/{y}.png`
+      : `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${tileProd}-${tk}/{z}/{x}/{y}.png`;
+    radarLayer = L.tileLayer(url, {
+      opacity: radarOpacity,
+      maxZoom: 19,
+      zIndex: 300,
+      tileSize: 256,
+    });
+    radarLayer.on('load', () => setLoading(false));
+    radarLayer.on('tileerror', () => setLoading(false));
+  }
 
   setLoading(true);
-  radarLayer.on('load', () => setLoading(false));
-  radarLayer.on('tileerror', () => setLoading(false));
   radarLayer.addTo(map);
   updateTimestamp(timeStr);
 }
@@ -516,6 +614,7 @@ async function initRadar() {
     setLoading(false);
     document.getElementById('ts-text').textContent = 'No data available';
     document.getElementById('ts-dot').className = 'timestamp-dot stale';
+    if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
     return;
   }
   frameIdx = frames.length - 1;
@@ -530,6 +629,11 @@ function updateFrameCounter() {
 
 // Auto-refresh every 5 minutes
 setInterval(initRadar, 5 * 60 * 1000);
+
+// Start on KEAX
+document.getElementById('station-select').value = 'KEAX';
+document.getElementById('radar-station-name').textContent = 'Kansas City, MO';
+map.setView([39.28, -94.26], 7);
 initRadar();
 
 // ─────────────────────────────────────────────
@@ -580,12 +684,28 @@ document.querySelectorAll('.product-btn').forEach(btn => {
     document.querySelectorAll('.product-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentProduct = btn.dataset.product;
-    // Velocity uses different legend
-    document.getElementById('dbz-legend').style.display =
-      currentProduct === 'N0S' ? 'none' : '';
+    // N0C only available on single stations, not composite
+    if (currentProduct === 'N0C' && currentStation === 'COMPOSITE') {
+      currentStation = 'KEAX';
+      document.getElementById('station-select').value = 'KEAX';
+      document.getElementById('radar-station-name').textContent = 'Kansas City, MO';
+      map.setView([39.28, -94.26], 7, { animate: true });
+    }
+    buildLegend(currentProduct);
+    document.getElementById('n0c-note').style.display = currentProduct === 'N0C' ? 'block' : 'none';
     initRadar();
   });
 });
+
+const STATION_COORDS = {
+  KEAX:[39.28,-94.26], KTWX:[38.99,-96.23], KDDC:[37.77,-99.97], KICT:[37.65,-97.44],
+  KSGF:[37.24,-93.40], KLSX:[38.70,-90.68], KTLX:[35.33,-97.28], KINX:[36.18,-95.56],
+  KFWS:[32.57,-97.30], KHGX:[29.47,-95.08], KHTX:[34.93,-86.08], KNQA:[35.35,-89.87],
+  KOHX:[36.25,-86.56], KGSP:[34.88,-82.22], KOKX:[40.87,-72.86], KBOX:[41.96,-71.14],
+  KDIX:[39.95,-74.41], KLWX:[38.98,-77.49], KLOT:[41.60,-88.08], KGRR:[42.89,-85.54],
+  KDTX:[42.70,-83.47], KIWX:[41.36,-85.70], KPDT:[45.69,-118.85], KRTX:[45.71,-122.97],
+  KATX:[48.19,-122.49], KSFX:[43.11,-112.69],
+};
 
 document.getElementById('station-select').addEventListener('change', e => {
   currentStation = e.target.value;
@@ -593,17 +713,16 @@ document.getElementById('station-select').addEventListener('change', e => {
   document.getElementById('radar-station-name').textContent =
     currentStation === 'COMPOSITE' ? 'National Composite' : opt.text.split('—')[1]?.trim() || opt.text;
 
-  // Zoom to station if not composite
+  // N0C not available on composite — switch back to N0B
+  if (currentStation === 'COMPOSITE' && currentProduct === 'N0C') {
+    currentProduct = 'N0B';
+    document.querySelectorAll('.product-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.product === 'N0B');
+    });
+    buildLegend('N0B');
+  }
+
   if (currentStation !== 'COMPOSITE') {
-    const STATION_COORDS = {
-      KEAX:[39.28,-94.26], KTWX:[38.99,-96.23], KDDC:[37.77,-99.97], KICT:[37.65,-97.44],
-      KSGF:[37.24,-93.40], KLSX:[38.70,-90.68], KTLX:[35.33,-97.28], KINX:[36.18,-95.56],
-      KFWS:[32.57,-97.30], KHGX:[29.47,-95.08], KHTX:[34.93,-86.08], KNQA:[35.35,-89.87],
-      KOHX:[36.25,-86.56], KGSP:[34.88,-82.22], KOKX:[40.87,-72.86], KBOX:[41.96,-71.14],
-      KDIX:[39.95,-74.41], KLWX:[38.98,-77.49], KLOT:[41.60,-88.08], KGRR:[42.89,-85.54],
-      KDTX:[42.70,-83.47], KIWX:[41.36,-85.70], KPDT:[45.69,-118.85], KRTX:[45.71,-122.97],
-      KATX:[48.19,-122.49], KSFX:[43.11,-112.69],
-    };
     const coords = STATION_COORDS[currentStation];
     if (coords) map.setView(coords, 7, { animate: true });
   } else {
