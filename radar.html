@@ -240,7 +240,7 @@
     <a href="index.html" class="mob-tab">
       <span class="material-symbols-rounded">wb_sunny</span>Home
     </a>
-    <a href="#" class="mob-tab" data-coming-soon-tab>
+    <a href="hourly.html" class="mob-tab">
       <span class="material-symbols-rounded">schedule</span>Hourly
     </a>
     <a href="radar.html" class="mob-tab active">
@@ -306,7 +306,6 @@
   function closeSheet(){ sheet.classList.remove('open'); backdrop.classList.remove('open'); }
   if(tab) tab.addEventListener('click', function(){ sheet.classList.contains('open') ? closeSheet() : openSheet(); });
   if(backdrop) backdrop.addEventListener('click', closeSheet);
-  document.querySelectorAll('[data-coming-soon-tab]').forEach(function(el){ el.addEventListener('click', function(e){ e.preventDefault(); }); });
   document.body.classList.add('has-bottom-nav');
 })();
 </script>
