@@ -350,9 +350,6 @@
         <button class="cat-btn" data-day="1" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="1" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
       </div>
       <button class="disc-sidebar-btn" data-day="1" data-label="Day 1 — Today">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -381,9 +378,6 @@
         <button class="cat-btn" data-day="2" data-mode="hail">
           <span class="material-symbols-rounded cat-icon">weather_hail</span>Hail
         </button>
-        <button class="cat-btn cat-btn-sig" data-day="2" data-mode="sig">
-          <span class="material-symbols-rounded cat-icon">warning</span>Sig Severe
-        </button>
       </div>
       <button class="disc-sidebar-btn" data-day="2" data-label="Day 2 — Tomorrow">
         <span class="material-symbols-rounded">open_in_new</span>Open Discussion
@@ -402,9 +396,6 @@
       <div class="cat-list" id="cats-3">
         <button class="cat-btn" data-day="3" data-mode="cat">
           <span class="material-symbols-rounded cat-icon">thunderstorm</span>Overall
-        </button>
-        <button class="cat-btn" data-day="3" data-mode="prob">
-          <span class="material-symbols-rounded cat-icon">percent</span>Probabilistic
         </button>
       </div>
       <button class="disc-sidebar-btn" id="disc-btn-3" data-day="3" data-label="">
@@ -657,6 +648,7 @@ let theMap = null;
 let activeLayer = null;
 let activeSigLayer = null;   // significant threat overlay
 let activeSigMarkers = [];   // badge markers for sig zones
+let activeCigLayer = null;   // CIG hatched area overlay
 const discCache = {};
 let activeDay  = 1;
 let activeMode = 'cat';
@@ -812,6 +804,29 @@ function initMap() {
   // Mark hatch ready immediately — we use CSS dashArray approach, no SVG pattern needed
   theMap._hatchReady = true;
 
+  // Inject SVG hatch pattern for CIG areas
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const defs = document.createElementNS(svgNS, 'defs');
+  const pat  = document.createElementNS(svgNS, 'pattern');
+  pat.setAttribute('id', 'cig-hatch');
+  pat.setAttribute('patternUnits', 'userSpaceOnUse');
+  pat.setAttribute('width', '8');
+  pat.setAttribute('height', '8');
+  pat.setAttribute('patternTransform', 'rotate(45)');
+  const rect = document.createElementNS(svgNS, 'rect');
+  rect.setAttribute('width', '8'); rect.setAttribute('height', '8'); rect.setAttribute('fill', 'none');
+  const line = document.createElementNS(svgNS, 'line');
+  line.setAttribute('x1', '0'); line.setAttribute('y1', '0');
+  line.setAttribute('x2', '0'); line.setAttribute('y2', '8');
+  line.setAttribute('stroke', '#000000'); line.setAttribute('stroke-width', '2');
+  pat.appendChild(rect); pat.appendChild(line);
+  defs.appendChild(pat);
+  // Append to the outlook pane SVG once Leaflet creates it
+  theMap.on('layeradd', function patchSvg() {
+    const svgEl = theMap.getPane('outlookPane')?.querySelector('svg');
+    if (svgEl && !svgEl.querySelector('#cig-hatch')) { svgEl.insertBefore(defs, svgEl.firstChild); }
+  });
+
   makeBaseTiles().addTo(theMap);
 
 
@@ -829,6 +844,10 @@ function initMap() {
 // ─────────────────────────────────────────────
 function styleFeature(f, mode) {
   const p = f.properties || {};
+  // CIG features: render transparent — activeCigLayer handles the hatch overlay
+  const lbl = (p.LABEL || p.label || '').toString();
+  if (lbl.startsWith('CIG')) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
+
   if (mode === 'cat') {
     const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
     const key = CAT[raw] ? raw : (DN_TO_CAT[raw] || '');
@@ -971,6 +990,18 @@ function buildLegend(geojson, mode) {
     }).join('');
     el.innerHTML = html;
   }
+
+  // CIG hatched entry — append if any CIG features present
+  const hasCig = geojson.features.some(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
+  if (hasCig) {
+    const cigEntry = document.createElement('div');
+    cigEntry.className = 'legend-item legend-active';
+    cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
+    cigEntry.innerHTML = `
+      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
+      <span class="legend-label" style="font-weight:600;color:var(--text);">Conditional — CIG</span>`;
+    el.appendChild(cigEntry);
+  }
 }
 
 
@@ -991,6 +1022,7 @@ async function loadSigSevere(day) {
 
   if (activeLayer)          { theMap.removeLayer(activeLayer); activeLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
+  if (activeCigLayer)       { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   clearSigLayer();
 
   // Keep hazard paired with its layer ID — don't filter separately
@@ -1097,6 +1129,7 @@ async function loadHazard(day, mode) {
 
   if (activeLayer) { theMap.removeLayer(activeLayer); activeLayer = null; }
   if (activeSigSevereLayer) { theMap.removeLayer(activeSigSevereLayer); activeSigSevereLayer = null; }
+  if (activeCigLayer) { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
   clearSigLayer();
 
   const layerId = LAYER_IDS[`${day}-${mode}`];
@@ -1144,6 +1177,27 @@ async function loadHazard(day, mode) {
     }).addTo(theMap);
 
     buildLegend(gj, mode);
+
+    // CIG hatching — features with LABEL starting 'CIG' get a hatch overlay
+    if (activeCigLayer) { theMap.removeLayer(activeCigLayer); activeCigLayer = null; }
+    const cigFeatures = gj.features.filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
+    if (cigFeatures.length > 0) {
+      // Ensure SVG defs are injected
+      const svgEl = theMap.getPane('outlookPane')?.querySelector('svg');
+      const defsEl = svgEl?.querySelector('defs');
+      if (svgEl && defsEl && !svgEl.querySelector('#cig-hatch')) { svgEl.insertBefore(defsEl, svgEl.firstChild); }
+      activeCigLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
+        style: () => ({
+          fillColor: 'url(#cig-hatch)',
+          fillOpacity: 1,
+          color: '#000000',
+          weight: 1.5,
+          opacity: 0.7,
+        }),
+        renderer: theMap._renderers?.outlook || L.svg(),
+        interactive: false,
+      }).addTo(theMap);
+    }
 
 
 
