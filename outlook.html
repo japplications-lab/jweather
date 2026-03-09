@@ -1874,5 +1874,83 @@ function pick(l) {
   syncModes();
 })();
 </script>
+
+<!-- ── BOTTOM NAV BAR ── -->
+<nav class="mob-bottom-nav" aria-label="Main navigation">
+  <div class="mob-bottom-nav-inner">
+    <a href="index.html" class="mob-tab">
+      <span class="material-symbols-rounded">wb_sunny</span>Home
+    </a>
+    <a href="#" class="mob-tab" data-coming-soon-tab>
+      <span class="material-symbols-rounded">schedule</span>Hourly
+    </a>
+    <a href="radar.html" class="mob-tab">
+      <span class="material-symbols-rounded">radar</span>Radar
+    </a>
+    <button class="mob-tab mob-tab-severe" id="mob-severe-tab" aria-haspopup="true">
+      <span class="material-symbols-rounded">thunderstorm</span>Severe
+    </button>
+  </div>
+</nav>
+
+<!-- ── SEVERE SLIDE-UP SHEET ── -->
+<div class="severe-sheet-backdrop" id="severe-backdrop"></div>
+<div class="severe-sheet" id="severe-sheet" role="dialog" aria-label="Severe Weather">
+  <div class="severe-sheet-handle"></div>
+  <div class="severe-sheet-title">Severe Weather</div>
+  <div class="severe-sheet-items">
+    <a href="outlook.html" class="severe-sheet-itemactive">
+      <span class="material-symbols-rounded">thunderstorm</span>
+      <div class="severe-sheet-item-text">
+        Severe Outlook
+        <div class="severe-sheet-item-sub">SPC convective outlooks</div>
+      </div>
+    </a>
+    <a href="watches.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">emergency_home</span>
+      <div class="severe-sheet-item-text">
+        Current Watches
+        <div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div>
+      </div>
+    </a>
+    <a href="meso.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">crisis_alert</span>
+      <div class="severe-sheet-item-text">
+        Mesoscale Discussions
+        <div class="severe-sheet-item-sub">SPC short-term forecasts</div>
+      </div>
+    </a>
+    <a href="severe101.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">school</span>
+      <div class="severe-sheet-item-text">
+        Severe Weather 101
+        <div class="severe-sheet-item-sub">Learn about severe weather</div>
+      </div>
+    </a>
+    <a href="#" class="severe-sheet-item" data-coming-soon>
+      <span class="material-symbols-rounded">tune</span>
+      <div class="severe-sheet-item-text">
+        Storm Parameters
+        <div class="severe-sheet-item-sub">Atmospheric instability data</div>
+      </div>
+      <span class="severe-sheet-item-badge soon">Soon</span>
+    </a>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tab = document.getElementById('mob-severe-tab');
+  var sheet = document.getElementById('severe-sheet');
+  var backdrop = document.getElementById('severe-backdrop');
+  function openSheet(){ sheet.classList.add('open'); backdrop.classList.add('open'); }
+  function closeSheet(){ sheet.classList.remove('open'); backdrop.classList.remove('open'); }
+  if(tab) tab.addEventListener('click', function(){ sheet.classList.contains('open') ? closeSheet() : openSheet(); });
+  if(backdrop) backdrop.addEventListener('click', closeSheet);
+  document.querySelectorAll('[data-coming-soon-tab]').forEach(function(el){ el.addEventListener('click', function(e){ e.preventDefault(); }); });
+  document.body.classList.add('has-bottom-nav');
+})();
+</script>
+
 </body>
 </html>

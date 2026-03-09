@@ -61,8 +61,6 @@
     .nav-dropdown-menu a.active{background:var(--red-dim);color:var(--red);}
     .nav-dropdown-menu a .material-symbols-rounded{font-size:16px;}
     .nav-dropdown-menu a[data-coming-soon]{opacity:0.4;cursor:default;pointer-events:none;}
-    .mob-menu-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--text-3);margin-left:auto;}
-    .mob-menu-btn .material-symbols-rounded{font-size:22px;}
 
     /* ── MOBILE HEADER ── */
     .mob-bar-1{display:contents;}
@@ -74,16 +72,7 @@
       .mob-bar-2 .search-wrap{flex:1;max-width:none;}
       .header-inner{flex-wrap:wrap;padding:0 12px;height:auto;gap:0;}
       .header-nav{display:none;}
-      .mob-menu-btn{display:flex;}
     }
-    .mob-menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1100;backdrop-filter:blur(4px);}
-    .mob-menu-overlay.open{display:block;}
-    .mob-menu-panel{position:absolute;top:0;right:0;bottom:0;width:260px;background:var(--surface);border-left:1px solid var(--border-2);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
-    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:0.85rem;font-weight:500;color:var(--text-3);text-decoration:none;transition:background .1s,color .1s;}
-    .mob-menu-panel a:hover,.mob-menu-panel a.active{background:rgba(255,255,255,0.06);color:var(--text);}
-    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
-    .mob-menu-panel a[data-coming-soon]{opacity:0.35;pointer-events:none;}
-    .mob-menu-panel .material-symbols-rounded{font-size:18px;}
 
     /* ── LAYOUT ── */
     .app-body{flex:1;display:flex;overflow:hidden;position:relative;}
@@ -173,6 +162,100 @@
       .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
       :root{--panel:0px;}
     }
+  
+    /* ═══════════════════════════════════════════════
+       BOTTOM NAV BAR  (mobile ≤768px only)
+    ═══════════════════════════════════════════════ */
+    .mob-bottom-nav{
+      display:none;
+      position:fixed;bottom:0;left:0;right:0;
+      height:62px;
+      background:var(--surface);
+      border-top:1px solid var(--border-2);
+      z-index:1000;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    .mob-bottom-nav-inner{
+      display:flex;align-items:stretch;height:100%;
+    }
+    .mob-tab{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:3px;background:none;border:none;cursor:pointer;
+      font-family:var(--font);font-size:0.6rem;font-weight:600;
+      color:var(--text-4);letter-spacing:0.02em;text-decoration:none;
+      transition:color .15s;padding:6px 4px;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .mob-tab .material-symbols-rounded{font-size:22px;transition:color .15s;}
+    .mob-tab.active,.mob-tab:active{color:var(--red);}
+    .mob-tab.active .material-symbols-rounded{
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+    .mob-tab-severe{color:var(--red);}
+    .mob-tab-severe .material-symbols-rounded{
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+
+    /* Severe slide-up sheet */
+    .severe-sheet-backdrop{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+      z-index:1050;
+    }
+    .severe-sheet-backdrop.open{display:block;}
+    .severe-sheet{
+      position:fixed;bottom:0;left:0;right:0;
+      background:var(--surface);
+      border-top:1px solid var(--border-2);
+      border-radius:18px 18px 0 0;
+      z-index:1060;
+      padding-bottom:env(safe-area-inset-bottom);
+      transform:translateY(100%);
+      transition:transform .28s cubic-bezier(.32,.72,0,1);
+    }
+    .severe-sheet.open{transform:translateY(0);}
+    .severe-sheet-handle{
+      width:36px;height:4px;border-radius:2px;
+      background:rgba(255,255,255,0.15);
+      margin:10px auto 0;
+    }
+    .severe-sheet-title{
+      font-size:0.7rem;font-weight:700;
+      color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;
+      padding:10px 20px 6px;
+    }
+    .severe-sheet-items{padding:4px 12px 16px;}
+    .severe-sheet-item{
+      display:flex;align-items:center;gap:14px;
+      padding:13px 10px;border-radius:var(--r-sm);
+      font-size:0.88rem;font-weight:500;color:var(--text-2);
+      text-decoration:none;transition:background .12s;
+      border-bottom:1px solid var(--border);
+    }
+    .severe-sheet-item:last-child{border-bottom:none;}
+    .severe-sheet-item:active,.severe-sheet-item:hover{background:rgba(255,255,255,0.05);}
+    .severe-sheet-item.active{color:var(--red);}
+    .severe-sheet-item .material-symbols-rounded{
+      font-size:20px;color:var(--text-4);flex-shrink:0;
+    }
+    .severe-sheet-item.active .material-symbols-rounded{color:var(--red);}
+    .severe-sheet-item[data-coming-soon]{opacity:0.38;pointer-events:none;}
+    .severe-sheet-item-text{flex:1;}
+    .severe-sheet-item-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
+    .severe-sheet-item-badge{
+      font-size:0.58rem;font-weight:700;padding:2px 7px;
+      border-radius:4px;background:rgba(255,255,255,0.07);
+      color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;
+    }
+    .severe-sheet-item-badge.soon{color:var(--amber);background:rgba(245,158,11,0.1);}
+
+    @media(max-width:768px){
+      .mob-bottom-nav{display:block;}
+      /* push page content up so it doesn't hide behind nav */
+      body.has-bottom-nav main,
+      body.has-bottom-nav .app-body{padding-bottom:62px;}
+    }
+
   </style>
 </head>
 <body>
@@ -211,7 +294,6 @@
         <a href="#" data-coming-soon>Contact</a>
         <a href="#" data-coming-soon>About</a>
       </nav>
-      <button class="mob-menu-btn" id="mob-menu-btn"><span class="material-symbols-rounded">menu</span></button>
     </div>
     <div class="mob-bar-2">
       <div class="search-wrap">
@@ -225,19 +307,6 @@
   </div>
 </header>
 
-<!-- Mobile nav overlay -->
-<div class="mob-menu-overlay" id="mob-menu-overlay">
-  <div class="mob-menu-panel">
-    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
-    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-    <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-    <a href="meso.html" class="active"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-    <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
-  </div>
-</div>
 
 <div class="app-body">
 
@@ -567,13 +636,6 @@ function setError() {
 // ─────────────────────────────────────────────
 // MOBILE NAV
 // ─────────────────────────────────────────────
-document.getElementById('mob-menu-btn').addEventListener('click', () => {
-  document.getElementById('mob-menu-overlay').classList.toggle('open');
-});
-document.getElementById('mob-menu-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('mob-menu-overlay'))
-    document.getElementById('mob-menu-overlay').classList.remove('open');
-});
 
 document.getElementById('mob-md-toggle').addEventListener('click', () => {
   document.getElementById('md-panel').classList.toggle('mob-open');
@@ -605,5 +667,83 @@ document.querySelectorAll('[data-coming-soon]').forEach(el => {
 fetchMDs();
 setInterval(fetchMDs, 5 * 60 * 1000); // refresh every 5 min
 </script>
+
+<!-- ── BOTTOM NAV BAR ── -->
+<nav class="mob-bottom-nav" aria-label="Main navigation">
+  <div class="mob-bottom-nav-inner">
+    <a href="index.html" class="mob-tab">
+      <span class="material-symbols-rounded">wb_sunny</span>Home
+    </a>
+    <a href="#" class="mob-tab" data-coming-soon-tab>
+      <span class="material-symbols-rounded">schedule</span>Hourly
+    </a>
+    <a href="radar.html" class="mob-tab">
+      <span class="material-symbols-rounded">radar</span>Radar
+    </a>
+    <button class="mob-tab mob-tab-severe" id="mob-severe-tab" aria-haspopup="true">
+      <span class="material-symbols-rounded">thunderstorm</span>Severe
+    </button>
+  </div>
+</nav>
+
+<!-- ── SEVERE SLIDE-UP SHEET ── -->
+<div class="severe-sheet-backdrop" id="severe-backdrop"></div>
+<div class="severe-sheet" id="severe-sheet" role="dialog" aria-label="Severe Weather">
+  <div class="severe-sheet-handle"></div>
+  <div class="severe-sheet-title">Severe Weather</div>
+  <div class="severe-sheet-items">
+    <a href="outlook.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">thunderstorm</span>
+      <div class="severe-sheet-item-text">
+        Severe Outlook
+        <div class="severe-sheet-item-sub">SPC convective outlooks</div>
+      </div>
+    </a>
+    <a href="watches.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">emergency_home</span>
+      <div class="severe-sheet-item-text">
+        Current Watches
+        <div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div>
+      </div>
+    </a>
+    <a href="meso.html" class="severe-sheet-itemactive">
+      <span class="material-symbols-rounded">crisis_alert</span>
+      <div class="severe-sheet-item-text">
+        Mesoscale Discussions
+        <div class="severe-sheet-item-sub">SPC short-term forecasts</div>
+      </div>
+    </a>
+    <a href="severe101.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">school</span>
+      <div class="severe-sheet-item-text">
+        Severe Weather 101
+        <div class="severe-sheet-item-sub">Learn about severe weather</div>
+      </div>
+    </a>
+    <a href="#" class="severe-sheet-item" data-coming-soon>
+      <span class="material-symbols-rounded">tune</span>
+      <div class="severe-sheet-item-text">
+        Storm Parameters
+        <div class="severe-sheet-item-sub">Atmospheric instability data</div>
+      </div>
+      <span class="severe-sheet-item-badge soon">Soon</span>
+    </a>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tab = document.getElementById('mob-severe-tab');
+  var sheet = document.getElementById('severe-sheet');
+  var backdrop = document.getElementById('severe-backdrop');
+  function openSheet(){ sheet.classList.add('open'); backdrop.classList.add('open'); }
+  function closeSheet(){ sheet.classList.remove('open'); backdrop.classList.remove('open'); }
+  if(tab) tab.addEventListener('click', function(){ sheet.classList.contains('open') ? closeSheet() : openSheet(); });
+  if(backdrop) backdrop.addEventListener('click', closeSheet);
+  document.querySelectorAll('[data-coming-soon-tab]').forEach(function(el){ el.addEventListener('click', function(e){ e.preventDefault(); }); });
+  document.body.classList.add('has-bottom-nav');
+})();
+</script>
+
 </body>
 </html>
