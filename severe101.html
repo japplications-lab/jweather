@@ -100,11 +100,21 @@
     .ww-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
     @media (max-width: 580px) { .ww-grid { grid-template-columns: 1fr; } }
 
+    /* ── MOBILE MENU ── */
+    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;flex-shrink:0;margin-left:auto;}
+    .mob-menu-btn .material-symbols-rounded{font-size:18px;color:var(--text-3);}
+    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.6);}
+    .mob-menu-panel{position:absolute;top:var(--header);right:0;width:240px;background:var(--surface);border-left:1px solid var(--border-2);border-bottom:1px solid var(--border-2);border-radius:0 0 0 var(--r);padding:8px 0;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:0.82rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
+    .mob-menu-panel a:last-child{border-bottom:none;}
+    .mob-menu-panel a:hover,.mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
+    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
+
     @media (max-width: 640px) {
-      /* Header */
-      .header-nav > a:not(.nav-dropdown-wrap) { display: none; }
-      .header-inner { padding: 0 14px; gap: 10px; }
-      .nav-dropdown-menu { right: auto; left: 0; }
+      .header-inner { padding: 0 12px; gap: 8px; }
+      .header-nav { display: none; }
+      .mob-menu-btn { display: flex; }
 
       /* Page wrap tighter */
       .page-wrap { padding: 24px 14px 60px; }
@@ -121,7 +131,7 @@
       /* Section photos shorter on mobile */
       .section-photo { height: 100px; }
 
-      /* EF rows: stack label + content */
+      /* EF rows */
       .ef-row { grid-template-columns: 60px 1fr; }
       .ef-num-col { padding: 12px 8px; }
       .ef-label { font-size: 1rem; }
@@ -133,14 +143,14 @@
       /* Wind scale */
       .wind-scale { gap: 6px; }
 
-      /* Hail grid: 2 cols on small screens */
+      /* Hail grid */
       .hail-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-      /* Flood stats: 2 cols */
+      /* Flood stats */
       .flood-stats { grid-template-columns: 1fr 1fr; }
       .flood-stat-num { font-size: 1.35rem; }
 
-      /* Flood cards: single col */
+      /* Flood cards */
       .flood-cards { grid-template-columns: 1fr; }
 
       /* Section headers */
@@ -150,7 +160,6 @@
     @media (max-width: 400px) {
       .logo-name { display: none; }
       .hail-grid { grid-template-columns: repeat(2, 1fr); }
-      .flood-stats { grid-template-columns: 1fr 1fr; }
       .hero-title { font-size: 1.7rem; }
     }
     .ww-card { border-radius: var(--r); padding: 22px; border: 1px solid var(--border); position: relative; overflow: hidden; }
@@ -290,8 +299,25 @@
       <a href="#" data-coming-soon>Contact</a>
       <a href="#" data-coming-soon>About</a>
     </nav>
+    <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu">
+      <span class="material-symbols-rounded">menu</span>
+    </button>
   </div>
 </header>
+
+<!-- Mobile nav menu -->
+<div class="mob-menu-overlay" id="mob-menu-overlay">
+  <div class="mob-menu-panel">
+    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
+    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+    <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+    <a href="severe101.html" class="active"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
+  </div>
+</div>
 
 <div class="page-wrap">
 
@@ -625,6 +651,15 @@
       _csTimer = setTimeout(() => t.classList.remove('show'), 2800);
     });
   });
+
+// Mobile nav menu
+(function(){
+  const btn = document.getElementById('mob-menu-btn');
+  const overlay = document.getElementById('mob-menu-overlay');
+  if (!btn || !overlay) return;
+  btn.addEventListener('click', e => { e.stopPropagation(); overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block'; });
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+})();
 </script>
 </body>
 </html>

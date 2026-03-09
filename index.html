@@ -94,17 +94,24 @@
     }
     .left-col { display: flex; flex-direction: column; gap: 16px; }
     .right-col { display: flex; flex-direction: column; gap: 16px; }
+    /* ── MOBILE MENU ── */
+    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;flex-shrink:0;margin-left:auto;}
+    .mob-menu-btn .material-symbols-rounded{font-size:18px;color:var(--text-3);}
+    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.6);}
+    .mob-menu-panel{position:absolute;top:var(--header);right:0;width:240px;background:var(--surface);border-left:1px solid var(--border-2);border-bottom:1px solid var(--border-2);border-radius:0 0 0 var(--r);padding:8px 0;box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:0.82rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
+    .mob-menu-panel a:last-child{border-bottom:none;}
+    .mob-menu-panel a:hover,.mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
+    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
+
     @media (max-width: 768px) {
       main { grid-template-columns: 1fr; padding: 14px 14px 60px; }
     }
     @media (max-width: 600px) {
-      /* Header: hide Contact/About, compress search */
-      .header-nav > a:not(.nav-dropdown-wrap) { display: none; }
-      .header-inner { padding: 0 14px; gap: 10px; }
-      .search-wrap { max-width: none; }
-      /* Nav dropdown: anchor left so it doesn't bleed off right edge */
-      .nav-dropdown-menu { right: auto; left: 0; }
-      /* Cards slightly tighter */
+      .header-inner { padding: 0 12px; gap: 8px; }
+      .header-nav { display: none; }
+      .mob-menu-btn { display: flex; }
       .card-top, .current-body { padding-left: 14px; padding-right: 14px; }
     }
     @media (max-width: 400px) {
@@ -345,8 +352,25 @@
       <a href="#" data-coming-soon>Contact</a>
       <a href="#" data-coming-soon>About</a>
     </nav>
+    <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu">
+      <span class="material-symbols-rounded">menu</span>
+    </button>
   </div>
 </header>
+
+<!-- Mobile nav menu -->
+<div class="mob-menu-overlay" id="mob-menu-overlay">
+  <div class="mob-menu-panel">
+    <a href="index.html" class="active"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
+    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+    <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+    <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
+  </div>
+</div>
 
 <!-- MAIN: left col + right col -->
 <main>
@@ -925,6 +949,15 @@ function showComingSoon() {
 document.querySelectorAll('[data-coming-soon]').forEach(el => {
   el.addEventListener('click', e => { e.preventDefault(); showComingSoon(); });
 });
+
+// Mobile nav menu
+(function(){
+  const btn = document.getElementById('mob-menu-btn');
+  const overlay = document.getElementById('mob-menu-overlay');
+  if (!btn || !overlay) return;
+  btn.addEventListener('click', e => { e.stopPropagation(); overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block'; });
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+})();
 </script>
 
 <!-- Tornado Warning Overlay -->
