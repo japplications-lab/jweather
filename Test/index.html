@@ -1,0 +1,478 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { 
+  Search, Map as MapIcon, Home, BookOpen, AlertTriangle, 
+  Wind, Droplets, Thermometer, CloudLightning, 
+  X, Layers, Info, Navigation
+} from 'lucide-react';
+
+// --- Configuration & Constants ---
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+const DEFAULT_LOC = { lat: 39.0997, lng: -94.5786, name: 'Kansas City, MO' };
+
+// NWS & SPC Styling Maps
+const ALERT_COLORS = {
+  'Tornado Warning': { fill: '#ef4444', border: '#b91c1c' }, // Red
+  'Tornado Watch': { fill: '#eab308', border: '#a16207' }, // Yellow
+  'Severe Thunderstorm Warning': { fill: '#f97316', border: '#c2410c' }, // Orange
+  'Severe Thunderstorm Watch': { fill: '#ec4899', border: '#be185d' }, // Pink
+};
+
+const SPC_COLORS = {
+  'TSTM': { fill: '#c8eec8', border: '#90c890', label: 'General Storms' },
+  'MRGL': { fill: '#6abf6a', border: '#3d8c3d', label: 'Marginal Risk' },
+  'SLGT': { fill: '#f0e040', border: '#b8a800', label: 'Slight Risk' },
+  'ENH': { fill: '#e88020', border: '#b05000', label: 'Enhanced Risk' },
+  'MDT': { fill: '#e04040', border: '#a81818', label: 'Moderate Risk' },
+  'HIGH': { fill: '#ee30a0', border: '#aa1070', label: 'High Risk' },
+};
+
+// --- Custom Hooks ---
+
+// Hook to load Leaflet dynamically to avoid breaking server/sandbox environments
+const useLeaflet = () => {
+  const [loaded, setLoaded] = useState(!!window.L);
+  useEffect(() => {
+    if (window.L) { setLoaded(true); return; }
+    
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => setLoaded(true);
+    document.head.appendChild(script);
+  }, []);
+  return loaded;
+};
+
+// --- Components ---
+
+// 1. Sleek Search Header
+const TopSearch = ({ onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (query.length < 3) { setResults([]); return; }
+    const delay = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&countrycodes=us`);
+        const data = await res.json();
+        setResults(data);
+      } catch (e) { console.error(e); }
+    }, 300);
+    return () => clearTimeout(delay);
+  }, [query]);
+
+  return (
+    <div className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-center pointer-events-none">
+      <div className="w-full max-w-md relative pointer-events-auto">
+        <div className={`flex items-center bg-[#1a1d24]/90 backdrop-blur-xl border ${isFocused ? 'border-blue-500/50 shadow-lg shadow-blue-500/20' : 'border-white/10'} rounded-2xl px-4 py-3 transition-all`}>
+          <Search size={18} className="text-neutral-400 mr-3" />
+          <input 
+            type="text"
+            placeholder="Search city or zip..."
+            className="bg-transparent border-none outline-none text-white w-full placeholder:text-neutral-500 text-sm font-medium"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+          />
+        </div>
+
+        {isFocused && results.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1d24]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            {results.map((r, i) => (
+              <button
+                key={i}
+                className="w-full text-left px-4 py-3 text-sm text-neutral-200 hover:bg-white/5 border-b border-white/5 last:border-0 flex items-center"
+                onClick={() => {
+                  onSelect({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), name: r.display_name.split(',')[0] });
+                  setQuery('');
+                  setResults([]);
+                }}
+              >
+                <Navigation size={14} className="mr-3 text-blue-400" />
+                <span className="truncate">{r.display_name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 2. Forecast View (Home)
+const ForecastView = ({ location }) => {
+  const [data, setData] = useState({ current: null, forecast: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setLoading(true);
+      try {
+        // NWS API Workflow
+        const ptRes = await fetch(`https://api.weather.gov/points/${location.lat},${location.lng}`);
+        const ptData = await ptRes.json();
+        const forecastUrl = ptData.properties.forecast;
+        
+        const fcRes = await fetch(forecastUrl);
+        const fcData = await fcRes.json();
+        
+        setData({
+          current: fcData.properties.periods[0],
+          forecast: fcData.properties.periods.slice(1, 8)
+        });
+      } catch (err) {
+        console.error("Error fetching NWS data", err);
+      }
+      setLoading(false);
+    };
+    fetchWeather();
+  }, [location]);
+
+  if (loading) return <div className="flex-1 flex items-center justify-center text-neutral-400">Loading forecast...</div>;
+  if (!data.current) return <div className="flex-1 flex items-center justify-center text-neutral-400">Weather data unavailable.</div>;
+
+  return (
+    <div className="flex-1 overflow-y-auto no-scrollbar pt-24 px-6 pb-32">
+      <div className="max-w-2xl mx-auto flex flex-col items-center">
+        <h2 className="text-2xl font-semibold text-white mb-2 tracking-tight">{location.name}</h2>
+        <div className="text-sm font-medium text-neutral-400 bg-white/5 px-4 py-1.5 rounded-full backdrop-blur-sm border border-white/5 mb-8">
+          {data.current.shortForecast}
+        </div>
+
+        {/* Big Temp */}
+        <div className="relative flex items-start mb-12">
+          <span className="text-8xl md:text-9xl font-light tracking-tighter text-white">
+            {data.current.temperature}
+          </span>
+          <span className="text-3xl font-light text-neutral-400 mt-2">°{data.current.temperatureUnit}</span>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-4 w-full mb-8">
+          <div className="bg-[#1a1d24]/60 backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col items-center">
+            <Wind size={20} className="text-blue-400 mb-2" />
+            <span className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Wind</span>
+            <span className="text-sm font-semibold text-white">{data.current.windSpeed}</span>
+          </div>
+          <div className="bg-[#1a1d24]/60 backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col items-center">
+            <Droplets size={20} className="text-blue-400 mb-2" />
+            <span className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Precip</span>
+            <span className="text-sm font-semibold text-white">{data.current.probabilityOfPrecipitation?.value || 0}%</span>
+          </div>
+          <div className="bg-[#1a1d24]/60 backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col items-center">
+            <Thermometer size={20} className="text-blue-400 mb-2" />
+            <span className="text-xs text-neutral-400 font-medium uppercase tracking-wider mb-1">Trend</span>
+            <span className="text-sm font-semibold text-white">{data.current.isDaytime ? 'Falling' : 'Rising'}</span>
+          </div>
+        </div>
+
+        {/* Daily Forecast List */}
+        <div className="w-full bg-[#1a1d24]/60 backdrop-blur-md border border-white/5 rounded-3xl p-6">
+          <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-6 flex items-center">
+            <CloudLightning size={16} className="mr-2" /> Extended Forecast
+          </h3>
+          <div className="flex flex-col gap-5">
+            {data.forecast.map((period, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <span className="w-24 text-sm font-medium text-white">{period.name}</span>
+                <span className="flex-1 text-xs text-neutral-400 px-4 line-clamp-1">{period.shortForecast}</span>
+                <span className="w-12 text-right text-sm font-semibold text-white">{period.temperature}°</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 3. Unified Map View (Radar, Alerts, Outlooks)
+const InteractiveMap = ({ location }) => {
+  const isLeafletLoaded = useLeaflet();
+  const mapRef = useRef(null);
+  const containerRef = useRef(null);
+  const layersRef = useRef({ radar: null, alerts: null, outlooks: null });
+  
+  const [mapMode, setMapMode] = useState('radar'); // radar, alerts, outlooks
+  const [selectedFeature, setSelectedFeature] = useState(null);
+
+  // Initialize Map
+  useEffect(() => {
+    if (!isLeafletLoaded || !containerRef.current) return;
+    if (!mapRef.current) {
+      mapRef.current = window.L.map(containerRef.current, {
+        zoomControl: false,
+        attributionControl: false,
+      }).setView([location.lat, location.lng], 5);
+      
+      window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(mapRef.current);
+    } else {
+      mapRef.current.setView([location.lat, location.lng]);
+    }
+  }, [isLeafletLoaded, location]);
+
+  // Handle Layer Switching
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+    
+    // Clear existing overlay layers
+    Object.values(layersRef.current).forEach(layer => {
+      if (layer) map.removeLayer(layer);
+    });
+
+    setSelectedFeature(null); // Clear active bottom sheet
+
+    if (mapMode === 'radar') {
+      // IEM Composite Radar
+      const radarUrl = 'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::COMPOSITE-N0Q-0/{z}/{x}/{y}.png';
+      layersRef.current.radar = window.L.tileLayer(radarUrl, { opacity: 0.6 }).addTo(map);
+    } 
+    
+    else if (mapMode === 'alerts') {
+      // NWS Active Alerts
+      const events = ['Tornado Warning', 'Tornado Watch', 'Severe Thunderstorm Warning', 'Severe Thunderstorm Watch'].join(',');
+      fetch(`${WORKER_URL}/nws/alerts/active?status=actual&event=${encodeURIComponent(events)}`)
+        .then(res => res.json())
+        .then(data => {
+          layersRef.current.alerts = window.L.geoJSON(data, {
+            style: (f) => {
+              const type = f.properties.event;
+              const color = ALERT_COLORS[type] || { fill: '#555', border: '#333' };
+              return { fillColor: color.fill, color: color.border, weight: 2, fillOpacity: 0.35 };
+            },
+            onEachFeature: (f, layer) => {
+              layer.on('click', () => setSelectedFeature({ type: 'alert', data: f.properties }));
+            }
+          }).addTo(map);
+        }).catch(console.error);
+    } 
+    
+    else if (mapMode === 'outlooks') {
+      // NOAA SPC Day 1 Categorical Outlook
+      fetch(`${WORKER_URL}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/1/query?where=1%3D1&outFields=*&f=geojson`)
+        .then(res => res.json())
+        .then(data => {
+          // Sort larger polygons to bottom to ensure smaller high-risks are clickable
+          data.features.sort((a,b) => (a.properties.DN || 0) - (b.properties.DN || 0));
+          layersRef.current.outlooks = window.L.geoJSON(data, {
+            style: (f) => {
+              const risk = (f.properties.LABEL || '').toUpperCase().trim();
+              const color = SPC_COLORS[risk];
+              if (!color || risk === 'TSTM') return { fillOpacity: 0, weight: 0 };
+              return { fillColor: color.fill, color: color.border, weight: 2, fillOpacity: 0.6 };
+            },
+            onEachFeature: (f, layer) => {
+              const risk = (f.properties.LABEL || '').toUpperCase().trim();
+              if (risk === 'TSTM') return;
+              layer.on('click', () => setSelectedFeature({ type: 'outlook', data: f.properties }));
+            }
+          }).addTo(map);
+        }).catch(console.error);
+    }
+  }, [mapMode, isLeafletLoaded]);
+
+  return (
+    <div className="relative flex-1 w-full h-full bg-[#0f1115]">
+      {/* Map Container */}
+      <div ref={containerRef} className="absolute inset-0 z-0" />
+
+      {/* Map Controls Overlay */}
+      <div className="absolute top-24 left-0 right-0 z-10 flex justify-center pointer-events-none px-4">
+        <div className="bg-[#1a1d24]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-full flex gap-1 shadow-2xl pointer-events-auto">
+          {['radar', 'alerts', 'outlooks'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setMapMode(mode)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
+                mapMode === mode 
+                  ? 'bg-blue-500 text-white shadow-md' 
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Sheet for Feature Details */}
+      <div className={`absolute bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 bg-[#1a1d24]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 transition-all duration-500 z-20 shadow-2xl ${
+        selectedFeature ? 'translate-y-0 opacity-100' : 'translate-y-[120%] opacity-0'
+      }`}>
+        {selectedFeature && (
+          <div>
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-bold text-white leading-tight pr-4">
+                {selectedFeature.type === 'alert' ? selectedFeature.data.event : SPC_COLORS[(selectedFeature.data.LABEL||'').toUpperCase().trim()]?.label}
+              </h3>
+              <button onClick={() => setSelectedFeature(null)} className="p-1 bg-white/5 hover:bg-white/10 rounded-full text-neutral-400 transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {selectedFeature.type === 'alert' ? (
+                <>
+                  <p className="text-sm text-neutral-300 leading-relaxed max-h-32 overflow-y-auto no-scrollbar">
+                    {selectedFeature.data.areaDesc}
+                  </p>
+                  <div className="mt-4 pt-4 border-t border-white/5">
+                    <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Expires</span>
+                    <span className="text-sm text-red-400 font-medium">
+                      {new Date(selectedFeature.data.expires).toLocaleString()}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-neutral-300 leading-relaxed">
+                  Severe weather risk area mapped by the Storm Prediction Center. Be prepared for rapidly changing conditions.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 4. Learn View (Severe 101)
+const LearnView = () => {
+  return (
+    <div className="flex-1 overflow-y-auto no-scrollbar pt-24 px-6 pb-32">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Severe 101</h1>
+        <p className="text-neutral-400 mb-10 text-sm leading-relaxed">Everything you need to understand severe weather alerts and stay alive. No meteorology degree required.</p>
+
+        {/* Watch vs Warning */}
+        <div className="bg-[#1a1d24]/60 backdrop-blur-md border border-white/5 rounded-3xl p-6 mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-amber-500/20 text-amber-400 rounded-xl"><AlertTriangle size={20} /></div>
+            <h2 className="text-xl font-semibold text-white">Watch vs. Warning</h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5">
+              <span className="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-wider rounded-lg mb-3">Watch</span>
+              <p className="text-sm text-neutral-300 leading-relaxed">
+                <strong className="text-white">Conditions are right.</strong> The atmosphere has the ingredients for severe weather. Nothing is happening yet, but it could. Be ready and have a plan.
+              </p>
+            </div>
+            <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-5">
+              <span className="inline-block px-3 py-1 bg-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider rounded-lg mb-3">Warning</span>
+              <p className="text-sm text-neutral-300 leading-relaxed">
+                <strong className="text-white">It is happening.</strong> A severe storm is detected on radar or by spotters. The threat is imminent. Take shelter immediately.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* EF Scale */}
+        <div className="bg-[#1a1d24]/60 backdrop-blur-md border border-white/5 rounded-3xl p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-500/20 text-blue-400 rounded-xl"><Wind size={20} /></div>
+            <h2 className="text-xl font-semibold text-white">Tornado EF Scale</h2>
+          </div>
+          
+          <div className="space-y-3">
+            {[
+              { ef: 'EF0', wind: '65-85 mph', desc: 'Minor damage. Branches snapped, signs damaged.' },
+              { ef: 'EF1', wind: '86-110 mph', desc: 'Moderate damage. Roofs peeled, mobile homes pushed.' },
+              { ef: 'EF2', wind: '111-135 mph', desc: 'Considerable damage. Roofs torn off, large trees snapped.' },
+              { ef: 'EF3', wind: '136-165 mph', desc: 'Severe damage. Trains overturned, exterior walls collapse.' },
+              { ef: 'EF4', wind: '166-200 mph', desc: 'Devastating. Well-built homes leveled.' },
+              { ef: 'EF5', wind: '200+ mph', desc: 'Incredible. Foundations wiped clean.' },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="flex-shrink-0 text-center w-16">
+                  <div className="font-bold text-white">{item.ef}</div>
+                  <div className="text-[10px] text-neutral-500 uppercase font-semibold">{item.wind}</div>
+                </div>
+                <p className="text-sm text-neutral-300 flex-1">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+// --- Main App Layout ---
+export default function App() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [location, setLocation] = useState(DEFAULT_LOC);
+
+  const TABS = [
+    { id: 'home', icon: Home, label: 'Forecast' },
+    { id: 'map', icon: MapIcon, label: 'Live Map' },
+    { id: 'learn', icon: BookOpen, label: 'Learn' }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-[#0f1115] text-white flex flex-col md:flex-row overflow-hidden font-sans selection:bg-blue-500/30">
+      
+      {/* Desktop Sidebar (Hidden on mobile) */}
+      <nav className="hidden md:flex flex-col w-24 bg-[#1a1d24] border-r border-white/5 items-center py-8 z-50">
+        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mb-12 shadow-lg shadow-blue-500/20">
+          <CloudLightning size={20} className="text-white" />
+        </div>
+        <div className="flex flex-col gap-6">
+          {TABS.map(tab => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`p-3 rounded-2xl transition-all duration-300 ${
+                activeTab === tab.id 
+                  ? 'bg-blue-500/10 text-blue-400' 
+                  : 'text-neutral-500 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <tab.icon size={22} />
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 relative flex flex-col min-w-0">
+        {/* Only show search on non-map views to keep map clean, or conditionally */}
+        {activeTab !== 'map' && <TopSearch onSelect={setLocation} />}
+        
+        {/* Screens */}
+        {activeTab === 'home' && <ForecastView location={location} />}
+        {activeTab === 'map' && <InteractiveMap location={location} />}
+        {activeTab === 'learn' && <LearnView />}
+      </main>
+
+      {/* Mobile Bottom Navigation (Hidden on desktop) */}
+      <nav className="md:hidden absolute bottom-0 left-0 right-0 h-20 bg-[#1a1d24]/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-6 pb-safe z-50">
+        {TABS.map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex flex-col items-center justify-center w-16 transition-colors duration-300 ${
+              activeTab === tab.id ? 'text-blue-400' : 'text-neutral-500 hover:text-white'
+            }`}
+          >
+            <div className={`mb-1 p-1.5 rounded-xl transition-all ${activeTab === tab.id ? 'bg-blue-500/10' : ''}`}>
+              <tab.icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+            </div>
+            <span className="text-[10px] font-medium tracking-wide">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
