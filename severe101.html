@@ -79,20 +79,18 @@
     .mob-bar-2{display:none;}
     /* ─── TWO-BAR MOBILE HEADER ─── */
     @media(max-width:640px){
-      /* Header becomes two rows */
       header{height:auto !important;}
       .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      /* Row 1: logo + search + hamburger */
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
+      /* Row 1: logo only */
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
       .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+      /* Row 2: full-width search pill */
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-
-      /* Hide desktop nav entirely */
+      /* Hide desktop nav */
       .header-nav{display:none !important;}
-      /* Show hamburger */
-      /* Always show logo text */
       .logo-name{display:block !important;}
+    }
     }
     /* SEARCH BAR */
     .search-wrap { flex: 1; max-width: 440px; position: relative; }
@@ -364,6 +362,20 @@
       body.has-bottom-nav .app-body{padding-bottom:62px;}
     }
 
+      /* mob-search-pill — pill shape for mobile search row */
+    @media(max-width:640px){
+      .mob-bar-2 .search-row{
+        border-radius:24px;
+        background:rgba(255,255,255,0.07);
+        border-color:transparent;
+        padding:0 10px 0 14px;
+      }
+      .mob-bar-2 .search-row:focus-within{
+        border-color:var(--red);
+        background:rgba(255,255,255,0.09);
+      }
+      #search-bar-mob{padding:10px 8px;}
+    }
   </style>
 </head>
 <body>
@@ -822,7 +834,7 @@
     <a href="index.html" class="mob-tab">
       <span class="material-symbols-rounded">wb_sunny</span>Home
     </a>
-    <a href="#" class="mob-tab" data-coming-soon-tab>
+    <a href="hourly.html" class="mob-tab">
       <span class="material-symbols-rounded">schedule</span>Hourly
     </a>
     <a href="radar.html" class="mob-tab">
@@ -888,7 +900,6 @@
   function closeSheet(){ sheet.classList.remove('open'); backdrop.classList.remove('open'); }
   if(tab) tab.addEventListener('click', function(){ sheet.classList.contains('open') ? closeSheet() : openSheet(); });
   if(backdrop) backdrop.addEventListener('click', closeSheet);
-  document.querySelectorAll('[data-coming-soon-tab]').forEach(function(el){ el.addEventListener('click', function(e){ e.preventDefault(); }); });
   document.body.classList.add('has-bottom-nav');
 })();
 </script>
