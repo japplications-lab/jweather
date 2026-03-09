@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>jWeather — SPC Convective Outlooks</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -39,8 +39,8 @@
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
     .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
-    #search-bar{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
-    #search-bar::placeholder{color:var(--text-4);}
+    #search-bar,#search-bar-mob{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-bar::placeholder,#search-bar-mob::placeholder{color:var(--text-4);}
     #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
     #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
     #suggestions li:last-child{border-bottom:none;}
@@ -67,6 +67,65 @@
     .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
     .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
 
+
+    /* ─── MOBILE MENU BUTTON & PANEL ─── */
+    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;}
+    .mob-menu-btn .material-symbols-rounded{font-size:19px;color:var(--text-3);}
+    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.55);}
+    .mob-menu-panel{position:absolute;top:0;right:0;width:250px;height:100%;background:var(--surface);border-left:1px solid var(--border-2);padding:12px 0;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5);}
+    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:0.83rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
+    .mob-menu-panel a:last-child{border-bottom:none;}
+    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
+    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
+
+    /* On desktop, bar divs are transparent wrappers */
+    .mob-bar-1{display:contents;}
+    .mob-bar-2{display:none;}
+    /* ─── TWO-BAR MOBILE HEADER ─── */
+    @media(max-width:640px){
+      /* Header becomes two rows */
+      header{height:auto !important;}
+      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
+      /* Row 1: logo + search + hamburger */
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
+      .mob-bar-1 .search-wrap{display:none;}
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+
+      /* Hide desktop nav entirely */
+      .header-nav{display:none !important;}
+      /* Show hamburger */
+      .mob-menu-btn{display:flex;margin-left:auto;}
+      /* Always show logo text */
+      .logo-name{display:block !important;}
+    }
+
+    /* ── MOBILE BOTTOM CONTROLS ── */
+    .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);box-shadow:0 -4px 20px rgba(0,0,0,0.4);}
+    .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
+    .mob-day-tab{flex:1;padding:9px 4px 7px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+    .mob-day-tab.active{color:var(--red);border-bottom-color:var(--red);}
+    .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;}
+    .mob-mode-row::-webkit-scrollbar{display:none;}
+    .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
+    .mob-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
+    .mob-mode-btn .material-symbols-rounded{font-size:13px;}
+    @media(max-width:640px){
+      .sidebar{display:none !important;}
+      .map-panel{width:100%;}
+      .mob-controls{display:block;}
+      .app-body{padding-bottom:88px;}
+      .map-legend{bottom:98px;left:10px;padding:8px 10px;max-width:calc(100vw - 20px);}
+      .legend-title{font-size:0.6rem;}
+      .legend-items{gap:3px;}
+      .legend-item{gap:6px;}
+      .legend-swatch{width:13px;height:13px;}
+      .legend-label{font-size:0.66rem;}
+      .legend-num{display:none;}
+      .map-topbar{top:8px;left:8px;gap:5px;}
+      .map-context-pill{font-size:0.65rem;padding:4px 9px;}
+    }
     /* ── APP BODY: sidebar + map ── */
     .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
 
@@ -109,7 +168,7 @@
 
     /* ── MAP PANEL ── */
     .map-panel{flex:1;position:relative;background:var(--bg);min-width:0;}
-    #main-map{position:absolute;inset:0;width:100%;height:100%;}
+    #main-map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
 
     /* Map top bar */
     .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
@@ -286,38 +345,66 @@
 <!-- ── HEADER ── -->
 <header>
   <div class="header-inner">
-    <a class="logo" href="index.html">
-      <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
-      <span class="logo-name">j<span>Weather</span></span>
-    </a>
-    <div class="search-wrap">
-      <div class="search-row">
-        <span class="material-symbols-rounded">search</span>
-        <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+    <!-- Row 1: logo + search + nav + hamburger -->
+    <div class="mob-bar-1">
+      <a class="logo" href="index.html">
+        <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
+        <span class="logo-name">j<span>Weather</span></span>
+      </a>
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions"></ul>
       </div>
-      <ul id="suggestions"></ul>
-    </div>
-    <nav class="header-nav">
-      <a href="index.html">Forecast</a>
-      <div class="nav-dropdown">
-        <button class="nav-dropdown-btn">
-          Severe Weather <span class="material-symbols-rounded">expand_more</span>
-        </button>
-        <div class="nav-dropdown-menu">
-          <div class="nav-dropdown-menu-inner">
-            <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-            <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-            <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-            <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-            <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+      <nav class="header-nav">
+        <a href="index.html">Forecast</a>
+        <div class="nav-dropdown">
+          <button class="nav-dropdown-btn">
+            Severe Weather <span class="material-symbols-rounded">expand_more</span>
+          </button>
+          <div class="nav-dropdown-menu">
+            <div class="nav-dropdown-menu-inner">
+              <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+              <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+              <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+              <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+            </div>
           </div>
         </div>
+        <a href="#" data-coming-soon>Contact</a>
+        <a href="#" data-coming-soon>About</a>
+      </nav>
+      <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
+    </div><!-- /.mob-bar-1 -->
+    <!-- Row 2: search bar (mobile only) -->
+    <div class="mob-bar-2">
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions-mob"></ul>
       </div>
-      <a href="#" data-coming-soon>Contact</a>
-      <a href="#" data-coming-soon>About</a>
-    </nav>
+    </div><!-- /.mob-bar-2 -->
   </div>
 </header>
+
+<!-- Mobile nav menu -->
+<div class="mob-menu-overlay" id="mob-menu-overlay">
+  <div class="mob-menu-panel">
+    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
+    <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
+    <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
+    <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
+    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
+  </div>
+</div>
 
 <!-- ── APP BODY ── -->
 <div class="app-body">
@@ -434,6 +521,20 @@
     <div class="map-loading" id="map-loading"><div class="spin-ring"></div></div>
   </div>
 
+</div>
+<!-- Mobile bottom controls -->
+<div class="mob-controls" id="mob-controls">
+  <div class="mob-day-tabs">
+    <button class="mob-day-tab active" data-mob-day="1">Day 1 — Today</button>
+    <button class="mob-day-tab" data-mob-day="2">Day 2 — Tomorrow</button>
+    <button class="mob-day-tab" data-mob-day="3" id="mob-day3-tab">Day 3</button>
+  </div>
+  <div class="mob-mode-row" id="mob-mode-row">
+    <button class="mob-mode-btn active" data-mob-mode="cat"><span class="material-symbols-rounded">thunderstorm</span>Overall</button>
+    <button class="mob-mode-btn" data-mob-mode="torn"><span class="material-symbols-rounded">tornado</span>Tornado</button>
+    <button class="mob-mode-btn" data-mob-mode="wind"><span class="material-symbols-rounded">air</span>Wind</button>
+    <button class="mob-mode-btn" data-mob-mode="hail"><span class="material-symbols-rounded">weather_hail</span>Hail</button>
+  </div>
 </div>
 
 <!-- Discussion Modal -->
@@ -660,23 +761,21 @@ let activeMode = 'cat';
 //  so city/road names always show through on top of the weather polygons.
 // ─────────────────────────────────────────────
 function makeBaseTiles() {
-  // Voyager no-labels — base roads/geography without text
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`,
     {
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains:'abcd', maxZoom:19,
-      r: window.devicePixelRatio > 1 ? '@2x' : ''
     }
   );
 }
 function makeLabelTiles() {
-  // Voyager labels-only — city names, roads, POIs on top of everything
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   return L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}{r}.png',
+    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`,
     {
       subdomains:'abcd', maxZoom:19,
-      r: window.devicePixelRatio > 1 ? '@2x' : '',
       pane:'labelTilePane'
     }
   );
@@ -999,8 +1098,9 @@ function buildLegend(geojson, mode) {
     cigEntry.className = 'legend-item legend-active';
     cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     cigEntry.innerHTML = `
-      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>`;
+      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
+      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>
+      <svg viewBox="0 0 13 13" width="13" height="13" style="flex-shrink:0;margin-left:4px;" xmlns="http://www.w3.org/2000/svg"><polygon points="6.5,0.5 12.8,12.5 0.2,12.5" fill="#e5182a"/><text x="6.5" y="11.2" text-anchor="middle" font-size="7.5" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
     el.appendChild(cigEntry);
   }
 }
@@ -1294,8 +1394,8 @@ async function loadSigLayer(day, mode) {
     hatchEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     hatchEntry.innerHTML = `
       <div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px),repeating-linear-gradient(135deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 3px,rgba(0,0,0,0.5) 3px,rgba(0,0,0,0.5) 4.5px);border:1.5px solid #111;box-sizing:border-box;border-radius:2px;"></div>
-      <span class="legend-num" style="color:var(--red);font-weight:800;">⚠</span>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>`;
+      <span class="legend-label" style="font-weight:600;color:var(--text);">${sigShortLabel}</span>
+      <span style="color:var(--red);font-weight:800;margin-left:4px;">!</span>`;
     legendEl.appendChild(hatchEntry);
     const sigEntry = document.createElement('div');
     sigEntry.className = 'legend-item sig-legend-entry';
@@ -1585,49 +1685,54 @@ const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","Californi
 function sa(n){return SA[n]||n;}
 function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
 let sugs=[],selIdx=-1,sCtrl=null;
-const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions');
+const _sInputs=[
+  {bar:document.getElementById('search-bar'),     sug:document.getElementById('suggestions')},
+  {bar:document.getElementById('search-bar-mob'), sug:document.getElementById('suggestions-mob')},
+].filter(x=>x.bar&&x.sug);
+const sBar=_sInputs[0]?.bar, sugBox=_sInputs[0]?.sug;
 function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
-sBar.addEventListener('input', e => {
-  const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs();return;}
-  rSugs(); // show recents immediately
-  if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
-  db(async()=>{
-  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
-  const d=await r.json();const seen=new Set();sugs=[];
-  for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
-  selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
-  })();
-});
-sBar.addEventListener('keydown',e=>{
+function rSugs(aBar,aSug){
+  _sInputs.forEach(({sug})=>{sug.innerHTML='';sug.style.display='none';});
+  if(!aBar||!aSug)return;
   const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
-  const all=[...sugs,...recents];
-  if(!all.length)return;
-  if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs();}
-  else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs();}
-  else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
-  else if(e.key==='Escape')sugBox.style.display='none';
-});
-function rSugs(){
-  sugBox.innerHTML='';
-  const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
-  if(!sugs.length&&!recents.length){sugBox.style.display='none';return;}
+  if(!sugs.length&&!recents.length)return;
   if(sugs.length){
-    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';sugBox.appendChild(lbl);
-    sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});
+    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';aSug.appendChild(lbl);
+    sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});aSug.appendChild(li);});
   }
   if(recents.length){
-    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';sugBox.appendChild(lbl);
-    recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs();});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});sugBox.appendChild(li);});
+    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';aSug.appendChild(lbl);
+    recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs(aBar,aSug);});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});aSug.appendChild(li);});
   }
-  sugBox.style.display='block';
+  aSug.style.display='block';
 }
-document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
-
-sBar.addEventListener('focus', () => {
-  if (sBar.value.trim().length < 2) showRecents();
+function showRecents(aBar,aSug){sugs=[];rSugs(aBar,aSug);}
+_sInputs.forEach(({bar,sug})=>{
+  bar.addEventListener('input',e=>{
+    const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs(bar,sug);return;}
+    rSugs(bar,sug);
+    if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
+    db(async()=>{
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
+    const d=await r.json();const seen=new Set();sugs=[];
+    for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
+    selIdx=-1;rSugs(bar,sug);}catch(e){if(e.name!=='AbortError')console.error(e);}
+    })();
+  });
+  bar.addEventListener('keydown',e=>{
+    const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
+    const all=[...sugs,...recents];
+    if(!all.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs(bar,sug);}
+    else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs(bar,sug);}
+    else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
+    else if(e.key==='Escape'){sug.style.display='none';selIdx=-1;}
+  });
+  bar.addEventListener('focus',()=>{if(bar.value.trim().length<2)showRecents(bar,sug);});
 });
-
-function showRecents() { sugs=[]; rSugs(); }
+document.addEventListener('click',e=>{
+  _sInputs.forEach(({bar,sug})=>{if(!sug.contains(e.target)&&e.target!==bar){sug.style.display='none';selIdx=-1;}});
+});
 
 // ── Recent searches ──────────────────────────────────────────────────────────
 const RECENTS_KEY = 'jweather_recents';
@@ -1653,6 +1758,62 @@ function pick(l) {
   localStorage.setItem('jweather_last_location', JSON.stringify(l));
   window.location.href = 'index.html';
 }
+
+// ── Mobile nav menu ──
+(function(){
+  var btn=document.getElementById('mob-menu-btn');
+  var overlay=document.getElementById('mob-menu-overlay');
+  if(!btn||!overlay)return;
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    overlay.style.display=overlay.style.display==='block'?'none':'block';
+  });
+  overlay.addEventListener('click',function(e){
+    if(e.target===overlay)overlay.style.display='none';
+  });
+})();
+
+// ── Mobile bottom controls ──
+(function(){
+  var dayTabs=document.querySelectorAll('.mob-day-tab');
+  var modeBtns=document.querySelectorAll('.mob-mode-btn');
+  var dayModes={1:['cat','torn','wind','hail'],2:['cat','torn','wind','hail'],3:['cat']};
+  var mobDay=1, mobMode='cat';
+
+  function syncModes(){
+    var allowed=dayModes[mobDay];
+    modeBtns.forEach(function(b){
+      b.style.display=allowed.includes(b.dataset.mobMode)?'flex':'none';
+      b.classList.toggle('active',b.dataset.mobMode===mobMode);
+    });
+  }
+  dayTabs.forEach(function(tab){
+    tab.addEventListener('click',function(){
+      mobDay=parseInt(tab.dataset.mobDay);
+      if(!dayModes[mobDay].includes(mobMode))mobMode='cat';
+      dayTabs.forEach(function(t){t.classList.toggle('active',t.dataset.mobDay==mobDay);});
+      syncModes();
+      loadHazard(mobDay,mobMode);
+    });
+  });
+  modeBtns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      mobMode=btn.dataset.mobMode;
+      modeBtns.forEach(function(b){b.classList.toggle('active',b.dataset.mobMode===mobMode);});
+      loadHazard(mobDay,mobMode);
+    });
+  });
+  // Sync day3 tab label
+  var d3el=document.getElementById('day3-name');
+  if(d3el){
+    var obs=new MutationObserver(function(){
+      var tab=document.querySelector('.mob-day-tab[data-mob-day="3"]');
+      if(tab&&d3el.textContent&&d3el.textContent!=='—')tab.textContent='Day 3 — '+d3el.textContent;
+    });
+    obs.observe(d3el,{childList:true,characterData:true,subtree:true});
+  }
+  syncModes();
+})();
 </script>
 </body>
 </html>
