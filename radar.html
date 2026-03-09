@@ -584,7 +584,6 @@ function loadFrame(timeStr) {
   if (!timeStr) return;
 
   const tk = tKey(timeStr);
-  const isLatest = frameIdx === frames.length - 1;
 
   if (currentProduct === 'N0C') {
     // N0C: IEM serves as raw EPSG:4326 image — use as image overlay
@@ -604,15 +603,23 @@ function loadFrame(timeStr) {
       setLoading(false);
       console.warn('N0C image not found for', tk);
     });
+  } else if (currentStation === 'COMPOSITE') {
+    // Composite: IEM archive flat PNG in EPSG:4326 — use imageOverlay
+    // CONUS mosaic bounds per IEM documentation
+    const CONUS_BOUNDS = [[ 23.0, -126.0 ], [ 50.0, -66.0 ]];
+    const dt = new Date(timeStr);
+    const p = n => String(n).padStart(2,'0');
+    const yr = dt.getUTCFullYear(), mo = p(dt.getUTCMonth()+1), dy = p(dt.getUTCDate());
+    const imgUrl = `${IEM_BASE}/archive/data/${yr}/${mo}/${dy}/GIS/uscomp/n0q_${tk}.png`;
+    radarLayer = L.imageOverlay(imgUrl, CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
+    radarLayer.on('load', () => setLoading(false));
+    radarLayer.on('error', () => {
+      setLoading(false);
+      console.warn('Composite image not found for', tk);
+    });
   } else {
-    // Tiled products: N0B, N0U, N0S
-    const tileProd = currentProduct;
-    // Composite: use "0" shortcut for latest to avoid 5-min timestamp alignment issues
-    // For historical frames use the tKey
-    const compositeTime = isLatest ? '0' : tk;
-    const url = currentStation === 'COMPOSITE'
-      ? `${IEM_BASE}/cache/tile.py/1.0.0/nexrad-n0q-900913/${compositeTime}/{z}/{x}/{y}.png`
-      : `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${tileProd}-${tk}/{z}/{x}/{y}.png`;
+    // Single-station tiled products: N0B, N0U, N0S
+    const url = `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${currentProduct}-${tk}/{z}/{x}/{y}.png`;
     radarLayer = L.tileLayer(url, {
       opacity: radarOpacity,
       maxZoom: 19,
