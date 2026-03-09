@@ -241,6 +241,13 @@
         <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
         <span class="logo-name">j<span>Weather</span></span>
       </a>
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions"></ul>
+      </div>
       <nav class="header-nav">
         <a href="index.html">Forecast</a>
         <div class="nav-dropdown">
@@ -262,13 +269,14 @@
       </nav>
       <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div>
+    <!-- Row 2: search bar (mobile only) -->
     <div class="mob-bar-2">
       <div class="search-wrap">
         <div class="search-row">
           <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+          <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
         </div>
-        <ul id="suggestions"></ul>
+        <ul id="suggestions-mob"></ul>
       </div>
     </div>
   </div>
@@ -392,29 +400,42 @@ map.createPane('labelPane');
 map.getPane('labelPane').style.zIndex = 450;
 map.getPane('labelPane').style.pointerEvents = 'none';
 
-const retina = window.devicePixelRatio > 1 ? '@2x' : '';
-
-// Base tile — CARTO dark matter (no labels)
-L.tileLayer(
-  `https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}${retina}.png`,
-  { subdomains: 'abcd', maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' }
-).addTo(map);
+// Tile setup — probe CARTO first; fall back to OSM if blocked (e.g. Brave Shields)
+(function initTiles() {
+  const r = window.devicePixelRatio > 1 ? '@2x' : '';
+  const cartoBase  = `https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/0/0/0${r}.png`;
+  const probe = new Image();
+  probe.onload = function() {
+    // CARTO available
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+      { subdomains:'abcd', maxZoom:19, r,
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' }
+    ).addTo(map);
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}{r}.png',
+      { subdomains:'abcd', maxZoom:19, r, pane:'labelPane', opacity:0.85 }
+    ).addTo(map);
+  };
+  probe.onerror = function() {
+    // CARTO blocked — use OSM
+    L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { subdomains:'abc', maxZoom:19,
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }
+    ).addTo(map);
+  };
+  probe.src = cartoBase;
+})();
 
 // State borders
 fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
   .then(r => r.json())
   .then(data => {
     L.geoJSON(data, {
-      style: { color: 'rgba(255,255,255,0.22)', weight: 0.8, fill: false },
+      style: { color: 'rgba(80,80,80,0.6)', weight: 0.8, fill: false },
     }).addTo(map);
   }).catch(() => {});
-
-// Label tile on top of everything
-L.tileLayer(
-  `https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}${retina}.png`,
-  { subdomains: 'abcd', maxZoom: 19, pane: 'labelPane', opacity: 0.85 }
-).addTo(map);
 
 // ─────────────────────────────────────────────
 // STATE
