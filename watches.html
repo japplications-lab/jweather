@@ -485,29 +485,26 @@ let selectedWatchId = null;
 // ─────────────────────────────────────────────
 // FETCH WATCHES
 // ─────────────────────────────────────────────
-// Resolve geometry for a null-geometry watch by merging its affected zone polygons
-async function resolveWatchGeometry(feature) {
-  if (feature.geometry) return feature;
+// Fetch county polygons for a watch from its affectedZones URLs.
+// Returns a MultiPolygon geometry covering all affected counties.
+async function fetchCountyGeometry(feature) {
   const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   const zoneUrls = feature.properties.affectedZones || [];
   if (!zoneUrls.length) return null;
-  try {
-    const zoneResponses = await Promise.all(zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null)));
-    const rings = [];
-    for (const zone of zoneResponses) {
-      if (!zone?.geometry) continue;
-      const g = zone.geometry;
-      if (g.type === 'Polygon') rings.push(...g.coordinates);
-      else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => rings.push(...p));
-    }
-    if (!rings.length) return null;
-    // Combine all zone polygons into a MultiPolygon
-    const merged = { type: 'MultiPolygon', coordinates: rings.map(r => [r]) };
-    return { ...feature, geometry: merged };
-  } catch (e) {
-    console.warn('Zone geometry resolve failed:', e);
-    return null;
+  const responses = await Promise.allSettled(
+    zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null))
+  );
+  const coords = [];
+  for (const r of responses) {
+    if (r.status !== 'fulfilled' || !r.value?.geometry) continue;
+    const g = r.value.geometry;
+    if (g.type === 'Polygon') coords.push(g.coordinates);
+    else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => coords.push(p));
   }
+  if (!coords.length) return null;
+  return coords.length === 1
+    ? { type: 'Polygon', coordinates: coords[0] }
+    : { type: 'MultiPolygon', coordinates: coords };
 }
 
 async function fetchWatches() {
@@ -518,18 +515,19 @@ async function fetchWatches() {
       fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
       fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
     ]);
-    if (!torRes.ok) throw new Error(`Tornado watch fetch: HTTP ${torRes.status}`);
-    if (!svrRes.ok) throw new Error(`SVR watch fetch: HTTP ${svrRes.status}`);
+    if (!torRes.ok) throw new Error(`Tornado watch HTTP ${torRes.status}`);
+    if (!svrRes.ok) throw new Error(`SVR watch HTTP ${svrRes.status}`);
     const [torData, svrData] = await Promise.all([torRes.json(), svrRes.json()]);
-    const allFeatures = [
-      ...(torData.features || []),
-      ...(svrData.features || []),
-    ];
+    const allFeatures = [...(torData.features || []), ...(svrData.features || [])];
 
-    // Resolve geometries — watches are county-based and often have geometry:null
-    // For those, merge the affected zone polygons to build the watch area
-    const resolved = await Promise.all(allFeatures.map(f => resolveWatchGeometry(f)));
-    watchData = resolved.filter(Boolean).sort((a, b) => {
+    // Attach county geometry to every feature
+    const resolved = await Promise.all(allFeatures.map(async f => {
+      if (f.geometry) return f;
+      const geom = await fetchCountyGeometry(f);
+      return { ...f, geometry: geom };
+    }));
+
+    watchData = resolved.sort((a, b) => {
       const aIsTor = a.properties.event === 'Tornado Watch';
       const bIsTor = b.properties.event === 'Tornado Watch';
       if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
