@@ -1,1096 +1,541 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>jWeather</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>jWeather App</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for in-browser JSX transpilation -->
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
   <style>
-    :root {
-      --red: #e5182a;
-      --red-dim: rgba(229,24,42,0.12);
-      --red-border: rgba(229,24,42,0.25);
-      --bg: #16181e;
-      --surface: #1e2028;
-      --border: rgba(255,255,255,0.07);
-      --border-2: rgba(255,255,255,0.11);
-      --text: #ffffff;
-      --text-2: #f0f2f4;
-      --text-3: #c8cdd6;
-      --text-4: #9ba0aa;
-      --green: #22c55e;
-      --green-dim: rgba(34,197,94,0.12);
-      --amber: #f59e0b;
-      --amber-dim: rgba(245,158,11,0.12);
-      --r: 12px;
-      --r-sm: 8px;
-      --r-xs: 6px;
-      --sidebar:240px; --header:58px;
-      --font: 'Geist', system-ui, sans-serif;
+    body { 
+      font-family: 'Geist', sans-serif; 
+      background: #0f1115; 
+      margin: 0; 
+      color: white; 
+      overflow: hidden; 
+      -webkit-font-smoothing: antialiased;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-    .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; line-height: 1; display: inline-block; }
-    .fi { font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 48; }
-
-    /* ===== HEADER ===== */
-    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);}
-    .header-inner{height:100%;max-width:100%;padding:0 24px;display:flex;align-items:center;gap:20px;}
-    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
-    .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-    .logo-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
-    .logo-name span { color: #fff; }
-
-    .search-wrap { flex: 1; max-width: 440px; position: relative; }
-    .search-row { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border-2); border-radius: 8px; padding: 0 6px 0 12px; transition: border-color 0.15s, box-shadow 0.15s; }
-    .search-row:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); background: var(--surface); }
-    .search-row .material-symbols-rounded { color: var(--text-4); font-size: 16px; flex-shrink: 0; }
-    #search-bar, #search-bar-mob { flex: 1; background: none; border: none; outline: none; font-family: var(--font); font-size: 0.83rem; color: var(--text); padding: 9px 8px; }
-    #search-bar::placeholder, #search-bar-mob::placeholder { color: var(--text-4); }
-
-    #suggestions { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); overflow: hidden; z-index: 200; display: none; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-    #suggestions li { list-style: none; padding: 9px 14px; cursor: pointer; font-size: 0.83rem; color: var(--text); display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
-    #suggestions li:last-child { border-bottom: none; }
-    #suggestions li:hover, #suggestions li.active { background: var(--red-dim); }
-    #suggestions li .material-symbols-rounded { font-size: 13px; color: var(--red); }
-    .sug-section-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-4); padding: 8px 14px 4px; }
-    .sug-remove { font-size: 11px; color: var(--text-4); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-family: var(--font); line-height: 1; flex-shrink: 0; }
-    .sug-remove:hover { color: var(--red); background: var(--red-dim); }
-    .sug-city { font-weight: 500; flex: 1; }
-
-    .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
-    .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
-    .header-nav a:hover { color: var(--text); background: var(--bg); }
-    /* Dropdown */
-    .nav-dropdown { position: relative; }
-    .nav-dropdown-btn { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; font-weight: 500; color: var(--text-3); background: none; border: none; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-family: var(--font); transition: color 0.15s, background 0.15s; white-space: nowrap; }
-    .nav-dropdown-btn:hover, .nav-dropdown:hover .nav-dropdown-btn { color: var(--text); background: var(--bg); }
-    .nav-dropdown-btn .material-symbols-rounded { font-size: 14px; transition: transform 0.2s; }
-    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded { transform: rotate(180deg); }
-    .nav-dropdown-menu { position: absolute; top: 100%; right: 0; padding-top: 8px; min-width: 210px; z-index: 200; }
-    .nav-dropdown-menu-inner { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); box-shadow: 0 8px 30px rgba(0,0,0,0.4); overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s; }
-    .nav-dropdown:hover .nav-dropdown-menu-inner { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .nav-dropdown-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 0.8rem; font-weight: 500; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.1s, color 0.1s; white-space: nowrap; }
-    .nav-dropdown-menu a:last-child { border-bottom: none; }
-    .nav-dropdown-menu a:hover { background: var(--red-dim); color: var(--red); }
-    .nav-dropdown-menu a .material-symbols-rounded { font-size: 15px; color: var(--text-4); }
-    .nav-dropdown-menu a:hover .material-symbols-rounded { color: var(--red); }
-
-    /* ===== LAYOUT — 2 col matching original ===== */
-    main {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 20px 24px 60px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: start;
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .material-symbols-rounded { 
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
+      vertical-align: middle; 
     }
-    .left-col { display: flex; flex-direction: column; gap: 16px; }
-    .right-col { display: flex; flex-direction: column; gap: 16px; }
-    @media (max-width: 768px) { main { grid-template-columns: 1fr; padding:14px 14px 60px; } }
-
-
-    /* ─── MOBILE MENU BUTTON & PANEL ─── */
-
-    /* On desktop, bar divs are transparent wrappers */
-    .mob-bar-1{display:contents;}
-    .mob-bar-2{display:none;}
-    /* ─── TWO-BAR MOBILE HEADER ─── */
-    @media(max-width:640px){
-      /* Header becomes two rows */
-      header{height:auto !important;}
-      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      /* Row 1: logo + hamburger */
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
-      .mob-bar-1 .search-wrap{display:none;}
-      /* Row 2: search bar */
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
-      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      /* Hide desktop nav entirely */
-      .header-nav{display:none !important;}
-      /* Show hamburger */
-      /* Always show logo text */
-      .logo-name{display:block !important;}
-    }
-    /* ===== CARD BASE ===== */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
-    .card-top { padding: 16px 18px 0; display: flex; align-items: center; justify-content: space-between; }
-    .card-top-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
-    .card-top-icon { font-size: 15px; color: var(--text-4); }
-
-    /* ===== CURRENT CONDITIONS ===== */
-    .current-body { padding: 14px 18px 18px; }
-    .current-loc { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.025em; line-height: 1.25; }
-    .current-time { font-size: 0.73rem; color: var(--text-3); margin-top: 3px; }
-
-    .current-hero {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 16px;
-      padding: 18px 20px;
-      background: var(--red);
-      border-radius: var(--r-sm);
-      position: relative;
-      overflow: hidden;
-    }
-    .current-hero::after { content: ''; position: absolute; right: -30px; top: -30px; width: 130px; height: 130px; background: rgba(255,255,255,0.07); border-radius: 50%; pointer-events: none; }
-    .current-hero::before { content: ''; position: absolute; right: 30px; bottom: -50px; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%; pointer-events: none; }
-    .current-temp-big { font-size: 5rem; font-weight: 800; color: #fff; letter-spacing: -0.04em; line-height: 1; position: relative; z-index: 1; }
-    .current-temp-unit { font-size: 1.6rem; font-weight: 500; opacity: 0.7; vertical-align: super; letter-spacing: 0; }
-    .current-hero-icon { font-size: 58px; color: rgba(255,255,255,0.9); position: relative; z-index: 1; font-variation-settings: 'FILL' 1, 'wght' 200, 'GRAD' 0, 'opsz' 48; }
-
-    .current-desc { font-size: 0.83rem; font-weight: 500; color: var(--text-2); margin-top: 14px; }
-
-    .current-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
-    .stat-chip { background: var(--bg); border-radius: var(--r-sm); padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 5px; }
-    .stat-chip-icon { font-size: 13px; color: var(--red); margin-bottom: 1px; }
-    .stat-chip-label { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-4); }
-    .stat-chip-val { font-size: 0.92rem; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
-
-    /* ===== ALERTS ===== */
-    .alerts-body { padding: 12px 18px 16px; }
-    .no-alerts-row { display: flex; align-items: center; gap: 10px; padding: 6px 0 2px; }
-    .no-alerts-pip { width: 8px; height: 8px; background: var(--green); border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
-    .no-alerts-label { font-size: 0.83rem; font-weight: 500; color: var(--text-2); }
-    .no-alerts-sub { font-size: 0.72rem; color: var(--text-4); margin-top: 1px; }
-    .alert-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
-    /* Tornado Warning row */
-    @keyframes pulse-tornado-row {
-      0%   { background: #e5182a; box-shadow: none; }
-      50%  { background: #ff2233; box-shadow: 0 0 12px rgba(229,24,42,0.7); }
-      100% { background: #e5182a; box-shadow: none; }
-    }
-    .alert-row-tornado { background: #e5182a; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tornado-row 0.8s ease-in-out 3; }
-    .alert-row-tornado .alert-event { color: #fff; font-weight: 700; }
-    .alert-row-tornado .alert-expires { color: rgba(255,255,255,0.75); }
-    .alert-row-tornado .alert-pip { display: none; }
-    .alert-row-tornado .alert-type-icon { font-size: 18px; color: #fff; flex-shrink: 0; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-    .alert-row-tornado .alert-chevron { color: rgba(255,255,255,0.7); }
-    .alert-row-tornado:hover { background: #c8101f !important; }
-    /* Severe Thunderstorm Warning row */
-    @keyframes pulse-tstm-row {
-      0%   { background: #e07800; box-shadow: none; }
-      50%  { background: #ff8c00; box-shadow: 0 0 12px rgba(255,140,0,0.7); }
-      100% { background: #e07800; box-shadow: none; }
-    }
-    .alert-row-tstm { background: #e07800; border-radius: var(--r-xs); padding-left: 10px; padding-right: 10px; margin: 0 -10px; border-bottom: none !important; animation: pulse-tstm-row 0.8s ease-in-out 3; }
-    .alert-row-tstm .alert-event { color: #fff; font-weight: 700; }
-    .alert-row-tstm .alert-expires { color: rgba(255,255,255,0.85); }
-    .alert-row-tstm .alert-pip { display: none; }
-    .alert-row-tstm .alert-type-icon { font-size: 18px; color: #fff; flex-shrink: 0; font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-    .alert-row-tstm .alert-chevron { color: rgba(255,255,255,0.7); }
-    .alert-row-tstm:hover { background: #c06800 !important; }
-    .alert-row:first-child { padding-top: 4px; }
-    .alert-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .alert-row:hover { background: var(--red-dim); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: var(--r-xs); }
-    .alert-pip { width: 8px; height: 8px; background: var(--red); border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-    .alert-info { flex: 1; }
-    .alert-event { font-size: 0.83rem; font-weight: 600; color: var(--text); }
-    .alert-expires { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
-    .alert-chevron { font-size: 16px; color: var(--text-4); flex-shrink: 0; margin-top: 1px; transition: color 0.15s; }
-    .alert-row:hover .alert-chevron { color: var(--red); }
-
-    /* ===== RADAR ===== */
-    .radar-body { width: 100%; aspect-ratio: 16 / 10; padding-top: 12px; }
-    .radar-body iframe { width: 100%; height: 100%; border: none; display: block; border-radius: 0 0 var(--r) var(--r); }
-
-    /* ===== FORECAST ===== */
-    .forecast-body { padding: 4px 18px 18px; }
-    .forecast-row {
-      display: grid;
-      grid-template-columns: 72px 28px 1fr auto;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.1s;
-    }
-    .forecast-row:last-child { border-bottom: none; }
-    .forecast-row:hover { background: var(--bg); margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: var(--r-xs); }
-    .forecast-period { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); }
-    .forecast-period.day { color: var(--text-2); }
-    .forecast-icon { font-size: 22px; color: var(--text-3); font-variation-settings: 'FILL' 1, 'wght' 200, 'GRAD' 0, 'opsz' 48; line-height: 1; }
-    .forecast-icon.day { color: var(--red); }
-    .forecast-desc { font-size: 0.77rem; color: var(--text-3); line-height: 1.4; }
-    .forecast-temp { font-size: 1rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; white-space: nowrap; }
-    .forecast-detail-row { display: none; font-size: 0.72rem; color: var(--text-4); line-height: 1.65; padding: 8px 0 12px 112px; border-bottom: 1px solid var(--border); }
-    .forecast-row.open + .forecast-detail-row { display: block; }
-
-    /* ===== SPINNER ===== */
-    #spinner-overlay { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(15,17,21,0.75); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
-    .spinner-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); padding: 24px 36px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
-    .spinner-ring { width: 32px; height: 32px; border: 2px solid var(--border-2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.65s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner-text { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
-
-    /* ===== MODAL ===== */
-    #alert-modal { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
-    .modal-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); max-width: 540px; width: 100%; max-height: 84vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-    .modal-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 10px; position: sticky; top: 0; background: var(--surface); z-index: 1; }
-    .modal-pip { width: 10px; height: 10px; background: var(--red); border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-    .modal-title { font-size: 1rem; font-weight: 700; color: var(--text); flex: 1; letter-spacing: -0.01em; }
-    .modal-close { background: none; border: none; color: var(--text-4); cursor: pointer; transition: color 0.15s; font-size: 18px; line-height: 1; flex-shrink: 0; }
-    .modal-close:hover { color: var(--red); }
-    .modal-meta { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); }
-    .modal-meta-item { padding: 11px 16px; border-right: 1px solid var(--border); }
-    .modal-meta-item:last-child { border-right: none; }
-    .modal-meta-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-4); font-weight: 600; }
-    .modal-meta-val { font-size: 0.8rem; font-weight: 500; color: var(--text); margin-top: 2px; }
-    .modal-body { padding: 16px 20px 20px; }
-    .modal-body pre { white-space: pre-wrap; font-family: var(--font); font-size: 0.8rem; line-height: 1.75; color: var(--text-2); }
-    .modal-instruction { margin-top: 14px; padding: 12px 14px; background: var(--red-dim); border: 1px solid var(--red-border); border-radius: var(--r-sm); font-size: 0.8rem; line-height: 1.7; color: var(--text-2); }
-    .modal-instruction strong { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--red); margin-bottom: 5px; }
-
-
-    /* Coming soon toast */
-    #coming-soon-toast{
-      position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
-      background:#1a1d24;color:#f0f1f3;
-      font-family:var(--font);font-size:0.82rem;font-weight:600;
-      padding:11px 22px;border-radius:10px;
-      box-shadow:0 6px 24px rgba(0,0,0,.25);
-      display:flex;align-items:center;gap:9px;
-      opacity:0;pointer-events:none;
-      transition:opacity .2s,transform .2s;
-      z-index:9999;white-space:nowrap;
-    }
-    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
-    .spc-alert-row { display:flex; align-items:flex-start; gap:12px; padding:11px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; text-decoration:none; }
-    .spc-alert-row:first-child { padding-top:4px; }
-    .spc-alert-row:last-child { border-bottom:none; padding-bottom:0; }
-    .spc-alert-row:hover { background:var(--red-dim); margin:0 -8px; padding-left:8px; padding-right:8px; border-radius:var(--r-xs); }
-    .spc-pip { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
-    .spc-alert-info { flex:1; }
-    .spc-alert-event { font-size:0.83rem; font-weight:600; color:var(--text); }
-    .spc-alert-sub { font-size:0.72rem; color:var(--text-3); margin-top:2px; }
-    .spc-alert-chevron { font-size:16px; color:var(--text-4); flex-shrink:0; margin-top:1px; transition:color .15s; }
-    .spc-alert-row:hover .spc-alert-chevron { color:var(--red); }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
-
-    /* ===== TORNADO WARNING OVERLAY ===== */
-    #tornado-overlay { display:none; position:fixed; inset:0; z-index:700; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:20px; }
-    #tornado-overlay.show { display:flex; }
-    .tornado-box { background:var(--surface); border-radius:16px; max-width:420px; width:100%; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,0.3); animation:tornadoSlideIn 0.2s ease-out; }
-    @keyframes tornadoSlideIn { from{opacity:0;transform:translateY(14px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
-    .tornado-banner { background:#e5182a; padding:20px 22px 18px; display:flex; align-items:center; gap:14px; animation:pulseBanner 0.7s ease-in-out 2; }
-    @keyframes pulseBanner { 0%{background:#e5182a} 40%{background:#ff3344} 100%{background:#e5182a} }
-    .tornado-banner-icon { width:46px; height:46px; border-radius:11px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .tornado-banner-icon .material-symbols-rounded { font-size:26px; color:#fff; font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-    .tornado-banner-text { flex:1; }
-    .tornado-banner-eyebrow { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.75); margin-bottom:3px; }
-    .tornado-banner-title { font-size:1.1rem; font-weight:800; color:#fff; letter-spacing:-0.02em; line-height:1.2; }
-    .tornado-body { padding:18px 22px 22px; }
-    .tornado-location { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
-    .tornado-location .material-symbols-rounded { font-size:15px; color:var(--red); }
-    .tornado-message { font-size:0.82rem; color:var(--text-2); line-height:1.7; margin-bottom:16px; }
-    .tornado-action { background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; padding:11px 14px; font-size:0.8rem; color:#881337; line-height:1.6; margin-bottom:18px; }
-    .tornado-action strong { color:#be123c; display:block; margin-bottom:3px; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.07em; }
-    .tornado-expires { font-size:0.72rem; color:var(--text-4); margin-bottom:16px; }
-    .tornado-btn { width:100%; padding:12px; border:none; border-radius:9px; background:#e5182a; font-family:var(--font); font-size:0.85rem; font-weight:700; color:#fff; cursor:pointer; transition:opacity .15s,transform .1s; }
-    .tornado-btn:hover { opacity:0.88; transform:translateY(-1px); }
-
-    /* OBSERVED mode — darker, more urgent */
-    .tornado-box.observed .tornado-banner { background:#7b0000; animation:pulseObserved 0.4s ease-in-out 4; }
-    @keyframes pulseObserved { 0%{background:#7b0000} 40%{background:#bb0000} 100%{background:#7b0000} }
-    .tornado-box.observed .tornado-btn { background:#7b0000; }
-    .tornado-box.observed .tornado-action { background:#fff0f0; border-color:#ffaaaa; }
-    .tornado-box.observed .tornado-action strong { color:#7b0000; }
-    .tornado-observed-badge { display:inline-flex; align-items:center; gap:6px; background:#7b0000; color:#fff; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; padding:5px 12px; border-radius:20px; margin-bottom:14px; animation:pulseBadge 0.5s ease-in-out 4; }
-    @keyframes pulseBadge { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-    .tornado-observed-badge .material-symbols-rounded { font-size:14px; font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-
-    @media (max-width:640px) {
-      #tornado-overlay { align-items:flex-end; padding:0; }
-      .tornado-box { border-radius:16px 16px 0 0; max-width:100%; }
-    }
-  
-    /* ═══════════════════════════════════════════════
-       BOTTOM NAV BAR  (mobile ≤768px only)
-    ═══════════════════════════════════════════════ */
-    .mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--surface);border-top:1px solid var(--border-2);z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
-    .mob-bottom-nav-inner{display:flex;align-items:stretch;height:100%;}
-    .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.6rem;font-weight:600;color:var(--text-4);letter-spacing:0.02em;text-decoration:none;transition:color .15s;padding:6px 4px;-webkit-tap-highlight-color:transparent;}
-    .mob-tab .material-symbols-rounded{font-size:22px;transition:color .15s;}
-    .mob-tab.active{color:var(--red);}
-    .mob-tab.active .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    .mob-tab-severe .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    /* Severe slide-up sheet */
-    .severe-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);z-index:1050;}
-    .severe-sheet-backdrop.open{display:block;}
-    .severe-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border-2);border-radius:18px 18px 0 0;z-index:1060;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
-    .severe-sheet.open{transform:translateY(0);}
-    .severe-sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:10px auto 0;}
-    .severe-sheet-title{font-size:0.7rem;font-weight:700;color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px 6px;}
-    .severe-sheet-items{padding:4px 12px 16px;}
-    .severe-sheet-item{display:flex;align-items:center;gap:14px;padding:13px 10px;border-radius:var(--r-sm);font-size:0.88rem;font-weight:500;color:var(--text-2);text-decoration:none;transition:background .12s;border-bottom:1px solid var(--border);}
-    .severe-sheet-item:last-child{border-bottom:none;}
-    .severe-sheet-item:active,.severe-sheet-item:hover{background:rgba(255,255,255,0.05);}
-    .severe-sheet-item.active{color:var(--red);}
-    .severe-sheet-item .material-symbols-rounded{font-size:20px;color:var(--text-4);flex-shrink:0;}
-    .severe-sheet-item.active .material-symbols-rounded{color:var(--red);}
-    .severe-sheet-item[data-coming-soon]{opacity:0.38;pointer-events:none;}
-    .severe-sheet-item-text{flex:1;}
-    .severe-sheet-item-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
-    .severe-sheet-item-badge{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;}
-    .severe-sheet-item-badge.soon{color:var(--amber);background:rgba(245,158,11,0.1);}
-    @media(max-width:768px){
-      .mob-bottom-nav{display:block;}
-      body.has-bottom-nav main,body.has-bottom-nav .app-body,body.has-bottom-nav .page-body{padding-bottom:62px;}
-    }
-    /* Mobile header: logo row + pill search row */
-    @media(max-width:640px){
-      header{height:auto !important;}
-      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
-      .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
-      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      .header-nav{display:none !important;}
-      .logo-name{display:block !important;}
-      .mob-bar-2 .search-row{border-radius:24px;background:rgba(255,255,255,0.07);border-color:transparent;padding:0 10px 0 14px;}
-      .mob-bar-2 .search-row:focus-within{border-color:var(--red);background:rgba(255,255,255,0.09);}
-      #search-bar-mob{padding:10px 8px;}
-    }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+    
+    /* Map overrides for dark theme */
+    .leaflet-container { background: #0f1115 !important; font-family: 'Geist', sans-serif; }
+    .leaflet-control-zoom { border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px !important; overflow: hidden; }
+    .leaflet-control-zoom a { background: rgba(26,29,36,0.9) !important; color: white !important; }
+    .leaflet-control-zoom a:hover { background: #1a1d24 !important; color: #e5182a !important; }
   </style>
 </head>
 <body>
+  <div id="root"></div>
 
-<!-- HEADER -->
-<header>
-  <div class="header-inner">
-    <!-- Row 1: logo + search + nav + hamburger -->
-    <div class="mob-bar-1">
-      <a class="logo" href="index.html">
-        <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
-        <span class="logo-name">j<span>Weather</span></span>
-      </a>
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- CONFIGURATION ---
+    const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+    const DEFAULT_LOCATION = { lat: 39.0997, lng: -94.5786, name: 'Kansas City, MO' };
+
+    const MAP_COLORS = {
+      ALERTS: {
+        'Tornado Warning': { fill: '#ef4444', border: '#b91c1c', label: 'Tornado Warning' },
+        'Tornado Watch': { fill: '#eab308', border: '#a16207', label: 'Tornado Watch' },
+        'Severe Thunderstorm Warning': { fill: '#f97316', border: '#c2410c', label: 'Svr T-Storm Warning' },
+        'Severe Thunderstorm Watch': { fill: '#ec4899', border: '#be185d', label: 'Svr T-Storm Watch' }
+      },
+      OUTLOOKS: {
+        'TSTM': { fill: '#c8eec8', border: '#90c890', label: 'General Storms' },
+        'MRGL': { fill: '#6abf6a', border: '#3d8c3d', label: 'Marginal Risk' },
+        'SLGT': { fill: '#f0e040', border: '#b8a800', label: 'Slight Risk' },
+        'ENH': { fill: '#e88020', border: '#b05000', label: 'Enhanced Risk' },
+        'MDT': { fill: '#e04040', border: '#a81818', label: 'Moderate Risk' },
+        'HIGH': { fill: '#ee30a0', border: '#aa1070', label: 'High Risk' }
+      }
+    };
+
+    // --- UI COMPONENTS ---
+    
+    const Icon = ({ name, size = 24, className = '' }) => (
+      <span className={`material-symbols-rounded ${className}`} style={{ fontSize: size }}>
+        {name}
+      </span>
+    );
+
+    const SearchHeader = ({ onLocationSelect }) => {
+      const [query, setQuery] = useState('');
+      const [results, setResults] = useState([]);
+      const [isActive, setIsActive] = useState(false);
+
+      useEffect(() => {
+        if (query.trim().length < 3) {
+          setResults([]);
+          return;
+        }
+        
+        const timeoutId = setTimeout(() => {
+          fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&countrycodes=us`)
+            .then(res => res.json())
+            .then(data => setResults(data))
+            .catch(err => console.error("Search error:", err));
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+      }, [query]);
+
+      const handleSelect = (lat, lon, displayName) => {
+        const cityOnly = displayName.split(',')[0];
+        onLocationSelect({ lat: parseFloat(lat), lng: parseFloat(lon), name: cityOnly });
+        setQuery('');
+        setResults([]);
+        setIsActive(false);
+      };
+
+      return (
+        <div className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-center pointer-events-none">
+          <div className="w-full max-w-md pointer-events-auto relative">
+            <div className={`flex items-center bg-[#1a1d24]/90 backdrop-blur-xl border ${isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/20' : 'border-white/10'} rounded-2xl px-4 py-3 transition-all`}>
+              <Icon name="search" size={20} className="text-neutral-400 mr-3" />
+              <input 
+                type="text"
+                placeholder="Search city or zip..."
+                className="bg-transparent border-none outline-none text-white w-full placeholder:text-neutral-500 text-sm font-medium"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setIsActive(true)}
+                onBlur={() => setTimeout(() => setIsActive(false), 200)}
+              />
+            </div>
+
+            {isActive && results.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1d24]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                {results.map((r, idx) => (
+                  <button
+                    key={idx}
+                    className="w-full text-left px-4 py-3 text-sm text-neutral-200 hover:bg-white/5 border-b border-white/5 last:border-0 flex items-center"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelect(r.lat, r.lon, r.display_name);
+                    }}
+                  >
+                    <Icon name="location_on" size={16} className="mr-3 text-blue-400" />
+                    <span className="truncate">{r.display_name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <ul id="suggestions"></ul>
-      </div>
-      <nav class="header-nav">
-        <a href="index.html">Forecast</a>
-        <div class="nav-dropdown">
-          <button class="nav-dropdown-btn">
-            Severe Weather <span class="material-symbols-rounded">expand_more</span>
-          </button>
-          <div class="nav-dropdown-menu">
-            <div class="nav-dropdown-menu-inner">
-              <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-              <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-              <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-              <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-              <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
+      );
+    };
+
+    // --- MAIN SCREENS ---
+
+    const ScreenForecast = ({ location }) => {
+      const [weather, setWeather] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        setLoading(true);
+        fetch(`https://api.weather.gov/points/${location.lat},${location.lng}`)
+          .then(res => res.json())
+          .then(ptData => {
+            if (ptData && ptData.properties && ptData.properties.forecast) {
+              return fetch(ptData.properties.forecast);
+            }
+            throw new Error("No forecast URL");
+          })
+          .then(res => res.json())
+          .then(fcData => {
+            if (fcData && fcData.properties && fcData.properties.periods) {
+              setWeather({
+                current: fcData.properties.periods[0],
+                daily: fcData.properties.periods.slice(1, 8)
+              });
+            }
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error("Forecast fetch failed:", err);
+            setLoading(false);
+          });
+      }, [location]);
+
+      if (loading) {
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center text-neutral-400">
+            <Icon name="sync" className="animate-spin mb-4 text-blue-500" size={32} />
+            <p>Loading weather data...</p>
+          </div>
+        );
+      }
+
+      if (!weather || !weather.current) {
+        return <div className="flex-1 flex items-center justify-center text-neutral-400">Weather data unavailable for this location.</div>;
+      }
+
+      const { current, daily } = weather;
+      const precip = (current.probabilityOfPrecipitation && current.probabilityOfPrecipitation.value) ? current.probabilityOfPrecipitation.value : 0;
+
+      return (
+        <div className="flex-1 overflow-y-auto no-scrollbar pt-28 px-6 pb-32">
+          <div className="max-w-xl mx-auto flex flex-col items-center">
+            
+            <h1 className="text-3xl font-semibold text-white mb-2 tracking-tight text-center">{location.name}</h1>
+            <div className="text-sm font-medium text-neutral-400 bg-white/5 px-5 py-2 rounded-full backdrop-blur-sm border border-white/5 mb-8 text-center max-w-sm leading-relaxed">
+              {current.shortForecast}
+            </div>
+
+            <div className="relative flex items-start justify-center mb-12">
+              <span className="text-[140px] leading-none font-light tracking-tighter text-white">
+                {current.temperature}
+              </span>
+              <span className="text-4xl font-light text-neutral-400 mt-4">°{current.temperatureUnit}</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 w-full mb-10">
+              <div className="bg-[#1a1d24]/80 backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col items-center text-center shadow-lg">
+                <Icon name="air" size={24} className="text-blue-400 mb-2" />
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mb-1">Wind</span>
+                <span className="text-sm font-semibold text-white">{current.windSpeed}</span>
+              </div>
+              <div className="bg-[#1a1d24]/80 backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col items-center text-center shadow-lg">
+                <Icon name="water_drop" size={24} className="text-blue-400 mb-2" />
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mb-1">Precip</span>
+                <span className="text-sm font-semibold text-white">{precip}%</span>
+              </div>
+              <div className="bg-[#1a1d24]/80 backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col items-center text-center shadow-lg">
+                <Icon name="device_thermostat" size={24} className="text-blue-400 mb-2" />
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mb-1">Trend</span>
+                <span className="text-sm font-semibold text-white">{current.isDaytime ? 'Falling' : 'Rising'}</span>
+              </div>
+            </div>
+
+            <div className="w-full bg-[#1a1d24]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 shadow-xl mb-6">
+              <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6 flex items-center">
+                <Icon name="calendar_month" size={16} className="mr-2" /> Extended Forecast
+              </h3>
+              <div className="flex flex-col gap-5">
+                {daily.map((period, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <span className="w-24 text-sm font-medium text-white">{period.name}</span>
+                    <span className="flex-1 text-xs text-neutral-400 px-4 line-clamp-1">{period.shortForecast}</span>
+                    <span className="w-12 text-right text-sm font-semibold text-white">{period.temperature}°</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    };
+
+    const ScreenMap = ({ location }) => {
+      const mapContainer = useRef(null);
+      const mapInstance = useRef(null);
+      const layers = useRef({ radar: null, alerts: null, outlooks: null });
+      
+      const [mode, setMode] = useState('radar');
+      const [popupData, setPopupData] = useState(null);
+
+      useEffect(() => {
+        if (!mapContainer.current) return;
+
+        if (!mapInstance.current) {
+          mapInstance.current = window.L.map(mapContainer.current, {
+            zoomControl: false,
+            attributionControl: false
+          }).setView([location.lat, location.lng], 5);
+          
+          window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+            maxZoom: 19
+          }).addTo(mapInstance.current);
+        } else {
+          mapInstance.current.setView([location.lat, location.lng]);
+        }
+      }, [location]);
+
+      useEffect(() => {
+        const map = mapInstance.current;
+        if (!map) return;
+
+        // Clear existing
+        if (layers.current.radar) map.removeLayer(layers.current.radar);
+        if (layers.current.alerts) map.removeLayer(layers.current.alerts);
+        if (layers.current.outlooks) map.removeLayer(layers.current.outlooks);
+        setPopupData(null);
+
+        if (mode === 'radar') {
+          const url = 'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::COMPOSITE-N0Q-0/{z}/{x}/{y}.png';
+          layers.current.radar = window.L.tileLayer(url, { opacity: 0.65 }).addTo(map);
+        } 
+        else if (mode === 'alerts') {
+          const events = 'Tornado Warning,Tornado Watch,Severe Thunderstorm Warning,Severe Thunderstorm Watch';
+          fetch(`${WORKER_URL}/nws/alerts/active?status=actual&event=${encodeURIComponent(events)}`)
+            .then(res => res.json())
+            .then(data => {
+              layers.current.alerts = window.L.geoJSON(data, {
+                style: function(f) {
+                  const eventName = f.properties && f.properties.event ? f.properties.event : '';
+                  const c = MAP_COLORS.ALERTS[eventName] || { fill: '#555', border: '#333' };
+                  return { fillColor: c.fill, color: c.border, weight: 2, fillOpacity: 0.35 };
+                },
+                onEachFeature: function(f, layer) {
+                  layer.on('click', () => setPopupData({ type: 'alert', props: f.properties }));
+                }
+              }).addTo(map);
+            }).catch(e => console.error("Alerts Error:", e));
+        }
+        else if (mode === 'outlooks') {
+          fetch(`${WORKER_URL}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/1/query?where=1%3D1&outFields=*&f=geojson`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.features) {
+                data.features.sort((a, b) => {
+                  const valA = (a.properties && a.properties.DN) ? a.properties.DN : 0;
+                  const valB = (b.properties && b.properties.DN) ? b.properties.DN : 0;
+                  return valA - valB;
+                });
+              }
+              layers.current.outlooks = window.L.geoJSON(data, {
+                style: function(f) {
+                  const rawLabel = (f.properties && f.properties.LABEL) ? f.properties.LABEL : '';
+                  const risk = rawLabel.toUpperCase().trim();
+                  const c = MAP_COLORS.OUTLOOKS[risk];
+                  if (!c || risk === 'TSTM') return { fillOpacity: 0, weight: 0 };
+                  return { fillColor: c.fill, color: c.border, weight: 2, fillOpacity: 0.5 };
+                },
+                onEachFeature: function(f, layer) {
+                  const rawLabel = (f.properties && f.properties.LABEL) ? f.properties.LABEL : '';
+                  if (rawLabel.toUpperCase().trim() === 'TSTM') return;
+                  layer.on('click', () => setPopupData({ type: 'outlook', props: f.properties }));
+                }
+              }).addTo(map);
+            }).catch(e => console.error("Outlooks Error:", e));
+        }
+      }, [mode]);
+
+      const renderPopupTitle = () => {
+        if (!popupData) return '';
+        if (popupData.type === 'alert') {
+          return popupData.props.event || 'Weather Alert';
+        } else {
+          const label = popupData.props.LABEL ? popupData.props.LABEL.toUpperCase().trim() : '';
+          const cfg = MAP_COLORS.OUTLOOKS[label];
+          return cfg ? cfg.label : 'Severe Risk Area';
+        }
+      };
+
+      return (
+        <div className="relative flex-1 w-full h-full">
+          <div ref={mapContainer} className="absolute inset-0 z-0 bg-[#0f1115]" />
+
+          <div className="absolute top-24 left-0 right-0 z-10 flex justify-center pointer-events-none px-4">
+            <div className="bg-[#1a1d24]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-full flex gap-1 shadow-2xl pointer-events-auto">
+              {['radar', 'alerts', 'outlooks'].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
+                    mode === m 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={`absolute bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 md:w-96 bg-[#1a1d24]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 transition-transform duration-500 ease-out z-20 shadow-2xl ${
+            popupData ? 'translate-y-0 opacity-100' : 'translate-y-[150%] opacity-0'
+          }`}>
+            {popupData && (
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-lg font-bold text-white leading-tight">{renderPopupTitle()}</h3>
+                  <button onClick={() => setPopupData(null)} className="p-1 bg-white/5 hover:bg-white/10 rounded-full text-neutral-400">
+                    <Icon name="close" size={18} />
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {popupData.type === 'alert' ? (
+                    <div>
+                      <p className="text-sm text-neutral-300 leading-relaxed max-h-32 overflow-y-auto no-scrollbar">
+                        {popupData.props.areaDesc || 'No area description provided.'}
+                      </p>
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-1">Expires</span>
+                        <span className="text-sm text-red-400 font-semibold">
+                          {popupData.props.expires ? new Date(popupData.props.expires).toLocaleString() : 'Unknown'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-neutral-300 leading-relaxed">
+                      Severe weather risk area issued by the Storm Prediction Center. Conditions are favorable for severe thunderstorms.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const ScreenLearn = () => (
+      <div className="flex-1 overflow-y-auto no-scrollbar pt-24 px-6 pb-32">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Severe 101</h1>
+          <p className="text-neutral-400 mb-10 text-sm leading-relaxed">Crucial information for understanding severe weather alerts and staying safe.</p>
+
+          <div className="bg-[#1a1d24]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 mb-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-amber-500/20 text-amber-400 rounded-xl flex"><Icon name="warning" size={20} /></div>
+              <h2 className="text-xl font-bold text-white">Watch vs. Warning</h2>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-5">
+                <span className="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest rounded-lg mb-3">Watch</span>
+                <p className="text-sm text-neutral-300 leading-relaxed">
+                  <strong className="text-white">Conditions are right.</strong> The atmosphere has the ingredients for severe weather. Nothing is happening yet, but it could. Be ready.
+                </p>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-5">
+                <span className="inline-block px-3 py-1 bg-red-500/20 text-red-400 text-xs font-bold uppercase tracking-widest rounded-lg mb-3">Warning</span>
+                <p className="text-sm text-neutral-300 leading-relaxed">
+                  <strong className="text-white">It is happening.</strong> A severe storm is detected on radar or by spotters. The threat is imminent. Take shelter immediately.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#1a1d24]/80 backdrop-blur-md border border-white/5 rounded-3xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-500/20 text-blue-400 rounded-xl flex"><Icon name="air" size={20} /></div>
+              <h2 className="text-xl font-bold text-white">Tornado EF Scale</h2>
+            </div>
+            
+            <div className="space-y-3">
+              {[
+                { ef: 'EF0', wind: '65-85 mph', desc: 'Minor damage. Branches snapped, signs damaged.' },
+                { ef: 'EF1', wind: '86-110 mph', desc: 'Moderate damage. Roofs peeled, mobile homes pushed.' },
+                { ef: 'EF2', wind: '111-135 mph', desc: 'Considerable damage. Roofs torn off, large trees snapped.' },
+                { ef: 'EF3', wind: '136-165 mph', desc: 'Severe damage. Trains overturned, exterior walls collapse.' },
+                { ef: 'EF4', wind: '166-200 mph', desc: 'Devastating. Well-built homes leveled.' },
+                { ef: 'EF5', wind: '200+ mph', desc: 'Incredible. Foundations wiped clean.' },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 items-center">
+                  <div className="flex-shrink-0 text-center w-20">
+                    <div className="font-bold text-white text-lg">{item.ef}</div>
+                    <div className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider">{item.wind}</div>
+                  </div>
+                  <p className="text-sm text-neutral-300 flex-1">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-        <a href="#" data-coming-soon>Contact</a>
-        <a href="#" data-coming-soon>About</a>
-      </nav>
-    </div><!-- /.mob-bar-1 -->
-    <!-- Row 2: search bar (mobile only) -->
-    <div class="mob-bar-2">
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+      </div>
+    );
+
+    // --- APP CONTAINER ---
+    
+    const App = () => {
+      const [currentTab, setCurrentTab] = useState('home');
+      const [location, setLocation] = useState(DEFAULT_LOCATION);
+
+      const NAVIGATION = [
+        { id: 'home', icon: 'home', label: 'Forecast' },
+        { id: 'map', icon: 'map', label: 'Live Map' },
+        { id: 'learn', icon: 'menu_book', label: 'Learn' }
+      ];
+
+      return (
+        <div className="fixed inset-0 bg-[#0f1115] text-white flex flex-col md:flex-row overflow-hidden font-sans selection:bg-blue-500/30">
+          
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex flex-col w-24 bg-[#1a1d24] border-r border-white/5 items-center py-8 z-50 shadow-2xl">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-12 shadow-lg shadow-blue-600/30">
+              <Icon name="thunderstorm" size={24} className="text-white" />
+            </div>
+            <div className="flex flex-col gap-6 w-full px-4">
+              {NAVIGATION.map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setCurrentTab(tab.id)}
+                  className={`py-4 rounded-2xl transition-all duration-300 flex justify-center w-full ${
+                    currentTab === tab.id 
+                      ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20' 
+                      : 'text-neutral-500 hover:bg-white/5 hover:text-white border border-transparent'
+                  }`}
+                >
+                  <Icon name={tab.icon} size={28} />
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* Main Workspace */}
+          <main className="flex-1 relative flex flex-col min-w-0">
+            {currentTab !== 'map' && <SearchHeader onLocationSelect={setLocation} />}
+            
+            {currentTab === 'home' && <ScreenForecast location={location} />}
+            {currentTab === 'map' && <ScreenMap location={location} />}
+            {currentTab === 'learn' && <ScreenLearn />}
+          </main>
+
+          {/* Mobile Nav */}
+          <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-[#1a1d24]/95 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-2 pt-2 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            {NAVIGATION.map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => setCurrentTab(tab.id)}
+                className={`flex flex-col items-center justify-center w-20 py-2 transition-colors duration-300 ${
+                  currentTab === tab.id ? 'text-blue-400' : 'text-neutral-500 hover:text-white'
+                }`}
+              >
+                <div className={`mb-1 p-1.5 rounded-xl transition-all flex justify-center ${currentTab === tab.id ? 'bg-blue-500/15' : ''}`}>
+                  <Icon name={tab.icon} size={26} />
+                </div>
+                <span className="text-[10px] font-bold tracking-widest uppercase">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+
         </div>
-        <ul id="suggestions-mob"></ul>
-      </div>
-    </div><!-- /.mob-bar-2 -->
-  </div>
-</header>
-
-<!-- Mobile nav menu -->
-
-
-<main>
-  <div class="left-col">
-
-    <!-- Current Conditions -->
-    <div class="card">
-      <div class="card-top">
-        <span class="card-top-label">Current Conditions</span>
-        <span class="material-symbols-rounded card-top-icon">radio_button_checked</span>
-      </div>
-      <div class="current-body">
-        <div id="current-loc" class="current-loc">Loading…</div>
-        <div id="current-time" class="current-time"></div>
-        <div class="current-hero">
-          <div class="current-temp-big">
-            <span id="current-temp-val">--</span><span class="current-temp-unit">°F</span>
-          </div>
-          <span id="current-hero-icon" class="material-symbols-rounded current-hero-icon fi">wb_sunny</span>
-        </div>
-        <div id="current-desc" class="current-desc">--</div>
-        <div class="current-stats">
-          <div class="stat-chip">
-            <span class="material-symbols-rounded stat-chip-icon">device_thermostat</span>
-            <div class="stat-chip-label">Feels Like</div>
-            <div class="stat-chip-val" id="stat-feels">--</div>
-          </div>
-          <div class="stat-chip">
-            <span class="material-symbols-rounded stat-chip-icon">water_drop</span>
-            <div class="stat-chip-label">Humidity</div>
-            <div class="stat-chip-val" id="stat-humidity">--</div>
-          </div>
-          <div class="stat-chip">
-            <span class="material-symbols-rounded stat-chip-icon">air</span>
-            <div class="stat-chip-label">Wind</div>
-            <div class="stat-chip-val" id="stat-wind">--</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Alerts -->
-    <div class="card">
-      <div class="card-top">
-        <span class="card-top-label">Active Alerts</span>
-        <span class="material-symbols-rounded card-top-icon">notifications</span>
-      </div>
-      <div class="alerts-body" id="alerts-content">
-        <div class="no-alerts-row">
-          <div class="no-alerts-pip"></div>
-          <div><div class="no-alerts-label">No active alerts</div><div class="no-alerts-sub">All clear.</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Radar -->
-    <div class="card">
-      <div class="card-top">
-        <span class="card-top-label">Local Radar</span>
-        <span class="material-symbols-rounded card-top-icon">radar</span>
-      </div>
-      <div class="radar-body">
-        <iframe id="radar-iframe"
-          src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=10&overlay=radar&product=radar&level=surface&lat=31.3776&lon=-84.1607"
-          loading="lazy" allowfullscreen></iframe>
-      </div>
-    </div>
-
-  </div><!-- /left-col -->
-
-  <div class="right-col">
-
-    <!-- Detailed Forecast -->
-    <div class="card">
-      <div class="card-top">
-        <span class="card-top-label">Detailed Forecast</span>
-        <span class="material-symbols-rounded card-top-icon">calendar_month</span>
-      </div>
-      <div class="forecast-body" id="forecast-content">
-        <div style="padding:20px 0;color:var(--text-4);font-size:.83rem">Loading forecast…</div>
-      </div>
-    </div>
-
-  </div><!-- /right-col -->
-</main>
-
-<!-- Spinner -->
-<div id="spinner-overlay">
-  <div class="spinner-box"><div class="spinner-ring"></div><div class="spinner-text">Loading</div></div>
-</div>
-
-<!-- Alert Modal -->
-<div id="alert-modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-pip"></div>
-      <div id="modal-title" class="modal-title"></div>
-      <button class="modal-close" id="modal-close"><span class="material-symbols-rounded">close</span></button>
-    </div>
-    <div id="modal-meta" class="modal-meta"></div>
-    <div id="modal-body" class="modal-body"></div>
-  </div>
-</div>
-
-<div id="coming-soon-toast">
-  <span class="material-symbols-rounded">construction</span>
-  This feature is still under development
-</div>
-
-<script>
-function getIcon(text, isDaytime) {
-  if (!text) return isDaytime ? 'wb_sunny' : 'nights_stay';
-  const t = text.toLowerCase();
-  if (t.includes('thunder')) return 'thunderstorm';
-  if (t.includes('blizzard') || t.includes('heavy snow')) return 'weather_snowy';
-  if (t.includes('snow') || t.includes('flurr')) return 'ac_unit';
-  if (t.includes('sleet') || t.includes('freezing')) return 'grain';
-  if (t.includes('rain') || t.includes('shower')) return 'rainy';
-  if (t.includes('drizzle')) return 'water_drop';
-  if (t.includes('fog') || t.includes('haze') || t.includes('mist') || t.includes('smoke')) return 'foggy';
-  if (t.includes('wind') || t.includes('breezy') || t.includes('gust')) return 'air';
-  if (t.includes('overcast') || t.includes('mostly cloudy')) return 'cloud';
-  if (t.includes('partly cloudy') || t.includes('partly sunny')) return isDaytime ? 'partly_cloudy_day' : 'partly_cloudy_night';
-  if (t.includes('cloudy')) return 'cloud';
-  if (t.includes('clear') || t.includes('sunny')) return isDaytime ? 'wb_sunny' : 'nights_stay';
-  return isDaytime ? 'wb_sunny' : 'nights_stay';
-}
-function compass(n) { return ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.floor((n/22.5)+0.5)%16]; }
-
-// US state abbreviation lookup
-const STATE_ABBR = {"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
-
-function stateAbbr(name) { return STATE_ABBR[name] || name; }
-
-// Parse Nominatim result into { label, city, state, lat, lng }
-function parseNominatim(r) {
-  const addr = r.address || {};
-  const city = addr.city || addr.town || addr.village || addr.hamlet || addr.county || r.display_name.split(',')[0];
-  const state = stateAbbr(addr.state || '');
-  const label = state ? `${city}, ${state}` : city;
-  return { label, city, state, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
-}
-
-const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
-
-// SPC categorical risk colors + labels
-const SPC_CAT = {
-  'TSTM': { color:'#c8eec8', label:'General Storms'  },
-  'MRGL': { color:'#6abf6a', label:'Low Risk'         },
-  'SLGT': { color:'#f0e040', label:'Some Risk'        },
-  'ENH':  { color:'#e88020', label:'Elevated Risk'    },
-  'MDT':  { color:'#e04040', label:'High Risk'        },
-  'HIGH': { color:'#ee30a0', label:'Extreme Risk'     },
-};
-const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-
-let alerts=[], curLoc=null, sugs=[], selIdx=-1, searchController=null;
-let _activeBar=null, _activeSug=null;
-const spin=document.getElementById('spinner-overlay');
-// Support both desktop (#search-bar) and mobile (#search-bar-mob) inputs
-const _searchInputs = [
-  { bar: document.getElementById('search-bar'),     sug: document.getElementById('suggestions') },
-  { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
-].filter(x => x.bar && x.sug);
-const sBar   = _searchInputs[0]?.bar;
-const sugBox = _searchInputs[0]?.sug;
-
-
-// ── TORNADO WARNING OVERLAY ───────────────────────────────────────────────────
-function maybeShowTornadoOverlay(alertFeatures, locationLabel) {
-  const warning = alertFeatures.find(f =>
-    (f.properties?.event || '').toLowerCase().includes('tornado warning')
-  );
-  if (!warning) return;
-
-  const a    = warning.properties;
-  const desc = (a.description || '').trim();
-
-  // NWS writes "OBSERVED" in all-caps in the warning text when a tornado is confirmed on ground
-  const isObserved = /OBSERVED/.test(desc) || /tornado.*observed/i.test(desc);
-
-  const expires = a.expires
-    ? new Date(a.expires).toLocaleString('en-US', { weekday:'short', hour:'numeric', minute:'2-digit', timeZoneName:'short' })
-    : null;
-
-  // First sentence of NWS description as summary
-  const summary = desc.slice(0, desc.search(/[.!?]\s/) + 1) || desc.slice(0, 160);
-
-  const box   = document.getElementById('tornado-box');
-  const slot  = document.getElementById('tornado-observed-slot');
-
-  if (isObserved) {
-    box.classList.add('observed');
-    slot.style.display = 'block';
-    document.getElementById('tornado-eyebrow').textContent      = '🚨 CONFIRMED TORNADO';
-    document.getElementById('tornado-title').textContent        = 'Tornado on the Ground';
-    document.getElementById('tornado-action-title').textContent = '🚨 TAKE SHELTER IMMEDIATELY';
-    document.getElementById('tornado-action-body').textContent  =
-      'A tornado has been OBSERVED by trained spotters or radar. This is not a drill. ' +
-      'Get underground or to an interior room on the lowest floor NOW. Do not wait — every second counts.';
-  } else {
-    box.classList.remove('observed');
-    slot.style.display = 'none';
-    document.getElementById('tornado-eyebrow').textContent      = 'Active Warning';
-    document.getElementById('tornado-title').textContent        = 'Tornado Warning';
-    document.getElementById('tornado-action-title').textContent = '⚡ Take shelter now';
-    document.getElementById('tornado-action-body').textContent  =
-      'Go to the lowest floor of a sturdy building. Get to an interior room, away from windows. Do not wait to see the tornado.';
-  }
-
-  document.getElementById('tornado-location').innerHTML =
-    `<span class="material-symbols-rounded">location_on</span>${locationLabel}`;
-  document.getElementById('tornado-message').textContent  = summary;
-  document.getElementById('tornado-expires').textContent  = expires ? `Warning in effect until ${expires}` : '';
-
-  document.getElementById('tornado-overlay').classList.add('show');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('tornado-continue').addEventListener('click', () => {
-    document.getElementById('tornado-overlay').classList.remove('show');
-  });
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-  const saved = (() => { try { const l = JSON.parse(localStorage.getItem('jweather_last_location')); return l?.lat ? l : null; } catch { return null; } })();
-  if (saved) {
-    // Already have a saved location — use it
-    curLoc = saved;
-    _searchInputs.forEach(({bar}) => bar.value = saved.label || (saved.city && saved.state ? `${saved.city}, ${saved.state}` : 'Your Location'));
-    loadWeather(saved); updateRadar(saved.lat, saved.lng);} else {
-    // Geolocation not supported — use default
-    const def = { label: 'Kansas City, MO', city: 'Kansas City', state: 'MO', lat: 39.0997, lng: -94.5786 };
-    curLoc = def; _searchInputs.forEach(({bar}) => bar.value = def.label); loadWeather(def); updateRadar(def.lat, def.lng);
-  }
-});
-
-// ---- Nominatim autocomplete ----
-function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
-
-async function fetchSuggestions(q) {
-  if (searchController) searchController.abort();
-  searchController = new AbortController();
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us&featuretype=city`;
-    const res = await fetch(url, {
-      signal: searchController.signal,
-      headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' }
-    });
-    const data = await res.json();
-    // Parse and deduplicate by "City, ST" label — one result per city
-    const seen = new Set();
-    const results = [];
-    for (const r of data) {
-      const parsed = parseNominatim(r);
-      if (!seen.has(parsed.label)) {
-        seen.add(parsed.label);
-        results.push(parsed);
-      }
-      if (results.length >= 6) break;
-    }
-    return results;
-  } catch (e) {
-    if (e.name === 'AbortError') return null; // cancelled
-    return [];
-  }
-}
-
-const debouncedFetch = debounce(async q => {
-  const results = await fetchSuggestions(q);
-  if (results === null) return;
-  sugs = results; selIdx = -1; renderSugs(_activeBar, _activeSug);
-}, 280);
-
-function renderSugs(activeBar, activeSug) {
-  _searchInputs.forEach(({sug}) => { sug.innerHTML = ''; sug.style.display='none'; });
-  if (!activeBar || !activeSug) return;
-  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
-  if (!sugs.length && !recents.length) return;
-  if (sugs.length) {
-    const label = document.createElement('div');
-    label.className = 'sug-section-label'; label.textContent = 'Locations';
-    activeSug.appendChild(label);
-    sugs.forEach((loc, i) => {
-      const li = document.createElement('li');
-      if (i===selIdx) li.classList.add('active');
-      li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
-      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc, activeBar, activeSug); });
-      activeSug.appendChild(li);
-    });
-  }
-  if (recents.length) {
-    const label = document.createElement('div');
-    label.className = 'sug-section-label'; label.textContent = 'Recent Searches';
-    activeSug.appendChild(label);
-    recents.forEach((loc, i) => {
-      const li = document.createElement('li');
-      const allIdx = sugs.length + i;
-      if (allIdx===selIdx) li.classList.add('active');
-      li.innerHTML = `<span class="material-symbols-rounded">history</span><span class="sug-city">${loc.label}</span><button class="sug-remove" title="Remove">✕</button>`;
-      li.querySelector('.sug-remove').addEventListener('mousedown', e => {
-        e.stopPropagation(); e.preventDefault();
-        removeRecent(loc.label); sugs = sugs.filter(s => s.label !== loc.label);
-        renderSugs(activeBar, activeSug);
-      });
-      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc, activeBar, activeSug); });
-      activeSug.appendChild(li);
-    });
-  }
-  activeSug.style.display = 'block';
-}
-
-function showRecents(activeBar, activeSug) { sugs = []; renderSugs(activeBar, activeSug); }
-
-_searchInputs.forEach(({bar, sug}) => {
-  bar.addEventListener('input', e => {
-    _activeBar = bar; _activeSug = sug;
-    const q = e.target.value.trim();
-    if (q.length < 2) { sugs=[]; renderSugs(bar, sug); return; }
-    renderSugs(bar, sug); debouncedFetch(q);
-  });
-  bar.addEventListener('keydown', e => {
-    const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
-    const all = [...sugs, ...recents];
-    if (!all.length) return;
-    if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%all.length; renderSugs(bar, sug); }
-    else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+all.length)%all.length; renderSugs(bar, sug); }
-    else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx], bar, sug); else if (all[0]) pick(all[0], bar, sug); }
-    else if (e.key==='Escape') { sug.style.display='none'; selIdx=-1; }
-  });
-  bar.addEventListener('focus', () => { _activeBar = bar; _activeSug = sug; if (bar.value.trim().length < 2) showRecents(bar, sug); });
-});
-
-document.addEventListener('click', e => {
-  _searchInputs.forEach(({bar, sug}) => {
-    if (!sug.contains(e.target) && e.target !== bar) { sug.style.display='none'; selIdx=-1; }
-  });
-});
-
-
-// ── Recent searches ──────────────────────────────────────────────────────────
-const RECENTS_KEY = 'jweather_recents';
-const MAX_RECENTS = 5;
-
-function getRecents() {
-  try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch { return []; }
-}
-
-function saveRecent(loc) {
-  let recents = getRecents().filter(r => r.label !== loc.label);
-  recents.unshift(loc);
-  if (recents.length > MAX_RECENTS) recents = recents.slice(0, MAX_RECENTS);
-  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
-}
-
-function removeRecent(label) {
-  const recents = getRecents().filter(r => r.label !== label);
-  localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
-}
-function pick(loc, activeBar, activeSug) {
-  curLoc = loc;
-  _searchInputs.forEach(({bar, sug}) => { bar.value = loc.label; sug.style.display='none'; });
-  selIdx=-1;
-  localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-  saveRecent(loc);
-  loadWeather(loc); updateRadar(loc.lat, loc.lng);
-}
-
-
-// ── Ray-casting point-in-polygon ──
-function pointInRing(pt, ring) {
-  let inside = false;
-  const [x, y] = pt;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i], [xj, yj] = ring[j];
-    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
-  }
-  return inside;
-}
-
-function pointInFeature(pt, feature) {
-  const geom = feature.geometry;
-  if (!geom) return false;
-  const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : [];
-  for (const poly of polys) {
-    if (pointInRing(pt, poly[0])) return true; // outer ring only
-  }
-  return false;
-}
-
-async function fetchSpcOutlookForPoint(lat, lng) {
-  const days = [
-    { day: 1, url: 'day1otlk.json',  label: 'Today'          },
-    { day: 2, url: 'day2otlk.json',  label: 'Tomorrow'       },
-    { day: 3, url: 'day3otlk.json',  label: 'in 2 Days'      },
-  ];
-  const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
-  const pt = [lng, lat]; // GeoJSON is [lon, lat]
-
-  for (const { url, label } of days) {
-    try {
-      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${url}`);
-      if (!res.ok) continue;
-      const gj = await res.json();
-      if (!gj.features?.length) continue;
-
-      let best = null, bestOrder = -1;
-      for (const feat of gj.features) {
-        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
-        const key = SPC_CAT[raw] ? raw : (DN_TO_CAT[raw] || null);
-        if (!key || key === 'TSTM') continue;
-        const rank = order.indexOf(key);
-        if (rank > bestOrder && pointInFeature(pt, feat)) {
-          best = key; bestOrder = rank;
-        }
-      }
-      if (best) return { risk: best, dayLabel: label };
-    } catch(e) { console.warn(`SPC day check failed:`, e); }
-  }
-  return null;
-}
-
-async function loadWeather(loc) {
-  curLoc=loc; localStorage.setItem('jweather_last_location', JSON.stringify(loc)); spin.style.display='flex';
-  try {
-    const [lat, lng] = [Number(loc.lat), Number(loc.lng)];
-    const pt = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
-    if (!pt.ok) throw new Error('NWS failed');
-    const ptd = await pt.json();
-    const [stR, fcR, alR] = await Promise.all([
-      fetch(ptd.properties.observationStations),
-      fetch(ptd.properties.forecast),
-      fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`)
-    ]);
-    let temp='--', desc='--', feels='--', humid='--', wind='--', isDaytime=true;
-    if (stR.ok) {
-      const std = await stR.json(); const stId = std.features[0]?.properties?.stationIdentifier;
-      if (stId) {
-        const oR = await fetch(`https://api.weather.gov/stations/${stId}/observations/latest`);
-        if (oR.ok) {
-          const o = (await oR.json()).properties;
-          temp = o.temperature?.value!=null ? `${Math.round(o.temperature.value*9/5+32)}` : '--';
-          desc = o.textDescription || '--';
-          const h = o.timestamp ? new Date(o.timestamp).getHours() : new Date().getHours();
-          isDaytime = h>=6 && h<20;
-          feels = o.heatIndex?.value!=null ? `${Math.round(o.heatIndex.value*9/5+32)}°F`
-                : o.windChill?.value!=null ? `${Math.round(o.windChill.value*9/5+32)}°F` : `${temp}°F`;
-          humid = o.relativeHumidity?.value!=null ? `${Math.round(o.relativeHumidity.value)}%` : '--';
-          wind = o.windSpeed?.value!=null && o.windDirection?.value!=null
-            ? `${Math.round(o.windSpeed.value*2.237)} mph ${compass(o.windDirection.value)}` : '--';
-        }
-      }
-    }
-    const periods = fcR.ok ? (await fcR.json()).properties.periods : [];
-    const alData = alR.ok ? await alR.json() : { features: [] };
-    const spcResult = await fetchSpcOutlookForPoint(Number(loc.lat), Number(loc.lng));
-    renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime);
-    renderForecast(periods);
-    renderAlerts(alData, spcResult);
-  } catch(e) { console.error(e); document.getElementById('current-loc').textContent='Unavailable'; }
-  finally { spin.style.display='none'; }
-}
-
-function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
-  document.getElementById('current-loc').textContent = loc.label || (loc.city ? `${loc.city}${loc.state?', '+loc.state:''}` : 'Your Location');
-  document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-  document.getElementById('current-temp-val').textContent = temp;
-  document.getElementById('current-desc').textContent = desc;
-  document.getElementById('stat-feels').textContent = feels;
-  document.getElementById('stat-humidity').textContent = humid;
-  document.getElementById('stat-wind').textContent = wind;
-  document.getElementById('current-hero-icon').textContent = getIcon(desc, isDaytime);
-}
-
-const DA = { Monday:'Mon', Tuesday:'Tue', Wednesday:'Wed', Thursday:'Thu', Friday:'Fri', Saturday:'Sat', Sunday:'Sun' };
-function abbr(n) { for (const d in DA) if (n.startsWith(d)) return n.replace(d, DA[d]); return n; }
-
-function renderForecast(periods) {
-  const wrap = document.getElementById('forecast-content'); wrap.innerHTML = '';
-  if (!periods?.length) { wrap.innerHTML='<div style="padding:20px 0;color:var(--text-4);font-size:.83rem">No data.</div>'; return; }
-  periods.forEach(p => {
-    const icon = getIcon(p.shortForecast, p.isDaytime);
-    const row = document.createElement('div'); row.className = 'forecast-row';
-    row.innerHTML = `
-      <div class="forecast-period${p.isDaytime?' day':''}">${abbr(p.name)}</div>
-      <span class="material-symbols-rounded forecast-icon${p.isDaytime?' day':''} fi">${icon}</span>
-      <div class="forecast-desc">${p.shortForecast}</div>
-      <div class="forecast-temp">${p.temperature}°</div>
-    `;
-    const det = document.createElement('div'); det.className='forecast-detail-row'; det.textContent=p.detailedForecast;
-    row.addEventListener('click', () => row.classList.toggle('open'));
-    wrap.appendChild(row); wrap.appendChild(det);
-  });
-}
-
-function renderAlerts(data, spcResult) {
-  alerts = data.features || [];
-  const c = document.getElementById('alerts-content');
-  c.innerHTML = '';
-
-  // Inject SPC outlook banner if location is inside an outlook polygon
-  if (spcResult && SPC_CAT[spcResult.risk]) {
-    const info = SPC_CAT[spcResult.risk];
-    const banner = document.createElement('a');
-    banner.className = 'spc-alert-row';
-    banner.href = 'outlook.html';
-    banner.innerHTML = `
-      <div class="spc-pip" style="background:${info.color};box-shadow:0 0 0 3px ${info.color}44"></div>
-      <div class="spc-alert-info">
-        <div class="spc-alert-event">Severe Weather Possible ${spcResult.dayLabel}</div>
-        <div class="spc-alert-sub">Tap for additional details</div>
-      </div>
-      <span class="material-symbols-rounded spc-alert-chevron">chevron_right</span>`;
-    c.appendChild(banner);
-  }
-
-  if (!alerts.length && !spcResult) {
-    c.innerHTML = `<div class="no-alerts-row"><div class="no-alerts-pip"></div><div><div class="no-alerts-label">No active alerts</div><div class="no-alerts-sub">All clear.</div></div></div>`;
-    return;
-  }
-
-  alerts.forEach((feat, i) => {
-    const a = feat.properties;
-    const exp = a.expires ? new Date(a.expires).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : 'N/A';
-    const evt = (a.event || '').toLowerCase();
-    const isTornado = evt.includes('tornado warning');
-    const isTstm    = evt.includes('severe thunderstorm warning');
-    const row = document.createElement('div');
-    row.className = 'alert-row' + (isTornado ? ' alert-row-tornado' : isTstm ? ' alert-row-tstm' : '');
-    const leadIcon = isTornado
-      ? `<span class="material-symbols-rounded alert-type-icon">tornado</span>`
-      : isTstm
-        ? `<span class="material-symbols-rounded alert-type-icon">bolt</span>`
-        : `<div class="alert-pip"></div>`;
-    row.innerHTML = `${leadIcon}<div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
-    row.addEventListener('click', () => showModal(i));
-    c.appendChild(row);
-    // Force animation to restart in case element was already in DOM
-    if (isTornado || isTstm) {
-      void row.offsetWidth; // trigger reflow
-      row.style.animation = 'none';
-      void row.offsetWidth;
-      row.style.animation = '';
-    }
-  });
-
-  // Show tornado overlay if active warning found
-  if (alerts.length) {
-    const locLabel = curLoc?.label || curLoc?.city || 'Your Location';
-    maybeShowTornadoOverlay(alerts, locLabel);
-  }
-}
-
-function showModal(i) {
-  const a = alerts[i]?.properties; if (!a) return;
-  const fmt = dt => dt ? new Date(dt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : 'N/A';
-  document.getElementById('modal-title').textContent = a.event;
-  document.getElementById('modal-meta').innerHTML = `
-    <div class="modal-meta-item"><div class="modal-meta-label">Issued</div><div class="modal-meta-val">${fmt(a.effective)}</div></div>
-    <div class="modal-meta-item"><div class="modal-meta-label">Expires</div><div class="modal-meta-val">${fmt(a.expires)}</div></div>
-    <div class="modal-meta-item"><div class="modal-meta-label">Source</div><div class="modal-meta-val">${a.senderName||'NWS'}</div></div>
-  `;
-  document.getElementById('modal-body').innerHTML = `
-    <pre>${a.description||''}</pre>
-    ${a.instruction?`<div class="modal-instruction"><strong>Action Required</strong>${a.instruction}</div>`:''}
-  `;
-  document.getElementById('alert-modal').style.display='flex'; document.body.style.overflow='hidden';
-}
-document.getElementById('modal-close').addEventListener('click', closeModal);
-document.getElementById('alert-modal').addEventListener('click', e => { if (e.target===document.getElementById('alert-modal')) closeModal(); });
-function closeModal() { document.getElementById('alert-modal').style.display='none'; document.body.style.overflow=''; }
-function updateRadar(lat, lng) {
-  document.getElementById('radar-iframe').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=10&overlay=radar&product=radar&level=surface&lat=${+lat}&lon=${+lng}`;
-}
-
-// Coming soon toast
-let _toastTimer = null;
-function showComingSoon() {
-  const t = document.getElementById('coming-soon-toast');
-  t.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-document.querySelectorAll('[data-coming-soon]').forEach(el => {
-  el.addEventListener('click', e => { e.preventDefault(); showComingSoon(); });
-});
-
-</script>
-
-<!-- Tornado Warning Overlay -->
-<div id="tornado-overlay">
-  <div class="tornado-box" id="tornado-box">
-    <div class="tornado-banner">
-      <div class="tornado-banner-icon"><span class="material-symbols-rounded">tornado</span></div>
-      <div class="tornado-banner-text">
-        <div class="tornado-banner-eyebrow" id="tornado-eyebrow">Active Warning</div>
-        <div class="tornado-banner-title" id="tornado-title">Tornado Warning</div>
-      </div>
-    </div>
-    <div class="tornado-body">
-      <div id="tornado-observed-slot" style="display:none;">
-        <div class="tornado-observed-badge">
-          <span class="material-symbols-rounded">visibility</span>TORNADO OBSERVED
-        </div>
-      </div>
-      <div class="tornado-location" id="tornado-location"></div>
-      <div class="tornado-message" id="tornado-message"></div>
-      <div class="tornado-action">
-        <strong id="tornado-action-title">⚡ Take shelter now</strong>
-        <span id="tornado-action-body">Go to the lowest floor of a sturdy building. Get to an interior room, away from windows. Do not wait to see the tornado.</span>
-      </div>
-      <div class="tornado-expires" id="tornado-expires"></div>
-      <button class="tornado-btn" id="tornado-continue">I understand — View Forecast</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── BOTTOM NAV ── -->
-<nav class="mob-bottom-nav" aria-label="Main navigation">
-  <div class="mob-bottom-nav-inner">
-    <a href="index.html" class="mob-tab active">
-      <span class="material-symbols-rounded">wb_sunny</span>Home
-    </a>
-    <a href="hourly.html" class="mob-tab">
-      <span class="material-symbols-rounded">schedule</span>Hourly
-    </a>
-    <a href="radar.html" class="mob-tab">
-      <span class="material-symbols-rounded">radar</span>Radar
-    </a>
-    <button class="mob-tab mob-tab-severe" id="mob-severe-tab">
-      <span class="material-symbols-rounded">thunderstorm</span>Severe
-    </button>
-  </div>
-</nav>
-<div class="severe-sheet-backdrop" id="severe-backdrop"></div>
-<div class="severe-sheet" id="severe-sheet">
-  <div class="severe-sheet-handle"></div>
-  <div class="severe-sheet-title">Severe Weather</div>
-  <div class="severe-sheet-items">
-    <a href="outlook.html" class="severe-sheet-item">
-      <span class="material-symbols-rounded">thunderstorm</span>
-      <div class="severe-sheet-item-text">Severe Outlook<div class="severe-sheet-item-sub">SPC convective outlooks</div></div>
-    </a>
-    <a href="watches.html" class="severe-sheet-item">
-      <span class="material-symbols-rounded">emergency_home</span>
-      <div class="severe-sheet-item-text">Current Watches<div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div></div>
-    </a>
-    <a href="meso.html" class="severe-sheet-item">
-      <span class="material-symbols-rounded">crisis_alert</span>
-      <div class="severe-sheet-item-text">Mesoscale Discussions<div class="severe-sheet-item-sub">SPC short-term forecasts</div></div>
-    </a>
-    <a href="severe101.html" class="severe-sheet-item">
-      <span class="material-symbols-rounded">school</span>
-      <div class="severe-sheet-item-text">Severe Weather 101<div class="severe-sheet-item-sub">Learn about severe weather</div></div>
-    </a>
-    <a href="#" class="severe-sheet-item" data-coming-soon>
-      <span class="material-symbols-rounded">tune</span>
-      <div class="severe-sheet-item-text">Storm Parameters<div class="severe-sheet-item-sub">Atmospheric instability data</div></div>
-      <span class="severe-sheet-item-badge soon">Soon</span>
-    </a>
-  </div>
-</div>
-<script>
-(function(){
-  var tab=document.getElementById('mob-severe-tab');
-  var sheet=document.getElementById('severe-sheet');
-  var bd=document.getElementById('severe-backdrop');
-  function open(){sheet.classList.add('open');bd.classList.add('open');}
-  function close(){sheet.classList.remove('open');bd.classList.remove('open');}
-  if(tab)tab.addEventListener('click',function(){sheet.classList.contains('open')?close():open();});
-  if(bd)bd.addEventListener('click',close);
-  document.body.classList.add('has-bottom-nav');
-})();
-</script>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
