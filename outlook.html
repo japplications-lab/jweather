@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>jWeather — SPC Convective Outlooks</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -167,7 +167,7 @@
 
     /* ── MAP PANEL ── */
     .map-panel{flex:1;position:relative;background:var(--bg);min-width:0;}
-    #main-map{position:absolute;inset:0;width:100%;height:100%;}
+    #main-map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
 
     /* Map top bar */
     .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
