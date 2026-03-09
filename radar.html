@@ -472,27 +472,42 @@ const map = L.map('main-map', {
 });
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-const retina = window.devicePixelRatio > 1 ? '@2x' : '';
-L.tileLayer(
-  `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${retina}.png`,
-  { subdomains:'abcd', maxZoom:19,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }
-).addTo(map);
+// Pane for labels
+map.createPane('labelPane');
+map.getPane('labelPane').style.zIndex = 450;
+map.getPane('labelPane').style.pointerEvents = 'none';
+
+// Probe CARTO; fall back to OSM if blocked (e.g. Brave Shields)
+(function initTiles() {
+  const r = window.devicePixelRatio > 1 ? '@2x' : '';
+  const probe = new Image();
+  probe.onload = function() {
+    // CARTO available — use dark matter base
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}.png',
+      { subdomains:'abcd', maxZoom:19, r,
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }
+    ).addTo(map);
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/dark_matter_only_labels/{z}/{x}/{y}.png',
+      { subdomains:'abcd', maxZoom:19, pane:'labelPane', opacity:0.9 }
+    ).addTo(map);
+  };
+  probe.onerror = function() {
+    // Blocked — OSM fallback
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { subdomains:'abc', maxZoom:19,
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
+    ).addTo(map);
+  };
+  probe.src = 'https://a.basemaps.cartocdn.com/dark_matter_nolabels/0/0/0.png';
+})();
 
 // State borders
 fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
   .then(r => r.json())
   .then(data => L.geoJSON(data, { style:{ color:'rgba(255,255,255,0.18)', weight:0.7, fill:false } }).addTo(map))
   .catch(() => {});
-
-// Label tile on top
-map.createPane('labelPane');
-map.getPane('labelPane').style.zIndex = 450;
-map.getPane('labelPane').style.pointerEvents = 'none';
-L.tileLayer(
-  `https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}${retina}.png`,
-  { subdomains:'abcd', maxZoom:19, pane:'labelPane', opacity:0.85 }
-).addTo(map);
 
 // ─────────────────────────────────────────────
 // LEGEND (dynamic per product)
@@ -515,25 +530,39 @@ buildLegend('N0B');
 // ─────────────────────────────────────────────
 // FETCH AVAILABLE FRAMES FROM IEM
 // ─────────────────────────────────────────────
+// Generate rounded-5min timestamps for last N frames (no API needed for composite)
+function generateCompositeFrames(count = 12) {
+  const frames = [];
+  const now = new Date();
+  // Round back to last 5-min mark, then go back count frames
+  const roundedMs = Math.floor(now.getTime() / 300000) * 300000;
+  for (let i = count - 1; i >= 0; i--) {
+    frames.push(new Date(roundedMs - i * 300000).toISOString());
+  }
+  return frames;
+}
+
 async function fetchFrames(station, product) {
-  // N0C not tiled — use N0B timestamps as proxy (same scan cadence)
+  if (station === 'COMPOSITE') {
+    // Composite: generate timestamps locally — no API needed
+    return generateCompositeFrames(12);
+  }
+  // Single station: query IEM for actual scan times
   const queryProduct = product === 'N0C' ? 'N0B' : product;
-  const queryStation = station === 'COMPOSITE' ? 'COMPOSITE' : station;
   try {
-    // Use a 2-hour window ending now to get the last ~12-24 frames
     const end = new Date();
     const start = new Date(end - 2 * 60 * 60 * 1000);
-    const fmt = d => d.toISOString().replace('.000Z','Z');
-    const url = queryStation === 'COMPOSITE'
-      ? `${IEM_BASE}/json/radar.py?operation=list&radar=COMPOSITE&product=N0Q&start=${fmt(start)}&end=${fmt(end)}`
-      : `${IEM_BASE}/json/radar.py?operation=list&radar=${queryStation}&product=${queryProduct}&start=${fmt(start)}&end=${fmt(end)}`;
+    const fmt = d => d.toISOString().slice(0,16) + 'Z';
+    const url = `${IEM_BASE}/json/radar.py?operation=list&radar=${station}&product=${queryProduct}&start=${fmt(start)}&end=${fmt(end)}`;
     const res = await fetch(url);
     const data = await res.json();
     const times = (data.data || []).map(d => d.valid).filter(Boolean);
-    return times.slice(-16); // keep last 16 frames (~80 min)
+    if (times.length) return times.slice(-16);
+    // Fallback: generate timestamps if API returns nothing
+    return generateCompositeFrames(12);
   } catch(e) {
-    console.warn('Frame fetch failed:', e);
-    return [];
+    console.warn('Frame fetch failed, using generated times:', e);
+    return generateCompositeFrames(12);
   }
 }
 
@@ -555,6 +584,7 @@ function loadFrame(timeStr) {
   if (!timeStr) return;
 
   const tk = tKey(timeStr);
+  const isLatest = frameIdx === frames.length - 1;
 
   if (currentProduct === 'N0C') {
     // N0C: IEM serves as raw EPSG:4326 image — use as image overlay
@@ -577,8 +607,11 @@ function loadFrame(timeStr) {
   } else {
     // Tiled products: N0B, N0U, N0S
     const tileProd = currentProduct;
+    // Composite: use "0" shortcut for latest to avoid 5-min timestamp alignment issues
+    // For historical frames use the tKey
+    const compositeTime = isLatest ? '0' : tk;
     const url = currentStation === 'COMPOSITE'
-      ? `${IEM_BASE}/cache/tile.py/1.0.0/nexrad-n0q-900913/${tk}/{z}/{x}/{y}.png`
+      ? `${IEM_BASE}/cache/tile.py/1.0.0/nexrad-n0q-900913/${compositeTime}/{z}/{x}/{y}.png`
       : `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${tileProd}-${tk}/{z}/{x}/{y}.png`;
     radarLayer = L.tileLayer(url, {
       opacity: radarOpacity,
