@@ -81,17 +81,15 @@
 
     /* On desktop, bar divs are transparent wrappers */
     .mob-bar-1{display:contents;}
-    .mob-bar-2{display:contents;}
     /* ─── TWO-BAR MOBILE HEADER ─── */
     @media(max-width:640px){
       /* Header becomes two rows */
       header{height:auto !important;}
       .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      /* Row 1: logo + hamburger */
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
-      /* Row 2: search bar */
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
-      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      /* Row 1: logo + search + hamburger */
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:8px;}
+      .mob-bar-1 .search-wrap{flex:1;max-width:none;}
+
       /* Hide desktop nav entirely */
       .header-nav{display:none !important;}
       /* Show hamburger */
@@ -344,12 +342,19 @@
 <!-- ── HEADER ── -->
 <header>
   <div class="header-inner">
-    <!-- Row 1: logo + nav + hamburger -->
+    <!-- Row 1: logo + search + nav + hamburger -->
     <div class="mob-bar-1">
       <a class="logo" href="index.html">
         <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
         <span class="logo-name">j<span>Weather</span></span>
       </a>
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions"></ul>
+      </div>
       <nav class="header-nav">
         <a href="index.html">Forecast</a>
         <div class="nav-dropdown">
@@ -359,7 +364,7 @@
           <div class="nav-dropdown-menu">
             <div class="nav-dropdown-menu-inner">
               <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-              <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+              <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
               <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
               <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
               <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
@@ -371,16 +376,6 @@
       </nav>
       <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div><!-- /.mob-bar-1 -->
-    <!-- Row 2: search bar -->
-    <div class="mob-bar-2">
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-        </div>
-        <ul id="suggestions"></ul>
-      </div>
-    </div><!-- /.mob-bar-2 -->
   </div>
 </header>
 
@@ -389,7 +384,7 @@
   <div class="mob-menu-panel">
     <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
     <a href="outlook.html" class="active"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-    <a href="watches.html" data-coming-soon><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+    <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
     <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
     <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
     <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
