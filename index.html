@@ -95,7 +95,21 @@
     .left-col { display: flex; flex-direction: column; gap: 16px; }
     .right-col { display: flex; flex-direction: column; gap: 16px; }
     @media (max-width: 768px) {
-      main { grid-template-columns: 1fr; }
+      main { grid-template-columns: 1fr; padding: 14px 14px 60px; }
+    }
+    @media (max-width: 600px) {
+      /* Header: hide Contact/About, compress search */
+      .header-nav > a:not(.nav-dropdown-wrap) { display: none; }
+      .header-inner { padding: 0 14px; gap: 10px; }
+      .search-wrap { max-width: none; }
+      /* Nav dropdown: anchor left so it doesn't bleed off right edge */
+      .nav-dropdown-menu { right: auto; left: 0; }
+      /* Cards slightly tighter */
+      .card-top, .current-body { padding-left: 14px; padding-right: 14px; }
+    }
+    @media (max-width: 400px) {
+      .logo-name { display: none; }
+      #search-bar { font-size: 0.78rem; }
     }
 
     /* ===== CARD BASE ===== */
