@@ -1,479 +1,513 @@
-import React, { useState, useEffect } from 'react';
-
-// --- INJECTED STYLES & FONTS ---
-const injectDependencies = () => {
-  if (document.getElementById('jweather-styles')) return;
-
-  // Google Fonts
-  const fonts = [
-    'https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap',
-    'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
-  ];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>jWeather</title>
   
-  fonts.forEach(href => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-  });
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  // Custom Scrollbars & Base Overrides
-  const style = document.createElement('style');
-  style.id = 'jweather-styles';
-  style.innerHTML = `
+  <style>
+    /* Custom Scrollbars & Base Styles */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-    body { background-color: #16181e; color: #ffffff; font-family: 'Geist', sans-serif; overflow: hidden; }
+    
+    body { 
+      background-color: #16181e; 
+      color: #ffffff; 
+      font-family: 'Geist', sans-serif; 
+      overflow: hidden; 
+    }
+    
     .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-  `;
-  document.head.appendChild(style);
-};
+    
+    .icon-filled { font-variation-settings: "FILL" 1; }
+    .icon-outline { font-variation-settings: "FILL" 0; }
 
-// --- SHARED COMPONENTS ---
-const Icon = ({ name, className = '', filled = false, style = {} }) => (
-  <span 
-    className={`material-symbols-rounded ${className}`} 
-    style={{ fontVariationSettings: filled ? '"FILL" 1' : '"FILL" 0', ...style }}
-  >
-    {name}
-  </span>
-);
+    /* View Transition Animations */
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .view:not(.hidden) {
+      animation: fadeInSlide 0.4s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="flex h-screen w-full text-white font-sans overflow-hidden">
 
-const Logo = () => (
-  <div className="flex items-center gap-3 font-bold text-xl tracking-tight">
-    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e5182a] to-red-800 flex items-center justify-center shadow-lg shadow-[#e5182a]/20">
-      <Icon name="storm" className="text-white text-xl" filled />
-    </div>
-    <span>jWeather</span>
-  </div>
-);
-
-// --- VIEWS ---
-const DashboardView = () => {
-  const days = [
-    { day: 'Today', max: 78, min: 62, icon: 'partly_cloudy_day', pop: 0 },
-    { day: 'Tue', max: 81, min: 65, icon: 'thunderstorm', pop: 60 },
-    { day: 'Wed', max: 74, min: 58, icon: 'rainy', pop: 40 },
-    { day: 'Thu', max: 72, min: 55, icon: 'clear_day', pop: 0 },
-    { day: 'Fri', max: 76, min: 59, icon: 'clear_day', pop: 0 },
-    { day: 'Sat', max: 80, min: 63, icon: 'partly_cloudy_day', pop: 10 },
-    { day: 'Sun', max: 83, min: 66, icon: 'cloudy', pop: 20 },
-  ];
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Hero: Current Conditions */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 bg-gradient-to-br from-[#1e2028] to-[#16181e] rounded-[2rem] p-8 border border-white/10 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <Icon name="partly_cloudy_day" className="text-[12rem]" filled />
-          </div>
-          <div className="relative z-10">
-            <h2 className="text-white/60 text-lg font-medium mb-1">Current Conditions</h2>
-            <div className="flex items-end gap-4 mt-4">
-              <span className="text-7xl font-black tracking-tighter">74°</span>
-              <span className="text-2xl text-white/60 mb-2 font-medium">Partly Cloudy</span>
-            </div>
-            <div className="flex items-center gap-4 mt-4 text-white/70">
-              <span className="flex items-center gap-1"><Icon name="arrow_upward" className="text-sm"/> 78°</span>
-              <span className="flex items-center gap-1"><Icon name="arrow_downward" className="text-sm"/> 62°</span>
-              <span className="flex items-center gap-1 ml-4 text-[#e5182a] bg-[#e5182a]/10 px-3 py-1 rounded-full text-sm font-semibold">
-                Feels like 76°
-              </span>
-            </div>
-          </div>
+  <!-- Desktop Sidebar -->
+  <aside class="hidden md:flex w-72 flex-col bg-[#16181e] border-r border-white/5 z-20 shrink-0">
+    <div class="h-[72px] flex items-center px-8 border-b border-white/5">
+      <!-- Logo -->
+      <div class="flex items-center gap-3 font-bold text-xl tracking-tight">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e5182a] to-red-800 flex items-center justify-center shadow-lg shadow-[#e5182a]/20">
+          <span class="material-symbols-rounded text-white text-xl icon-filled">storm</span>
         </div>
-
-        {/* Current Details */}
-        <div className="w-full lg:w-80 grid grid-cols-2 gap-4">
-          {[
-            { label: 'Wind', value: '12 mph', icon: 'air' },
-            { label: 'Humidity', value: '45%', icon: 'water_drop' },
-            { label: 'Pressure', value: '29.92 in', icon: 'compress' },
-            { label: 'UV Index', value: '6 (High)', icon: 'light_mode' },
-          ].map(st => (
-            <div key={st.label} className="bg-[#1e2028] border border-white/5 rounded-3xl p-5 flex flex-col justify-between hover:border-white/10 transition-colors">
-              <div className="flex items-center gap-2 text-white/50 mb-4">
-                <Icon name={st.icon} className="text-xl" />
-                <span className="text-sm font-medium">{st.label}</span>
-              </div>
-              <div className="text-xl font-bold">{st.value}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 7 Day Forecast */}
-      <div className="bg-[#1e2028] rounded-[2rem] p-6 border border-white/10">
-        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 px-2">
-          <Icon name="calendar_month" className="text-white/50" /> 7-Day Forecast
-        </h3>
-        <div className="grid grid-cols-1 divide-y divide-white/5">
-          {days.map((d, i) => (
-            <div key={i} className="flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors rounded-2xl">
-              <div className="w-24 font-semibold text-lg">{d.day}</div>
-              <div className="flex items-center gap-3 w-32">
-                <Icon name={d.icon} className="text-2xl text-white/80" filled={i===0} />
-                {d.pop > 0 && <span className="text-sm text-[#e5182a] font-bold">{d.pop}%</span>}
-              </div>
-              <div className="flex-1 flex items-center gap-4 justify-end max-w-[200px]">
-                <span className="text-white/50 font-medium w-8 text-right">{d.min}°</span>
-                <div className="flex-1 h-2 bg-[#16181e] rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-blue-400 to-[#e5182a] rounded-full" style={{ width: '60%', marginLeft: '20%' }}></div>
-                </div>
-                <span className="font-bold w-8">{d.max}°</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <span>jWeather</span>
       </div>
     </div>
-  );
-};
-
-const HourlyView = () => {
-  const hours = Array.from({length: 24}).map((_, i) => ({
-    time: i === 0 ? 'Now' : `${(i+12)%12 || 12} ${i<12||i===24?'AM':'PM'}`,
-    temp: 74 - Math.floor(Math.random()*15),
-    pop: Math.random() > 0.8 ? Math.floor(Math.random()*60)+20 : 0,
-    icon: Math.random() > 0.6 ? 'clear_day' : 'partly_cloudy_day'
-  }));
-
-  return (
-    <div className="max-w-4xl mx-auto pb-8 animate-in fade-in duration-500">
-      <h2 className="text-3xl font-bold mb-6 tracking-tight">Hourly Forecast</h2>
-      <div className="bg-[#1e2028] rounded-[2rem] border border-white/10 overflow-hidden">
-        {hours.map((hr, idx) => (
-          <div key={idx} className="flex items-center justify-between p-5 border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors">
-            <div className={`w-24 font-semibold ${idx === 0 ? 'text-[#e5182a]' : 'text-white/70'}`}>{hr.time}</div>
-            <div className="flex-1 flex items-center gap-4">
-               <Icon name={hr.icon} className={idx === 0 ? 'text-[#e5182a]' : 'text-white/80'} filled={idx===0} />
-               <span className="font-bold text-xl">{hr.temp}°</span>
-            </div>
-            <div className="w-24 flex items-center justify-end gap-1 text-sm text-[#e5182a] font-bold">
-              {hr.pop > 0 && <><Icon name="water_drop" className="text-sm" filled /> {hr.pop}%</>}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const RadarView = ({ location }) => (
-  <div className="w-full h-full min-h-[600px] rounded-[2rem] overflow-hidden border border-white/10 relative animate-in zoom-in-95 duration-500 bg-[#1e2028]">
-    <iframe
-      className="w-full h-full border-0 absolute inset-0"
-      src={`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=7&overlay=radar&product=radar&level=surface&lat=${location.lat}&lon=${location.lng}&detail=false`}
-      title="Radar Map"
-    />
-  </div>
-);
-
-const OutlooksView = () => {
-  const [day, setDay] = useState(1);
-  const [mode, setMode] = useState('cat');
-  const modes = { 1: ['cat', 'torn', 'wind', 'hail'], 2: ['cat', 'torn', 'wind', 'hail'], 3: ['cat'] };
-  const modeLabels = { cat: 'Categorical', torn: 'Tornado', wind: 'Wind', hail: 'Hail' };
-
-  return (
-    <div className="max-w-5xl mx-auto h-full flex flex-col pb-8 animate-in fade-in duration-500">
-       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-         <h2 className="text-3xl font-bold tracking-tight">Convective Outlooks</h2>
-         <div className="flex bg-[#1e2028] p-1.5 rounded-2xl border border-white/10">
-           {[1, 2, 3].map(d => (
-             <button
-               key={d}
-               onClick={() => { setDay(d); if (!modes[d].includes(mode)) setMode('cat'); }}
-               className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${day === d ? 'bg-[#e5182a] text-white shadow-lg shadow-[#e5182a]/20' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
-             >
-               Day {d}
-             </button>
-           ))}
-         </div>
-       </div>
-
-       <div className="flex flex-wrap gap-2 mb-6">
-         {modes[day].map(m => (
-           <button
-             key={m}
-             onClick={() => setMode(m)}
-             className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 ${mode === m ? 'bg-[#e5182a]/10 border-[#e5182a]/30 text-[#e5182a]' : 'bg-[#1e2028] border-white/5 text-white/60 hover:bg-white/5 hover:border-white/20'}`}
-           >
-             {modeLabels[m]}
-           </button>
-         ))}
-       </div>
-
-       <div className="flex-1 bg-[#1e2028] rounded-[2rem] border border-white/10 flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden group">
-         <div className="absolute inset-0 bg-gradient-to-tr from-[#16181e] to-transparent z-10"></div>
-         {/* Simulated Map Background */}
-         <div className="absolute inset-0 bg-[url('https://www.spc.noaa.gov/products/outlook/day1otlk_sm.gif')] bg-cover bg-center opacity-10 filter blur-sm grayscale group-hover:grayscale-0 group-hover:opacity-30 transition-all duration-700"></div>
-         
-         <div className="relative z-20 text-center p-8">
-           <div className="w-20 h-20 bg-[#16181e]/80 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10">
-             <Icon name="map" className="text-4xl text-[#e5182a]" filled />
-           </div>
-           <h3 className="text-2xl font-bold mb-2">Day {day} {modeLabels[mode]} Outlook</h3>
-           <p className="text-white/50 max-w-md mx-auto">This is a dynamic visualization area. In production, this section connects to SPC endpoints to render interactive Leaflet maps.</p>
-         </div>
-       </div>
-    </div>
-  );
-};
-
-const WatchesView = () => (
-  <div className="max-w-4xl mx-auto pb-8 animate-in fade-in duration-500">
-    <div className="flex items-center justify-between mb-8">
-      <h2 className="text-3xl font-bold tracking-tight">Current Watches</h2>
-      <span className="bg-[#e5182a]/10 text-[#e5182a] border border-[#e5182a]/20 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#e5182a] animate-pulse"></span>
-        2 Active
-      </span>
-    </div>
-
-    <div className="space-y-4">
-      {[
-        { type: 'Tornado Watch', id: '451', location: 'Portions of Eastern KS and Western MO', expires: '9:00 PM CDT' },
-        { type: 'Severe Thunderstorm Watch', id: '452', location: 'Central OK and North TX', expires: '11:00 PM CDT' },
-      ].map(w => (
-        <div key={w.id} className="bg-[#1e2028] border border-white/5 hover:border-[#e5182a]/30 transition-colors p-6 sm:p-8 rounded-[2rem] relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-[#e5182a] group-hover:w-2 transition-all"></div>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pl-4">
-             <div>
-               <div className="flex flex-wrap items-center gap-3 mb-2">
-                 <h3 className="text-2xl font-bold text-white">{w.type} #{w.id}</h3>
-               </div>
-               <p className="text-white/60 text-lg">{w.location}</p>
-             </div>
-             <div className="text-left md:text-right shrink-0 bg-[#16181e] px-5 py-3 rounded-2xl border border-white/5">
-               <div className="text-xs text-white/40 uppercase tracking-wider font-bold mb-1">Valid Until</div>
-               <div className="font-mono font-bold text-lg text-[#e5182a]">{w.expires}</div>
-             </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const Severe101View = () => {
-  const topics = [
-    { title: 'Tornadoes', desc: 'Nature\'s most violent storms. Learn about formation, safety, and EF ratings.', icon: 'cyclone', color: 'text-purple-400' },
-    { title: 'Severe Thunderstorms', desc: 'Hazards include damaging winds, large hail, and frequent lightning.', icon: 'thunderstorm', color: 'text-yellow-400' },
-    { title: 'Flash Flooding', desc: 'The #1 weather-related killer. Turn around, don\'t drown.', icon: 'flood', color: 'text-blue-400' },
-    { title: 'Hail', desc: 'Falling ice that causes billions in damage annually.', icon: 'ac_unit', color: 'text-cyan-400' },
-  ];
-
-  return (
-    <div className="max-w-5xl mx-auto pb-8 animate-in fade-in duration-500">
-      <div className="mb-10">
-        <h2 className="text-3xl font-bold mb-3 tracking-tight">Severe Weather 101</h2>
-        <p className="text-white/60 text-lg">Educational resources and safety tips from the National Severe Storms Laboratory.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {topics.map(t => (
-          <div key={t.title} className="bg-[#1e2028] p-8 rounded-[2rem] border border-white/5 hover:border-white/20 hover:bg-white/[0.02] transition-all cursor-pointer group">
-            <div className={`w-16 h-16 rounded-2xl bg-[#16181e] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-black/50 ${t.color}`}>
-              <Icon name={t.icon} className="text-4xl" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3">{t.title}</h3>
-            <p className="text-white/60 text-lg leading-relaxed">{t.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// --- LAYOUT COMPONENTS ---
-const Header = ({ location }) => (
-  <header className="h-[72px] shrink-0 border-b border-white/5 flex items-center px-4 md:px-8 justify-between bg-[#16181e]/80 backdrop-blur-xl z-20 sticky top-0">
-    <div className="md:hidden"><Logo /></div>
-    <div className="hidden md:block"><h1 className="text-xl font-bold tracking-tight text-white/90">Weather Center</h1></div>
-
-    <div className="flex items-center gap-4">
-      <div className="relative group hidden sm:block">
-        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#e5182a] transition-colors" />
-        <input
-          type="text"
-          placeholder="Search city or zip..."
-          className="bg-[#1e2028] border border-white/10 rounded-full py-2.5 pl-12 pr-4 text-sm w-72 focus:outline-none focus:border-[#e5182a]/50 focus:bg-[#20242d] transition-all text-white placeholder:text-white/30 font-medium"
-        />
-      </div>
-      <div className="flex items-center gap-2 bg-[#1e2028] border border-white/10 rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/5 transition-colors">
-        <Icon name="location_on" className="text-[#e5182a]" filled />
-        <span className="text-sm font-bold">{location.label}</span>
-      </div>
-    </div>
-  </header>
-);
-
-const Sidebar = ({ currentView, setView }) => {
-  const groups = [
-    { title: 'Forecast', items: [
-      { id: 'dashboard', icon: 'space_dashboard', label: 'Dashboard' },
-      { id: 'hourly', icon: 'schedule', label: 'Hourly' },
-      { id: 'radar', icon: 'radar', label: 'Radar' },
-    ]},
-    { title: 'Severe Weather', items: [
-      { id: 'outlook', icon: 'map', label: 'Convective Outlooks' },
-      { id: 'watches', icon: 'warning', label: 'Current Watches' },
-      { id: 'meso', icon: 'crisis_alert', label: 'Mesoscale Discussions' },
-      { id: 'severe101', icon: 'school', label: 'Severe Weather 101' },
-    ]}
-  ];
-
-  return (
-    <aside className="hidden md:flex w-72 flex-col bg-[#16181e] border-r border-white/5 z-20 shrink-0">
-      <div className="h-[72px] flex items-center px-8 border-b border-white/5">
-        <Logo />
-      </div>
-      <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
-        {groups.map((group, idx) => (
-          <div key={idx}>
-            <div className="px-4 text-xs font-bold text-white/30 uppercase tracking-wider mb-3">{group.title}</div>
-            <div className="space-y-1">
-              {group.items.map(item => {
-                const active = currentView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setView(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 ${
-                      active ? 'bg-[#e5182a]/10 text-[#e5182a]' : 'text-white/60 hover:bg-[#1e2028] hover:text-white'
-                    }`}
-                  >
-                    <Icon name={item.icon} className="text-[22px]" filled={active} />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </aside>
-  );
-};
-
-const MobileNav = ({ currentView, setView, onOpenSevere }) => {
-  const isSevereActive = ['outlook', 'watches', 'meso', 'severe101'].includes(currentView);
-  return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#16181e]/90 backdrop-blur-xl border-t border-white/10 pb-safe z-40">
-      <div className="flex items-center justify-around h-[68px] px-2">
-        {[
-          { id: 'dashboard', icon: 'space_dashboard', label: 'Home' },
-          { id: 'hourly', icon: 'schedule', label: 'Hourly' },
-          { id: 'radar', icon: 'radar', label: 'Radar' },
-        ].map(item => (
-          <button
-            key={item.id}
-            onClick={() => setView(item.id)}
-            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${currentView === item.id ? 'text-[#e5182a]' : 'text-white/40 hover:text-white/80'}`}
-          >
-            <Icon name={item.icon} className="text-2xl" filled={currentView === item.id} />
-            <span className="text-[10px] font-bold">{item.label}</span>
+    
+    <div class="flex-1 overflow-y-auto py-6 px-4 space-y-8">
+      <!-- Forecast Group -->
+      <div>
+        <div class="px-4 text-xs font-bold text-white/30 uppercase tracking-wider mb-3">Forecast</div>
+        <div class="space-y-1">
+          <button onclick="navigate('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 bg-[#e5182a]/10 text-[#e5182a]" data-target="dashboard">
+            <span class="material-symbols-rounded text-[22px] icon-filled">space_dashboard</span>Dashboard
           </button>
-        ))}
-        <button
-          onClick={onOpenSevere}
-          className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${isSevereActive ? 'text-[#e5182a]' : 'text-white/40 hover:text-white/80'}`}
-        >
-          <Icon name="storm" className="text-2xl" filled={isSevereActive} />
-          <span className="text-[10px] font-bold">Severe</span>
+          <button onclick="navigate('hourly')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white" data-target="hourly">
+            <span class="material-symbols-rounded text-[22px] icon-outline">schedule</span>Hourly
+          </button>
+          <button onclick="navigate('radar')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white" data-target="radar">
+            <span class="material-symbols-rounded text-[22px] icon-outline">radar</span>Radar
+          </button>
+        </div>
+      </div>
+
+      <!-- Severe Weather Group -->
+      <div>
+        <div class="px-4 text-xs font-bold text-white/30 uppercase tracking-wider mb-3">Severe Weather</div>
+        <div class="space-y-1">
+          <button onclick="navigate('outlook')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white" data-target="outlook">
+            <span class="material-symbols-rounded text-[22px] icon-outline">map</span>Convective Outlooks
+          </button>
+          <button onclick="navigate('watches')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white" data-target="watches">
+            <span class="material-symbols-rounded text-[22px] icon-outline">warning</span>Current Watches
+          </button>
+          <button onclick="navigate('meso')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white" data-target="meso">
+            <span class="material-symbols-rounded text-[22px] icon-outline">crisis_alert</span>Mesoscale Discussions
+          </button>
+          <button onclick="navigate('severe101')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white" data-target="severe101">
+            <span class="material-symbols-rounded text-[22px] icon-outline">school</span>Severe Weather 101
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Application Wrapper -->
+  <div class="flex-1 flex flex-col relative h-full overflow-hidden">
+    
+    <!-- Top Header -->
+    <header class="h-[72px] shrink-0 border-b border-white/5 flex items-center px-4 md:px-8 justify-between bg-[#16181e]/80 backdrop-blur-xl z-20 sticky top-0">
+      <div class="md:hidden">
+        <!-- Mobile Logo -->
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e5182a] to-red-800 flex items-center justify-center shadow-lg shadow-[#e5182a]/20">
+          <span class="material-symbols-rounded text-white text-xl icon-filled">storm</span>
+        </div>
+      </div>
+      <div class="hidden md:block"><h1 class="text-xl font-bold tracking-tight text-white/90">Weather Center</h1></div>
+
+      <div class="flex items-center gap-4">
+        <div class="relative group hidden sm:block">
+          <span class="material-symbols-rounded absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#e5182a] transition-colors">search</span>
+          <input type="text" placeholder="Search city or zip..." class="bg-[#1e2028] border border-white/10 rounded-full py-2.5 pl-12 pr-4 text-sm w-72 focus:outline-none focus:border-[#e5182a]/50 focus:bg-[#20242d] transition-all text-white placeholder:text-white/30 font-medium">
+        </div>
+        <div class="flex items-center gap-2 bg-[#1e2028] border border-white/10 rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/5 transition-colors">
+          <span class="material-symbols-rounded text-[#e5182a] icon-filled">location_on</span>
+          <span class="text-sm font-bold">Kansas City, MO</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 scroll-smooth">
+      
+      <!-- VIEW: DASHBOARD -->
+      <div id="view-dashboard" class="view max-w-5xl mx-auto space-y-6 pb-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+          <div class="flex-1 bg-gradient-to-br from-[#1e2028] to-[#16181e] rounded-[2rem] p-8 border border-white/10 relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+            <div class="absolute top-0 right-0 p-8 opacity-10">
+              <span class="material-symbols-rounded text-[12rem] icon-filled">partly_cloudy_day</span>
+            </div>
+            <div class="relative z-10">
+              <h2 class="text-white/60 text-lg font-medium mb-1">Current Conditions</h2>
+              <div class="flex items-end gap-4 mt-4">
+                <span class="text-7xl font-black tracking-tighter">74°</span>
+                <span class="text-2xl text-white/60 mb-2 font-medium">Partly Cloudy</span>
+              </div>
+              <div class="flex items-center gap-4 mt-4 text-white/70">
+                <span class="flex items-center gap-1"><span class="material-symbols-rounded text-sm">arrow_upward</span> 78°</span>
+                <span class="flex items-center gap-1"><span class="material-symbols-rounded text-sm">arrow_downward</span> 62°</span>
+                <span class="flex items-center gap-1 ml-4 text-[#e5182a] bg-[#e5182a]/10 px-3 py-1 rounded-full text-sm font-semibold">Feels like 76°</span>
+              </div>
+            </div>
+          </div>
+          <div class="w-full lg:w-80 grid grid-cols-2 gap-4">
+            <div class="bg-[#1e2028] border border-white/5 rounded-3xl p-5 flex flex-col justify-between hover:border-white/10 transition-colors">
+              <div class="flex items-center gap-2 text-white/50 mb-4"><span class="material-symbols-rounded text-xl">air</span><span class="text-sm font-medium">Wind</span></div>
+              <div class="text-xl font-bold">12 mph</div>
+            </div>
+            <div class="bg-[#1e2028] border border-white/5 rounded-3xl p-5 flex flex-col justify-between hover:border-white/10 transition-colors">
+              <div class="flex items-center gap-2 text-white/50 mb-4"><span class="material-symbols-rounded text-xl">water_drop</span><span class="text-sm font-medium">Humidity</span></div>
+              <div class="text-xl font-bold">45%</div>
+            </div>
+            <div class="bg-[#1e2028] border border-white/5 rounded-3xl p-5 flex flex-col justify-between hover:border-white/10 transition-colors">
+              <div class="flex items-center gap-2 text-white/50 mb-4"><span class="material-symbols-rounded text-xl">compress</span><span class="text-sm font-medium">Pressure</span></div>
+              <div class="text-xl font-bold">29.92 in</div>
+            </div>
+            <div class="bg-[#1e2028] border border-white/5 rounded-3xl p-5 flex flex-col justify-between hover:border-white/10 transition-colors">
+              <div class="flex items-center gap-2 text-white/50 mb-4"><span class="material-symbols-rounded text-xl">light_mode</span><span class="text-sm font-medium">UV Index</span></div>
+              <div class="text-xl font-bold">6 (High)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#1e2028] rounded-[2rem] p-6 border border-white/10">
+          <h3 class="text-lg font-semibold mb-6 flex items-center gap-2 px-2"><span class="material-symbols-rounded text-white/50">calendar_month</span> 7-Day Forecast</h3>
+          <div id="seven-day-list" class="grid grid-cols-1 divide-y divide-white/5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: HOURLY -->
+      <div id="view-hourly" class="view hidden max-w-4xl mx-auto pb-8">
+        <h2 class="text-3xl font-bold mb-6 tracking-tight">Hourly Forecast</h2>
+        <div id="hourly-list" class="bg-[#1e2028] rounded-[2rem] border border-white/10 overflow-hidden">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW: RADAR -->
+      <div id="view-radar" class="view hidden w-full h-full min-h-[600px] rounded-[2rem] overflow-hidden border border-white/10 relative bg-[#1e2028]">
+        <iframe class="w-full h-full border-0 absolute inset-0" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=7&overlay=radar&product=radar&level=surface&lat=39.0997&lon=-94.5786&detail=false" title="Radar Map"></iframe>
+      </div>
+
+      <!-- VIEW: OUTLOOKS -->
+      <div id="view-outlook" class="view hidden max-w-5xl mx-auto h-full flex flex-col pb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <h2 class="text-3xl font-bold tracking-tight">Convective Outlooks</h2>
+          <div class="flex bg-[#1e2028] p-1.5 rounded-2xl border border-white/10">
+            <button onclick="setOutlookDay(1)" id="btn-day-1" class="px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 bg-[#e5182a] text-white shadow-lg shadow-[#e5182a]/20">Day 1</button>
+            <button onclick="setOutlookDay(2)" id="btn-day-2" class="px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 text-white/60 hover:text-white hover:bg-white/5">Day 2</button>
+            <button onclick="setOutlookDay(3)" id="btn-day-3" class="px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 text-white/60 hover:text-white hover:bg-white/5">Day 3</button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-6" id="outlook-modes">
+          <!-- Modes populated by JS -->
+        </div>
+
+        <div class="flex-1 bg-[#1e2028] rounded-[2rem] border border-white/10 flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-tr from-[#16181e] to-transparent z-10"></div>
+          <div class="absolute inset-0 bg-[url('https://www.spc.noaa.gov/products/outlook/day1otlk_sm.gif')] bg-cover bg-center opacity-10 filter blur-sm grayscale group-hover:grayscale-0 group-hover:opacity-30 transition-all duration-700"></div>
+          
+          <div class="relative z-20 text-center p-8">
+            <div class="w-20 h-20 bg-[#16181e]/80 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10">
+              <span class="material-symbols-rounded text-4xl text-[#e5182a] icon-filled">map</span>
+            </div>
+            <h3 class="text-2xl font-bold mb-2" id="outlook-title">Day 1 Categorical Outlook</h3>
+            <p class="text-white/50 max-w-md mx-auto">This is a dynamic visualization area. In production, this section connects to SPC endpoints to render interactive Leaflet maps.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: WATCHES -->
+      <div id="view-watches" class="view hidden max-w-4xl mx-auto pb-8">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-3xl font-bold tracking-tight">Current Watches</h2>
+          <span class="bg-[#e5182a]/10 text-[#e5182a] border border-[#e5182a]/20 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#e5182a] animate-pulse"></span>
+            2 Active
+          </span>
+        </div>
+        <div class="space-y-4" id="watches-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW: MESO -->
+      <div id="view-meso" class="view hidden max-w-4xl mx-auto text-center py-20">
+        <span class="material-symbols-rounded text-6xl text-white/20 mb-4">crisis_alert</span>
+        <h2 class="text-2xl font-bold mb-2">Mesoscale Discussions</h2>
+        <p class="text-white/50">Currently no active discussions for this region.</p>
+      </div>
+
+      <!-- VIEW: SEVERE 101 -->
+      <div id="view-severe101" class="view hidden max-w-5xl mx-auto pb-8">
+        <div class="mb-10">
+          <h2 class="text-3xl font-bold mb-3 tracking-tight">Severe Weather 101</h2>
+          <p class="text-white/60 text-lg">Educational resources and safety tips from the National Severe Storms Laboratory.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="severe101-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#16181e]/90 backdrop-blur-xl border-t border-white/10 pb-safe z-40">
+      <div class="flex items-center justify-around h-[68px] px-2">
+        <button onclick="navigate('dashboard')" class="mob-nav-btn flex flex-col items-center justify-center w-16 gap-1 transition-colors text-[#e5182a]" data-target="dashboard">
+          <span class="material-symbols-rounded text-2xl icon-filled">space_dashboard</span>
+          <span class="text-[10px] font-bold">Home</span>
+        </button>
+        <button onclick="navigate('hourly')" class="mob-nav-btn flex flex-col items-center justify-center w-16 gap-1 transition-colors text-white/40 hover:text-white/80" data-target="hourly">
+          <span class="material-symbols-rounded text-2xl icon-outline">schedule</span>
+          <span class="text-[10px] font-bold">Hourly</span>
+        </button>
+        <button onclick="navigate('radar')" class="mob-nav-btn flex flex-col items-center justify-center w-16 gap-1 transition-colors text-white/40 hover:text-white/80" data-target="radar">
+          <span class="material-symbols-rounded text-2xl icon-outline">radar</span>
+          <span class="text-[10px] font-bold">Radar</span>
+        </button>
+        <button onclick="toggleSheet()" id="mob-nav-severe" class="flex flex-col items-center justify-center w-16 gap-1 transition-colors text-white/40 hover:text-white/80">
+          <span class="material-symbols-rounded text-2xl icon-outline">storm</span>
+          <span class="text-[10px] font-bold">Severe</span>
         </button>
       </div>
     </nav>
-  );
-};
+  </div>
 
-const SevereSheet = ({ open, onClose, setView }) => {
-  const items = [
-    { id: 'outlook', label: 'Convective Outlooks', desc: 'SPC risk areas (Days 1-3)', icon: 'map' },
-    { id: 'watches', label: 'Current Watches', desc: 'Tornado & thunderstorm watches', icon: 'warning' },
-    { id: 'meso', label: 'Mesoscale Discussions', desc: 'SPC short-term forecasts', icon: 'crisis_alert' },
-    { id: 'severe101', label: 'Severe Weather 101', desc: 'Learn about severe weather', icon: 'school' }
-  ];
-
-  return (
-    <div className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={`absolute bottom-0 left-0 right-0 bg-[#1e2028] rounded-t-[2rem] border-t border-white/10 pb-safe transition-transform duration-300 ease-out ${open ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className="p-6">
-          <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
-          <h3 className="text-xl font-bold mb-6 px-2 tracking-tight">Severe Weather</h3>
-          <div className="flex flex-col gap-3">
-            {items.map(item => (
-              <button
-                key={item.id}
-                onClick={() => { setView(item.id); onClose(); }}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-[#16181e] border border-white/5 hover:border-white/20 transition-all text-left"
-              >
-                <div className="w-12 h-12 rounded-xl bg-[#1e2028] flex items-center justify-center shrink-0">
-                  <Icon name={item.icon} className="text-[#e5182a] text-2xl" filled />
-                </div>
-                <div>
-                  <div className="font-bold text-lg mb-0.5">{item.label}</div>
-                  <div className="text-sm text-white/50">{item.desc}</div>
-                </div>
-              </button>
-            ))}
-          </div>
+  <!-- Mobile Severe Sheet Overlay -->
+  <div id="severe-sheet-container" class="fixed inset-0 z-50 md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleSheet()"></div>
+    <div id="severe-sheet-content" class="absolute bottom-0 left-0 right-0 bg-[#1e2028] rounded-t-[2rem] border-t border-white/10 pb-safe translate-y-full transition-transform duration-300 ease-out">
+      <div class="p-6">
+        <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-bold mb-6 px-2 tracking-tight">Severe Weather</h3>
+        <div class="flex flex-col gap-3">
+          <button onclick="navigate('outlook')" class="flex items-center gap-4 p-4 rounded-2xl bg-[#16181e] border border-white/5 hover:border-white/20 transition-all text-left">
+            <div class="w-12 h-12 rounded-xl bg-[#1e2028] flex items-center justify-center shrink-0"><span class="material-symbols-rounded text-[#e5182a] text-2xl icon-filled">map</span></div>
+            <div><div class="font-bold text-lg mb-0.5">Convective Outlooks</div><div class="text-sm text-white/50">SPC risk areas (Days 1-3)</div></div>
+          </button>
+          <button onclick="navigate('watches')" class="flex items-center gap-4 p-4 rounded-2xl bg-[#16181e] border border-white/5 hover:border-white/20 transition-all text-left">
+            <div class="w-12 h-12 rounded-xl bg-[#1e2028] flex items-center justify-center shrink-0"><span class="material-symbols-rounded text-[#e5182a] text-2xl icon-filled">warning</span></div>
+            <div><div class="font-bold text-lg mb-0.5">Current Watches</div><div class="text-sm text-white/50">Tornado & thunderstorm watches</div></div>
+          </button>
+          <button onclick="navigate('meso')" class="flex items-center gap-4 p-4 rounded-2xl bg-[#16181e] border border-white/5 hover:border-white/20 transition-all text-left">
+            <div class="w-12 h-12 rounded-xl bg-[#1e2028] flex items-center justify-center shrink-0"><span class="material-symbols-rounded text-[#e5182a] text-2xl icon-filled">crisis_alert</span></div>
+            <div><div class="font-bold text-lg mb-0.5">Mesoscale Discussions</div><div class="text-sm text-white/50">SPC short-term forecasts</div></div>
+          </button>
+          <button onclick="navigate('severe101')" class="flex items-center gap-4 p-4 rounded-2xl bg-[#16181e] border border-white/5 hover:border-white/20 transition-all text-left">
+            <div class="w-12 h-12 rounded-xl bg-[#1e2028] flex items-center justify-center shrink-0"><span class="material-symbols-rounded text-[#e5182a] text-2xl icon-filled">school</span></div>
+            <div><div class="font-bold text-lg mb-0.5">Severe Weather 101</div><div class="text-sm text-white/50">Learn about severe weather</div></div>
+          </button>
         </div>
       </div>
     </div>
-  );
-};
+  </div>
 
-// --- MAIN APP ---
-export default function App() {
-  const [view, setView] = useState('dashboard');
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [location] = useState({ lat: 39.0997, lng: -94.5786, label: 'Kansas City, MO' });
+  <script>
+    /* =========================================
+       NAVIGATION LOGIC
+       ========================================= */
+    function navigate(viewId) {
+      // 1. Hide all views and show target
+      document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+      document.getElementById('view-' + viewId).classList.remove('hidden');
 
-  useEffect(() => {
-    injectDependencies();
-  }, []);
+      // 2. Update Desktop Sidebar Styles
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const icon = btn.querySelector('.material-symbols-rounded');
+        if (btn.dataset.target === viewId) {
+          btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 bg-[#e5182a]/10 text-[#e5182a]";
+          icon.classList.replace('icon-outline', 'icon-filled');
+        } else {
+          btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-white/60 hover:bg-[#1e2028] hover:text-white";
+          icon.classList.replace('icon-filled', 'icon-outline');
+        }
+      });
 
-  const renderView = () => {
-    switch(view) {
-      case 'dashboard': return <DashboardView />;
-      case 'hourly': return <HourlyView />;
-      case 'radar': return <RadarView location={location} />;
-      case 'outlook': return <OutlooksView />;
-      case 'watches': return <WatchesView />;
-      case 'meso': 
-        return (
-          <div className="max-w-4xl mx-auto text-center py-20 animate-in fade-in">
-            <Icon name="crisis_alert" className="text-6xl text-white/20 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Mesoscale Discussions</h2>
-            <p className="text-white/50">Currently no active discussions for this region.</p>
-          </div>
-        );
-      case 'severe101': return <Severe101View />;
-      default: return <DashboardView />;
+      // 3. Update Mobile Bottom Nav Styles
+      const severeViews = ['outlook', 'watches', 'meso', 'severe101'];
+      const isSevere = severeViews.includes(viewId);
+      
+      document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+        const icon = btn.querySelector('.material-symbols-rounded');
+        if (btn.dataset.target === viewId) {
+          btn.className = "mob-nav-btn flex flex-col items-center justify-center w-16 gap-1 transition-colors text-[#e5182a]";
+          icon.classList.replace('icon-outline', 'icon-filled');
+        } else {
+          btn.className = "mob-nav-btn flex flex-col items-center justify-center w-16 gap-1 transition-colors text-white/40 hover:text-white/80";
+          icon.classList.replace('icon-filled', 'icon-outline');
+        }
+      });
+
+      // Update Mobile "Severe" tab specifically
+      const severeTab = document.getElementById('mob-nav-severe');
+      const severeIcon = severeTab.querySelector('.material-symbols-rounded');
+      if (isSevere) {
+        severeTab.className = "flex flex-col items-center justify-center w-16 gap-1 transition-colors text-[#e5182a]";
+        severeIcon.classList.replace('icon-outline', 'icon-filled');
+      } else {
+        severeTab.className = "flex flex-col items-center justify-center w-16 gap-1 transition-colors text-white/40 hover:text-white/80";
+        severeIcon.classList.replace('icon-filled', 'icon-outline');
+      }
+
+      // 4. Scroll top & Close mobile sheet
+      document.getElementById('main-content').scrollTop = 0;
+      closeSheet();
     }
-  };
 
-  return (
-    <div className="flex h-screen w-full bg-[#16181e] text-white font-sans overflow-hidden">
-      <Sidebar currentView={view} setView={setView} />
+    /* =========================================
+       MOBILE SHEET LOGIC
+       ========================================= */
+    const sheetContainer = document.getElementById('severe-sheet-container');
+    const sheetContent = document.getElementById('severe-sheet-content');
 
-      <div className="flex-1 flex flex-col relative h-full overflow-hidden">
-        <Header location={location} />
-        
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 scroll-smooth">
-          {renderView()}
-        </main>
+    function toggleSheet() {
+      const isOpen = sheetContainer.classList.contains('opacity-100');
+      if (isOpen) { closeSheet(); } else { openSheet(); }
+    }
+    function openSheet() {
+      sheetContainer.classList.replace('opacity-0', 'opacity-100');
+      sheetContainer.classList.replace('pointer-events-none', 'pointer-events-auto');
+      sheetContent.classList.replace('translate-y-full', 'translate-y-0');
+    }
+    function closeSheet() {
+      sheetContainer.classList.replace('opacity-100', 'opacity-0');
+      sheetContainer.classList.replace('pointer-events-auto', 'pointer-events-none');
+      sheetContent.classList.replace('translate-y-0', 'translate-y-full');
+    }
 
-        <MobileNav currentView={view} setView={setView} onOpenSevere={() => setIsSheetOpen(true)} />
+    /* =========================================
+       DYNAMIC DATA RENDERING (Mocks)
+       ========================================= */
+    
+    // Render 7-Day Forecast
+    const days = [
+      { day: 'Today', max: 78, min: 62, icon: 'partly_cloudy_day', pop: 0 },
+      { day: 'Tue', max: 81, min: 65, icon: 'thunderstorm', pop: 60 },
+      { day: 'Wed', max: 74, min: 58, icon: 'rainy', pop: 40 },
+      { day: 'Thu', max: 72, min: 55, icon: 'clear_day', pop: 0 },
+      { day: 'Fri', max: 76, min: 59, icon: 'clear_day', pop: 0 },
+      { day: 'Sat', max: 80, min: 63, icon: 'partly_cloudy_day', pop: 10 },
+      { day: 'Sun', max: 83, min: 66, icon: 'cloudy', pop: 20 }
+    ];
+    document.getElementById('seven-day-list').innerHTML = days.map((d, i) => `
+      <div class="flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors rounded-2xl">
+        <div class="w-24 font-semibold text-lg">${d.day}</div>
+        <div class="flex items-center gap-3 w-32">
+          <span class="material-symbols-rounded text-2xl text-white/80 ${i===0?'icon-filled':'icon-outline'}">${d.icon}</span>
+          ${d.pop > 0 ? `<span class="text-sm text-[#e5182a] font-bold">${d.pop}%</span>` : ''}
+        </div>
+        <div class="flex-1 flex items-center gap-4 justify-end max-w-[200px]">
+          <span class="text-white/50 font-medium w-8 text-right">${d.min}°</span>
+          <div class="flex-1 h-2 bg-[#16181e] rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-blue-400 to-[#e5182a] rounded-full" style="width: 60%; margin-left: 20%;"></div>
+          </div>
+          <span class="font-bold w-8">${d.max}°</span>
+        </div>
       </div>
+    `).join('');
 
-      <SevereSheet open={isSheetOpen} onClose={() => setIsSheetOpen(false)} setView={setView} />
-    </div>
-  );
-}
+    // Render Hourly Forecast
+    let hourlyHtml = '';
+    for(let i=0; i<24; i++) {
+      const time = i === 0 ? 'Now' : `${(i+12)%12 || 12} ${i<12||i===24?'AM':'PM'}`;
+      const temp = 74 - Math.floor(Math.random()*15);
+      const pop = Math.random() > 0.8 ? Math.floor(Math.random()*60)+20 : 0;
+      const icon = Math.random() > 0.6 ? 'clear_day' : 'partly_cloudy_day';
+      hourlyHtml += `
+        <div class="flex items-center justify-between p-5 border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors">
+          <div class="w-24 font-semibold ${i === 0 ? 'text-[#e5182a]' : 'text-white/70'}">${time}</div>
+          <div class="flex-1 flex items-center gap-4">
+             <span class="material-symbols-rounded ${i === 0 ? 'text-[#e5182a] icon-filled' : 'text-white/80 icon-outline'}">${icon}</span>
+             <span class="font-bold text-xl">${temp}°</span>
+          </div>
+          <div class="w-24 flex items-center justify-end gap-1 text-sm text-[#e5182a] font-bold">
+            ${pop > 0 ? `<span class="material-symbols-rounded text-sm icon-filled">water_drop</span> ${pop}%` : ''}
+          </div>
+        </div>
+      `;
+    }
+    document.getElementById('hourly-list').innerHTML = hourlyHtml;
+
+    // Render Watches
+    const watches = [
+      { type: 'Tornado Watch', id: '451', loc: 'Portions of Eastern KS and Western MO', exp: '9:00 PM CDT' },
+      { type: 'Severe Thunderstorm Watch', id: '452', loc: 'Central OK and North TX', exp: '11:00 PM CDT' }
+    ];
+    document.getElementById('watches-list').innerHTML = watches.map(w => `
+      <div class="bg-[#1e2028] border border-white/5 hover:border-[#e5182a]/30 transition-colors p-6 sm:p-8 rounded-[2rem] relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-[#e5182a] group-hover:w-2 transition-all"></div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pl-4">
+           <div>
+             <h3 class="text-2xl font-bold text-white mb-2">${w.type} #${w.id}</h3>
+             <p class="text-white/60 text-lg">${w.loc}</p>
+           </div>
+           <div class="text-left md:text-right shrink-0 bg-[#16181e] px-5 py-3 rounded-2xl border border-white/5">
+             <div class="text-xs text-white/40 uppercase tracking-wider font-bold mb-1">Valid Until</div>
+             <div class="font-mono font-bold text-lg text-[#e5182a]">${w.exp}</div>
+           </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Render Severe 101
+    const topics = [
+      { title: 'Tornadoes', desc: "Nature's most violent storms. Learn about formation, safety, and EF ratings.", icon: 'cyclone', color: 'text-purple-400' },
+      { title: 'Severe Thunderstorms', desc: 'Hazards include damaging winds, large hail, and frequent lightning.', icon: 'thunderstorm', color: 'text-yellow-400' },
+      { title: 'Flash Flooding', desc: "The #1 weather-related killer. Turn around, don't drown.", icon: 'flood', color: 'text-blue-400' },
+      { title: 'Hail', desc: 'Falling ice that causes billions in damage annually.', icon: 'ac_unit', color: 'text-cyan-400' }
+    ];
+    document.getElementById('severe101-list').innerHTML = topics.map(t => `
+      <div class="bg-[#1e2028] p-8 rounded-[2rem] border border-white/5 hover:border-white/20 hover:bg-white/[0.02] transition-all cursor-pointer group">
+        <div class="w-16 h-16 rounded-2xl bg-[#16181e] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-black/50 ${t.color}">
+          <span class="material-symbols-rounded text-4xl">${t.icon}</span>
+        </div>
+        <h3 class="text-2xl font-bold mb-3">${t.title}</h3>
+        <p class="text-white/60 text-lg leading-relaxed">${t.desc}</p>
+      </div>
+    `).join('');
+
+    /* =========================================
+       OUTLOOKS STATE LOGIC
+       ========================================= */
+    let outlookDay = 1;
+    let outlookMode = 'cat';
+    const modesByDay = { 1: ['cat', 'torn', 'wind', 'hail'], 2: ['cat', 'torn', 'wind', 'hail'], 3: ['cat'] };
+    const modeLabels = { cat: 'Categorical', torn: 'Tornado', wind: 'Wind', hail: 'Hail' };
+
+    function setOutlookDay(day) {
+      outlookDay = day;
+      if (!modesByDay[day].includes(outlookMode)) { outlookMode = 'cat'; }
+      
+      // Update Day Buttons UI
+      [1, 2, 3].forEach(d => {
+        const btn = document.getElementById(`btn-day-${d}`);
+        if (d === day) {
+          btn.className = "px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 bg-[#e5182a] text-white shadow-lg shadow-[#e5182a]/20";
+        } else {
+          btn.className = "px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 text-white/60 hover:text-white hover:bg-white/5";
+        }
+      });
+      renderOutlookModes();
+    }
+
+    function setOutlookMode(mode) {
+      outlookMode = mode;
+      renderOutlookModes();
+    }
+
+    function renderOutlookModes() {
+      const container = document.getElementById('outlook-modes');
+      container.innerHTML = modesByDay[outlookDay].map(m => {
+        const isActive = outlookMode === m;
+        const classes = isActive 
+          ? "px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 bg-[#e5182a]/10 border-[#e5182a]/30 text-[#e5182a]"
+          : "px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 bg-[#1e2028] border-white/5 text-white/60 hover:bg-white/5 hover:border-white/20";
+        return `<button onclick="setOutlookMode('${m}')" class="${classes}">${modeLabels[m]}</button>`;
+      }).join('');
+      
+      document.getElementById('outlook-title').innerText = `Day ${outlookDay} ${modeLabels[outlookMode]} Outlook`;
+    }
+
+    // Initialize Outlooks
+    renderOutlookModes();
+
+  </script>
+</body>
+</html>
