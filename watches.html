@@ -417,18 +417,18 @@ map.getPane('labelPane').style.pointerEvents = 'none';
 // Tile setup — probe CARTO first; fall back to OSM if blocked (e.g. Brave Shields)
 (function initTiles() {
   const r = window.devicePixelRatio > 1 ? '@2x' : '';
-  const cartoBase  = `https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/0/0/0${r}.png`;
+  const cartoBase = `https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/0/0/0${r}.png`;
   const probe = new Image();
   probe.onload = function() {
-    // CARTO available
+    // CARTO available — interpolate retina suffix directly into URL
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
-      { subdomains:'abcd', maxZoom:19, r,
+      `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,
+      { subdomains:'abcd', maxZoom:19,
         attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' }
     ).addTo(map);
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}{r}.png',
-      { subdomains:'abcd', maxZoom:19, r, pane:'labelPane', opacity:0.85 }
+      `https://{s}.basemaps.cartocdn.com/rastertiles/dark_matter_only_labels/{z}/{x}/{y}${r}.png`,
+      { subdomains:'abcd', maxZoom:19, pane:'labelPane', opacity:0.85 }
     ).addTo(map);
   };
   probe.onerror = function() {
