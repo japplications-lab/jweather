@@ -416,6 +416,10 @@
 // ─────────────────────────────────────────────
 // NWS alerts API — CORS-enabled, no proxy needed
 const WATCHES_URL = 'https://api.weather.gov/alerts/active';
+// SPC watch polygons via Cloudflare Worker proxy (CORS-blocked direct)
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+// SPC Watches MapServer — layer 0 has active watch polygons with WATCH_NUM field
+const SPC_WATCHES_URL = `${WORKER_URL}/noaa/vector/rest/services/watches/SPC_Watches/MapServer/0/query`;
 
 const WATCH_STYLES = {
   'Tornado Watch':             { cls:'tor', fill:'#ff0000', stroke:'#cc0000', label:'Tornado Watch' },
@@ -485,96 +489,26 @@ let selectedWatchId = null;
 // ─────────────────────────────────────────────
 // FETCH WATCHES
 // ─────────────────────────────────────────────
-// Resolve geometry for a watch feature.
-// NWS /alerts API often has geometry:null on the collection endpoint but the
-// individual alert endpoint /alerts/{id} returns the actual unified polygon.
-// We try that first, then fall back to merging county zone geometries.
-async function resolveWatchGeometry(feature) {
-  const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
-
-  // 1. Already has geometry — use it directly
-  if (feature.geometry) return feature;
-
-  // 2. Try fetching the individual alert which has the unified polygon
-  const alertId = feature.properties?.id;
-  if (alertId) {
-    try {
-      const res = await fetch(`https://api.weather.gov/alerts/${alertId}`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.geometry) return { ...feature, geometry: data.geometry };
-        // Some NWS responses wrap it under properties.geocode or affectedZones polygon
-      }
-    } catch (e) { /* fall through to zone merge */ }
-  }
-
-  // 3. Fall back: fetch all zone polygons and build a true outer-ring union
-  // Instead of keeping individual county polygons separate, we collect all
-  // outer rings and then try to merge contiguous ones via a simple approach.
-  const zoneUrls = feature.properties.affectedZones || [];
-  if (!zoneUrls.length) return null;
+// Fetch the SPC watch polygons from their ArcGIS MapServer.
+// Returns a Map of watchNum (int) -> GeoJSON geometry (the actual watch box polygon).
+// This is the authoritative source — NWS alerts never have unified watch geometry.
+async function fetchSpcWatchPolygons() {
   try {
-    const zoneResponses = await Promise.all(
-      zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null).catch(() => null))
-    );
-    const polygons = []; // each entry = array of rings (first = outer, rest = holes)
-    for (const zone of zoneResponses) {
-      if (!zone?.geometry) continue;
-      const g = zone.geometry;
-      if (g.type === 'Polygon') polygons.push(g.coordinates);
-      else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => polygons.push(p));
+    const url = `${SPC_WATCHES_URL}?where=1%3D1&outFields=WATCH_NUM,TYPE&f=geojson&outSR=4326`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`SPC watches HTTP ${res.status}`);
+    const gj = await res.json();
+    const map = new Map();
+    for (const feat of (gj.features || [])) {
+      if (!feat.geometry) continue;
+      const num = feat.properties?.WATCH_NUM ?? feat.properties?.watch_num;
+      if (num != null) map.set(parseInt(num, 10), feat.geometry);
     }
-    if (!polygons.length) return null;
-
-    // Merge contiguous polygons: if two polygons share an edge they should be
-    // one contiguous blob. We use a simple point-adjacency check — if the
-    // bounding boxes overlap we treat them as one contiguous group.
-    // Group into connected components via bounding-box overlap.
-    function bbox(coords) {
-      let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
-      for (const [x,y] of coords) { if(x<minX)minX=x; if(y<minY)minY=y; if(x>maxX)maxX=x; if(y>maxY)maxY=y; }
-      return [minX,minY,maxX,maxY];
-    }
-    function bboxOverlap([ax0,ay0,ax1,ay1],[bx0,by0,bx1,by1]) {
-      // Expand slightly to catch shared edges
-      const e = 0.02;
-      return ax0-e<=bx1 && ax1+e>=bx0 && ay0-e<=by1 && ay1+e>=by0;
-    }
-
-    const boxes = polygons.map(p => bbox(p[0]));
-    const groups = [];
-    const visited = new Array(polygons.length).fill(false);
-    for (let i = 0; i < polygons.length; i++) {
-      if (visited[i]) continue;
-      const group = [i]; visited[i] = true;
-      let queue = [i];
-      while (queue.length) {
-        const cur = queue.shift();
-        for (let j = 0; j < polygons.length; j++) {
-          if (visited[j]) continue;
-          if (bboxOverlap(boxes[cur], boxes[j])) {
-            visited[j] = true; group.push(j); queue.push(j);
-          }
-        }
-      }
-      groups.push(group);
-    }
-
-    // Each connected group becomes one entry in a MultiPolygon
-    const multiCoords = [];
-    for (const group of groups) {
-      // For each group, include all outer rings (index 0 of each polygon)
-      for (const idx of group) multiCoords.push(polygons[idx]);
-    }
-
-    const merged = multiCoords.length === 1
-      ? { type: 'Polygon', coordinates: multiCoords[0] }
-      : { type: 'MultiPolygon', coordinates: multiCoords };
-
-    return { ...feature, geometry: merged };
+    console.log('[watches] SPC polygon map:', [...map.keys()]);
+    return map;
   } catch (e) {
-    console.warn('Zone geometry resolve failed:', e);
-    return null;
+    console.warn('[watches] SPC polygon fetch failed:', e);
+    return new Map();
   }
 }
 
@@ -582,9 +516,11 @@ async function fetchWatches() {
   setLoading(true);
   const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   try {
-    const [torRes, svrRes] = await Promise.all([
+    // Fetch NWS alert metadata AND SPC polygons in parallel
+    const [torRes, svrRes, spcPolygons] = await Promise.all([
       fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
       fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
+      fetchSpcWatchPolygons(),
     ]);
     if (!torRes.ok) throw new Error(`Tornado watch fetch: HTTP ${torRes.status}`);
     if (!svrRes.ok) throw new Error(`SVR watch fetch: HTTP ${svrRes.status}`);
@@ -594,10 +530,16 @@ async function fetchWatches() {
       ...(svrData.features || []),
     ];
 
-    // Resolve geometries — watches are county-based and often have geometry:null
-    // For those, merge the affected zone polygons to build the watch area
-    const resolved = await Promise.all(allFeatures.map(f => resolveWatchGeometry(f)));
-    watchData = resolved.filter(Boolean).sort((a, b) => {
+    // Attach SPC polygon geometry to each NWS alert feature using watch number
+    const resolved = allFeatures.map(f => {
+      const watchNum = extractWatchNum(f.properties);
+      const spcGeom = watchNum != null ? spcPolygons.get(watchNum) : null;
+      if (spcGeom) return { ...f, geometry: spcGeom };
+      // Fallback: keep existing geometry if NWS happened to include one
+      if (f.geometry) return f;
+      return null; // No geometry available — skip
+    }).filter(Boolean);
+    watchData = resolved.sort((a, b) => {
       const aIsTor = a.properties.event === 'Tornado Watch';
       const bIsTor = b.properties.event === 'Tornado Watch';
       if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
