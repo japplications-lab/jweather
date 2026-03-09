@@ -168,7 +168,7 @@
     .map-context-pill span{color:var(--red);}
 
     /* Legend overlay */
-    .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
+    .map-legend{position:absolute;bottom:30px;left:14px;z-index:400;background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);max-height:calc(100vh - 160px);overflow-y:auto;}
     .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
     .legend-items{display:flex;flex-direction:column;gap:5px;}
     .legend-item{display:flex;align-items:center;gap:7px;font-size:0.72rem;font-weight:500;color:var(--text-2);padding:1px 0;}
@@ -1107,13 +1107,12 @@ function buildLegend(geojson, mode) {
       const key = CAT[raw] ? raw : (DN_TO_CAT[raw]||'');
       if (CAT[key] && key !== 'TSTM') active.add(key);
     });
-    box.style.display = 'block';
-    el.innerHTML = CAT_ORDER.map((k, i) => {
+    box.style.display = active.size > 0 ? 'block' : 'none';
+    // Only show active entries for cat mode
+    el.innerHTML = CAT_ORDER.filter(k => active.has(k)).map((k, i) => {
       const c = CAT[k];
-      const isActive = active.has(k);
-      return `<div class="legend-item${isActive ? ' legend-active' : ' legend-dim'}">
+      return `<div class="legend-item legend-active">
         <div class="legend-swatch" style="background:${c.fill};border-color:${c.stroke}"></div>
-        <span class="legend-num">${i+1}</span>
         <span class="legend-label">${c.label}</span>
       </div>`;
     }).join('');
@@ -1123,15 +1122,13 @@ function buildLegend(geojson, mode) {
       if (d > 0) active.add(d);
     });
     const scale = getProbScale(mode);
-    box.style.display = 'block';
-    let html = scale.map(p => {
-      const isActive = active.has(p.dn);
-      return `<div class="legend-item${isActive ? ' legend-active' : ' legend-dim'}">
+    // Only show active entries
+    const activeEntries = scale.filter(p => active.has(p.dn));
+    box.style.display = activeEntries.length > 0 ? 'block' : 'none';
+    el.innerHTML = activeEntries.map(p => `<div class="legend-item legend-active">
         <div class="legend-swatch" style="background:${p.fill};border-color:${p.stroke}"></div>
         <span class="legend-label">${p.label}</span>
-      </div>`;
-    }).join('');
-    el.innerHTML = html;
+      </div>`).join('');
   }
 
   // CIG hatched entry — append if any CIG features present
