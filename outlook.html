@@ -81,14 +81,17 @@
 
     /* On desktop, bar divs are transparent wrappers */
     .mob-bar-1{display:contents;}
+    .mob-bar-2{display:none;}
     /* ─── TWO-BAR MOBILE HEADER ─── */
     @media(max-width:640px){
       /* Header becomes two rows */
       header{height:auto !important;}
       .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
       /* Row 1: logo + search + hamburger */
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:8px;}
-      .mob-bar-1 .search-wrap{flex:1;max-width:none;}
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
+      .mob-bar-1 .search-wrap{display:none;}
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
 
       /* Hide desktop nav entirely */
       .header-nav{display:none !important;}
@@ -376,6 +379,16 @@
       </nav>
       <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div><!-- /.mob-bar-1 -->
+    <!-- Row 2: search bar (mobile only) -->
+    <div class="mob-bar-2">
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions-mob"></ul>
+      </div>
+    </div><!-- /.mob-bar-2 -->
   </div>
 </header>
 
@@ -1673,49 +1686,54 @@ const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","Californi
 function sa(n){return SA[n]||n;}
 function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
 let sugs=[],selIdx=-1,sCtrl=null;
-const sBar=document.getElementById('search-bar'),sugBox=document.getElementById('suggestions');
+const _sInputs=[
+  {bar:document.getElementById('search-bar'),     sug:document.getElementById('suggestions')},
+  {bar:document.getElementById('search-bar-mob'), sug:document.getElementById('suggestions-mob')},
+].filter(x=>x.bar&&x.sug);
+const sBar=_sInputs[0]?.bar, sugBox=_sInputs[0]?.sug;
 function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
-sBar.addEventListener('input', e => {
-  const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs();return;}
-  rSugs(); // show recents immediately
-  if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
-  db(async()=>{
-  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
-  const d=await r.json();const seen=new Set();sugs=[];
-  for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
-  selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
-  })();
-});
-sBar.addEventListener('keydown',e=>{
+function rSugs(aBar,aSug){
+  _sInputs.forEach(({sug})=>{sug.innerHTML='';sug.style.display='none';});
+  if(!aBar||!aSug)return;
   const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
-  const all=[...sugs,...recents];
-  if(!all.length)return;
-  if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs();}
-  else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs();}
-  else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
-  else if(e.key==='Escape')sugBox.style.display='none';
-});
-function rSugs(){
-  sugBox.innerHTML='';
-  const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
-  if(!sugs.length&&!recents.length){sugBox.style.display='none';return;}
+  if(!sugs.length&&!recents.length)return;
   if(sugs.length){
-    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';sugBox.appendChild(lbl);
-    sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});sugBox.appendChild(li);});
+    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';aSug.appendChild(lbl);
+    sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});aSug.appendChild(li);});
   }
   if(recents.length){
-    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';sugBox.appendChild(lbl);
-    recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs();});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});sugBox.appendChild(li);});
+    const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';aSug.appendChild(lbl);
+    recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs(aBar,aSug);});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});aSug.appendChild(li);});
   }
-  sugBox.style.display='block';
+  aSug.style.display='block';
 }
-document.addEventListener('click',e=>{if(!sugBox.contains(e.target)&&e.target!==document.getElementById('search-bar')){sugBox.style.display='none';selIdx=-1;}});
-
-sBar.addEventListener('focus', () => {
-  if (sBar.value.trim().length < 2) showRecents();
+function showRecents(aBar,aSug){sugs=[];rSugs(aBar,aSug);}
+_sInputs.forEach(({bar,sug})=>{
+  bar.addEventListener('input',e=>{
+    const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs(bar,sug);return;}
+    rSugs(bar,sug);
+    if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
+    db(async()=>{
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
+    const d=await r.json();const seen=new Set();sugs=[];
+    for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
+    selIdx=-1;rSugs(bar,sug);}catch(e){if(e.name!=='AbortError')console.error(e);}
+    })();
+  });
+  bar.addEventListener('keydown',e=>{
+    const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
+    const all=[...sugs,...recents];
+    if(!all.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs(bar,sug);}
+    else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs(bar,sug);}
+    else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
+    else if(e.key==='Escape'){sug.style.display='none';selIdx=-1;}
+  });
+  bar.addEventListener('focus',()=>{if(bar.value.trim().length<2)showRecents(bar,sug);});
 });
-
-function showRecents() { sugs=[]; rSugs(); }
+document.addEventListener('click',e=>{
+  _sInputs.forEach(({bar,sug})=>{if(!sug.contains(e.target)&&e.target!==bar){sug.style.display='none';selIdx=-1;}});
+});
 
 // ── Recent searches ──────────────────────────────────────────────────────────
 const RECENTS_KEY = 'jweather_recents';

@@ -110,6 +110,7 @@
 
     /* On desktop, bar divs are transparent wrappers */
     .mob-bar-1{display:contents;}
+    .mob-bar-2{display:none;}
     /* ─── TWO-BAR MOBILE HEADER ─── */
     @media(max-width:640px){
       /* Header becomes two rows */
@@ -364,6 +365,16 @@
       </nav>
       <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div><!-- /.mob-bar-1 -->
+    <!-- Row 2: search bar (mobile only) -->
+    <div class="mob-bar-2">
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions-mob"></ul>
+      </div>
+    </div><!-- /.mob-bar-2 -->
   </div>
 </header>
 
@@ -536,7 +547,14 @@ const SPC_CAT = {
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 
 let alerts=[], curLoc=null, sugs=[], selIdx=-1, searchController=null;
-const sBar=document.getElementById('search-bar'), sugBox=document.getElementById('suggestions'), spin=document.getElementById('spinner-overlay');
+const spin=document.getElementById('spinner-overlay');
+// Support both desktop (#search-bar) and mobile (#search-bar-mob) inputs
+const _searchInputs = [
+  { bar: document.getElementById('search-bar'),     sug: document.getElementById('suggestions') },
+  { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
+].filter(x => x.bar && x.sug);
+const sBar   = _searchInputs[0]?.bar;
+const sugBox = _searchInputs[0]?.sug;
 
 
 // ── TORNADO WARNING OVERLAY ───────────────────────────────────────────────────
@@ -601,11 +619,11 @@ window.addEventListener('DOMContentLoaded', () => {
   if (saved) {
     // Already have a saved location — use it
     curLoc = saved;
-    sBar.value = saved.label || (saved.city && saved.state ? `${saved.city}, ${saved.state}` : 'Your Location');
+    _searchInputs.forEach(({bar}) => bar.value = saved.label || (saved.city && saved.state ? `${saved.city}, ${saved.state}` : 'Your Location'));
     loadWeather(saved); updateRadar(saved.lat, saved.lng);} else {
     // Geolocation not supported — use default
     const def = { label: 'Kansas City, MO', city: 'Kansas City', state: 'MO', lat: 39.0997, lng: -94.5786 };
-    curLoc = def; sBar.value = def.label; loadWeather(def); updateRadar(def.lat, def.lng);
+    curLoc = def; _searchInputs.forEach(({bar}) => bar.value = def.label); loadWeather(def); updateRadar(def.lat, def.lng);
   }
 });
 
@@ -640,56 +658,33 @@ async function fetchSuggestions(q) {
   }
 }
 
-sBar.addEventListener('input', e => {
-  const q = e.target.value.trim();
-  if (q.length < 2) { sugs=[]; renderSugs(); return; }
-  // Show recents immediately while waiting for fetch
-  renderSugs();
-  debouncedFetch(q);
-});
-
 const debouncedFetch = debounce(async q => {
   const results = await fetchSuggestions(q);
   if (results === null) return;
   sugs = results; selIdx = -1; renderSugs();
 }, 280);
 
-sBar.addEventListener('keydown', e => {
+function renderSugs(activeBar, activeSug) {
+  _searchInputs.forEach(({sug}) => { sug.innerHTML = ''; sug.style.display='none'; });
+  if (!activeBar || !activeSug) return;
   const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
-  const all = [...sugs, ...recents];
-  if (!all.length) return;
-  if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%all.length; renderSugs(); }
-  else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+all.length)%all.length; renderSugs(); }
-  else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx]); else if (all[0]) pick(all[0]); }
-  else if (e.key==='Escape') { sugBox.style.display='none'; selIdx=-1; }
-});
-
-function renderSugs() {
-  sugBox.innerHTML = '';
-  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
-  if (!sugs.length && !recents.length) { sugBox.style.display='none'; return; }
-
-  // Search results section
+  if (!sugs.length && !recents.length) return;
   if (sugs.length) {
     const label = document.createElement('div');
-    label.className = 'sug-section-label';
-    label.textContent = 'Locations';
-    sugBox.appendChild(label);
+    label.className = 'sug-section-label'; label.textContent = 'Locations';
+    activeSug.appendChild(label);
     sugs.forEach((loc, i) => {
       const li = document.createElement('li');
       if (i===selIdx) li.classList.add('active');
       li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
-      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc); });
-      sugBox.appendChild(li);
+      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc, activeBar, activeSug); });
+      activeSug.appendChild(li);
     });
   }
-
-  // Recents section below
   if (recents.length) {
     const label = document.createElement('div');
-    label.className = 'sug-section-label';
-    label.textContent = 'Recent Searches';
-    sugBox.appendChild(label);
+    label.className = 'sug-section-label'; label.textContent = 'Recent Searches';
+    activeSug.appendChild(label);
     recents.forEach((loc, i) => {
       const li = document.createElement('li');
       const allIdx = sugs.length + i;
@@ -697,28 +692,41 @@ function renderSugs() {
       li.innerHTML = `<span class="material-symbols-rounded">history</span><span class="sug-city">${loc.label}</span><button class="sug-remove" title="Remove">✕</button>`;
       li.querySelector('.sug-remove').addEventListener('mousedown', e => {
         e.stopPropagation(); e.preventDefault();
-        removeRecent(loc.label);
-        sugs = sugs.filter(s => s.label !== loc.label);
-        renderSugs();
+        removeRecent(loc.label); sugs = sugs.filter(s => s.label !== loc.label);
+        renderSugs(activeBar, activeSug);
       });
-      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc); });
-      sugBox.appendChild(li);
+      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc, activeBar, activeSug); });
+      activeSug.appendChild(li);
     });
   }
-
-  sugBox.style.display = 'block';
+  activeSug.style.display = 'block';
 }
 
-document.addEventListener('click', e => { if (!sugBox.contains(e.target) && e.target!==sBar) { sugBox.style.display='none'; selIdx=-1; } });
+function showRecents(activeBar, activeSug) { sugs = []; renderSugs(activeBar, activeSug); }
 
-sBar.addEventListener('focus', () => {
-  if (sBar.value.trim().length < 2) showRecents();
+_searchInputs.forEach(({bar, sug}) => {
+  bar.addEventListener('input', e => {
+    const q = e.target.value.trim();
+    if (q.length < 2) { sugs=[]; renderSugs(bar, sug); return; }
+    renderSugs(bar, sug); debouncedFetch(q);
+  });
+  bar.addEventListener('keydown', e => {
+    const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+    const all = [...sugs, ...recents];
+    if (!all.length) return;
+    if (e.key==='ArrowDown') { e.preventDefault(); selIdx=(selIdx+1)%all.length; renderSugs(bar, sug); }
+    else if (e.key==='ArrowUp') { e.preventDefault(); selIdx=(selIdx-1+all.length)%all.length; renderSugs(bar, sug); }
+    else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx], bar, sug); else if (all[0]) pick(all[0], bar, sug); }
+    else if (e.key==='Escape') { sug.style.display='none'; selIdx=-1; }
+  });
+  bar.addEventListener('focus', () => { if (bar.value.trim().length < 2) showRecents(bar, sug); });
 });
 
-function showRecents() {
-  sugs = [];
-  renderSugs();
-}
+document.addEventListener('click', e => {
+  _searchInputs.forEach(({bar, sug}) => {
+    if (!sug.contains(e.target) && e.target !== bar) { sug.style.display='none'; selIdx=-1; }
+  });
+});
 
 
 // ── Recent searches ──────────────────────────────────────────────────────────
@@ -740,8 +748,10 @@ function removeRecent(label) {
   const recents = getRecents().filter(r => r.label !== label);
   localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
 }
-function pick(loc) {
-  curLoc = loc; sBar.value = loc.label; sugBox.style.display='none'; selIdx=-1;
+function pick(loc, activeBar, activeSug) {
+  curLoc = loc;
+  _searchInputs.forEach(({bar, sug}) => { bar.value = loc.label; sug.style.display='none'; });
+  selIdx=-1;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
   saveRecent(loc);
   loadWeather(loc); updateRadar(loc.lat, loc.lng);
