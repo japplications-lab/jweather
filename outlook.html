@@ -1100,7 +1100,7 @@ function buildLegend(geojson, mode) {
     cigEntry.className = 'legend-item legend-active';
     cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     cigEntry.innerHTML = `
-      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
+      <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
       <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>`;
     el.appendChild(cigEntry);
   }
