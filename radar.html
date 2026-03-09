@@ -604,19 +604,34 @@ function loadFrame(timeStr) {
       console.warn('N0C image not found for', tk);
     });
   } else if (currentStation === 'COMPOSITE') {
-    // Composite: IEM archive flat PNG in EPSG:4326 — use imageOverlay
-    // CONUS mosaic bounds per IEM documentation
-    const CONUS_BOUNDS = [[ 23.0, -126.0 ], [ 50.0, -66.0 ]];
-    const dt = new Date(timeStr);
-    const p = n => String(n).padStart(2,'0');
-    const yr = dt.getUTCFullYear(), mo = p(dt.getUTCMonth()+1), dy = p(dt.getUTCDate());
+    // Composite: IEM archive flat PNG in EPSG:4326 — strip black bg via canvas
+    // Exact bounds from IEM world file / WMS metadata
+    const CONUS_BOUNDS = [[ 23.117, -126.038 ], [ 50.406, -66.172 ]];
+    const dt2 = new Date(timeStr);
+    const p2 = n => String(n).padStart(2,'0');
+    const yr = dt2.getUTCFullYear(), mo = p2(dt2.getUTCMonth()+1), dy = p2(dt2.getUTCDate());
     const imgUrl = `${IEM_BASE}/archive/data/${yr}/${mo}/${dy}/GIS/uscomp/n0q_${tk}.png`;
-    radarLayer = L.imageOverlay(imgUrl, CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
-    radarLayer.on('load', () => setLoading(false));
-    radarLayer.on('error', () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      canvas.width = img.width; canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < d.data.length; i += 4) {
+        if (d.data[i] < 10 && d.data[i+1] < 10 && d.data[i+2] < 10) d.data[i+3] = 0;
+      }
+      ctx.putImageData(d, 0, 0);
+      if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
+      radarLayer = L.imageOverlay(canvas.toDataURL(), CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
+      radarLayer.addTo(map);
+      updateTimestamp(timeStr);
       setLoading(false);
-      console.warn('Composite image not found for', tk);
-    });
+    };
+    img.onerror = () => { setLoading(false); console.warn('Composite not found:', tk); };
+    img.src = imgUrl;
+    return; // layer added asynchronously above
   } else {
     // Single-station tiled products: N0B, N0U, N0S
     const url = `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${currentProduct}-${tk}/{z}/{x}/{y}.png`;
