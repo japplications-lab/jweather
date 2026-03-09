@@ -110,7 +110,6 @@
 
     /* On desktop, bar divs are transparent wrappers */
     .mob-bar-1{display:contents;}
-    .mob-bar-2{display:contents;}
     /* ─── TWO-BAR MOBILE HEADER ─── */
     @media(max-width:640px){
       /* Header becomes two rows */
@@ -331,12 +330,19 @@
 <!-- HEADER -->
 <header>
   <div class="header-inner">
-    <!-- Row 1: logo + nav + hamburger -->
+    <!-- Row 1: logo + search + nav + hamburger -->
     <div class="mob-bar-1">
       <a class="logo" href="index.html">
         <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
         <span class="logo-name">j<span>Weather</span></span>
       </a>
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+        </div>
+        <ul id="suggestions"></ul>
+      </div>
       <nav class="header-nav">
         <a href="index.html">Forecast</a>
         <div class="nav-dropdown">
@@ -358,16 +364,6 @@
       </nav>
       <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div><!-- /.mob-bar-1 -->
-    <!-- Row 2: search bar -->
-    <div class="mob-bar-2">
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-        </div>
-        <ul id="suggestions"></ul>
-      </div>
-    </div><!-- /.mob-bar-2 -->
   </div>
 </header>
 
