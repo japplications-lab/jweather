@@ -12,7 +12,7 @@
     :root {
       --red:#e5182a; --red-dim:rgba(229,24,42,0.12); --red-border:rgba(229,24,42,0.25);
       --header:58px;
-      --bg:#0f1115; --surface:#1a1d24;
+      --bg:#181a1f; --surface:#21242c;
       --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
       --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
       --green:#22c55e; --amber:#f59e0b; --blue:#60a5fa;
@@ -32,6 +32,7 @@
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+    @media(max-width:640px){.logo-name{display:none;}}
     .logo-name span{color:var(--red);}
     .search-wrap{flex:1;max-width:440px;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
@@ -72,12 +73,12 @@
     .mob-bar-1{display:contents;}
     .mob-bar-2{display:none;}
     @media(max-width:640px){
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
-      .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;padding:0 12px 8px;border-top:1px solid var(--border);}
-      .mob-bar-2 .search-wrap{flex:1;max-width:none;}
-      .header-inner{flex-wrap:wrap;padding:0;height:auto;gap:0;}
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:54px;gap:10px;}
+      .mob-bar-1 .search-wrap{display:flex;flex:1;max-width:none;}
+      .mob-bar-2{display:none !important;}
+      .header-inner{flex-wrap:nowrap;padding:0;height:54px;gap:0;}
       .header-nav{display:none;}
+      header{height:54px;}
     }
 
     /* ── PAGE BODY ── */
@@ -108,7 +109,7 @@
     .hour-row{
       display:grid;
       /* time | icon | precip | temp | wind-arrow | wind-txt | plus */
-      grid-template-columns: 48px 36px 68px 62px 22px 1fr 32px;
+      grid-template-columns: 52px 36px 64px 64px 20px minmax(100px,1fr) 32px;
       align-items:center;
       gap:0 10px;
       padding:0 20px;
@@ -118,8 +119,8 @@
       transition:background .1s;
       -webkit-tap-highlight-color:transparent;
     }
-    .hour-row:hover{background:rgba(255,255,255,0.03);}
-    .hour-row.is-open{background:rgba(255,255,255,0.04);}
+    .hour-row:hover{background:rgba(255,255,255,0.04);}
+    .hour-row.is-open{background:rgba(255,255,255,0.06);}
 
     /* Time */
     .hr-time{font-size:0.82rem;font-weight:500;color:var(--text-3);white-space:nowrap;letter-spacing:-0.01em;}
@@ -144,7 +145,7 @@
     .hr-arrow svg{width:16px;height:16px;}
 
     /* Wind text */
-    .hr-wind{font-size:0.8rem;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hr-wind{font-size:0.8rem;color:var(--text-3);white-space:nowrap;}
     .hr-wind-speed{font-weight:600;color:var(--text-2);}
     .hr-wind-dir{color:var(--text-4);margin-left:2px;}
 
@@ -158,7 +159,7 @@
     .hour-drawer{
       display:none;
       padding:12px 20px 14px;
-      background:var(--surface);
+      background:rgba(255,255,255,0.04);
       border-bottom:1px solid var(--border-2);
     }
     .hour-drawer.open{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 16px;}
@@ -179,7 +180,7 @@
     /* ── MOBILE ── */
     @media(max-width:480px){
       .hour-row{
-        grid-template-columns: 44px 32px 62px 56px 20px 1fr 28px;
+        grid-template-columns: 44px 30px 60px 56px 18px minmax(88px,1fr) 26px;
         gap:0 7px;padding:0 14px;height:54px;
       }
       .hr-temp{font-size:1.35rem;}
@@ -637,7 +638,7 @@ _searchInputs.forEach(({bar,sug}) => {
     if(q.length<2){sugs=[];renderSugs(bar,sug);return;}
     renderSugs(bar,sug); debouncedFetch(q);
   });
-  bar.addEventListener('focus', ()=>{ _activeBar=bar; _activeSug=sug; if(bar.value.trim().length<2){sugs=[];renderSugs(bar,sug);} });
+  bar.addEventListener('focus', ()=>{ _activeBar=bar; _activeSug=sug; if(bar.value.trim().length<2 && getRecents().length){sugs=[];renderSugs(bar,sug);} });
   bar.addEventListener('keydown', e=>{
     const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
     const all=[...sugs,...recents];
