@@ -516,13 +516,15 @@ async function fetchWatches() {
   setLoading(true);
   const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   try {
-    const [torRes, svrRes] = await Promise.all([
+    // Fetch alerts + US counties GeoJSON in parallel
+    const [torRes, svrRes, countiesRes] = await Promise.all([
       fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
       fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
+      fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'),
     ]);
     if (!torRes.ok) throw new Error(`Tornado watch HTTP ${torRes.status}`);
     if (!svrRes.ok) throw new Error(`SVR watch HTTP ${svrRes.status}`);
-    const [torData, svrData] = await Promise.all([torRes.json(), svrRes.json()]);
+    const [torData, svrData, countiesGJ] = await Promise.all([torRes.json(), svrRes.json(), countiesRes.json()]);
     const allFeatures = [...(torData.features || []), ...(svrData.features || [])];
     console.log('[watches] NWS alert features:', allFeatures.length);
 
@@ -533,48 +535,29 @@ async function fetchWatches() {
       return new Date(a.properties.expires) - new Date(b.properties.expires);
     });
 
-    // Build map of zoneId -> watch event type for county coloring
-    // affectedZones URLs look like: https://api.weather.gov/zones/county/OHC001
-    // or forecast: https://api.weather.gov/zones/forecast/OHZ001
-    // We'll track by zone URL for direct matching
-    const zoneToEvent = new Map(); // zoneUrl -> event string
+    // Build FIPS -> event map from geocode.SAME codes
+    // SAME codes are 6-digit strings: leading '0' + 5-digit FIPS (e.g. "006037" = FIPS "06037")
+    const fipsToEvent = new Map();
     for (const f of watchData) {
-      const zones = f.properties.affectedZones || [];
-      for (const zUrl of zones) {
-        // Tornado Watch takes priority over SVR if both cover same zone
-        if (!zoneToEvent.has(zUrl) || f.properties.event === 'Tornado Watch') {
-          zoneToEvent.set(zUrl, f.properties.event);
+      const sameCodes = f.properties?.geocode?.SAME || [];
+      for (const code of sameCodes) {
+        const fips = code.replace(/^0/, '');
+        if (!fipsToEvent.has(fips) || f.properties.event === 'Tornado Watch') {
+          fipsToEvent.set(fips, f.properties.event);
         }
       }
     }
-    console.log('[watches] total zones covered:', zoneToEvent.size);
+    console.log('[watches] FIPS counties covered:', fipsToEvent.size);
 
-    // Fetch county geometry for all affected zones in parallel (batched)
-    // Each zone URL returns a GeoJSON feature with geometry
-    const uniqueZoneUrls = [...zoneToEvent.keys()];
-    const countyFeatures = [];
+    // Filter counties GeoJSON to only affected counties
+    const countyFeatures = (countiesGJ.features || [])
+      .filter(f => fipsToEvent.has(f.id))
+      .map(f => ({
+        ...f,
+        properties: { ...f.properties, event: fipsToEvent.get(f.id) }
+      }));
 
-    if (uniqueZoneUrls.length > 0) {
-      const results = await Promise.all(
-        uniqueZoneUrls.map(url =>
-          fetch(url, { headers })
-            .then(r => r.ok ? r.json() : null)
-            .catch(() => null)
-        )
-      );
-      for (let i = 0; i < uniqueZoneUrls.length; i++) {
-        const data = results[i];
-        if (!data?.geometry) continue;
-        const event = zoneToEvent.get(uniqueZoneUrls[i]);
-        countyFeatures.push({
-          type: 'Feature',
-          geometry: data.geometry,
-          properties: { event, zoneUrl: uniqueZoneUrls[i] }
-        });
-      }
-    }
-
-    console.log('[watches] county features with geometry:', countyFeatures.length);
+    console.log('[watches] matched county features:', countyFeatures.length);
 
     renderWatches(countyFeatures);
     updateStatus();
