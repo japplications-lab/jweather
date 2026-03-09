@@ -460,6 +460,7 @@ let radarLayer = null;
 let animTimer = null;
 let isPlaying = false;
 let radarOpacity = 0.85;
+const frameCache = new Map(); // timeStr -> dataURL for preloaded composite frames
 
 // ─────────────────────────────────────────────
 // MAP INIT
@@ -605,32 +606,29 @@ function loadFrame(timeStr) {
     });
   } else if (currentStation === 'COMPOSITE') {
     // Composite: IEM archive flat PNG in EPSG:4326 — strip black bg via canvas
-    // Exact bounds from IEM world file / WMS metadata
-    const CONUS_BOUNDS = [[ 23.117, -126.038 ], [ 50.406, -66.172 ]];
     const dt2 = new Date(timeStr);
     const p2 = n => String(n).padStart(2,'0');
     const yr = dt2.getUTCFullYear(), mo = p2(dt2.getUTCMonth()+1), dy = p2(dt2.getUTCDate());
     const imgUrl = `${IEM_BASE}/archive/data/${yr}/${mo}/${dy}/GIS/uscomp/n0q_${tk}.png`;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      canvas.width = img.width; canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < d.data.length; i += 4) {
-        if (d.data[i] < 10 && d.data[i+1] < 10 && d.data[i+2] < 10) d.data[i+3] = 0;
-      }
-      ctx.putImageData(d, 0, 0);
+    // Check cache first — if preloaded, show instantly
+    if (frameCache.has(timeStr)) {
       if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
-      radarLayer = L.imageOverlay(canvas.toDataURL(), CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
+      radarLayer = L.imageOverlay(frameCache.get(timeStr), CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
       radarLayer.addTo(map);
       updateTimestamp(timeStr);
       setLoading(false);
-    };
-    img.onerror = () => { setLoading(false); console.warn('Composite not found:', tk); };
-    img.src = imgUrl;
+      return;
+    }
+    // Not cached yet — load and process on demand, then cache it
+    processCompositeImage(imgUrl).then(dataUrl => {
+      if (!dataUrl) { setLoading(false); console.warn('Composite not found:', tk); return; }
+      frameCache.set(timeStr, dataUrl);
+      if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
+      radarLayer = L.imageOverlay(dataUrl, CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
+      radarLayer.addTo(map);
+      updateTimestamp(timeStr);
+      setLoading(false);
+    });
     return; // layer added asynchronously above
   } else {
     // Single-station tiled products: N0B, N0U, N0S
@@ -664,6 +662,47 @@ function updateTimestamp(isoStr) {
   dot.className = 'timestamp-dot' + (ageMin > 15 ? ' stale' : '');
 }
 
+
+// ─────────────────────────────────────────────
+// PRELOAD
+// ─────────────────────────────────────────────
+const CONUS_BOUNDS = [[ 23.117, -126.038 ], [ 50.406, -66.172 ]];
+
+function processCompositeImage(imgUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < d.data.length; i += 4) {
+        if (d.data[i] < 10 && d.data[i+1] < 10 && d.data[i+2] < 10) d.data[i+3] = 0;
+      }
+      ctx.putImageData(d, 0, 0);
+      resolve(canvas.toDataURL());
+    };
+    img.onerror = () => resolve(null);
+    img.src = imgUrl;
+  });
+}
+
+async function preloadCompositeFrames(frameList) {
+  // Load all frames in parallel — browser will naturally throttle connections
+  const tasks = frameList.map(async (timeStr) => {
+    if (frameCache.has(timeStr)) return; // already cached
+    const tk = tKey(timeStr);
+    const dt = new Date(timeStr);
+    const p = n => String(n).padStart(2,'0');
+    const imgUrl = `${IEM_BASE}/archive/data/${dt.getUTCFullYear()}/${p(dt.getUTCMonth()+1)}/${p(dt.getUTCDate())}/GIS/uscomp/n0q_${tk}.png`;
+    const dataUrl = await processCompositeImage(imgUrl);
+    if (dataUrl) frameCache.set(timeStr, dataUrl);
+  });
+  await Promise.all(tasks);
+}
+
 // ─────────────────────────────────────────────
 // INIT / REFRESH
 // ─────────────────────────────────────────────
@@ -681,6 +720,11 @@ async function initRadar() {
   frameIdx = frames.length - 1;
   updateFrameCounter();
   loadFrame(frames[frameIdx]);
+  // Preload all composite frames in the background after the latest is shown
+  if (currentStation === 'COMPOSITE') {
+    frameCache.clear();
+    preloadCompositeFrames(frames); // async, non-blocking
+  }
 }
 
 function updateFrameCounter() {
@@ -710,7 +754,7 @@ function playAnim() {
     frameIdx = (frameIdx + 1) % frames.length;
     updateFrameCounter();
     loadFrame(frames[frameIdx]);
-  }, 600);
+  }, 350);
 }
 
 function stopAnim() {
