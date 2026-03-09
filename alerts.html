@@ -23,7 +23,7 @@
       --tor-warn-fill:#ff0000;   --tor-warn-stroke:#cc0000;
       --svr-warn-fill:#ffa500;   --svr-warn-stroke:#cc7000;
       --tor-watch-fill:#ffff00;  --tor-watch-stroke:#cccc00;
-      --svr-watch-fill:#1e90ff;  --svr-watch-stroke:#1060cc;
+      --svr-watch-fill:#c0548a;  --svr-watch-stroke:#8f3060;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;overflow:hidden;}
@@ -177,7 +177,7 @@
     .ap-badge.tor-warn{background:rgba(255,0,0,0.15);color:#ff6b6b;border:1px solid rgba(255,0,0,0.3);}
     .ap-badge.svr-warn{background:rgba(255,165,0,0.15);color:#ffb347;border:1px solid rgba(255,165,0,0.3);}
     .ap-badge.tor-watch{background:rgba(255,255,0,0.12);color:#dddd00;border:1px solid rgba(255,255,0,0.25);}
-    .ap-badge.svr-watch{background:rgba(30,144,255,0.15);color:#60a5fa;border:1px solid rgba(30,144,255,0.3);}
+    .ap-badge.svr-watch{background:rgba(192,84,138,0.15);color:#c0548a;border:1px solid rgba(192,84,138,0.3);}
     .ap-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;line-height:1;}
     .ap-close:hover{color:var(--text);}
     .ap-close .material-symbols-rounded{font-size:16px;vertical-align:middle;}
@@ -390,7 +390,7 @@ const ALERT_CONFIG = {
   'Tornado Warning':             { cls:'tor-warn',  fill:'#ff0000', stroke:'#cc0000', opacity:0.55, label:'Tornado Warning',             priority:1 },
   'Severe Thunderstorm Warning': { cls:'svr-warn',  fill:'#ffa500', stroke:'#cc7000', opacity:0.45, label:'Svr. Tstm. Warning',          priority:2 },
   'Tornado Watch':               { cls:'tor-watch', fill:'#ffff00', stroke:'#aaaa00', opacity:0.25, label:'Tornado Watch',               priority:3 },
-  'Severe Thunderstorm Watch':   { cls:'svr-watch', fill:'#1e90ff', stroke:'#1060cc', opacity:0.20, label:'Svr. Tstm. Watch',            priority:4 },
+  'Severe Thunderstorm Watch':   { cls:'svr-watch', fill:'#c0548a', stroke:'#8f3060', opacity:0.20, label:'Svr. Tstm. Watch',            priority:4 },
 };
 
 const EVENTS = Object.keys(ALERT_CONFIG);
