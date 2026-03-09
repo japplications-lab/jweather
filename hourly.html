@@ -32,24 +32,24 @@
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+    .logo-name span{color:#fff;}
     @media(max-width:640px){
       header{height:auto !important;}
       .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      /* Row 1: logo only */
       .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
       .mob-bar-1 .search-wrap{display:none;}
-      /* Row 2: full-width search pill */
       .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      /* Hide desktop nav */
+      .mob-bar-2 .search-row{border-radius:24px;background:rgba(255,255,255,0.07);border-color:transparent;padding:0 10px 0 14px;}
+      .mob-bar-2 .search-row:focus-within{border-color:var(--red);background:rgba(255,255,255,0.09);}
+      #search-bar-mob{padding:10px 8px;}
       .header-nav{display:none !important;}
       .logo-name{display:block !important;}
-    }
     }
 
     /* ── PAGE BODY ── */
     /* ── SCROLL BODY ── */
-    .page-body{flex:1;overflow-y:auto;min-height:0;}
+    .page-body{flex:1;overflow-y:scroll;min-height:0;-webkit-overflow-scrolling:touch;}
     .page-body::-webkit-scrollbar{width:4px;}
     .page-body::-webkit-scrollbar-track{background:transparent;}
     .page-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
@@ -187,19 +187,6 @@
       body.has-bottom-nav .page-body{padding-bottom:62px;}
     }
       /* mob-search-pill — pill shape for mobile search row */
-    @media(max-width:640px){
-      .mob-bar-2 .search-row{
-        border-radius:24px;
-        background:rgba(255,255,255,0.07);
-        border-color:transparent;
-        padding:0 10px 0 14px;
-      }
-      .mob-bar-2 .search-row:focus-within{
-        border-color:var(--red);
-        background:rgba(255,255,255,0.09);
-      }
-      #search-bar-mob{padding:10px 8px;}
-    }
   </style>
 </head>
 <body>

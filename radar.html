@@ -32,7 +32,7 @@
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-    .logo-name span{color:var(--red);}
+    .logo-name span{color:#fff;}
     .search-wrap{flex:1;max-width:440px;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
@@ -247,3 +247,131 @@
 </script>
 </body>
 </html>
+<script>
+// ── Search autocomplete ─────────────────────────────────────────────────────
+let sugs = [], selIdx = -1, searchController = null;
+let _activeBar = null, _activeSug = null;
+
+const _searchInputs = [
+  { bar: document.getElementById('search-bar'),     sug: document.getElementById('suggestions') },
+  { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
+].filter(x => x.bar && x.sug);
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+async function fetchSuggestions(q) {
+  if (searchController) searchController.abort();
+  searchController = new AbortController();
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us&featuretype=city`;
+    const res = await fetch(url, { signal: searchController.signal, headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' } });
+    const data = await res.json();
+    const seen = new Set(); const results = [];
+    for (const r of data) {
+      const a = r.address || {};
+      const city = a.city || a.town || a.village || a.hamlet || r.display_name.split(',')[0];
+      const state = a.state || '';
+      const stateAbbr = state ? (state.length <= 2 ? state : state) : '';
+      const label = stateAbbr ? `${city}, ${stateAbbr}` : city;
+      const loc = { label, city, state: stateAbbr, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
+      if (!seen.has(label)) { seen.add(label); results.push(loc); }
+      if (results.length >= 6) break;
+    }
+    return results;
+  } catch (e) { if (e.name === 'AbortError') return null; return []; }
+}
+
+const debouncedFetch = debounce(async q => {
+  const results = await fetchSuggestions(q);
+  if (results === null) return;
+  sugs = results; selIdx = -1; renderSugs(_activeBar, _activeSug);
+}, 280);
+
+function renderSugs(activeBar, activeSug) {
+  _searchInputs.forEach(({sug}) => { sug.innerHTML = ''; sug.style.display = 'none'; });
+  if (!activeBar || !activeSug) return;
+  const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+  if (!sugs.length && !recents.length) return;
+  if (sugs.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label'; label.textContent = 'Locations';
+    activeSug.appendChild(label);
+    sugs.forEach((loc, i) => {
+      const li = document.createElement('li');
+      if (i === selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${loc.label}</span>`;
+      li.addEventListener('mousedown', e => { e.preventDefault(); pick(loc, activeBar, activeSug); });
+      activeSug.appendChild(li);
+    });
+  }
+  if (recents.length) {
+    const label = document.createElement('div');
+    label.className = 'sug-section-label'; label.textContent = 'Recent Searches';
+    activeSug.appendChild(label);
+    recents.forEach((loc, i) => {
+      const li = document.createElement('li');
+      if (sugs.length + i === selIdx) li.classList.add('active');
+      li.innerHTML = `<span class="material-symbols-rounded">history</span><span class="sug-city">${loc.label}</span><button class="sug-remove" title="Remove">✕</button>`;
+      li.querySelector('.sug-remove').addEventListener('mousedown', e => {
+        e.stopPropagation(); e.preventDefault();
+        removeRecent(loc.label); renderSugs(activeBar, activeSug);
+      });
+      li.addEventListener('mousedown', e => { if (e.target.classList.contains('sug-remove')) return; e.preventDefault(); pick(loc, activeBar, activeSug); });
+      activeSug.appendChild(li);
+    });
+  }
+  activeSug.style.display = 'block';
+}
+
+_searchInputs.forEach(({bar, sug}) => {
+  bar.addEventListener('input', e => {
+    _activeBar = bar; _activeSug = sug;
+    const q = e.target.value.trim();
+    if (q.length < 2) { sugs = []; renderSugs(bar, sug); return; }
+    renderSugs(bar, sug); debouncedFetch(q);
+  });
+  bar.addEventListener('keydown', e => {
+    const recents = getRecents().filter(r => !sugs.some(s => s.label === r.label));
+    const all = [...sugs, ...recents];
+    if (!all.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); selIdx = (selIdx + 1) % all.length; renderSugs(bar, sug); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selIdx = (selIdx - 1 + all.length) % all.length; renderSugs(bar, sug); }
+    else if (e.key === 'Enter') { if (selIdx >= 0 && all[selIdx]) pick(all[selIdx], bar, sug); else if (all[0]) pick(all[0], bar, sug); }
+    else if (e.key === 'Escape') { sug.style.display = 'none'; selIdx = -1; }
+  });
+  bar.addEventListener('focus', () => { _activeBar = bar; _activeSug = sug; if (bar.value.trim().length < 2) { sugs = []; renderSugs(bar, sug); } });
+});
+
+document.addEventListener('click', e => {
+  _searchInputs.forEach(({bar, sug}) => {
+    if (!sug.contains(e.target) && e.target !== bar) { sug.style.display = 'none'; selIdx = -1; }
+  });
+});
+
+// Recents
+const RECENTS_KEY = 'jweather_recents';
+const MAX_RECENTS = 5;
+function getRecents() { try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch { return []; } }
+function saveRecent(loc) { let r = getRecents().filter(x => x.label !== loc.label); r.unshift(loc); if (r.length > MAX_RECENTS) r = r.slice(0, MAX_RECENTS); localStorage.setItem(RECENTS_KEY, JSON.stringify(r)); }
+function removeRecent(label) { localStorage.setItem(RECENTS_KEY, JSON.stringify(getRecents().filter(r => r.label !== label))); }
+
+function pick(loc, activeBar, activeSug) {
+  _searchInputs.forEach(({bar, sug}) => { bar.value = loc.label; sug.style.display = 'none'; });
+  selIdx = -1;
+  localStorage.setItem('jweather_last_location', JSON.stringify(loc));
+  saveRecent(loc);
+  // Update Windy iframe to new location
+  const frame = document.getElementById('windy-frame');
+  if (frame) {
+    frame.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=7&overlay=radar&product=radar&level=surface&lat=${loc.lat}&lon=${loc.lng}&detail=false&pressure=false&message=false`;
+  }
+}
+
+// Init: restore last location into search bar
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('jweather_last_location'));
+    if (saved?.label) _searchInputs.forEach(({bar}) => bar.value = saved.label);
+  } catch {}
+});
+</script>
