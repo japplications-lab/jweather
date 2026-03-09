@@ -548,6 +548,7 @@ const SPC_CAT = {
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 
 let alerts=[], curLoc=null, sugs=[], selIdx=-1, searchController=null;
+let _activeBar=null, _activeSug=null;
 const spin=document.getElementById('spinner-overlay');
 // Support both desktop (#search-bar) and mobile (#search-bar-mob) inputs
 const _searchInputs = [
@@ -662,7 +663,7 @@ async function fetchSuggestions(q) {
 const debouncedFetch = debounce(async q => {
   const results = await fetchSuggestions(q);
   if (results === null) return;
-  sugs = results; selIdx = -1; renderSugs();
+  sugs = results; selIdx = -1; renderSugs(_activeBar, _activeSug);
 }, 280);
 
 function renderSugs(activeBar, activeSug) {
@@ -707,6 +708,7 @@ function showRecents(activeBar, activeSug) { sugs = []; renderSugs(activeBar, ac
 
 _searchInputs.forEach(({bar, sug}) => {
   bar.addEventListener('input', e => {
+    _activeBar = bar; _activeSug = sug;
     const q = e.target.value.trim();
     if (q.length < 2) { sugs=[]; renderSugs(bar, sug); return; }
     renderSugs(bar, sug); debouncedFetch(q);
@@ -720,7 +722,7 @@ _searchInputs.forEach(({bar, sug}) => {
     else if (e.key==='Enter') { if (selIdx>=0 && all[selIdx]) pick(all[selIdx], bar, sug); else if (all[0]) pick(all[0], bar, sug); }
     else if (e.key==='Escape') { sug.style.display='none'; selIdx=-1; }
   });
-  bar.addEventListener('focus', () => { if (bar.value.trim().length < 2) showRecents(bar, sug); });
+  bar.addEventListener('focus', () => { _activeBar = bar; _activeSug = sug; if (bar.value.trim().length < 2) showRecents(bar, sug); });
 });
 
 document.addEventListener('click', e => {
