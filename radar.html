@@ -8,12 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <style>
     :root {
       --red:#e5182a; --red-dim:rgba(229,24,42,0.12); --red-border:rgba(229,24,42,0.25);
-      --sidebar:280px; --header:58px;
-      --bg:#0f1115; --surface:#1a1d24;
+      --header:58px;
+      --bg:#16181e; --surface:#1e2028;
       --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
       --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
       --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
@@ -65,15 +64,6 @@
     [data-coming-soon]{opacity:0.45;cursor:not-allowed !important;pointer-events:none;}
 
     /* ── MOBILE MENU ── */
-    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;}
-    .mob-menu-btn .material-symbols-rounded{font-size:19px;color:var(--text-3);}
-    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.55);}
-    .mob-menu-panel{position:absolute;top:0;right:0;width:250px;height:100%;background:var(--surface);border-left:1px solid var(--border-2);padding:12px 0;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5);}
-    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:0.83rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
-    .mob-menu-panel a:last-child{border-bottom:none;}
-    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
-    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
     .mob-bar-1{display:contents;}
     .mob-bar-2{display:none;}
     @media(max-width:640px){
@@ -84,91 +74,60 @@
       .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
       .header-nav{display:none !important;}
-      .mob-menu-btn{display:flex;margin-left:auto;}
       .logo-name{display:block !important;}
     }
 
     /* ── APP BODY ── */
-    .app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
+    .app-body{flex:1;display:flex;min-height:0;overflow:hidden;position:relative;}
+    #windy-frame{width:100%;height:100%;border:none;display:block;}
 
-    /* ── SIDEBAR ── */
-    .sidebar{width:var(--sidebar);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-    .sidebar-header{padding:16px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .sidebar-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:2px;}
-    .sidebar-subtitle{font-size:0.78rem;color:var(--text-3);}
-    .sidebar-section{padding:12px 16px;border-bottom:1px solid var(--border);}
-    .sidebar-section-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-4);margin-bottom:8px;}
-
-    /* Product selector */
-    .product-btns{display:flex;flex-direction:column;gap:4px;}
-    .product-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-xs);border:none;background:none;font-family:var(--font);font-size:0.8rem;font-weight:500;color:var(--text-3);cursor:pointer;transition:background .1s,color .1s;width:100%;text-align:left;}
-    .product-btn:hover{background:var(--bg);color:var(--text-2);}
-    .product-btn.active{background:var(--red-dim);color:var(--red);}
-    .product-btn:disabled{opacity:0.35;cursor:not-allowed;pointer-events:none;}
-    .product-btn:disabled:hover{background:none;color:var(--text-3);}
-    .product-btn .material-symbols-rounded{font-size:17px;color:inherit;}
-
-    /* Station selector */
-    .station-wrap{position:relative;}
-    .station-select{width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:var(--r-xs);color:var(--text);font-family:var(--font);font-size:0.8rem;padding:7px 10px;outline:none;cursor:pointer;appearance:none;}
-    .station-select:focus{border-color:var(--red);}
-    .station-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:var(--text-4);}
-
-    /* Opacity slider */
-    .slider-row{display:flex;align-items:center;gap:10px;}
-    .slider-label{font-size:0.75rem;color:var(--text-3);white-space:nowrap;}
-    .opacity-slider{flex:1;accent-color:var(--red);cursor:pointer;}
-    .slider-val{font-size:0.75rem;color:var(--text-4);width:28px;text-align:right;}
-
-    /* Animate controls */
-    .anim-controls{display:flex;align-items:center;gap:6px;}
-    .anim-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--r-xs);border:1px solid var(--border-2);background:var(--bg);color:var(--text-3);cursor:pointer;transition:background .1s,color .1s;}
-    .anim-btn:hover{background:var(--surface);color:var(--text);}
-    .anim-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
-    .anim-btn .material-symbols-rounded{font-size:17px;}
-    .frame-counter{font-size:0.75rem;color:var(--text-4);margin-left:auto;}
-
-    /* Timestamp */
-    .timestamp-pill{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;padding:4px 10px;font-size:0.72rem;color:var(--text-3);margin-top:8px;}
-    .timestamp-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
-    .timestamp-dot.stale{background:var(--amber);}
-
-    /* dBZ Legend */
-    .dbz-legend{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border);}
-    .dbz-legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-4);margin-bottom:8px;}
-    .dbz-scale{display:flex;flex-direction:column;gap:3px;}
-    .dbz-row{display:flex;align-items:center;gap:8px;font-size:0.72rem;color:var(--text-3);}
-    .dbz-swatch{width:16px;height:10px;border-radius:2px;flex-shrink:0;}
-
-    /* ── MAP ── */
-    .map-panel{flex:1;position:relative;background:var(--bg);min-width:0;}
-    #main-map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
-
-    /* Zoom controls */
-    .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:10px !important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12) !important;}
-    .leaflet-control-zoom a{font-family:var(--font) !important;color:var(--text-2) !important;background:rgba(26,29,36,0.97) !important;backdrop-filter:blur(8px);width:36px !important;height:36px !important;line-height:36px !important;font-size:18px !important;font-weight:400 !important;display:flex !important;align-items:center;justify-content:center;}
-    .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
-    .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
-    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(26,29,36,0.85) !important;color:var(--text-4) !important;backdrop-filter:blur(4px);}
-    .leaflet-control-attribution a{color:var(--text-4) !important;}
-
-    /* Loading overlay */
-    #map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,17,21,0.6);z-index:800;pointer-events:none;opacity:0;transition:opacity .2s;}
-    #map-loading.show{opacity:1;}
-    .spinner{width:28px;height:28px;border:3px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-
-    /* Mobile — hide sidebar, show bottom bar */
-    @media(max-width:640px){
-      .sidebar{display:none;}
-      .map-panel{width:100%;}
-      #map-loading{top:auto;}
+        /* ═══════════════════════════════════════════════
+       BOTTOM NAV BAR  (mobile ≤768px only)
+    ═══════════════════════════════════════════════ */
+    .mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--surface);border-top:1px solid var(--border-2);z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
+    .mob-bottom-nav-inner{display:flex;align-items:stretch;height:100%;}
+    .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.6rem;font-weight:600;color:var(--text-4);letter-spacing:0.02em;text-decoration:none;transition:color .15s;padding:6px 4px;-webkit-tap-highlight-color:transparent;}
+    .mob-tab .material-symbols-rounded{font-size:22px;transition:color .15s;}
+    .mob-tab.active{color:var(--red);}
+    .mob-tab.active .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .mob-tab-severe .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    /* Severe slide-up sheet */
+    .severe-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);z-index:1050;}
+    .severe-sheet-backdrop.open{display:block;}
+    .severe-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border-2);border-radius:18px 18px 0 0;z-index:1060;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
+    .severe-sheet.open{transform:translateY(0);}
+    .severe-sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:10px auto 0;}
+    .severe-sheet-title{font-size:0.7rem;font-weight:700;color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px 6px;}
+    .severe-sheet-items{padding:4px 12px 16px;}
+    .severe-sheet-item{display:flex;align-items:center;gap:14px;padding:13px 10px;border-radius:var(--r-sm);font-size:0.88rem;font-weight:500;color:var(--text-2);text-decoration:none;transition:background .12s;border-bottom:1px solid var(--border);}
+    .severe-sheet-item:last-child{border-bottom:none;}
+    .severe-sheet-item:active,.severe-sheet-item:hover{background:rgba(255,255,255,0.05);}
+    .severe-sheet-item.active{color:var(--red);}
+    .severe-sheet-item .material-symbols-rounded{font-size:20px;color:var(--text-4);flex-shrink:0;}
+    .severe-sheet-item.active .material-symbols-rounded{color:var(--red);}
+    .severe-sheet-item[data-coming-soon]{opacity:0.38;pointer-events:none;}
+    .severe-sheet-item-text{flex:1;}
+    .severe-sheet-item-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
+    .severe-sheet-item-badge{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;}
+    .severe-sheet-item-badge.soon{color:var(--amber);background:rgba(245,158,11,0.1);}
+    @media(max-width:768px){
+      .mob-bottom-nav{display:block;}
+      body.has-bottom-nav main,body.has-bottom-nav .app-body,body.has-bottom-nav .page-body{padding-bottom:62px;}
     }
-
-    /* Coming soon toast */
-    #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
-    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
+    /* Mobile header: logo row + pill search row */
+    @media(max-width:640px){
+      header{height:auto !important;}
+      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
+      .mob-bar-1 .search-wrap{display:none;}
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      .header-nav{display:none !important;}
+      .logo-name{display:block !important;}
+      .mob-bar-2 .search-row{border-radius:24px;background:rgba(255,255,255,0.07);border-color:transparent;padding:0 10px 0 14px;}
+      .mob-bar-2 .search-row:focus-within{border-color:var(--red);background:rgba(255,255,255,0.09);}
+      #search-bar-mob{padding:10px 8px;}
+    }
   </style>
 </head>
 <body>
@@ -197,7 +156,7 @@
             <div class="nav-dropdown-menu-inner">
               <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
               <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-              <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
               <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
               <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
             </div>
@@ -206,7 +165,6 @@
         <a href="#" data-coming-soon>Contact</a>
         <a href="#" data-coming-soon>About</a>
       </nav>
-      <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div>
     <div class="mob-bar-2">
       <div class="search-wrap">
@@ -220,714 +178,72 @@
   </div>
 </header>
 
-<!-- Mobile nav overlay -->
-<div class="mob-menu-overlay" id="mob-menu-overlay">
-  <div class="mob-menu-panel">
-    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
-    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-    <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-    <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
-  </div>
-</div>
 
 <div class="app-body">
+  <iframe
+    id="windy-frame"
+    src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=5&overlay=radar&product=radar&level=surface&lat=38.5&lon=-96&detail=false&pressure=false&message=false"
+    allowfullscreen
+    loading="eager"
+  ></iframe>
+</div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-title">Radar</div>
-      <div class="sidebar-subtitle" id="radar-station-name">NEXRAD Composite</div>
-      <div class="timestamp-pill">
-        <div class="timestamp-dot" id="ts-dot"></div>
-        <span id="ts-text">Loading…</span>
-      </div>
-    </div>
-
-    <!-- Product -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Product</div>
-      <div class="product-btns">
-        <button class="product-btn active" data-product="N0B">
-          <span class="material-symbols-rounded">grain</span>Base Reflectivity
-        </button>
-        <button class="product-btn" data-product="N0U">
-          <span class="material-symbols-rounded">moving</span>Base Velocity
-        </button>
-        <button class="product-btn" data-product="N0S">
-          <span class="material-symbols-rounded">cyclone</span>Storm Rel. Velocity
-        </button>
-        <button class="product-btn" data-product="N0C">
-          <span class="material-symbols-rounded">blur_circular</span>Correlation Coeff.
-        </button>
-      </div>
-      <div id="n0c-note" style="display:none;font-size:0.68rem;color:var(--amber);margin-top:6px;line-height:1.4;">
-        <span class="material-symbols-rounded" style="font-size:12px;vertical-align:middle;">info</span>
-        Single station only
-      </div>
-      <div id="composite-note" style="font-size:0.68rem;color:var(--text-4);margin-top:6px;line-height:1.4;">
-        <span class="material-symbols-rounded" style="font-size:12px;vertical-align:middle;">info</span>
-        Velocity &amp; CC require a single station
-      </div>
-    </div>
-
-    <!-- Station -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Station</div>
-      <div class="station-wrap">
-        <select class="station-select" id="station-select">
-          <option value="COMPOSITE" id="opt-composite">National Composite</option>
-          <optgroup label="Central">
-            <option value="KEAX">KEAX — Kansas City, MO</option>
-            <option value="KTWX">KTWX — Topeka, KS</option>
-            <option value="KDDC">KDDC — Dodge City, KS</option>
-            <option value="KICT">KICT — Wichita, KS</option>
-            <option value="KSGF">KSGF — Springfield, MO</option>
-            <option value="KLSX">KLSX — St. Louis, MO</option>
-          </optgroup>
-          <optgroup label="South">
-            <option value="KTLX">KTLX — Oklahoma City, OK</option>
-            <option value="KINX">KINX — Tulsa, OK</option>
-            <option value="KFWS">KFWS — Dallas, TX</option>
-            <option value="KHGX">KHGX — Houston, TX</option>
-          </optgroup>
-          <optgroup label="Southeast">
-            <option value="KHTX">KHTX — Huntsville, AL</option>
-            <option value="KNQA">KNQA — Memphis, TN</option>
-            <option value="KOHX">KOHX — Nashville, TN</option>
-            <option value="KGSP">KGSP — Greenville, SC</option>
-          </optgroup>
-          <optgroup label="Northeast">
-            <option value="KOKX">KOKX — New York, NY</option>
-            <option value="KBOX">KBOX — Boston, MA</option>
-            <option value="KDIX">KDIX — Philadelphia, PA</option>
-            <option value="KLWX">KLWX — Washington DC</option>
-          </optgroup>
-          <optgroup label="Midwest">
-            <option value="KLOT">KLOT — Chicago, IL</option>
-            <option value="KGRR">KGRR — Grand Rapids, MI</option>
-            <option value="KDTX">KDTX — Detroit, MI</option>
-            <option value="KIWX">KIWX — Indianapolis, IN</option>
-          </optgroup>
-          <optgroup label="West">
-            <option value="KPDT">KPDT — Pendleton, OR</option>
-            <option value="KRTX">KRTX — Portland, OR</option>
-            <option value="KATX">KATX — Seattle, WA</option>
-            <option value="KSFX">KSFX — Pocatello, ID</option>
-          </optgroup>
-        </select>
-        <span class="material-symbols-rounded station-arrow">expand_more</span>
-      </div>
-    </div>
-
-    <!-- Animate -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Loop</div>
-      <div class="anim-controls">
-        <button class="anim-btn" id="btn-prev" title="Previous frame"><span class="material-symbols-rounded">skip_previous</span></button>
-        <button class="anim-btn" id="btn-play" title="Play/Pause"><span class="material-symbols-rounded" id="play-icon">play_arrow</span></button>
-        <button class="anim-btn" id="btn-next" title="Next frame"><span class="material-symbols-rounded">skip_next</span></button>
-        <span class="frame-counter" id="frame-counter">— / —</span>
-      </div>
-    </div>
-
-    <!-- Opacity -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Opacity</div>
-      <div class="slider-row">
-        <span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4)">opacity</span>
-        <input type="range" class="opacity-slider" id="opacity-slider" min="10" max="100" value="85"/>
-        <span class="slider-val" id="opacity-val">85%</span>
-      </div>
-    </div>
-
-    <!-- dBZ Legend -->
-    <div class="dbz-legend" id="dbz-legend">
-      <div class="dbz-legend-title" id="dbz-legend-title">Reflectivity (dBZ)</div>
-      <div class="dbz-scale" id="dbz-scale"></div>
-    </div>
-  </aside>
-
-  <!-- MAP -->
-  <div class="map-panel">
-    <div id="main-map"></div>
-    <div id="map-loading"><div class="spinner"></div></div>
+<!-- ── BOTTOM NAV ── -->
+<nav class="mob-bottom-nav" aria-label="Main navigation">
+  <div class="mob-bottom-nav-inner">
+    <a href="index.html" class="mob-tab">
+      <span class="material-symbols-rounded">wb_sunny</span>Home
+    </a>
+    <a href="hourly.html" class="mob-tab">
+      <span class="material-symbols-rounded">schedule</span>Hourly
+    </a>
+    <a href="radar.html" class="mob-tab active">
+      <span class="material-symbols-rounded">radar</span>Radar
+    </a>
+    <button class="mob-tab mob-tab-severe" id="mob-severe-tab">
+      <span class="material-symbols-rounded">thunderstorm</span>Severe
+    </button>
+  </div>
+</nav>
+<div class="severe-sheet-backdrop" id="severe-backdrop"></div>
+<div class="severe-sheet" id="severe-sheet">
+  <div class="severe-sheet-handle"></div>
+  <div class="severe-sheet-title">Severe Weather</div>
+  <div class="severe-sheet-items">
+    <a href="outlook.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">thunderstorm</span>
+      <div class="severe-sheet-item-text">Severe Outlook<div class="severe-sheet-item-sub">SPC convective outlooks</div></div>
+    </a>
+    <a href="watches.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">emergency_home</span>
+      <div class="severe-sheet-item-text">Current Watches<div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div></div>
+    </a>
+    <a href="meso.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">crisis_alert</span>
+      <div class="severe-sheet-item-text">Mesoscale Discussions<div class="severe-sheet-item-sub">SPC short-term forecasts</div></div>
+    </a>
+    <a href="severe101.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">school</span>
+      <div class="severe-sheet-item-text">Severe Weather 101<div class="severe-sheet-item-sub">Learn about severe weather</div></div>
+    </a>
+    <a href="#" class="severe-sheet-item" data-coming-soon>
+      <span class="material-symbols-rounded">tune</span>
+      <div class="severe-sheet-item-text">Storm Parameters<div class="severe-sheet-item-sub">Atmospheric instability data</div></div>
+      <span class="severe-sheet-item-badge soon">Soon</span>
+    </a>
   </div>
 </div>
-
-<!-- Coming soon toast -->
-<div id="coming-soon-toast">
-  <span class="material-symbols-rounded">schedule</span>
-  Coming soon
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-// ─────────────────────────────────────────────
-// CONFIG
-// ─────────────────────────────────────────────
-const IEM_BASE = 'https://spc-proxy.justin-e-beck.workers.dev/iem';
-
-// Products served as XYZ tiles by IEM
-const TILED_PRODUCTS = ['N0B', 'N0U', 'N0S'];
-
-// Color scales per product
-const SCALES = {
-  N0B: {
-    title: 'Reflectivity (dBZ)',
-    entries: [
-      { label:'> 70',  color:'#ffffff' },
-      { label:'65–70', color:'#ff00ff' },
-      { label:'60–65', color:'#c000c8' },
-      { label:'55–60', color:'#d00000' },
-      { label:'50–55', color:'#ff0000' },
-      { label:'45–50', color:'#ff9000' },
-      { label:'40–45', color:'#e0c000' },
-      { label:'35–40', color:'#f0f000' },
-      { label:'30–35', color:'#007000' },
-      { label:'25–30', color:'#009800' },
-      { label:'20–25', color:'#00d800' },
-      { label:'15–20', color:'#0000f0' },
-      { label:'10–15', color:'#0198f0' },
-      { label:'5–10',  color:'#04e8f0' },
-      { label:'< 5',   color:'#646464' },
-    ]
-  },
-  N0U: {
-    title: 'Velocity (kt)',
-    entries: [
-      { label:'> 64 away',  color:'#00ffff' },
-      { label:'50–64 away', color:'#0080ff' },
-      { label:'36–50 away', color:'#0000ff' },
-      { label:'25–36 away', color:'#004080' },
-      { label:'10–25 away', color:'#008040' },
-      { label:'1–10 away',  color:'#00c000' },
-      { label:'0',          color:'#808080' },
-      { label:'1–10 toward',  color:'#ff6060' },
-      { label:'10–25 toward', color:'#ff0000' },
-      { label:'25–36 toward', color:'#c00000' },
-      { label:'36–50 toward', color:'#ff8000' },
-      { label:'50–64 toward', color:'#ffff00' },
-      { label:'> 64 toward',  color:'#ffffff' },
-    ]
-  },
-  N0S: {
-    title: 'Storm Rel. Velocity (kt)',
-    entries: [
-      { label:'> 64 away',  color:'#00ffff' },
-      { label:'50–64 away', color:'#0080ff' },
-      { label:'36–50 away', color:'#0000ff' },
-      { label:'25–36 away', color:'#004080' },
-      { label:'10–25 away', color:'#008040' },
-      { label:'1–10 away',  color:'#00c000' },
-      { label:'0',          color:'#808080' },
-      { label:'1–10 toward',  color:'#ff6060' },
-      { label:'10–25 toward', color:'#ff0000' },
-      { label:'25–36 toward', color:'#c00000' },
-      { label:'36–50 toward', color:'#ff8000' },
-      { label:'50–64 toward', color:'#ffff00' },
-      { label:'> 64 toward',  color:'#ffffff' },
-    ]
-  },
-  N0C: {
-    title: 'Corr. Coefficient (ρhv)',
-    entries: [
-      { label:'> 0.97', color:'#ff00ff' },
-      { label:'0.95–0.97', color:'#ff4400' },
-      { label:'0.93–0.95', color:'#ff8800' },
-      { label:'0.90–0.93', color:'#ffcc00' },
-      { label:'0.85–0.90', color:'#ffff00' },
-      { label:'0.80–0.85', color:'#00ff00' },
-      { label:'0.70–0.80', color:'#00cc88' },
-      { label:'0.60–0.70', color:'#0088ff' },
-      { label:'0.50–0.60', color:'#0044cc' },
-      { label:'< 0.50',    color:'#220066' },
-    ]
-  },
-};
-
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
-let currentStation = 'COMPOSITE';
-let currentProduct = 'N0B';
-let frames = [];
-let frameIdx = 0;
-let radarLayer = null;
-let animTimer = null;
-let isPlaying = false;
-let radarOpacity = 0.85;
-const frameCache = new Map(); // timeStr -> dataURL for preloaded composite frames
-
-// ─────────────────────────────────────────────
-// MAP INIT
-// ─────────────────────────────────────────────
-const map = L.map('main-map', {
-  center: [38.5, -96],
-  zoom: 4,
-  zoomControl: false,
-  attributionControl: true,
-});
-L.control.zoom({ position: 'topright' }).addTo(map);
-
-// Pane for labels
-map.createPane('labelPane');
-map.getPane('labelPane').style.zIndex = 450;
-map.getPane('labelPane').style.pointerEvents = 'none';
-
-// Probe CARTO; fall back to OSM if blocked (e.g. Brave Shields)
-(function initTiles() {
-  const r = window.devicePixelRatio > 1 ? '@2x' : '';
-  const probe = new Image();
-  probe.onload = function() {
-    // CARTO available — use dark matter base
-    L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_matter_nolabels/{z}/{x}/{y}.png',
-      { subdomains:'abcd', maxZoom:19, r,
-        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }
-    ).addTo(map);
-    L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png',
-      { subdomains:'abcd', maxZoom:19, pane:'labelPane', opacity:0.9 }
-    ).addTo(map);
-  };
-  probe.onerror = function() {
-    // Blocked — OSM fallback
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { subdomains:'abc', maxZoom:19,
-        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
-    ).addTo(map);
-  };
-  probe.src = 'https://a.basemaps.cartocdn.com/dark_matter_nolabels/0/0/0.png';
+(function(){
+  var tab=document.getElementById('mob-severe-tab');
+  var sheet=document.getElementById('severe-sheet');
+  var bd=document.getElementById('severe-backdrop');
+  function open(){sheet.classList.add('open');bd.classList.add('open');}
+  function close(){sheet.classList.remove('open');bd.classList.remove('open');}
+  if(tab)tab.addEventListener('click',function(){sheet.classList.contains('open')?close():open();});
+  if(bd)bd.addEventListener('click',close);
+  document.body.classList.add('has-bottom-nav');
 })();
-
-// State borders
-fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-  .then(r => r.json())
-  .then(data => L.geoJSON(data, { style:{ color:'rgba(255,255,255,0.18)', weight:0.7, fill:false } }).addTo(map))
-  .catch(() => {});
-
-// ─────────────────────────────────────────────
-// LEGEND (dynamic per product)
-// ─────────────────────────────────────────────
-function buildLegend(product) {
-  const scale = document.getElementById('dbz-scale');
-  const title = document.getElementById('dbz-legend-title');
-  const info = SCALES[product] || SCALES.N0B;
-  title.textContent = info.title;
-  scale.innerHTML = '';
-  info.entries.forEach(({label, color}) => {
-    const row = document.createElement('div');
-    row.className = 'dbz-row';
-    row.innerHTML = `<div class="dbz-swatch" style="background:${color}"></div><span>${label}</span>`;
-    scale.appendChild(row);
-  });
-}
-buildLegend('N0B');
-
-// ─────────────────────────────────────────────
-// FETCH AVAILABLE FRAMES FROM IEM
-// ─────────────────────────────────────────────
-// Generate rounded-5min timestamps for last N frames (no API needed for composite)
-function generateCompositeFrames(count = 12) {
-  const frames = [];
-  const now = new Date();
-  // Round back to last 5-min mark, then go back count frames
-  const roundedMs = Math.floor(now.getTime() / 300000) * 300000;
-  for (let i = count - 1; i >= 0; i--) {
-    frames.push(new Date(roundedMs - i * 300000).toISOString());
-  }
-  return frames;
-}
-
-async function fetchFrames(station, product) {
-  if (station === 'COMPOSITE') {
-    // Composite: generate timestamps locally — no API needed
-    return generateCompositeFrames(12);
-  }
-  // Single station: query IEM for actual scan times
-  const queryProduct = product === 'N0C' ? 'N0B' : product;
-  try {
-    const end = new Date();
-    const start = new Date(end - 2 * 60 * 60 * 1000);
-    const fmt = d => d.toISOString().slice(0,16) + 'Z';
-    const url = `${IEM_BASE}/json/radar.py?operation=list&radar=${station}&product=${queryProduct}&start=${fmt(start)}&end=${fmt(end)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const times = (data.data || []).map(d => d.valid).filter(Boolean);
-    if (times.length) return times.slice(-16);
-    // Fallback: generate timestamps if API returns nothing
-    return generateCompositeFrames(12);
-  } catch(e) {
-    console.warn('Frame fetch failed, using generated times:', e);
-    return generateCompositeFrames(12);
-  }
-}
-
-// ─────────────────────────────────────────────
-// LOAD RADAR LAYER
-// ─────────────────────────────────────────────
-function setLoading(on) {
-  document.getElementById('map-loading').classList.toggle('show', on);
-}
-
-function tKey(timeStr) {
-  const dt = new Date(timeStr);
-  const p = n => String(n).padStart(2,'0');
-  return `${dt.getUTCFullYear()}${p(dt.getUTCMonth()+1)}${p(dt.getUTCDate())}${p(dt.getUTCHours())}${p(dt.getUTCMinutes())}`;
-}
-
-function loadFrame(timeStr) {
-  if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
-  if (!timeStr) return;
-
-  const tk = tKey(timeStr);
-
-  if (currentProduct === 'N0C') {
-    // N0C: IEM serves as raw EPSG:4326 image — use as image overlay
-    // Image covers the station's coverage area; we use a ~460km radius bbox
-    const coords = STATION_COORDS[currentStation];
-    if (!coords) return;
-    // Approximate NEXRAD range: ~230nm radius ~ 4.1° lat / 5° lon at mid-latitudes
-    const dlat = 4.1, dlon = 5.0;
-    const bounds = [
-      [coords[0] - dlat, coords[1] - dlon],
-      [coords[0] + dlat, coords[1] + dlon],
-    ];
-    const imgUrl = `${IEM_BASE}/archive/data/${timeStr.slice(0,4)}/${timeStr.slice(5,7)}/${timeStr.slice(8,10)}/GIS/ridge/${currentStation}/N0C/${currentStation}_N0C_${tk}.png`;
-    radarLayer = L.imageOverlay(imgUrl, bounds, { opacity: radarOpacity, zIndex: 300 });
-    radarLayer.on('load', () => setLoading(false));
-    radarLayer.on('error', () => {
-      setLoading(false);
-      console.warn('N0C image not found for', tk);
-    });
-  } else if (currentStation === 'COMPOSITE') {
-    // Composite: IEM archive flat PNG in EPSG:4326 — strip black bg via canvas
-    const dt2 = new Date(timeStr);
-    const p2 = n => String(n).padStart(2,'0');
-    const yr = dt2.getUTCFullYear(), mo = p2(dt2.getUTCMonth()+1), dy = p2(dt2.getUTCDate());
-    const imgUrl = `${IEM_BASE}/archive/data/${yr}/${mo}/${dy}/GIS/uscomp/n0q_${tk}.png`;
-    // Check cache first — if preloaded, show instantly
-    if (frameCache.has(timeStr)) {
-      if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
-      radarLayer = L.imageOverlay(frameCache.get(timeStr), CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
-      radarLayer.addTo(map);
-      updateTimestamp(timeStr);
-      setLoading(false);
-      return;
-    }
-    // Not cached yet — load and process on demand, then cache it
-    processCompositeImage(imgUrl).then(dataUrl => {
-      if (!dataUrl) { setLoading(false); console.warn('Composite not found:', tk); return; }
-      frameCache.set(timeStr, dataUrl);
-      if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
-      radarLayer = L.imageOverlay(dataUrl, CONUS_BOUNDS, { opacity: radarOpacity, zIndex: 300 });
-      radarLayer.addTo(map);
-      updateTimestamp(timeStr);
-      setLoading(false);
-    });
-    return; // layer added asynchronously above
-  } else {
-    // Single-station tiled products: N0B, N0U, N0S
-    const url = `${IEM_BASE}/cache/tile.py/1.0.0/ridge::${currentStation}-${currentProduct}-${tk}/{z}/{x}/{y}.png`;
-    radarLayer = L.tileLayer(url, {
-      opacity: radarOpacity,
-      maxZoom: 19,
-      zIndex: 300,
-      tileSize: 256,
-    });
-    radarLayer.on('load', () => setLoading(false));
-    radarLayer.on('tileerror', () => setLoading(false));
-  }
-
-  setLoading(true);
-  radarLayer.addTo(map);
-  updateTimestamp(timeStr);
-}
-
-function updateTimestamp(isoStr) {
-  const dot = document.getElementById('ts-dot');
-  const txt = document.getElementById('ts-text');
-  if (!isoStr) { txt.textContent = 'No data'; dot.className = 'timestamp-dot stale'; return; }
-  const dt = new Date(isoStr);
-  const now = new Date();
-  const ageMin = (now - dt) / 60000;
-  const hh = dt.getUTCHours(), mm = dt.getUTCMinutes();
-  const ampm = hh >= 12 ? 'PM' : 'AM';
-  const h12 = hh % 12 || 12;
-  txt.textContent = `${h12}:${String(mm).padStart(2,'0')} ${ampm} UTC · ${Math.round(ageMin)}m ago`;
-  dot.className = 'timestamp-dot' + (ageMin > 15 ? ' stale' : '');
-}
-
-
-// ─────────────────────────────────────────────
-// PRELOAD
-// ─────────────────────────────────────────────
-const CONUS_BOUNDS = [[ 23.117, -126.038 ], [ 50.406, -66.172 ]];
-
-function processCompositeImage(imgUrl) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width; canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < d.data.length; i += 4) {
-        if (d.data[i] < 10 && d.data[i+1] < 10 && d.data[i+2] < 10) d.data[i+3] = 0;
-      }
-      ctx.putImageData(d, 0, 0);
-      resolve(canvas.toDataURL());
-    };
-    img.onerror = () => resolve(null);
-    img.src = imgUrl;
-  });
-}
-
-async function preloadCompositeFrames(frameList) {
-  // Load all frames in parallel — browser will naturally throttle connections
-  const tasks = frameList.map(async (timeStr) => {
-    if (frameCache.has(timeStr)) return; // already cached
-    const tk = tKey(timeStr);
-    const dt = new Date(timeStr);
-    const p = n => String(n).padStart(2,'0');
-    const imgUrl = `${IEM_BASE}/archive/data/${dt.getUTCFullYear()}/${p(dt.getUTCMonth()+1)}/${p(dt.getUTCDate())}/GIS/uscomp/n0q_${tk}.png`;
-    const dataUrl = await processCompositeImage(imgUrl);
-    if (dataUrl) frameCache.set(timeStr, dataUrl);
-  });
-  await Promise.all(tasks);
-}
-
-// ─────────────────────────────────────────────
-// INIT / REFRESH
-// ─────────────────────────────────────────────
-async function initRadar() {
-  setLoading(true);
-  stopAnim();
-  frames = await fetchFrames(currentStation, currentProduct);
-  if (!frames.length) {
-    setLoading(false);
-    document.getElementById('ts-text').textContent = 'No data available';
-    document.getElementById('ts-dot').className = 'timestamp-dot stale';
-    if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
-    return;
-  }
-  frameIdx = frames.length - 1;
-  updateFrameCounter();
-  loadFrame(frames[frameIdx]);
-  // Preload all composite frames in the background after the latest is shown
-  if (currentStation === 'COMPOSITE') {
-    frameCache.clear();
-    preloadCompositeFrames(frames); // async, non-blocking
-  }
-}
-
-function updateFrameCounter() {
-  document.getElementById('frame-counter').textContent =
-    frames.length ? `${frameIdx + 1} / ${frames.length}` : '— / —';
-}
-
-// Auto-refresh every 5 minutes
-setInterval(initRadar, 5 * 60 * 1000);
-
-// Default to national composite
-document.getElementById('station-select').value = 'COMPOSITE';
-document.getElementById('radar-station-name').textContent = 'National Composite';
-map.setView([38.5, -96], 4);
-updateProductAvailability();
-initRadar();
-
-// ─────────────────────────────────────────────
-// ANIMATION
-// ─────────────────────────────────────────────
-function playAnim() {
-  if (!frames.length) return;
-  isPlaying = true;
-  document.getElementById('play-icon').textContent = 'pause';
-  document.getElementById('btn-play').classList.add('active');
-  animTimer = setInterval(() => {
-    frameIdx = (frameIdx + 1) % frames.length;
-    updateFrameCounter();
-    loadFrame(frames[frameIdx]);
-  }, 350);
-}
-
-function stopAnim() {
-  isPlaying = false;
-  clearInterval(animTimer);
-  document.getElementById('play-icon').textContent = 'play_arrow';
-  document.getElementById('btn-play').classList.remove('active');
-}
-
-document.getElementById('btn-play').addEventListener('click', () => {
-  isPlaying ? stopAnim() : playAnim();
-});
-document.getElementById('btn-prev').addEventListener('click', () => {
-  if (!frames.length) return;
-  stopAnim();
-  frameIdx = (frameIdx - 1 + frames.length) % frames.length;
-  updateFrameCounter();
-  loadFrame(frames[frameIdx]);
-});
-document.getElementById('btn-next').addEventListener('click', () => {
-  if (!frames.length) return;
-  stopAnim();
-  frameIdx = (frameIdx + 1) % frames.length;
-  updateFrameCounter();
-  loadFrame(frames[frameIdx]);
-});
-
-// ─────────────────────────────────────────────
-// PRODUCT / STATION CONTROLS
-// ─────────────────────────────────────────────
-document.querySelectorAll('.product-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.product-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentProduct = btn.dataset.product;
-    // N0C only available on single stations, not composite
-    if (currentProduct === 'N0C' && currentStation === 'COMPOSITE') {
-      currentStation = 'KEAX';
-      document.getElementById('station-select').value = 'KEAX';
-      document.getElementById('radar-station-name').textContent = 'Kansas City, MO';
-      map.setView([39.28, -94.26], 7, { animate: true });
-    }
-    buildLegend(currentProduct);
-    document.getElementById('n0c-note').style.display = currentProduct === 'N0C' ? 'block' : 'none';
-    initRadar();
-  });
-});
-
-const STATION_COORDS = {
-  KEAX:[39.28,-94.26], KTWX:[38.99,-96.23], KDDC:[37.77,-99.97], KICT:[37.65,-97.44],
-  KSGF:[37.24,-93.40], KLSX:[38.70,-90.68], KTLX:[35.33,-97.28], KINX:[36.18,-95.56],
-  KFWS:[32.57,-97.30], KHGX:[29.47,-95.08], KHTX:[34.93,-86.08], KNQA:[35.35,-89.87],
-  KOHX:[36.25,-86.56], KGSP:[34.88,-82.22], KOKX:[40.87,-72.86], KBOX:[41.96,-71.14],
-  KDIX:[39.95,-74.41], KLWX:[38.98,-77.49], KLOT:[41.60,-88.08], KGRR:[42.89,-85.54],
-  KDTX:[42.70,-83.47], KIWX:[41.36,-85.70], KPDT:[45.69,-118.85], KRTX:[45.71,-122.97],
-  KATX:[48.19,-122.49], KSFX:[43.11,-112.69],
-};
-
-function updateProductAvailability() {
-  const isComposite = currentStation === 'COMPOSITE';
-  // Only N0B available for composite
-  document.querySelectorAll('.product-btn').forEach(btn => {
-    const p = btn.dataset.product;
-    const compositeOnly = p === 'N0B';
-    btn.disabled = isComposite && !compositeOnly;
-  });
-  // If current product not available, switch to N0B
-  if (isComposite && currentProduct !== 'N0B') {
-    currentProduct = 'N0B';
-    document.querySelectorAll('.product-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.product === 'N0B');
-    });
-    buildLegend('N0B');
-    document.getElementById('n0c-note').style.display = 'none';
-  }
-  // Show composite-only notice
-  document.getElementById('composite-note').style.display = isComposite ? 'block' : 'none';
-}
-
-document.getElementById('station-select').addEventListener('change', e => {
-  currentStation = e.target.value;
-  const opt = e.target.options[e.target.selectedIndex];
-  document.getElementById('radar-station-name').textContent =
-    currentStation === 'COMPOSITE' ? 'National Composite' : opt.text.split('—')[1]?.trim() || opt.text;
-
-  updateProductAvailability();
-
-  if (currentStation !== 'COMPOSITE') {
-    const coords = STATION_COORDS[currentStation];
-    if (coords) map.setView(coords, 7, { animate: true });
-  } else {
-    map.setView([38.5, -96], 4, { animate: true });
-  }
-  initRadar();
-});
-
-// ─────────────────────────────────────────────
-// OPACITY SLIDER
-// ─────────────────────────────────────────────
-const opSlider = document.getElementById('opacity-slider');
-const opVal = document.getElementById('opacity-val');
-opSlider.addEventListener('input', () => {
-  radarOpacity = opSlider.value / 100;
-  opVal.textContent = opSlider.value + '%';
-  if (radarLayer) radarLayer.setOpacity(radarOpacity);
-});
-
-// ─────────────────────────────────────────────
-// SEARCH
-// ─────────────────────────────────────────────
-let sCtrl = null;
-const SEARCH_PAIRS = [
-  { bar: document.getElementById('search-bar'),     sug: document.getElementById('suggestions') },
-  { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
-];
-
-function pick(lat, lon, label) {
-  map.setView([lat, lon], 8, { animate: true });
-  SEARCH_PAIRS.forEach(({bar, sug}) => { if(bar){bar.value = label; sug.style.display='none';} });
-  // Try to find closest station and select it
-}
-
-SEARCH_PAIRS.forEach(({bar, sug}) => {
-  if (!bar) return;
-  bar.addEventListener('input', async () => {
-    const q = bar.value.trim();
-    if (q.length < 2) { sug.style.display='none'; return; }
-    if (sCtrl) sCtrl.abort();
-    sCtrl = new AbortController();
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=6&countrycodes=us`,
-        { signal:sCtrl.signal, headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'} });
-      const data = await res.json();
-      sug.innerHTML = '';
-      if (!data.length) { sug.style.display='none'; return; }
-      data.forEach(r => {
-        const city = r.address?.city || r.address?.town || r.address?.village || r.name;
-        const state = r.address?.state || '';
-        const label = state ? `${city}, ${state}` : city;
-        const li = document.createElement('li');
-        li.innerHTML = `<span class="material-symbols-rounded">location_on</span><span class="sug-city">${label}</span>`;
-        li.addEventListener('mousedown', e => { e.preventDefault(); pick(+r.lat, +r.lon, label); });
-        sug.appendChild(li);
-      });
-      sug.style.display = 'block';
-    } catch(e) { if (e.name !== 'AbortError') sug.style.display='none'; }
-  });
-  bar.addEventListener('blur', () => setTimeout(() => sug.style.display='none', 150));
-  bar.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { sug.style.display='none'; bar.blur(); }
-  });
-});
-
-// ─────────────────────────────────────────────
-// MOBILE HAMBURGER
-// ─────────────────────────────────────────────
-const mobOverlay = document.getElementById('mob-menu-overlay');
-document.getElementById('mob-menu-btn').addEventListener('click', () => {
-  mobOverlay.style.display = 'block';
-});
-mobOverlay.addEventListener('click', e => {
-  if (e.target === mobOverlay) mobOverlay.style.display = 'none';
-});
-
-// Coming soon
-document.querySelectorAll('[data-coming-soon]').forEach(el => {
-  el.addEventListener('click', e => {
-    e.preventDefault();
-    const t = document.getElementById('coming-soon-toast');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2200);
-  });
-});
 </script>
 </body>
 </html>
