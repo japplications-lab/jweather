@@ -994,12 +994,13 @@ function buildLegend(geojson, mode) {
   // CIG hatched entry — append if any CIG features present
   const hasCig = geojson.features.some(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
   if (hasCig) {
+    const cigLabel = { torn:'EF2+ Tornado Possible', wind:'65 mph Wind Possible', hail:'2" Hail Possible', cat:'Sig. Severe Possible' }[mode] || 'Sig. Severe Possible';
     const cigEntry = document.createElement('div');
     cigEntry.className = 'legend-item legend-active';
     cigEntry.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
     cigEntry.innerHTML = `
       <div class="legend-swatch" style="background:#fff;border:1.5px solid #333;box-sizing:border-box;border-radius:2px;background-image:repeating-linear-gradient(45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);"></div>
-      <span class="legend-label" style="font-weight:600;color:var(--text);">Conditional — CIG</span>`;
+      <span class="legend-label" style="font-weight:600;color:var(--text);">${cigLabel}</span>`;
     el.appendChild(cigEntry);
   }
 }
