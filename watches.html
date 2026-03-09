@@ -418,21 +418,26 @@ let selectedWatchId = null;
 // ─────────────────────────────────────────────
 async function fetchWatches() {
   setLoading(true);
-  // NWS API: filter for Tornado Watch + Severe Thunderstorm Watch, active, CONUS
-  const url = `${WATCHES_URL}?event=Tornado%20Watch,Severe%20Thunderstorm%20Watch&status=actual&message_type=alert&limit=500`;
+  // NWS API doesn't support multiple event values in one param — fetch both in parallel
+  const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   try {
-    const res = await fetch(url, { headers: { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    // NWS features use 'event' for type, 'expires' for expiry, 'onset' for issuance, 'areaDesc' for areas
-    watchData = (data.features || [])
-      .filter(f => f.geometry) // only those with geometry
-      .sort((a, b) => {
-        const aIsTor = a.properties.event === 'Tornado Watch';
-        const bIsTor = b.properties.event === 'Tornado Watch';
-        if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
-        return new Date(a.properties.expires) - new Date(b.properties.expires);
-      });
+    const [torRes, svrRes] = await Promise.all([
+      fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
+      fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
+    ]);
+    if (!torRes.ok) throw new Error(`Tornado watch fetch: HTTP ${torRes.status}`);
+    if (!svrRes.ok) throw new Error(`SVR watch fetch: HTTP ${svrRes.status}`);
+    const [torData, svrData] = await Promise.all([torRes.json(), svrRes.json()]);
+    const allFeatures = [
+      ...(torData.features || []),
+      ...(svrData.features || []),
+    ].filter(f => f.geometry); // only polygon-based watches
+    watchData = allFeatures.sort((a, b) => {
+      const aIsTor = a.properties.event === 'Tornado Watch';
+      const bIsTor = b.properties.event === 'Tornado Watch';
+      if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
+      return new Date(a.properties.expires) - new Date(b.properties.expires);
+    });
     renderWatches();
     updateStatus();
     document.getElementById('watch-updated').textContent =
