@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>jWeather — Current Watches</title>
+  <title>jWeather — Mesoscale Discussions</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -16,14 +16,11 @@
       --bg:#16181e; --surface:#1e2028;
       --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
       --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
-      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
-      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
-      --blue:#3b82f6; --blue-dim:rgba(59,130,246,0.15);
+      --green:#22c55e; --amber:#f59e0b;
+      --md-color:#f97316; --md-dim:rgba(249,115,22,0.13); --md-border:rgba(249,115,22,0.3);
       --r:12px; --r-sm:8px; --r-xs:6px;
       --font:'Geist',system-ui,sans-serif;
-      /* Watch type colors — SPC official */
-      --tor-watch:#ff0000;   --tor-watch-dim:rgba(255,0,0,0.15);   --tor-watch-border:rgba(255,0,0,0.35);
-      --svr-watch:#ffa500;   --svr-watch-dim:rgba(255,165,0,0.15); --svr-watch-border:rgba(255,165,0,0.35);
+      --panel:320px;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;overflow:hidden;}
@@ -45,238 +42,237 @@
     .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
     #search-bar,#search-bar-mob{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
     #search-bar::placeholder,#search-bar-mob::placeholder{color:var(--text-4);}
-    #suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
-    #suggestions li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
-    #suggestions li:last-child{border-bottom:none;}
-    #suggestions li:hover,#suggestions li.active{background:var(--red-dim);}
-    #suggestions li .material-symbols-rounded{font-size:13px;color:var(--red);}
-    .sug-section-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-4);padding:8px 14px 4px;}
-    .sug-remove{font-size:11px;color:var(--text-4);background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;font-family:var(--font);line-height:1;flex-shrink:0;}
-    .sug-remove:hover{color:var(--red);background:var(--red-dim);}
-    .sug-city{font-weight:500;flex:1;}
-    .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
-    .header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:5px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
-    .header-nav a:hover{color:var(--text);background:var(--bg);}
-    .header-nav a.active{color:var(--red);}
+    #suggestions,#suggestions-mob{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+
+    /* ── NAV ── */
+    .header-nav{display:flex;align-items:center;gap:4px;margin-left:auto;}
+    .header-nav a{font-size:0.83rem;font-weight:500;color:var(--text-3);text-decoration:none;padding:6px 10px;border-radius:6px;transition:color .15s,background .15s;white-space:nowrap;}
+    .header-nav a:hover,.header-nav a.active{color:var(--text);background:rgba(255,255,255,0.06);}
     .nav-dropdown{position:relative;}
-    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;font-size:0.8rem;font-weight:500;color:var(--text-3);background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
-    .nav-dropdown-btn:hover,.nav-dropdown:hover .nav-dropdown-btn{color:var(--text);background:var(--bg);}
-    .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
+    .nav-dropdown-btn{font-size:0.83rem;font-weight:500;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:6px;display:flex;align-items:center;gap:4px;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
+    .nav-dropdown-btn:hover,.nav-dropdown-btn.active{color:var(--text);background:rgba(255,255,255,0.06);}
+    .nav-dropdown-btn .material-symbols-rounded{font-size:15px;transition:transform .2s;}
     .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
-    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:210px;z-index:600;}
-    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
-    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
-    .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;}
-    .nav-dropdown-menu a:last-child{border-bottom:none;}
-    .nav-dropdown-menu a.active,.nav-dropdown-menu a:hover{background:var(--red-dim);color:var(--red);}
-    .nav-dropdown-menu a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
+    .nav-dropdown-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);min-width:210px;z-index:600;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility .15s;box-shadow:0 8px 30px rgba(0,0,0,.4);}
+    .nav-dropdown:hover .nav-dropdown-menu{opacity:1;visibility:visible;transform:translateY(0);}
+    .nav-dropdown-menu-inner{padding:6px;}
+    .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;font-size:0.8rem;font-weight:500;color:var(--text-3);text-decoration:none;transition:background .1s,color .1s;white-space:nowrap;}
+    .nav-dropdown-menu a:hover{background:rgba(255,255,255,0.06);color:var(--text);}
+    .nav-dropdown-menu a.active{background:var(--red-dim);color:var(--red);}
+    .nav-dropdown-menu a .material-symbols-rounded{font-size:16px;}
+    .nav-dropdown-menu a[data-coming-soon]{opacity:0.4;cursor:default;pointer-events:none;}
 
-    /* ── MOBILE MENU ── */
-
-    /* ── TWO-BAR MOBILE HEADER ── */
+    /* ── MOBILE HEADER ── */
     .mob-bar-1{display:contents;}
     .mob-bar-2{display:none;}
-
-    /* ── APP BODY ── */
-    .app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
-
-    /* ── LEFT PANEL ── */
-    .watch-panel{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
-    .watch-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .watch-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
-    .watch-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
-    .watch-list{flex:1;overflow-y:auto;padding:8px;}
-    .watch-list::-webkit-scrollbar{width:4px;}
-    .watch-list::-webkit-scrollbar-track{background:transparent;}
-    .watch-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
-
-    /* Watch cards */
-    .watch-card{border-radius:var(--r-sm);border:1px solid var(--border-2);margin-bottom:6px;cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;}
-    .watch-card:hover{border-color:var(--border-2);background:rgba(255,255,255,0.03);}
-    .watch-card.selected{border-color:var(--red-border);background:var(--red-dim);}
-    .watch-card-bar{height:4px;width:100%;}
-    .watch-card-bar.tor{background:var(--tor-watch);}
-    .watch-card-bar.svr{background:var(--svr-watch);}
-    .watch-card-inner{padding:10px 12px;}
-    .watch-card-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-    .watch-type-badge{font-size:0.58rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
-    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
-    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
-    .watch-num{font-size:0.72rem;font-weight:700;color:var(--text-3);}
-    .watch-card-states{font-size:0.72rem;color:var(--text-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .watch-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);margin-top:5px;}
-    .watch-card-expire .material-symbols-rounded{font-size:12px;}
-    .watch-card-expire.expiring-soon{color:#f59e0b;}
-    .watch-card-expire.expiring-soon .material-symbols-rounded{color:#f59e0b;}
-
-    /* Empty / loading state */
-    .watch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
-    .watch-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
-    .watch-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
-    .watch-empty-sub{font-size:0.72rem;line-height:1.5;}
-    .watch-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem;}
-    .spin-ring{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--red);animation:spin .7s linear infinite;flex-shrink:0;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-
-    /* Refresh button */
-    .watch-panel-actions{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;}
-    .watch-refresh-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;background:none;border:1px solid var(--border-2);border-radius:var(--r-xs);cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:all .15s;}
-    .watch-refresh-btn:hover{background:var(--bg);color:var(--text);border-color:var(--border-2);}
-    .watch-refresh-btn .material-symbols-rounded{font-size:14px;}
-    .watch-refresh-btn.spinning .material-symbols-rounded{animation:spin .7s linear infinite;}
-
-    /* Updated timestamp */
-    .watch-updated{font-size:0.62rem;color:var(--text-4);text-align:center;padding:5px 8px 0;}
-
-    /* ── MAP ── */
-    .map-panel{flex:1;position:relative;background:#1a2030;}
-    #main-map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
-
-    /* Watch detail panel (right side on desktop, bottom sheet on mobile) */
-    .watch-detail{position:absolute;bottom:20px;right:20px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:400;display:none;overflow:hidden;max-height:calc(100% - 40px);flex-direction:column;}
-    .watch-detail.open{display:flex;}
-    .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
-    .watch-detail-bar.tor{background:var(--tor-watch);}
-    .watch-detail-bar.svr{background:var(--svr-watch);}
-    .watch-detail-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .watch-detail-type{font-size:0.65rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
-    .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
-    .watch-detail-type.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
-    .watch-detail-num{font-size:0.83rem;font-weight:700;color:var(--text);flex:1;}
-    .watch-detail-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;}
-    .watch-detail-close:hover{color:var(--text);}
-    .watch-detail-close .material-symbols-rounded{font-size:17px;}
-    .watch-detail-body{padding:12px 14px 14px;overflow-y:auto;flex:1;}
-    .wd-row{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
-    .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
-    .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
-    .wd-expire-warn{display:flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:600;color:#f59e0b;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:5px;padding:5px 9px;margin-top:4px;}
-    .wd-expire-warn .material-symbols-rounded{font-size:13px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
-
-    /* Legend */
-    .map-legend{position:absolute;bottom:20px;left:20px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 14px;z-index:400;min-width:160px;}
-    .legend-title{font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:7px;}
-    .legend-items{display:flex;flex-direction:column;gap:5px;}
-    .legend-item{display:flex;align-items:center;gap:8px;}
-    .legend-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
-    .legend-label{font-size:0.72rem;color:var(--text-2);font-weight:500;}
-
-    /* Map topbar status pill */
-    .map-topbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:400;display:flex;gap:8px;pointer-events:none;}
-    .map-status-pill{display:flex;align-items:center;gap:7px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px;font-size:0.73rem;font-weight:600;color:var(--text-3);white-space:nowrap;pointer-events:auto;}
-    .map-status-pill .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-    .map-status-pill .status-dot.green{background:var(--green);box-shadow:0 0 6px var(--green);}
-    .map-status-pill .status-dot.red{background:var(--red);box-shadow:0 0 6px var(--red);animation:pulse 1.5s ease-in-out infinite;}
-    .map-status-pill .status-dot.amber{background:var(--amber);box-shadow:0 0 6px var(--amber);}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-
-    /* Leaflet customizations */
-    .leaflet-container{font-family:var(--font);}
-    .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);border:1px solid var(--border-2);font-family:var(--font);padding:0;min-width:220px;max-width:260px;background:var(--surface);}
-    .leaflet-popup-content{margin:0;font-size:0.78rem;}
-    .leaflet-popup-tip{background:var(--surface);}
-    .leaflet-popup-tip-container{display:none;}
-    .popup-bar{height:4px;width:100%;border-radius:10px 10px 0 0;}
-    .popup-bar.tor{background:var(--tor-watch);}
-    .popup-bar.svr{background:var(--svr-watch);}
-    .popup-inner{padding:11px 13px 13px;}
-    .popup-type{font-size:0.58rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:6px;}
-    .popup-type.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
-    .popup-type.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
-    .popup-title{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-0.01em;}
-    .popup-expires{font-size:0.68rem;color:var(--text-4);}
-
-    /* Coming soon toast */
-    #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
-    #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-    #coming-soon-toast .material-symbols-rounded{font-size:16px;color:#f59e0b;}
-
-    /* ── MOBILE ── */
     @media(max-width:640px){
       header{height:auto !important;}
       .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
+      /* Row 1: logo only */
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
       .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+      /* Row 2: full-width search pill */
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      /* Hide desktop nav */
       .header-nav{display:none !important;}
       .logo-name{display:block !important;}
-      /* Sidebar becomes bottom drawer */
-      .watch-panel{position:fixed;bottom:0;left:0;right:0;width:100%;height:280px;border-right:none;border-top:1px solid var(--border-2);z-index:450;transform:translateY(100%);transition:transform .3s ease;}
-      .watch-panel.mob-open{transform:translateY(0);}
-      .map-panel{width:100%;}
-      /* Mobile toggle for watch list */
-      .mob-watch-toggle{display:flex;}
-      .watch-detail{bottom:auto;top:60px;left:10px;right:10px;width:auto;max-height:200px;}
-      .map-legend{bottom:10px;left:10px;}
-      .map-topbar{top:8px;}
-    }
-    @media(min-width:641px){
-      .mob-watch-toggle{display:none !important;}
     }
 
-    /* Mobile watch toggle FAB */
-    .mob-watch-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:460;align-items:center;gap:8px;background:var(--red);border:none;border-radius:24px;padding:10px 18px;cursor:pointer;font-family:var(--font);font-size:0.78rem;font-weight:700;color:#fff;box-shadow:0 4px 20px rgba(229,24,42,0.4);transition:all .15s;}
-    .mob-watch-toggle .material-symbols-rounded{font-size:17px;color:#fff;}
-    .mob-watch-toggle .mob-watch-count{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:0.68rem;}
+    /* ── LAYOUT ── */
+    .app-body{flex:1;display:flex;overflow:hidden;position:relative;}
+    #main-map{flex:1;z-index:1;}
+
+    /* ── MD PANEL ── */
+    .md-panel{width:var(--panel);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
+    .md-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .md-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
+    .md-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
+    .md-updated{font-size:0.65rem;color:var(--text-4);margin-top:4px;}
+    .md-list{flex:1;overflow-y:auto;padding:8px;}
+    .md-list::-webkit-scrollbar{width:4px;}
+    .md-list::-webkit-scrollbar-track{background:transparent;}
+    .md-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+    /* MD Cards */
+    .md-card{border-radius:var(--r-sm);border:1px solid var(--border-2);margin-bottom:6px;cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;}
+    .md-card:hover{border-color:var(--md-border);background:var(--md-dim);}
+    .md-card.selected{border-color:var(--md-border);background:var(--md-dim);}
+    .md-card-bar{height:3px;width:100%;background:var(--md-color);}
+    .md-card-inner{padding:10px 12px;}
+    .md-card-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+    .md-num{font-size:0.72rem;font-weight:800;color:var(--md-color);letter-spacing:0.04em;}
+    .md-concern-badge{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:4px;background:var(--md-dim);color:var(--md-color);border:1px solid var(--md-border);flex-shrink:0;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;}
+    .md-card-area{font-size:0.75rem;color:var(--text-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+    .md-card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+    .md-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);}
+    .md-card-expire .material-symbols-rounded{font-size:12px;}
+    .md-card-expire.expiring-soon{color:var(--amber);}
+    .md-card-link{font-size:0.65rem;font-weight:600;color:var(--md-color);display:flex;align-items:center;gap:3px;text-decoration:none;opacity:0.8;transition:opacity .15s;}
+    .md-card-link:hover{opacity:1;}
+    .md-card-link .material-symbols-rounded{font-size:12px;}
+
+    .md-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
+    .md-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
+    .md-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
+    .md-empty-sub{font-size:0.72rem;line-height:1.5;}
+
+    /* Status pill */
+    .status-pill{position:absolute;top:12px;left:calc(var(--panel) + 12px);z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:6px;font-size:0.72rem;font-weight:600;color:var(--text-3);box-shadow:0 2px 10px rgba(0,0,0,.3);}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-4);flex-shrink:0;}
+    .status-dot.active{background:var(--md-color);box-shadow:0 0 0 3px rgba(249,115,22,0.2);}
+    .status-dot.none{background:var(--green);}
+
+    /* Map loading */
+    #map-loading{position:absolute;bottom:16px;left:calc(var(--panel) + 16px);z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:8px;padding:6px 12px;font-size:0.72rem;color:var(--text-3);display:none;}
+    #map-loading.show{display:flex;align-items:center;gap:6px;}
+
+    /* Detail card */
+    .md-detail{position:absolute;bottom:16px;right:16px;z-index:400;background:rgba(20,23,30,0.97);backdrop-filter:blur(12px);border:1px solid var(--md-border);border-radius:var(--r);padding:14px 16px;max-width:300px;min-width:220px;box-shadow:0 4px 24px rgba(0,0,0,.5);display:none;}
+    .md-detail.show{display:block;}
+    .md-detail-num{font-size:0.65rem;font-weight:800;color:var(--md-color);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
+    .md-detail-concern{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.3;}
+    .md-detail-area{font-size:0.72rem;color:var(--text-3);margin-bottom:8px;line-height:1.4;}
+    .md-detail-row{display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text-4);margin-bottom:4px;}
+    .md-detail-row .material-symbols-rounded{font-size:13px;}
+    .md-detail-actions{display:flex;gap:8px;margin-top:10px;}
+    .md-detail-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 10px;border-radius:7px;font-size:0.72rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;text-decoration:none;border:none;}
+    .md-detail-btn.primary{background:var(--md-color);color:#fff;}
+    .md-detail-btn.primary:hover{background:#ea6c0a;}
+    .md-detail-btn.secondary{background:rgba(255,255,255,0.07);color:var(--text-3);border:1px solid var(--border-2);}
+    .md-detail-btn.secondary:hover{background:rgba(255,255,255,0.11);color:var(--text);}
+    .md-detail-btn .material-symbols-rounded{font-size:13px;}
+    .md-detail-close{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--text-4);padding:2px;}
+    .md-detail-close .material-symbols-rounded{font-size:16px;}
+    .md-detail-close:hover{color:var(--text);}
+
+    /* Zoom controls */
     .leaflet-control-zoom{border:1px solid var(--border-2) !important;border-radius:10px !important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.12) !important;}
-    .leaflet-control-zoom a{
-      font-family:var(--font) !important;color:var(--text-2) !important;
-      background:rgba(26,29,36,0.97) !important;backdrop-filter:blur(8px);
-      width:36px !important;height:36px !important;line-height:36px !important;
-      font-size:18px !important;font-weight:400 !important;
-      display:flex !important;align-items:center;justify-content:center;
-    }
-    .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
+    .leaflet-control-zoom a{font-family:var(--font) !important;color:var(--text-2) !important;background:rgba(26,29,36,0.97) !important;backdrop-filter:blur(8px);width:36px !important;height:36px !important;line-height:36px !important;font-size:18px !important;font-weight:400 !important;display:flex !important;align-items:center;justify-content:center;}
+    .leaflet-control-zoom a:hover{color:var(--md-color) !important;background:var(--surface) !important;}
     .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
-    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(255,255,255,0.8) !important;backdrop-filter:blur(4px);}
+    .leaflet-attribution-flag{display:none !important;}
+    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(15,17,21,0.85) !important;color:var(--text-4) !important;backdrop-filter:blur(4px);}
+    .leaflet-control-attribution a{color:var(--text-4) !important;}
+
+    /* Mobile FAB */
+    .mob-md-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:460;align-items:center;gap:8px;background:var(--md-color);border:none;border-radius:24px;padding:10px 18px;cursor:pointer;font-family:var(--font);font-size:0.78rem;font-weight:700;color:#fff;box-shadow:0 4px 20px rgba(249,115,22,0.4);transition:all .15s;}
+    .mob-md-toggle .material-symbols-rounded{font-size:17px;}
+    .mob-md-count{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:0.68rem;}
+    @media(max-width:768px){
+      .md-panel{display:none;position:fixed;bottom:0;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
+      .md-panel.mob-open{display:flex;}
+      .status-pill{left:12px;}
+      .mob-md-toggle{display:flex;}
+      .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
+      :root{--panel:0px;}
+    }
   
     /* ═══════════════════════════════════════════════
        BOTTOM NAV BAR  (mobile ≤768px only)
     ═══════════════════════════════════════════════ */
-    .mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--surface);border-top:1px solid var(--border-2);z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
-    .mob-bottom-nav-inner{display:flex;align-items:stretch;height:100%;}
-    .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.6rem;font-weight:600;color:var(--text-4);letter-spacing:0.02em;text-decoration:none;transition:color .15s;padding:6px 4px;-webkit-tap-highlight-color:transparent;}
+    .mob-bottom-nav{
+      display:none;
+      position:fixed;bottom:0;left:0;right:0;
+      height:62px;
+      background:var(--surface);
+      border-top:1px solid var(--border-2);
+      z-index:1000;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    .mob-bottom-nav-inner{
+      display:flex;align-items:stretch;height:100%;
+    }
+    .mob-tab{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:3px;background:none;border:none;cursor:pointer;
+      font-family:var(--font);font-size:0.6rem;font-weight:600;
+      color:var(--text-4);letter-spacing:0.02em;text-decoration:none;
+      transition:color .15s;padding:6px 4px;
+      -webkit-tap-highlight-color:transparent;
+    }
     .mob-tab .material-symbols-rounded{font-size:22px;transition:color .15s;}
-    .mob-tab.active{color:var(--red);}
-    .mob-tab.active .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    .mob-tab-severe .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .mob-tab.active,.mob-tab:active{color:var(--red);}
+    .mob-tab.active .material-symbols-rounded{
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+    .mob-tab-severe{color:var(--red);}
+    .mob-tab-severe .material-symbols-rounded{
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
+    }
+
     /* Severe slide-up sheet */
-    .severe-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);z-index:1050;}
+    .severe-sheet-backdrop{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+      z-index:1050;
+    }
     .severe-sheet-backdrop.open{display:block;}
-    .severe-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border-2);border-radius:18px 18px 0 0;z-index:1060;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
+    .severe-sheet{
+      position:fixed;bottom:0;left:0;right:0;
+      background:var(--surface);
+      border-top:1px solid var(--border-2);
+      border-radius:18px 18px 0 0;
+      z-index:1060;
+      padding-bottom:env(safe-area-inset-bottom);
+      transform:translateY(100%);
+      transition:transform .28s cubic-bezier(.32,.72,0,1);
+    }
     .severe-sheet.open{transform:translateY(0);}
-    .severe-sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:10px auto 0;}
-    .severe-sheet-title{font-size:0.7rem;font-weight:700;color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px 6px;}
+    .severe-sheet-handle{
+      width:36px;height:4px;border-radius:2px;
+      background:rgba(255,255,255,0.15);
+      margin:10px auto 0;
+    }
+    .severe-sheet-title{
+      font-size:0.7rem;font-weight:700;
+      color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;
+      padding:10px 20px 6px;
+    }
     .severe-sheet-items{padding:4px 12px 16px;}
-    .severe-sheet-item{display:flex;align-items:center;gap:14px;padding:13px 10px;border-radius:var(--r-sm);font-size:0.88rem;font-weight:500;color:var(--text-2);text-decoration:none;transition:background .12s;border-bottom:1px solid var(--border);}
+    .severe-sheet-item{
+      display:flex;align-items:center;gap:14px;
+      padding:13px 10px;border-radius:var(--r-sm);
+      font-size:0.88rem;font-weight:500;color:var(--text-2);
+      text-decoration:none;transition:background .12s;
+      border-bottom:1px solid var(--border);
+    }
     .severe-sheet-item:last-child{border-bottom:none;}
     .severe-sheet-item:active,.severe-sheet-item:hover{background:rgba(255,255,255,0.05);}
     .severe-sheet-item.active{color:var(--red);}
-    .severe-sheet-item .material-symbols-rounded{font-size:20px;color:var(--text-4);flex-shrink:0;}
+    .severe-sheet-item .material-symbols-rounded{
+      font-size:20px;color:var(--text-4);flex-shrink:0;
+    }
     .severe-sheet-item.active .material-symbols-rounded{color:var(--red);}
     .severe-sheet-item[data-coming-soon]{opacity:0.38;pointer-events:none;}
     .severe-sheet-item-text{flex:1;}
     .severe-sheet-item-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
-    .severe-sheet-item-badge{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;}
+    .severe-sheet-item-badge{
+      font-size:0.58rem;font-weight:700;padding:2px 7px;
+      border-radius:4px;background:rgba(255,255,255,0.07);
+      color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;
+    }
     .severe-sheet-item-badge.soon{color:var(--amber);background:rgba(245,158,11,0.1);}
+
     @media(max-width:768px){
       .mob-bottom-nav{display:block;}
-      body.has-bottom-nav main,body.has-bottom-nav .app-body,body.has-bottom-nav .page-body{padding-bottom:62px;}
+      /* push page content up so it doesn't hide behind nav */
+      body.has-bottom-nav main,
+      body.has-bottom-nav .app-body{padding-bottom:62px;}
     }
-    /* Mobile header: logo row + pill search row */
+
+      /* mob-search-pill — pill shape for mobile search row */
     @media(max-width:640px){
-      header{height:auto !important;}
-      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
-      .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
-      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      .header-nav{display:none !important;}
-      .logo-name{display:block !important;}
-      .mob-bar-2 .search-row{border-radius:24px;background:rgba(255,255,255,0.07);border-color:transparent;padding:0 10px 0 14px;}
-      .mob-bar-2 .search-row:focus-within{border-color:var(--red);background:rgba(255,255,255,0.09);}
+      .mob-bar-2 .search-row{
+        border-radius:24px;
+        background:rgba(255,255,255,0.07);
+        border-color:transparent;
+        padding:0 10px 0 14px;
+      }
+      .mob-bar-2 .search-row:focus-within{
+        border-color:var(--red);
+        background:rgba(255,255,255,0.09);
+      }
       #search-bar-mob{padding:10px 8px;}
     }
   </style>
@@ -301,14 +297,14 @@
       <nav class="header-nav">
         <a href="index.html">Forecast</a>
         <div class="nav-dropdown">
-          <button class="nav-dropdown-btn">
+          <button class="nav-dropdown-btn active">
             Severe Weather <span class="material-symbols-rounded">expand_more</span>
           </button>
           <div class="nav-dropdown-menu">
             <div class="nav-dropdown-menu-inner">
               <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-              <a href="watches.html" class="active"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-              <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
+              <a href="meso.html" class="active"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
               <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
               <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
             </div>
@@ -317,8 +313,7 @@
         <a href="#" data-coming-soon>Contact</a>
         <a href="#" data-coming-soon>About</a>
       </nav>
-    </div><!-- /.mob-bar-1 -->
-    <!-- Row 2: search bar (mobile only) -->
+    </div>
     <div class="mob-bar-2">
       <div class="search-wrap">
         <div class="search-row">
@@ -327,100 +322,76 @@
         </div>
         <ul id="suggestions-mob"></ul>
       </div>
-    </div><!-- /.mob-bar-2 -->
-
+    </div>
   </div>
 </header>
 
 
-<!-- ── APP BODY ── -->
 <div class="app-body">
 
-  <!-- LEFT PANEL: Watch List -->
-  <div class="watch-panel" id="watch-panel">
-    <div class="watch-panel-head">
-      <div class="watch-panel-title">Active Watches</div>
-      <div class="watch-panel-sub" id="panel-sub">Loading…</div>
+  <!-- Left panel -->
+  <div class="md-panel" id="md-panel">
+    <div class="md-panel-head">
+      <div class="md-panel-title">Mesoscale Discussions</div>
+      <div class="md-panel-sub" id="panel-sub">Loading…</div>
+      <div class="md-updated" id="md-updated"></div>
     </div>
-    <div class="watch-list" id="watch-list">
-      <div class="watch-loading" id="watch-loading">
-        <div class="spin-ring"></div>
-        Fetching watch data…
-      </div>
-    </div>
-    <div class="watch-updated" id="watch-updated"></div>
-    <div class="watch-panel-actions">
-      <button class="watch-refresh-btn" id="refresh-btn">
-        <span class="material-symbols-rounded">refresh</span>
-        Refresh
+    <div class="md-list" id="md-list"></div>
+  </div>
+
+  <!-- Map -->
+  <div id="main-map"></div>
+
+  <!-- Status pill -->
+  <div class="status-pill" id="status-pill">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Loading…</span>
+  </div>
+
+  <!-- Map loading indicator -->
+  <div id="map-loading">
+    <span class="material-symbols-rounded" style="font-size:14px;animation:spin 1s linear infinite">progress_activity</span>
+    Loading…
+  </div>
+
+  <!-- Detail card -->
+  <div class="md-detail" id="md-detail">
+    <button class="md-detail-close" id="detail-close"><span class="material-symbols-rounded">close</span></button>
+    <div class="md-detail-num" id="detail-num"></div>
+    <div class="md-detail-concern" id="detail-concern"></div>
+    <div class="md-detail-area" id="detail-area"></div>
+    <div class="md-detail-row"><span class="material-symbols-rounded">schedule</span><span id="detail-valid"></span></div>
+    <div class="md-detail-actions">
+      <a class="md-detail-btn primary" id="detail-spc-link" href="#" target="_blank" rel="noopener">
+        <span class="material-symbols-rounded">open_in_new</span>Full Discussion
+      </a>
+      <button class="md-detail-btn secondary" id="detail-zoom-btn">
+        <span class="material-symbols-rounded">zoom_in_map</span>Zoom In
       </button>
     </div>
   </div>
 
-  <!-- MAP PANEL -->
-  <div class="map-panel">
-    <div id="main-map"></div>
-
-    <!-- Status pill -->
-    <div class="map-topbar">
-      <div class="map-status-pill" id="status-pill">
-        <span class="status-dot green" id="status-dot"></span>
-        <span id="status-text">Loading…</span>
-      </div>
-    </div>
-
-    <!-- Legend -->
-    <div class="map-legend">
-      <div class="legend-title">Watch Type</div>
-      <div class="legend-items">
-        <div class="legend-item">
-          <div class="legend-swatch" style="background:var(--tor-watch);"></div>
-          <span class="legend-label">Tornado Watch</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background:var(--svr-watch);"></div>
-          <span class="legend-label">Severe Thunderstorm Watch</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Watch detail card (click a watch) -->
-    <div class="watch-detail" id="watch-detail">
-      <div class="watch-detail-bar" id="wd-bar"></div>
-      <div class="watch-detail-head">
-        <span class="watch-detail-type" id="wd-type"></span>
-        <span class="watch-detail-num" id="wd-num"></span>
-        <button class="watch-detail-close" id="wd-close"><span class="material-symbols-rounded">close</span></button>
-      </div>
-      <div class="watch-detail-body" id="wd-body"></div>
-    </div>
-  </div>
 </div>
 
-<!-- Mobile: FAB to toggle watch list -->
-<button class="mob-watch-toggle" id="mob-watch-toggle">
-  <span class="material-symbols-rounded">emergency_home</span>
-  Watches
-  <span class="mob-watch-count" id="mob-watch-count">0</span>
+<!-- Mobile FAB -->
+<button class="mob-md-toggle" id="mob-md-toggle">
+  <span class="material-symbols-rounded">crisis_alert</span>
+  Discussions
+  <span class="mob-md-count" id="mob-md-count">0</span>
 </button>
 
-<!-- Coming soon toast -->
-<div id="coming-soon-toast"><span class="material-symbols-rounded">construction</span><span id="coming-soon-msg">Coming soon</span></div>
+<style>
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-'use strict';
-
 // ─────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────
-// NWS alerts API — CORS-enabled, no proxy needed
-const WATCHES_URL = 'https://api.weather.gov/alerts/active';
-
-const WATCH_STYLES = {
-  'Tornado Watch':             { cls:'tor', fill:'#ff0000', stroke:'#cc0000', label:'Tornado Watch' },
-  'Severe Thunderstorm Watch': { cls:'svr', fill:'#ffa500', stroke:'#cc7000', label:'Severe Thunderstorm Watch' },
-};
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
+// NOAA MapServer for active MD polygons
+const MD_LAYER_URL = 'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson';
 
 // ─────────────────────────────────────────────
 // MAP INIT
@@ -429,539 +400,319 @@ const map = L.map('main-map', {
   center: [38.5, -96],
   zoom: 4,
   zoomControl: false,
-  attributionControl: false,
+  attributionControl: true,
 });
 
-// Pane for labels to sit above watch polygons
-L.control.zoom({ position:'topright' }).addTo(map);
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+// Label pane
 map.createPane('labelPane');
 map.getPane('labelPane').style.zIndex = 450;
 map.getPane('labelPane').style.pointerEvents = 'none';
 
-// Tile setup — probe CARTO first; fall back to OSM if blocked (e.g. Brave Shields)
+// Tiles with probe
 (function initTiles() {
   const r = window.devicePixelRatio > 1 ? '@2x' : '';
-  const cartoBase = `https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/0/0/0${r}.png`;
   const probe = new Image();
-  probe.onload = function() {
-    // CARTO available — interpolate retina suffix directly into URL
+  probe.onload = () => {
     L.tileLayer(
       `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,
-      { subdomains:'abcd', maxZoom:19,
-        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' }
+      { subdomains:'abcd', maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }
     ).addTo(map);
     L.tileLayer(
       `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,
-      { subdomains:'abcd', maxZoom:19, pane:'labelPane', opacity:0.85 }
+      { subdomains:'abcd', maxZoom:19, pane:'labelPane' }
     ).addTo(map);
   };
-  probe.onerror = function() {
-    // CARTO blocked — use OSM
-    L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { subdomains:'abc', maxZoom:19,
-        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }
+  probe.onerror = () => {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { subdomains:'abc', maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }
     ).addTo(map);
   };
-  probe.src = cartoBase;
+  probe.src = `https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/0/0/0${r}.png`;
 })();
 
 // State borders
 fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
   .then(r => r.json())
-  .then(data => {
-    L.geoJSON(data, {
-      style: { color: 'rgba(80,80,80,0.6)', weight: 0.8, fill: false },
-    }).addTo(map);
-  }).catch(() => {});
+  .then(data => L.geoJSON(data, { style:{ color:'rgba(255,255,255,0.15)', weight:0.8, fill:false } }).addTo(map))
+  .catch(() => {});
 
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let watchLayer = null;
-let watchData = [];
-let selectedWatchId = null;
+let mdData = [];
+let mdLayer = null;
+let selectedMdId = null;
 
 // ─────────────────────────────────────────────
-// FETCH WATCHES
+// FETCH MDs
 // ─────────────────────────────────────────────
-// Resolve geometry for a watch feature.
-// NWS /alerts API often has geometry:null on the collection endpoint but the
-// individual alert endpoint /alerts/{id} returns the actual unified polygon.
-// We try that first, then fall back to merging county zone geometries.
-async function resolveWatchGeometry(feature) {
-  const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
-
-  // 1. Already has geometry — use it directly
-  if (feature.geometry) return feature;
-
-  // 2. Try fetching the individual alert which has the unified polygon
-  const alertId = feature.properties?.id;
-  if (alertId) {
-    try {
-      const res = await fetch(`https://api.weather.gov/alerts/${alertId}`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.geometry) return { ...feature, geometry: data.geometry };
-        // Some NWS responses wrap it under properties.geocode or affectedZones polygon
-      }
-    } catch (e) { /* fall through to zone merge */ }
-  }
-
-  // 3. Fall back: fetch all zone polygons and build a true outer-ring union
-  // Instead of keeping individual county polygons separate, we collect all
-  // outer rings and then try to merge contiguous ones via a simple approach.
-  const zoneUrls = feature.properties.affectedZones || [];
-  if (!zoneUrls.length) return null;
+async function fetchMDs() {
+  document.getElementById('map-loading').classList.add('show');
   try {
-    const zoneResponses = await Promise.all(
-      zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null).catch(() => null))
-    );
-    const polygons = []; // each entry = array of rings (first = outer, rest = holes)
-    for (const zone of zoneResponses) {
-      if (!zone?.geometry) continue;
-      const g = zone.geometry;
-      if (g.type === 'Polygon') polygons.push(g.coordinates);
-      else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => polygons.push(p));
+    // Route through worker for CORS + referer
+    const proxyUrl = `${WORKER_URL}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson`;
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const gj = await res.json();
+    mdData = (gj.features || []).filter(f => f.geometry);
+    // Debug: log all property keys and a sample feature so we can fix field names
+    if (mdData.length > 0) {
+      console.log('[meso] property keys:', Object.keys(mdData[0].properties));
+      console.log('[meso] sample props:', JSON.stringify(mdData[0].properties, null, 2));
+    } else if (gj.features?.length > 0) {
+      // Features without geometry — log those too
+      console.log('[meso] no-geometry feature keys:', Object.keys(gj.features[0].properties));
+      console.log('[meso] no-geometry sample:', JSON.stringify(gj.features[0].properties, null, 2));
     }
-    if (!polygons.length) return null;
-
-    // Merge contiguous polygons: if two polygons share an edge they should be
-    // one contiguous blob. We use a simple point-adjacency check — if the
-    // bounding boxes overlap we treat them as one contiguous group.
-    // Group into connected components via bounding-box overlap.
-    function bbox(coords) {
-      let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
-      for (const [x,y] of coords) { if(x<minX)minX=x; if(y<minY)minY=y; if(x>maxX)maxX=x; if(y>maxY)maxY=y; }
-      return [minX,minY,maxX,maxY];
-    }
-    function bboxOverlap([ax0,ay0,ax1,ay1],[bx0,by0,bx1,by1]) {
-      // Expand slightly to catch shared edges
-      const e = 0.02;
-      return ax0-e<=bx1 && ax1+e>=bx0 && ay0-e<=by1 && ay1+e>=by0;
-    }
-
-    const boxes = polygons.map(p => bbox(p[0]));
-    const groups = [];
-    const visited = new Array(polygons.length).fill(false);
-    for (let i = 0; i < polygons.length; i++) {
-      if (visited[i]) continue;
-      const group = [i]; visited[i] = true;
-      let queue = [i];
-      while (queue.length) {
-        const cur = queue.shift();
-        for (let j = 0; j < polygons.length; j++) {
-          if (visited[j]) continue;
-          if (bboxOverlap(boxes[cur], boxes[j])) {
-            visited[j] = true; group.push(j); queue.push(j);
-          }
-        }
-      }
-      groups.push(group);
-    }
-
-    // Each connected group becomes one entry in a MultiPolygon
-    const multiCoords = [];
-    for (const group of groups) {
-      // For each group, include all outer rings (index 0 of each polygon)
-      for (const idx of group) multiCoords.push(polygons[idx]);
-    }
-
-    const merged = multiCoords.length === 1
-      ? { type: 'Polygon', coordinates: multiCoords[0] }
-      : { type: 'MultiPolygon', coordinates: multiCoords };
-
-    return { ...feature, geometry: merged };
-  } catch (e) {
-    console.warn('Zone geometry resolve failed:', e);
-    return null;
-  }
-}
-
-async function fetchWatches() {
-  setLoading(true);
-  const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
-  try {
-    const [torRes, svrRes] = await Promise.all([
-      fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
-      fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
-    ]);
-    if (!torRes.ok) throw new Error(`Tornado watch fetch: HTTP ${torRes.status}`);
-    if (!svrRes.ok) throw new Error(`SVR watch fetch: HTTP ${svrRes.status}`);
-    const [torData, svrData] = await Promise.all([torRes.json(), svrRes.json()]);
-    const allFeatures = [
-      ...(torData.features || []),
-      ...(svrData.features || []),
-    ];
-
-    // Resolve geometries — watches are county-based and often have geometry:null
-    // For those, merge the affected zone polygons to build the watch area
-    const resolved = await Promise.all(allFeatures.map(f => resolveWatchGeometry(f)));
-    watchData = resolved.filter(Boolean).sort((a, b) => {
-      const aIsTor = a.properties.event === 'Tornado Watch';
-      const bIsTor = b.properties.event === 'Tornado Watch';
-      if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
-      return new Date(a.properties.expires) - new Date(b.properties.expires);
-    });
-    renderWatches();
-    updateStatus();
-    document.getElementById('watch-updated').textContent =
-      `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    renderMDs();
+    document.getElementById('md-updated').textContent =
+      `Updated ${new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' })}`;
   } catch (err) {
-    console.error('Fetch watches failed:', err);
+    console.error('MD fetch failed:', err);
     setError();
   } finally {
-    setLoading(false);
+    document.getElementById('map-loading').classList.remove('show');
   }
 }
 
 // ─────────────────────────────────────────────
-// RENDER WATCH LIST + MAP LAYER
+// RENDER
 // ─────────────────────────────────────────────
-function renderWatches() {
-  const list = document.getElementById('watch-list');
+function renderMDs() {
+  const list = document.getElementById('md-list');
   const panelSub = document.getElementById('panel-sub');
-  const mobCount = document.getElementById('mob-watch-count');
+  const mobCount = document.getElementById('mob-md-count');
 
-  // Remove old map layer
-  if (watchLayer) { map.removeLayer(watchLayer); watchLayer = null; }
+  if (mdLayer) { map.removeLayer(mdLayer); mdLayer = null; }
+  hideDetail();
 
-  if (!watchData.length) {
+  if (!mdData.length) {
     list.innerHTML = `
-      <div class="watch-empty">
-        <span class="material-symbols-rounded">check_circle</span>
-        <div class="watch-empty-title">No Active Watches</div>
-        <div class="watch-empty-sub">No tornado or severe thunderstorm watches are currently in effect across the U.S.</div>
+      <div class="md-empty">
+        <span class="material-symbols-rounded msr-fill">check_circle</span>
+        <div class="md-empty-title">No Active Discussions</div>
+        <div class="md-empty-sub">No mesoscale discussions are currently issued by the SPC.</div>
       </div>`;
-    panelSub.textContent = 'No watches in effect';
+    panelSub.textContent = 'No active discussions';
     mobCount.textContent = '0';
+    updateStatus(0);
     return;
   }
 
-  const torCount = watchData.filter(f => f.properties.event === 'Tornado Watch').length;
-  const svrCount = watchData.filter(f => f.properties.event === 'Severe Thunderstorm Watch').length;
-  const parts = [];
-  if (torCount) parts.push(`${torCount} Tornado`);
-  if (svrCount) parts.push(`${svrCount} Severe Tstm.`);
-  panelSub.textContent = parts.join(' · ');
-  mobCount.textContent = watchData.length;
+  panelSub.textContent = `${mdData.length} active discussion${mdData.length !== 1 ? 's' : ''}`;
+  mobCount.textContent = mdData.length;
+  updateStatus(mdData.length);
 
-  // Build watch list cards
-  list.innerHTML = watchData.map((f, idx) => {
-    const p = f.properties;
-    const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
-    const cls = style.cls;
-    const watchNum = extractWatchNum(p);
-    const states = extractStates(f);
-    const expireStr = formatExpire(p.expires);
-    const expiringSoon = isExpiringSoon(p.expires);
+  // Build map layer
+  mdLayer = L.geoJSON({ type:'FeatureCollection', features: mdData }, {
+    style: () => ({
+      color: '#f97316',
+      weight: 2,
+      fillColor: '#f97316',
+      fillOpacity: 0.12,
+      dashArray: null,
+    }),
+    onEachFeature: (feature, layer) => {
+      layer.on('click', () => selectMd(feature.properties?.MESO_DISC_NUMBER || feature.properties?.mdnum || feature.properties?.OBJECTID));
+      layer.on('mouseover', function() {
+        if (selectedMdId !== getMdId(feature)) this.setStyle({ fillOpacity:0.22, weight:2.5 });
+      });
+      layer.on('mouseout', function() {
+        if (selectedMdId !== getMdId(feature)) this.setStyle({ fillOpacity:0.12, weight:2 });
+      });
+    }
+  }).addTo(map);
+
+  // Build list cards
+  list.innerHTML = mdData.map((f, idx) => {
+    const p = f.properties || {};
+    const mdNum = getMdId(f);
+    // CONCERNING = subject like "Severe Thunderstorms / Tornadoes"
+    // PROD_TYPE = "MESOSCALE DISCUSSION" — not useful as badge, skip it
+    const concern = p.CONCERNING || p.concerning || p.TITLE || p.SUBJECT || null;
+    const area = p.AFFECTED || p.affected || p.AREA_DESC || p.areaDesc
+              || p.WFO_AREA || p.STATES || p.STATE || p.AREA
+              || extractAreaFromProps(p);
+    const issued = p.ISSUE_TIME || p.issueTime || p.ISSUANCE_TIME || p.ISSUETIME || null;
+    const expires = p.EXPIRE_TIME_UTC || p.EXPIRE_TIME || p.expireTime
+                 || p.EXPIRATION_TIME || p.EXPIRETIME || null;
+    const expDate = expires ? new Date(expires) : null;
+    const ageMin = expDate ? (expDate - Date.now()) / 60000 : null;
+    const expiringSoon = ageMin !== null && ageMin < 60;
+    const expStr = expDate ? expDate.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : '—';
+    const year = new Date().getUTCFullYear();
+    const spcUrl = mdNum ? `https://www.spc.noaa.gov/products/md/${year}/md${String(mdNum).padStart(4,'0')}.html` : 'https://www.spc.noaa.gov/products/md/';
+
     return `
-      <div class="watch-card${selectedWatchId === idx ? ' selected' : ''}" data-idx="${idx}">
-        <div class="watch-card-bar ${cls}"></div>
-        <div class="watch-card-inner">
-          <div class="watch-card-header">
-            <span class="watch-type-badge ${cls}">${cls === 'tor' ? 'Tornado' : 'Severe Tstm.'}</span>
-            ${watchNum ? `<span class="watch-num">#${watchNum}</span>` : ''}
+      <div class="md-card${selectedMdId === mdNum ? ' selected' : ''}" data-idx="${idx}" data-id="${mdNum}">
+        <div class="md-card-bar"></div>
+        <div class="md-card-inner">
+          <div class="md-card-header">
+            <span class="md-num">MD #${mdNum || idx+1}</span>
+            ${concern ? `<span class="md-concern-badge" title="${concern}">${concern}</span>` : ''}
           </div>
-          <div class="watch-card-states">${states || p.senderName || 'Multiple Areas'}</div>
-          <div class="watch-card-expire${expiringSoon ? ' expiring-soon' : ''}">
-            <span class="material-symbols-rounded">${expiringSoon ? 'timer' : 'schedule'}</span>
-            Expires ${expireStr}
+          <div class="md-card-area">${area || 'Area not specified'}</div>
+          <div class="md-card-footer">
+            <div class="md-card-expire${expiringSoon ? ' expiring-soon' : ''}">
+              <span class="material-symbols-rounded">schedule</span>
+              ${expDate ? `Until ${expStr}` : 'No expiry'}
+            </div>
+            <a class="md-card-link" href="${spcUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+              <span class="material-symbols-rounded">open_in_new</span>SPC
+            </a>
           </div>
         </div>
       </div>`;
   }).join('');
 
-  // Click handlers
-  list.querySelectorAll('.watch-card').forEach(card => {
-    card.addEventListener('click', () => selectWatch(parseInt(card.dataset.idx)));
+  // Card click handlers
+  list.querySelectorAll('.md-card').forEach(card => {
+    card.addEventListener('click', () => selectMd(card.dataset.id));
   });
+}
 
-  // Draw on map
-  watchLayer = L.geoJSON({ type: 'FeatureCollection', features: watchData }, {
-    style: feat => {
-      const style = WATCH_STYLES[feat.properties.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
-      return {
-        fillColor: style.fill,
-        fillOpacity: 0.18,
-        color: style.stroke,
-        weight: 1.5,
-        opacity: 0.85,
-      };
-    },
-    onEachFeature: (feat, layer) => {
-      const p = feat.properties;
-      const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
-      const watchNum = extractWatchNum(p);
-      const expireStr = formatExpire(p.expires);
-      layer.bindPopup(`
-        <div class="popup-bar ${style.cls}"></div>
-        <div class="popup-inner">
-          <span class="popup-type ${style.cls}">${style.label}</span>
-          <div class="popup-title">${watchNum ? `Watch #${watchNum}` : p.event}</div>
-          <div class="popup-expires">Expires ${expireStr}</div>
-        </div>`, { closeButton: false, maxWidth: 260 });
+function getMdId(feature) {
+  const p = feature.properties || {};
+  return p.MESO_DISC_NUMBER || p.mdnum || p.MD_NUMBER || p.OBJECTID || null;
+}
 
-      layer.on('click', () => {
-        const idx = watchData.indexOf(feat);
-        if (idx >= 0) selectWatch(idx);
-      });
+function extractAreaFromProps(p) {
+  // SPC MapServer known fields — try all variations
+  for (const key of ['AREA', 'AREAFCST', 'STATES', 'STATE', 'WFO', 'WFO_AREA',
+                      'PROD_SUBTYPE', 'REGION', 'LOCATIONS', 'LOCATION', 'AREA_DESC']) {
+    if (p[key] && typeof p[key] === 'string' && p[key].trim()) return p[key].trim();
+  }
+  // Last resort: scan all keys for anything that looks like a state/area description
+  for (const [k, v] of Object.entries(p)) {
+    if (typeof v === 'string' && v.length > 3 && v.length < 120 &&
+        /[A-Z]{2}/.test(v) && !['PROD_TYPE','OBJECTID'].includes(k)) {
+      return v;
     }
-  }).addTo(map);
-
-  // Fit bounds if watches exist
-  try {
-    const bounds = watchLayer.getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 7 });
-  } catch (e) {}
+  }
+  return '';
 }
 
 // ─────────────────────────────────────────────
-// SELECT WATCH
+// SELECT
 // ─────────────────────────────────────────────
-function selectWatch(idx) {
-  selectedWatchId = idx;
+function selectMd(id) {
+  selectedMdId = id != null ? String(id) : null;
 
-  // Update card selection
-  document.querySelectorAll('.watch-card').forEach((c, i) => {
-    c.classList.toggle('selected', i === idx);
+  // Update card styles
+  document.querySelectorAll('.md-card').forEach(card => {
+    card.classList.toggle('selected', card.dataset.id === selectedMdId);
   });
 
-  const feat = watchData[idx];
-  if (!feat) return;
+  if (!selectedMdId) { hideDetail(); return; }
 
-  const p = feat.properties;
-  const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
-  const watchNum = extractWatchNum(p);
-  const expireStr = formatExpire(p.expires);
-  const expiringSoon = isExpiringSoon(p.expires);
-  const states = extractStates(feat);
+  const feature = mdData.find(f => String(getMdId(f)) === selectedMdId);
+  if (!feature) return;
 
-  // Populate detail panel
-  document.getElementById('wd-bar').className = `watch-detail-bar ${style.cls}`;
-  const typeEl = document.getElementById('wd-type');
-  typeEl.className = `watch-detail-type ${style.cls}`;
-  typeEl.textContent = style.cls === 'tor' ? 'Tornado Watch' : 'Severe Thunderstorm Watch';
-  document.getElementById('wd-num').textContent = watchNum ? `Watch #${watchNum}` : p.event;
+  const p = feature.properties || {};
+  const mdNum = getMdId(feature);
+  const concern = p.CONCERNING || p.concerning || p.TITLE || p.SUBJECT || null;
+  const area = p.AFFECTED || p.affected || p.AREA_DESC || p.areaDesc
+            || p.WFO_AREA || p.STATES || p.STATE || p.AREA
+            || extractAreaFromProps(p) || 'Area not specified';
+  const expires = p.EXPIRE_TIME_UTC || p.EXPIRE_TIME || p.expireTime
+               || p.EXPIRATION_TIME || p.EXPIRETIME || null;
+  const expDate = expires ? new Date(expires) : null;
+  const expStr = expDate ? expDate.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) : 'No expiry';
+  const year = new Date().getUTCFullYear();
+  const spcUrl = mdNum ? `https://www.spc.noaa.gov/products/md/${year}/md${String(mdNum).padStart(4,'0')}.html` : 'https://www.spc.noaa.gov/products/md/';
 
-  const body = document.getElementById('wd-body');
-  const fullArea = p.areaDesc || states || '—';
-  body.innerHTML = `
-    <div class="wd-row"><span class="wd-label">Areas</span><span class="wd-value">${fullArea}</span></div>
-    <div class="wd-row"><span class="wd-label">Issued</span><span class="wd-value">${formatTimestamp(p.onset)}</span></div>
-    <div class="wd-row"><span class="wd-label">Expires</span><span class="wd-value">${expireStr}</span></div>
-    ${p.senderName ? `<div class="wd-row"><span class="wd-label">Issued by</span><span class="wd-value">${p.senderName}</span></div>` : ''}
-    ${expiringSoon ? `<div class="wd-expire-warn"><span class="material-symbols-rounded">timer</span>Expiring within 30 minutes</div>` : ''}
-  `;
+  document.getElementById('detail-num').textContent = `MD #${mdNum || '—'}`;
+  document.getElementById('detail-concern').textContent = concern;
+  document.getElementById('detail-area').textContent = area;
+  document.getElementById('detail-valid').textContent = expDate ? `Until ${expStr}` : 'No expiry';
+  document.getElementById('detail-spc-link').href = spcUrl;
 
-  document.getElementById('watch-detail').className = 'watch-detail open';
+  // Zoom button
+  document.getElementById('detail-zoom-btn').onclick = () => {
+    if (feature.geometry) {
+      const layer = L.geoJSON(feature);
+      map.fitBounds(layer.getBounds(), { padding: [40, 40] });
+    }
+  };
+
+  document.getElementById('md-detail').classList.add('show');
 
   // Pan map to feature
-  try {
-    const layer = watchLayer.getLayers().find(l => l.feature === feat);
-    if (layer) {
-      const bounds = layer.getBounds();
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 7 });
-    }
-  } catch (e) {}
+  if (feature.geometry) {
+    const layer = L.geoJSON(feature);
+    map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 8 });
+  }
 
-  // Scroll card into view on mobile
-  const card = document.querySelectorAll('.watch-card')[idx];
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Close mobile panel
+  document.getElementById('md-panel').classList.remove('mob-open');
+}
+
+function hideDetail() {
+  document.getElementById('md-detail').classList.remove('show');
 }
 
 // ─────────────────────────────────────────────
-// HELPERS
+// STATUS
 // ─────────────────────────────────────────────
-function extractWatchNum(p) {
-  // NWS id looks like "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.XXXX.2026-..."
-  // The watch number often appears in parameters.VTEC or headline
-  if (p.parameters) {
-    const vtec = (p.parameters.VTEC || []).join('');
-    const m = vtec.match(/\.W\.(\d{4})\./);
-    if (m) return parseInt(m[1], 10);
-  }
-  // Fallback: parse from headline
-  const hl = (p.headline || p.description || '');
-  const m2 = hl.match(/Watch (\d+)/i);
-  if (m2) return parseInt(m2[1], 10);
-  return null;
-}
-
-function extractStates(feat) {
-  const p = feat.properties;
-  if (p.areaDesc) {
-    return p.areaDesc.length > 60 ? p.areaDesc.slice(0, 58) + '…' : p.areaDesc;
-  }
-  return null;
-}
-
-function formatExpire(isoStr) {
-  if (!isoStr) return '—';
-  try {
-    const d = new Date(isoStr);
-    return d.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' });
-  } catch { return isoStr; }
-}
-
-function formatTimestamp(isoStr) {
-  if (!isoStr) return '—';
-  try {
-    const d = new Date(isoStr);
-    return d.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' });
-  } catch { return isoStr; }
-}
-
-function isExpiringSoon(isoStr) {
-  if (!isoStr) return false;
-  const diff = new Date(isoStr) - Date.now();
-  return diff > 0 && diff < 30 * 60 * 1000;
-}
-
-function updateStatus() {
+function updateStatus(count) {
   const dot = document.getElementById('status-dot');
-  const text = document.getElementById('status-text');
-  const torCount = watchData.filter(f => f.properties.event === 'Tornado Watch').length;
-  const svrCount = watchData.filter(f => f.properties.event === 'Severe Thunderstorm Watch').length;
-
-  if (!watchData.length) {
-    dot.className = 'status-dot green';
-    text.textContent = 'No watches in effect';
-  } else if (torCount > 0) {
-    dot.className = 'status-dot red';
-    const parts = [];
-    if (torCount) parts.push(`${torCount} Tornado Watch${torCount > 1 ? 'es' : ''}`);
-    if (svrCount) parts.push(`${svrCount} Severe Tstm.`);
-    text.textContent = parts.join(' · ');
-  } else {
-    dot.className = 'status-dot amber';
-    text.textContent = `${svrCount} Severe Thunderstorm Watch${svrCount > 1 ? 'es' : ''}`;
-  }
-}
-
-function setLoading(on) {
-  const btn = document.getElementById('refresh-btn');
-  btn.classList.toggle('spinning', on);
+  const txt = document.getElementById('status-text');
+  dot.className = 'status-dot ' + (count > 0 ? 'active' : 'none');
+  txt.textContent = count > 0
+    ? `${count} Active Discussion${count !== 1 ? 's' : ''}`
+    : 'No Active Discussions';
 }
 
 function setError() {
-  document.getElementById('watch-list').innerHTML = `
-    <div class="watch-empty">
-      <span class="material-symbols-rounded">error_outline</span>
-      <div class="watch-empty-title">Couldn't Load Watches</div>
-      <div class="watch-empty-sub">Check your connection or try refreshing.</div>
+  document.getElementById('panel-sub').textContent = 'Failed to load';
+  document.getElementById('status-dot').className = 'status-dot stale';
+  document.getElementById('status-text').textContent = 'Load error';
+  document.getElementById('md-list').innerHTML = `
+    <div class="md-empty">
+      <span class="material-symbols-rounded">wifi_off</span>
+      <div class="md-empty-title">Could not load discussions</div>
+      <div class="md-empty-sub">Check your connection and try again.</div>
     </div>`;
-  document.getElementById('panel-sub').textContent = 'Error loading data';
-  document.getElementById('status-dot').className = 'status-dot amber';
-  document.getElementById('status-text').textContent = 'Data unavailable';
 }
-
-// ─────────────────────────────────────────────
-// DETAIL CLOSE
-// ─────────────────────────────────────────────
-document.getElementById('wd-close').addEventListener('click', () => {
-  document.getElementById('watch-detail').classList.remove('open');
-  selectedWatchId = null;
-  document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
-});
-
-// ─────────────────────────────────────────────
-// REFRESH
-// ─────────────────────────────────────────────
-document.getElementById('refresh-btn').addEventListener('click', () => {
-  document.getElementById('watch-detail').classList.remove('open');
-  selectedWatchId = null;
-  fetchWatches();
-});
-
-// Auto-refresh every 5 minutes
-setInterval(fetchWatches, 5 * 60 * 1000);
-
-// ─────────────────────────────────────────────
-// MOBILE: toggle watch panel
-// ─────────────────────────────────────────────
-document.getElementById('mob-watch-toggle').addEventListener('click', () => {
-  document.getElementById('watch-panel').classList.toggle('mob-open');
-});
-
-// ─────────────────────────────────────────────
-// SEARCH (same as outlook — saves location → index.html)
-// ─────────────────────────────────────────────
-(function(){
-  const SA={"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"};
-  function sa(n){return SA[n]||n;}
-  function pn(r){const a=r.address||{};const c=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];const s=sa(a.state||'');return{label:s?`${c}, ${s}`:c,city:c,state:s,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};}
-  const RECENTS_KEY='jweather_recents',MAX_RECENTS=5;
-  function getRecents(){try{return JSON.parse(localStorage.getItem(RECENTS_KEY))||[];}catch{return[];}}
-  function saveRecent(loc){let r=getRecents().filter(x=>x.label!==loc.label);r.unshift(loc);if(r.length>MAX_RECENTS)r=r.slice(0,MAX_RECENTS);localStorage.setItem(RECENTS_KEY,JSON.stringify(r));}
-  function removeRecent(label){localStorage.setItem(RECENTS_KEY,JSON.stringify(getRecents().filter(r=>r.label!==label)));}
-  function pick(l){saveRecent(l);localStorage.setItem('jweather_last_location',JSON.stringify(l));window.location.href='index.html';}
-  const _sI=[
-    {bar:document.getElementById('search-bar'),     sug:document.getElementById('suggestions')},
-    {bar:document.getElementById('search-bar-mob'), sug:document.getElementById('suggestions-mob')},
-  ].filter(x=>x.bar&&x.sug);
-  if(!_sI.length)return;
-  const saved=(()=>{try{const l=JSON.parse(localStorage.getItem('jweather_last_location'));return l?.lat?l:null;}catch{return null;}})();
-  if(saved)_sI.forEach(({bar})=>bar.value=saved.label||'');
-  let sugs=[],selIdx=-1,sCtrl=null;
-  function db(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
-  const dFetch=db(async q=>{
-    if(sCtrl)sCtrl.abort();sCtrl=new AbortController();
-    try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=us`,{signal:sCtrl.signal,headers:{'Accept-Language':'en-US,en','User-Agent':'jWeather/1.0'}});
-    const d=await r.json();const seen=new Set();sugs=[];
-    for(const x of d){const p=pn(x);if(!seen.has(p.label)){seen.add(p.label);sugs.push(p);}if(sugs.length>=6)break;}
-    selIdx=-1;rSugs();}catch(e){if(e.name!=='AbortError')console.error(e);}
-  },280);
-  function rSugs(aBar,aSug){
-    _sI.forEach(({sug})=>{sug.innerHTML='';sug.style.display='none';});
-    aBar=aBar||_sI[0]?.bar; aSug=aSug||_sI[0]?.sug;
-    if(!aBar||!aSug)return;
-    const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
-    if(!sugs.length&&!recents.length)return;
-    if(sugs.length){const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Locations';aSug.appendChild(lbl);sugs.forEach((l,i)=>{const li=document.createElement('li');if(i===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">location_on</span><span class="sug-city">${l.label}</span>`;li.addEventListener('mousedown',e=>{e.preventDefault();pick(l);});aSug.appendChild(li);});}
-    if(recents.length){const lbl=document.createElement('div');lbl.className='sug-section-label';lbl.textContent='Recent Searches';aSug.appendChild(lbl);recents.forEach((l,i)=>{const li=document.createElement('li');const ai=sugs.length+i;if(ai===selIdx)li.classList.add('active');li.innerHTML=`<span class="material-symbols-rounded">history</span><span class="sug-city">${l.label}</span><button class="sug-remove" title="Remove">✕</button>`;li.querySelector('.sug-remove').addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();removeRecent(l.label);sugs=sugs.filter(s=>s.label!==l.label);rSugs(aBar,aSug);});li.addEventListener('mousedown',e=>{if(e.target.classList.contains('sug-remove'))return;e.preventDefault();pick(l);});aSug.appendChild(li);});}
-    aSug.style.display='block';
-  }
-  _sI.forEach(({bar,sug})=>{
-    bar.addEventListener('input',e=>{const q=e.target.value.trim();if(q.length<2){sugs=[];rSugs(bar,sug);return;}rSugs(bar,sug);dFetch(q);});
-    bar.addEventListener('focus',()=>{if(bar.value.trim().length<2){sugs=[];rSugs(bar,sug);}});
-    bar.addEventListener('keydown',e=>{
-      const recents=getRecents().filter(r=>!sugs.some(s=>s.label===r.label));
-      const all=[...sugs,...recents];if(!all.length)return;
-      if(e.key==='ArrowDown'){e.preventDefault();selIdx=(selIdx+1)%all.length;rSugs(bar,sug);}
-      else if(e.key==='ArrowUp'){e.preventDefault();selIdx=(selIdx-1+all.length)%all.length;rSugs(bar,sug);}
-      else if(e.key==='Enter'){if(selIdx>=0&&all[selIdx])pick(all[selIdx]);else if(all[0])pick(all[0]);}
-      else if(e.key==='Escape'){sug.style.display='none';selIdx=-1;}
-    });
-  });
-  document.addEventListener('click',e=>{_sI.forEach(({bar,sug})=>{if(!sug.contains(e.target)&&e.target!==bar){sug.style.display='none';selIdx=-1;}});});
-})();
 
 // ─────────────────────────────────────────────
 // MOBILE NAV
 // ─────────────────────────────────────────────
-(function(){
-})();
 
-// ─────────────────────────────────────────────
-// COMING SOON TOAST
-// ─────────────────────────────────────────────
+document.getElementById('mob-md-toggle').addEventListener('click', () => {
+  document.getElementById('md-panel').classList.toggle('mob-open');
+});
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  hideDetail();
+  selectedMdId = null;
+  document.querySelectorAll('.md-card').forEach(c => c.classList.remove('selected'));
+});
+
+// Close detail on map click (outside polygon)
+map.on('click', () => {
+  if (selectedMdId) {
+    selectedMdId = null;
+    hideDetail();
+    document.querySelectorAll('.md-card').forEach(c => c.classList.remove('selected'));
+  }
+});
+
+// coming-soon links
 document.querySelectorAll('[data-coming-soon]').forEach(el => {
-  el.addEventListener('click', e => {
-    e.preventDefault();
-    const toast = document.getElementById('coming-soon-toast');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-  });
+  el.addEventListener('click', e => e.preventDefault());
 });
 
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
-fetchWatches();
+fetchMDs();
+setInterval(fetchMDs, 5 * 60 * 1000); // refresh every 5 min
 </script>
 
-<!-- ── BOTTOM NAV ── -->
+<!-- ── BOTTOM NAV BAR ── -->
 <nav class="mob-bottom-nav" aria-label="Main navigation">
   <div class="mob-bottom-nav-inner">
     <a href="index.html" class="mob-tab">
@@ -973,50 +724,69 @@ fetchWatches();
     <a href="radar.html" class="mob-tab">
       <span class="material-symbols-rounded">radar</span>Radar
     </a>
-    <button class="mob-tab mob-tab-severe" id="mob-severe-tab">
+    <button class="mob-tab mob-tab-severe" id="mob-severe-tab" aria-haspopup="true">
       <span class="material-symbols-rounded">thunderstorm</span>Severe
     </button>
   </div>
 </nav>
+
+<!-- ── SEVERE SLIDE-UP SHEET ── -->
 <div class="severe-sheet-backdrop" id="severe-backdrop"></div>
-<div class="severe-sheet" id="severe-sheet">
+<div class="severe-sheet" id="severe-sheet" role="dialog" aria-label="Severe Weather">
   <div class="severe-sheet-handle"></div>
   <div class="severe-sheet-title">Severe Weather</div>
   <div class="severe-sheet-items">
     <a href="outlook.html" class="severe-sheet-item">
       <span class="material-symbols-rounded">thunderstorm</span>
-      <div class="severe-sheet-item-text">Severe Outlook<div class="severe-sheet-item-sub">SPC convective outlooks</div></div>
+      <div class="severe-sheet-item-text">
+        Severe Outlook
+        <div class="severe-sheet-item-sub">SPC convective outlooks</div>
+      </div>
     </a>
-    <a href="watches.html" class="severe-sheet-item active">
+    <a href="watches.html" class="severe-sheet-item">
       <span class="material-symbols-rounded">emergency_home</span>
-      <div class="severe-sheet-item-text">Current Watches<div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div></div>
+      <div class="severe-sheet-item-text">
+        Current Watches
+        <div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div>
+      </div>
     </a>
-    <a href="meso.html" class="severe-sheet-item">
+    <a href="meso.html" class="severe-sheet-item active">
       <span class="material-symbols-rounded">crisis_alert</span>
-      <div class="severe-sheet-item-text">Mesoscale Discussions<div class="severe-sheet-item-sub">SPC short-term forecasts</div></div>
+      <div class="severe-sheet-item-text">
+        Mesoscale Discussions
+        <div class="severe-sheet-item-sub">SPC short-term forecasts</div>
+      </div>
     </a>
     <a href="severe101.html" class="severe-sheet-item">
       <span class="material-symbols-rounded">school</span>
-      <div class="severe-sheet-item-text">Severe Weather 101<div class="severe-sheet-item-sub">Learn about severe weather</div></div>
+      <div class="severe-sheet-item-text">
+        Severe Weather 101
+        <div class="severe-sheet-item-sub">Learn about severe weather</div>
+      </div>
     </a>
     <a href="#" class="severe-sheet-item" data-coming-soon>
       <span class="material-symbols-rounded">tune</span>
-      <div class="severe-sheet-item-text">Storm Parameters<div class="severe-sheet-item-sub">Atmospheric instability data</div></div>
+      <div class="severe-sheet-item-text">
+        Storm Parameters
+        <div class="severe-sheet-item-sub">Atmospheric instability data</div>
+      </div>
       <span class="severe-sheet-item-badge soon">Soon</span>
     </a>
   </div>
 </div>
+
 <script>
 (function(){
-  var tab=document.getElementById('mob-severe-tab');
-  var sheet=document.getElementById('severe-sheet');
-  var bd=document.getElementById('severe-backdrop');
-  function open(){sheet.classList.add('open');bd.classList.add('open');}
-  function close(){sheet.classList.remove('open');bd.classList.remove('open');}
-  if(tab)tab.addEventListener('click',function(){sheet.classList.contains('open')?close():open();});
-  if(bd)bd.addEventListener('click',close);
+  var tab = document.getElementById('mob-severe-tab');
+  var sheet = document.getElementById('severe-sheet');
+  var backdrop = document.getElementById('severe-backdrop');
+  function openSheet(){ sheet.classList.add('open'); backdrop.classList.add('open'); }
+  function closeSheet(){ sheet.classList.remove('open'); backdrop.classList.remove('open'); }
+  if(tab) tab.addEventListener('click', function(){ sheet.classList.contains('open') ? closeSheet() : openSheet(); });
+  if(backdrop) backdrop.addEventListener('click', closeSheet);
   document.body.classList.add('has-bottom-nav');
 })();
 </script>
+
 </body>
 </html>
