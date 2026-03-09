@@ -104,6 +104,8 @@
     .product-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-xs);border:none;background:none;font-family:var(--font);font-size:0.8rem;font-weight:500;color:var(--text-3);cursor:pointer;transition:background .1s,color .1s;width:100%;text-align:left;}
     .product-btn:hover{background:var(--bg);color:var(--text-2);}
     .product-btn.active{background:var(--red-dim);color:var(--red);}
+    .product-btn:disabled{opacity:0.35;cursor:not-allowed;pointer-events:none;}
+    .product-btn:disabled:hover{background:none;color:var(--text-3);}
     .product-btn .material-symbols-rounded{font-size:17px;color:inherit;}
 
     /* Station selector */
@@ -265,6 +267,10 @@
       <div id="n0c-note" style="display:none;font-size:0.68rem;color:var(--amber);margin-top:6px;line-height:1.4;">
         <span class="material-symbols-rounded" style="font-size:12px;vertical-align:middle;">info</span>
         Single station only
+      </div>
+      <div id="composite-note" style="font-size:0.68rem;color:var(--text-4);margin-top:6px;line-height:1.4;">
+        <span class="material-symbols-rounded" style="font-size:12px;vertical-align:middle;">info</span>
+        Velocity &amp; CC require a single station
       </div>
     </div>
 
@@ -446,7 +452,7 @@ const SCALES = {
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let currentStation = 'KEAX';
+let currentStation = 'COMPOSITE';
 let currentProduct = 'N0B';
 let frames = [];
 let frameIdx = 0;
@@ -630,10 +636,11 @@ function updateFrameCounter() {
 // Auto-refresh every 5 minutes
 setInterval(initRadar, 5 * 60 * 1000);
 
-// Start on KEAX
-document.getElementById('station-select').value = 'KEAX';
-document.getElementById('radar-station-name').textContent = 'Kansas City, MO';
-map.setView([39.28, -94.26], 7);
+// Default to national composite
+document.getElementById('station-select').value = 'COMPOSITE';
+document.getElementById('radar-station-name').textContent = 'National Composite';
+map.setView([38.5, -96], 4);
+updateProductAvailability();
 initRadar();
 
 // ─────────────────────────────────────────────
@@ -707,20 +714,34 @@ const STATION_COORDS = {
   KATX:[48.19,-122.49], KSFX:[43.11,-112.69],
 };
 
+function updateProductAvailability() {
+  const isComposite = currentStation === 'COMPOSITE';
+  // Only N0B available for composite
+  document.querySelectorAll('.product-btn').forEach(btn => {
+    const p = btn.dataset.product;
+    const compositeOnly = p === 'N0B';
+    btn.disabled = isComposite && !compositeOnly;
+  });
+  // If current product not available, switch to N0B
+  if (isComposite && currentProduct !== 'N0B') {
+    currentProduct = 'N0B';
+    document.querySelectorAll('.product-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.product === 'N0B');
+    });
+    buildLegend('N0B');
+    document.getElementById('n0c-note').style.display = 'none';
+  }
+  // Show composite-only notice
+  document.getElementById('composite-note').style.display = isComposite ? 'block' : 'none';
+}
+
 document.getElementById('station-select').addEventListener('change', e => {
   currentStation = e.target.value;
   const opt = e.target.options[e.target.selectedIndex];
   document.getElementById('radar-station-name').textContent =
     currentStation === 'COMPOSITE' ? 'National Composite' : opt.text.split('—')[1]?.trim() || opt.text;
 
-  // N0C not available on composite — switch back to N0B
-  if (currentStation === 'COMPOSITE' && currentProduct === 'N0C') {
-    currentProduct = 'N0B';
-    document.querySelectorAll('.product-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.product === 'N0B');
-    });
-    buildLegend('N0B');
-  }
+  updateProductAvailability();
 
   if (currentStation !== 'COMPOSITE') {
     const coords = STATION_COORDS[currentStation];
