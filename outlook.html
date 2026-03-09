@@ -761,23 +761,21 @@ let activeMode = 'cat';
 //  so city/road names always show through on top of the weather polygons.
 // ─────────────────────────────────────────────
 function makeBaseTiles() {
-  // Voyager no-labels — base roads/geography without text
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   return L.tileLayer(
-    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,
+    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`,
     {
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains:'abcd', maxZoom:19,
-      r: window.devicePixelRatio > 1 ? '@2x' : ''
     }
   );
 }
 function makeLabelTiles() {
-  // Voyager labels-only — city names, roads, POIs on top of everything
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   return L.tileLayer(
-    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,
+    `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`,
     {
       subdomains:'abcd', maxZoom:19,
-      r: window.devicePixelRatio > 1 ? '@2x' : '',
       pane:'labelTilePane'
     }
   );
