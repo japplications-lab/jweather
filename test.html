@@ -356,7 +356,10 @@
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
     .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
-    .disc-head{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .disc-head{padding:16px 20px 14px;border-bottom:none;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .disc-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .disc-tab{flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--font);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-4);cursor:pointer;transition:color .15s,border-color .15s;}
+    .disc-tab.active{color:var(--red);border-bottom-color:var(--red);}
     .disc-pip{width:9px;height:9px;background:var(--red);border-radius:50%;flex-shrink:0;}
     .disc-modal-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
     .disc-close{background:none;border:none;color:var(--text-4);cursor:pointer;}
@@ -797,8 +800,12 @@
         <div class="disc-modal-title" id="disc-modal-title">SPC Discussion</div>
         <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
       </div>
+      <div class="disc-tabs">
+        <button class="disc-tab active" id="disc-tab-ai" onclick="switchDiscTab('ai')">AI Summary</button>
+        <button class="disc-tab" id="disc-tab-orig" onclick="switchDiscTab('orig')">Original</button>
+      </div>
       <div class="disc-modal-body" id="disc-modal-body">
-        <div class="disc-loading"><div class="spin-ring"></div>Loading discussion…</div>
+        <div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>
       </div>
     </div>
   </div>
@@ -1688,27 +1695,27 @@ const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8'
 const OUTLOOK_CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
 
 const PROB_TORN = [
-  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Isolated chance'       },
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Scattered areas'       },
-  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Several possible'      },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely in spots'       },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Widespread threat'     },
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Major outbreak likely' },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme outbreak'      },
+  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Isolated'   },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Scattered'  },
+  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Possible'   },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Serious'    },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Dangerous'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme'    },
 ];
 const PROB_WIND = [
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated gusts'        },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Damaging winds likely' },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Widespread damage'     },
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Destructive winds'     },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme wind threat'   },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated'   },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Serious'    },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Dangerous'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme'    },
 ];
 const PROB_HAIL = [
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated hail'         },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Large hail likely'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Widespread large hail' },
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Very large hail'       },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme hail threat'   },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated'   },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Serious'    },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Dangerous'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme'    },
 ];
 function getOutlookProbScale(mode) {
   if (mode === 'wind') return PROB_WIND;
@@ -1942,8 +1949,34 @@ function outlookPopupContent(f, mode, day) {
     const dn = Math.round(parseFloat(p.DN ?? p.dn ?? 0) * (parseFloat(p.DN ?? p.dn ?? 0) <= 1 ? 100 : 1));
     const scale = getOutlookProbScale(mode);
     let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
-    const thing = mode === 'torn' ? 'tornadoes' : mode === 'wind' ? 'damaging wind gusts' : 'large hail';
-    const desc = `${dn}% probability of ${thing} within 25 miles of any point in this area.`;
+    const probDescs = {
+      torn: {
+        2:  "An isolated tornado is possible, but most storms won't produce one. Stay aware if storms develop.",
+        5:  "A few tornadoes are possible in scattered locations. Have a shelter plan ready.",
+        10: "Tornadoes are becoming more likely in this area. Know where you'll go if a warning is issued.",
+        15: "Significant tornado threat. Multiple tornadoes are possible — some could be strong. Take this seriously.",
+        30: "Major tornado outbreak underway or expected. Strong, long-track tornadoes likely. Seek sturdy shelter now.",
+        45: "Extremely dangerous tornado situation. Violent tornadoes expected across a wide area.",
+        60: "Catastrophic tornado threat. A historic outbreak is possible. This level is issued only a handful of times per decade.",
+      },
+      wind: {
+        5:  "Isolated damaging wind gusts are possible, but widespread impacts are not expected.",
+        15: "Damaging wind gusts of 60+ mph are likely in portions of this area. Secure loose objects outside.",
+        30: "Widespread damaging winds expected. Power outages and tree damage are likely across a broad area.",
+        45: "Destructive winds are likely. Significant structural damage possible. Avoid unnecessary travel during storms.",
+        60: "Extreme wind event expected. Widespread, potentially catastrophic damage is likely.",
+      },
+      hail: {
+        5:  "Isolated large hail is possible, but most locations will miss it.",
+        15: "Large hail, potentially golf ball size or bigger, is likely in parts of this area.",
+        30: "Widespread large hail expected. Significant damage to vehicles and crops is likely.",
+        45: "Very large hail — baseball size or larger — is likely across a broad area. Stay indoors during storms.",
+        60: "Extreme hail threat. Softball-sized hail is possible. Stay away from windows and vehicles.",
+      },
+    };
+    const tierDescs = probDescs[mode] || {};
+    const matchDn = [2,5,10,15,30,45,60].filter(v => v <= dn).pop() || dn;
+    const desc = tierDescs[matchDn] || 'Severe weather is possible in this area. Stay weather-aware and have a plan.';
     return `<div class="popup-inner">
       <div class="popup-header">
         <div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div>
@@ -2118,8 +2151,11 @@ async function loadOutlookHazard(day, mode) {
 }
 
 async function openDiscModal(day) {
+  _discDay = day;
+  document.getElementById('disc-tab-ai').classList.add('active');
+  document.getElementById('disc-tab-orig').classList.remove('active');
   document.getElementById('disc-modal').style.display = 'flex';
-  document.getElementById('disc-modal-title').textContent = `Day ${day} Outlook Discussion`;
+  document.getElementById('disc-modal-title').textContent = `Day ${day} — ${day===1?'Today':day===2?'Tomorrow':'Day 3'} — SPC Forecast Discussion`;
   document.getElementById('disc-modal-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>';
   try {
     // Step 1: fetch raw SPC text
@@ -2129,18 +2165,31 @@ async function openDiscModal(day) {
     const div = document.createElement('div'); div.innerHTML = html;
     const pre = div.querySelector('pre');
     const rawText = (pre ? pre.textContent : div.textContent).trim().slice(0, 4000);
+    _discRawText = rawText;
 
     // Step 2: send to AI for plain-language summary
     const aiRes = await fetch(`${WORKER_URL}/ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: `You are a friendly, plain-English weather explainer for a mobile weather app called jWeather. 
-Your job is to rewrite SPC severe weather outlook discussions so everyday people can understand them. 
-Use short paragraphs, no jargon, no percentages, no technical codes. 
-Focus on: what's happening, where, when, and what people should watch out for.
-Be concise — aim for 3-5 short paragraphs. Do not use bullet points.
-Do not start with "Sure" or any filler phrases. Get straight to the weather.`,
+        system: `You are a concise weather briefing writer for jWeather, a mobile app for everyday users.
+Rewrite the SPC outlook discussion as a structured briefing with exactly 4 sections.
+Each section must start with its label on its own line in ALL CAPS followed by a colon, then the content on the next line.
+Use this exact format:
+
+WHAT'S HAPPENING:
+[1-2 sentences — the big picture situation]
+
+MAIN THREATS:
+[1-2 sentences — what hazards to expect and where]
+
+WHEN TO EXPECT IT:
+[1-2 sentences — timing]
+
+HOW CONFIDENT ARE FORECASTERS?:
+[1 sentence — confidence level in plain terms]
+
+Rules: No jargon. No percentages. No technical codes. Plain English only. Keep each section to 1-2 sentences max. Do not add any other text, headers, or commentary outside the 4 sections.`,
         messages: [{ role: 'user', content: `Please summarize this SPC outlook discussion in plain English:
 
 ${rawText}` }],
@@ -2152,13 +2201,40 @@ ${rawText}` }],
     const summary = aiData.content?.[0]?.text || aiData.choices?.[0]?.message?.content || '';
     if (!summary) throw new Error('Empty AI response');
 
-    // Render as styled paragraphs
-    const paragraphs = summary.trim().split('\n').filter(p => p.trim());
-    document.getElementById('disc-modal-body').innerHTML = paragraphs
-      .map(p => `<p style="margin:0 0 14px;font-size:0.85rem;line-height:1.75;color:var(--text-2);">${p.trim()}</p>`)
-      .join('') + `<div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border);"><a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="font-size:0.72rem;color:var(--text-4);text-decoration:none;">View original SPC discussion ↗</a></div>`;
+    // Parse structured sections and render like the screenshot
+    const lines = summary.trim().split('\n').map(l => l.trim()).filter(Boolean);
+    let discHtml = '';
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (line.match(/^[A-Z][A-Z\s'?]+:$/)) {
+        const label = line.replace(/:$/, '');
+        const body = lines[i+1] || '';
+        html += `<div style="margin-bottom:16px;">
+          <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:4px;">${label}</div>
+          <div style="font-size:0.84rem;line-height:1.7;color:var(--text-2);">${body}</div>
+        </div>`;
+        i += 2;
+      } else {
+        discHtml += `<div style="font-size:0.84rem;line-height:1.7;color:var(--text-2);margin-bottom:12px;">${line}</div>`;
+        i++;
+      }
+    }
+    discHtml += `<div style="margin-top:4px;padding-top:10px;border-top:1px solid var(--border);"><a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="font-size:0.72rem;color:var(--text-4);text-decoration:none;">View original SPC discussion ↗</a></div>`;
+    document.getElementById('disc-modal-body').innerHTML = discHtml;
   } catch(e) {
     document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion. <a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="color:var(--red)">View on SPC ↗</a></div>`;
+  }
+}
+let _discRawText = '';
+let _discDay = 1;
+function switchDiscTab(tab) {
+  document.getElementById('disc-tab-ai').classList.toggle('active', tab === 'ai');
+  document.getElementById('disc-tab-orig').classList.toggle('active', tab === 'orig');
+  if (tab === 'orig') {
+    document.getElementById('disc-modal-body').innerHTML = `<pre>${_discRawText}</pre>`;
+  } else {
+    openDiscModal(_discDay);
   }
 }
 document.getElementById('disc-close').addEventListener('click', () => { document.getElementById('disc-modal').style.display = 'none'; });
