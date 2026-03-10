@@ -2467,6 +2467,18 @@ async function loadMesoDiscussions() {
   }
 }
 
+// Classify raw SPC "concerning" text into a clean label + color theme
+function classifyConcern(raw) {
+  const s = (raw || '').toLowerCase();
+  if (s.includes('tornado'))                          return { label: 'Potential Tornado',          icon: 'tornado',      color: '#e5182a', dim: 'rgba(229,24,42,0.12)',  border: 'rgba(229,24,42,0.3)'  };
+  if (s.includes('flash flood') || s.includes('flooding')) return { label: 'Flash Flooding',        icon: 'flood',        color: '#00aaff', dim: 'rgba(0,170,255,0.12)', border: 'rgba(0,170,255,0.3)' };
+  if (s.includes('hail'))                             return { label: 'Large Hail',                  icon: 'weather_hail', color: '#a855f7', dim: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.3)' };
+  if (s.includes('wind'))                             return { label: 'Damaging Winds',              icon: 'air',          color: '#f59e0b', dim: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' };
+  if (s.includes('severe'))                           return { label: 'Severe Thunderstorms',        icon: 'thunderstorm', color: '#f97316', dim: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)' };
+  if (s.includes('thunder') || s.includes('convect')) return { label: 'Potential Thunderstorms',    icon: 'thunderstorm', color: '#f97316', dim: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)' };
+  return                                               { label: raw || 'Discussion',                 icon: 'crisis_alert', color: '#f97316', dim: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)' };
+}
+
 function renderMesoList(features) {
   const list = document.getElementById('md-list'); list.innerHTML = '';
   if (!features.length) {
@@ -2475,9 +2487,8 @@ function renderMesoList(features) {
   }
   features.forEach((feat, i) => {
     const p = feat.properties;
-    // NOAA MapServer field names
     const num = p.name || p.num || i+1;
-    const concern = p.concerning || p.watch_confidence || p.discussion_type || 'Potential Thunderstorm';
+    const { label: concern } = classifyConcern(p.concerning || p.watch_confidence || p.discussion_type || '');
     const area = p.affected || p.area || p.attn || p.affected_area || '';
     const expires = p.expire || p.expiration || p.expireTime;
     const expStr = expires ? new Date(expires).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
@@ -2503,13 +2514,19 @@ function selectMeso(i, card) {
 async function showMesoDetail(feat, i) {
   const p = feat.properties;
   const num = p.name || p.num || i+1;
-  const concern = p.concerning || p.watch_confidence || p.discussion_type || 'Potential Thunderstorm';
+  const { label: concern, color, dim, border } = classifyConcern(p.concerning || p.watch_confidence || p.discussion_type || '');
   const area = p.affected || p.area || p.affected_area || '—';
   const expires = p.expire || p.expiration || p.expireTime;
   const expStr = expires ? new Date(expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
   const numStr = String(num).replace(/[^0-9]/g,'').padStart(4,'0');
   const year = new Date().getFullYear();
   const url = `https://www.spc.noaa.gov/products/md/${year}/md${numStr}.html`;
+
+  // Apply concern color theme to detail panel
+  const detail = document.getElementById('md-detail');
+  detail.style.setProperty('--md-color', color);
+  detail.style.setProperty('--md-dim', dim);
+  detail.style.setProperty('--md-border', border);
 
   document.getElementById('mdd-num').textContent = `MCD #${num}`;
   document.getElementById('mdd-concern').textContent = concern;
@@ -2521,29 +2538,46 @@ async function showMesoDetail(feat, i) {
   const textEl = document.getElementById('mdd-text');
   const loadEl = document.getElementById('mdd-text-loading');
   textEl.style.display = 'none';
+  loadEl.textContent = 'Loading discussion…';
   loadEl.style.display = 'block';
   textEl.textContent = '';
-  document.getElementById('md-detail').classList.add('show');
+  detail.classList.add('show');
 
-  // Fetch discussion text via worker proxy
+  // Fetch SPC discussion HTML, then AI-summarize it
   try {
     const res = await fetch(`${WORKER_URL}/proxy/products/md/${year}/md${numStr}.html`);
-    if (!res.ok) throw new Error('fetch failed');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
     const doc = document.createElement('div');
     doc.innerHTML = html;
     const pre = doc.querySelector('pre');
-    let text = (pre ? pre.textContent : doc.textContent).trim();
-    // Strip the header lines (everything before the actual discussion body)
-    const bodyStart = text.search(/\.{3}|\n\n/);
-    if (bodyStart > 0) text = text.slice(bodyStart).trim();
-    text = text.slice(0, 2000);
+    let rawText = (pre ? pre.textContent : doc.textContent).trim();
+    // Trim to first 3000 chars to stay within token limits
+    rawText = rawText.slice(0, 3000);
+
+    // Send to Groq via worker for plain-language summary
+    loadEl.textContent = 'Summarizing with AI…';
+    const aiRes = await fetch(`${WORKER_URL}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 300,
+        system: 'You are a friendly weather assistant. Summarize the SPC mesoscale discussion below in 3-4 plain-English sentences a non-meteorologist can understand. Focus on: what the threat is, where it affects, and when. No bullet points, no headers, no jargon.',
+        messages: [{ role: 'user', content: rawText }]
+      })
+    });
+    if (!aiRes.ok) throw new Error(`AI ${aiRes.status}`);
+    const aiData = await aiRes.json();
+    const summary = aiData?.content?.[0]?.text?.trim() || '';
+    if (!summary) throw new Error('empty AI response');
+
     loadEl.style.display = 'none';
-    textEl.textContent = text;
+    textEl.textContent = summary;
     textEl.style.display = 'block';
   } catch(e) {
     loadEl.style.display = 'none';
-    textEl.textContent = 'Could not load discussion text.';
+    textEl.textContent = 'Could not load discussion summary.';
     textEl.style.display = 'block';
   }
 }
@@ -2558,8 +2592,8 @@ function renderMesoOnMap(features) {
     onEachFeature: (feat, lyr) => {
       const p = feat.properties;
       const num = p.name || p.num || '—';
-      const concern = p.concerning || p.watch_confidence || 'Discussion';
-      lyr.bindPopup(`<div class="popup-inner"><div style="font-size:0.65rem;font-weight:800;color:#f97316;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">MCD #${num}</div><div class="popup-risk" style="font-size:0.83rem">${concern}</div></div>`);
+      const { label: concern, color: cColor } = classifyConcern(p.concerning || p.watch_confidence || '');
+      lyr.bindPopup(`<div class="popup-inner"><div style="font-size:0.65rem;font-weight:800;color:${cColor};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">MCD #${num}</div><div class="popup-risk" style="font-size:0.83rem">${concern}</div></div>`);
       lyr.on('click', () => {
         const idx = mesoData.findIndex(f => f === feat);
         if (idx >= 0) {
