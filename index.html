@@ -306,10 +306,6 @@
     .radar-gps-btn.loading .material-symbols-rounded{animation:spin .8s linear infinite;color:var(--red);}
     .radar-gps-btn.located{color:var(--red);}
     .radar-gps-btn .material-symbols-rounded{font-size:20px;}
-    .radar-loc-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9;pointer-events:none;}
-    .radar-loc-center{width:14px;height:14px;border-radius:50%;background:#f97316;border:2.5px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.5);position:relative;z-index:2;}
-    .radar-loc-pulse{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:rgba(249,115,22,0.4);animation:radar-pulse 1.8s ease-out infinite;z-index:1;}
-    @keyframes radar-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:0.8;}100%{transform:translate(-50%,-50%) scale(3.5);opacity:0;}}
 
     /* ══════════════════════════════════
        PAGE: OUTLOOK
@@ -489,7 +485,7 @@
     .md-empty-sub{font-size:0.72rem;line-height:1.5;}
     .md-map-panel{flex:1;position:relative;}
     #meso-map{position:absolute;inset:0;width:100%;height:100%;}
-    .meso-refresh-btn{position:absolute;top:12px;right:12px;z-index:400;width:36px;height:36px;border-radius:50%;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);box-shadow:0 2px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);transition:color .15s,background .15s;}
+    .meso-refresh-btn{position:absolute;top:12px;right:12px;z-index:460;width:36px;height:36px;border-radius:50%;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);box-shadow:0 2px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);transition:color .15s,background .15s;}
     .meso-refresh-btn:hover{background:var(--red-dim);color:var(--red);}
     .meso-refresh-btn.spinning .material-symbols-rounded{animation:spin .6s linear infinite;color:var(--red);}
     .meso-refresh-btn .material-symbols-rounded{font-size:18px;transition:color .15s;}
@@ -814,10 +810,6 @@
   <div class="app-body">
     <div class="radar-wrap" id="radar-wrap">
       <iframe id="windy-frame" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=5&overlay=radar&product=radar&level=surface&lat=38.5&lon=-96&detail=false&pressure=false&message=false" allowfullscreen loading="eager"></iframe>
-      <div class="radar-loc-dot" id="radar-loc-dot" style="display:none;">
-        <div class="radar-loc-pulse"></div>
-        <div class="radar-loc-center"></div>
-      </div>
       <button class="radar-gps-btn" id="radar-gps-btn" onclick="radarGoToGPS()" title="Go to my location">
         <span class="material-symbols-rounded">my_location</span>
       </button>
@@ -1798,16 +1790,12 @@ document.getElementById('tornado-continue').addEventListener('click', () => {
 function updateRadar(lat, lng) {
   document.getElementById('radar-iframe').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=10&overlay=radar&product=radar&level=surface&lat=${+lat}&lon=${+lng}`;
   document.getElementById('windy-frame').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=8&overlay=radar&product=radar&level=surface&lat=${+lat}&lon=${+lng}&detail=false&pressure=false&message=false`;
-  // Hide GPS dot — map is now centered on searched location, not user's GPS
-  const dot = document.getElementById('radar-loc-dot');
-  if (dot) dot.style.display = 'none';
   const btn = document.getElementById('radar-gps-btn');
   if (btn) btn.classList.remove('located');
 }
 
 function radarGoToGPS() {
   const btn = document.getElementById('radar-gps-btn');
-  const dot = document.getElementById('radar-loc-dot');
   if (!navigator.geolocation) { showToast('GPS not supported'); return; }
   btn.classList.add('loading');
   btn.disabled = true;
@@ -1819,8 +1807,6 @@ function radarGoToGPS() {
       btn.disabled = false;
       // Recenter map on user — dot will be at center of iframe
       document.getElementById('windy-frame').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=10&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}&detail=false&pressure=false&message=false`;
-      // Show dot at center after iframe reloads
-      dot.style.display = 'block';
     },
     (err) => {
       btn.classList.remove('loading');
@@ -2621,6 +2607,9 @@ function initMesoMap() {
     attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
   }).addTo(mesoMap);
   loadMesoDiscussions();
+  // Poll every 2 minutes for new MCDs
+  if (window._mesoInterval) clearInterval(window._mesoInterval);
+  window._mesoInterval = setInterval(loadMesoDiscussions, 120000);
 }
 
 async function loadMesoDiscussions() {
@@ -2629,9 +2618,10 @@ async function loadMesoDiscussions() {
   document.getElementById('md-list').innerHTML = '<div class="md-empty"><span class="material-symbols-rounded spin">progress_activity</span><div class="md-empty-sub">Loading discussions…</div></div>';
   document.getElementById('md-status-text').textContent = 'Loading…';
   try {
-    const mcdUrl = `${WORKER_URL}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson`;
+    // Use SPC's live GeoJSON feed — more current than the NOAA MapServer
+    const mcdUrl = `${WORKER_URL}/proxy/products/spcmcd.geojson?_=${Date.now()}`;
     const res = await fetch(mcdUrl, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`NOAA returned ${res.status}`);
+    if (!res.ok) throw new Error(`SPC returned ${res.status}`);
     const text = await res.text();
     let data;
     try { data = JSON.parse(text); } catch(e) { throw new Error('Invalid JSON: ' + text.slice(0, 80)); }
