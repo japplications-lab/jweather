@@ -1582,6 +1582,7 @@ const OUTLOOK_MODE_LABELS = {cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail
 let outlookMap = null;
 let activeOutlookLayer = null;
 let activeOutlookSigLayer = null;
+let activeHatchLayers = [];
 let activeOutlookDay = 1;
 let activeOutlookMode = 'cat';
 
@@ -1606,69 +1607,72 @@ function initOutlookMap() {
     attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
   }).addTo(outlookMap);
 
-  // Canvas-based hatch layer — works on all browsers including mobile WebKit
-  // Returns a Leaflet layer that draws diagonal black lines over the given GeoJSON features
+  // Canvas hatch layer — solid black diagonal lines clipped to polygon shapes
+  // Works on all browsers including mobile WebKit (no SVG pattern fill refs needed)
   function makeHatchLayer(geojsonFeatures) {
     const HatchLayer = L.Layer.extend({
       initialize(features) { this._features = features; },
       onAdd(map) {
         this._map = map;
-        this._canvas = L.DomUtil.create('canvas', 'leaflet-hatch-canvas');
-        const pane = map.getPanes().overlayPane;
-        pane.appendChild(this._canvas);
-        this._canvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;';
+        this._canvas = document.createElement('canvas');
+        this._canvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:300;';
+        map.getPanes().overlayPane.appendChild(this._canvas);
         map.on('moveend zoomend resize', this._redraw, this);
         this._redraw();
       },
       onRemove(map) {
         map.off('moveend zoomend resize', this._redraw, this);
         if (this._canvas && this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+        this._canvas = null;
       },
       _redraw() {
+        if (!this._canvas) return;
         const map = this._map;
         const size = map.getSize();
         const c = this._canvas;
         c.width = size.x; c.height = size.y;
-        // Offset canvas to align with Leaflet's overlay pane
-        const topLeft = map.containerPointToLayerPoint([0, 0]);
-        L.DomUtil.setPosition(c, topLeft);
+        const topLeft = map.containerPointToLayerPoint([0,0]);
+        c.style.left = topLeft.x + 'px';
+        c.style.top  = topLeft.y + 'px';
         const ctx = c.getContext('2d');
         ctx.clearRect(0, 0, c.width, c.height);
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
 
-        // Clip to each polygon, then draw diagonal lines across it
         this._features.forEach(f => {
           const geom = f.geometry;
           if (!geom) return;
           const polys = geom.type === 'Polygon' ? [geom.coordinates]
             : geom.type === 'MultiPolygon' ? geom.coordinates : [];
           polys.forEach(poly => {
+            // Build clip path
             ctx.save();
             ctx.beginPath();
             poly.forEach(ring => {
               ring.forEach((coord, i) => {
                 const pt = map.latLngToContainerPoint(L.latLng(coord[1], coord[0]));
-                i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+                i === 0 ? ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y)
+                        : ctx.lineTo(pt.x - topLeft.x, pt.y - topLeft.y);
               });
               ctx.closePath();
             });
             ctx.clip();
-            // Draw border
+            // Draw solid polygon border
             ctx.stroke();
-            // Draw diagonal hatch lines across bounding box
-            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            // Bounding box for hatch lines
+            let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
             poly[0].forEach(coord => {
               const pt = map.latLngToContainerPoint(L.latLng(coord[1], coord[0]));
-              if (pt.x < minX) minX = pt.x; if (pt.x > maxX) maxX = pt.x;
-              if (pt.y < minY) minY = pt.y; if (pt.y > maxY) maxY = pt.y;
+              const px = pt.x - topLeft.x, py = pt.y - topLeft.y;
+              if (px<x0)x0=px; if (px>x1)x1=px; if (py<y0)y0=py; if (py>y1)y1=py;
             });
-            const span = (maxX - minX) + (maxY - minY);
             const step = 10;
+            const diag = (x1-x0) + (y1-y0);
             ctx.beginPath();
-            for (let d = -span; d < span * 2; d += step) {
-              ctx.moveTo(minX + d, minY);
-              ctx.lineTo(minX + d + (maxY - minY), maxY);
+            for (let d = -diag; d < diag * 2; d += step) {
+              ctx.moveTo(x0 + d,        y0);
+              ctx.lineTo(x0 + d + diag, y0 + diag);
             }
             ctx.stroke();
             ctx.restore();
@@ -1676,7 +1680,14 @@ function initOutlookMap() {
         });
       }
     });
-    return new HatchLayer(geojsonFeatures);
+    const layer = new HatchLayer(geojsonFeatures);
+    return layer;
+  }
+  function addHatchLayer(features) {
+    const l = makeHatchLayer(features);
+    l.addTo(outlookMap);
+    activeHatchLayers.push(l);
+    return l;
   }
 
   buildOutlookSidebar();
@@ -1893,6 +1904,7 @@ async function loadOutlookHazard(day, mode) {
 
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
+  activeHatchLayers.forEach(l => { try { outlookMap.removeLayer(l); } catch(e){} }); activeHatchLayers = [];
 
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
   if (!layerId) { loading.classList.add('hidden'); return; }
@@ -1965,7 +1977,7 @@ async function loadOutlookHazard(day, mode) {
         L.geoJSON(f, { style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 }, interactive:false }).addTo(outlookMap);
       });
       // Hatch lines on top via canvas (works on mobile WebKit)
-      makeHatchLayer(cigFeatures).addTo(outlookMap);
+      addHatchLayer(cigFeatures);
       appendHatchLegend(mode);
     }
 
@@ -1986,7 +1998,7 @@ async function loadOutlookHazard(day, mode) {
               }
             }).addTo(outlookMap);
             // Canvas hatch on top
-            makeHatchLayer(sigGj.features).addTo(outlookMap);
+            addHatchLayer(sigGj.features);
             if (!cigFeatures.length) appendHatchLegend(mode);
           }
         }
