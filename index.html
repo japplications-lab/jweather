@@ -469,6 +469,8 @@
     .status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-4);flex-shrink:0;}
     .status-dot.active{background:var(--md-color);box-shadow:0 0 0 3px rgba(249,115,22,0.2);}
     .status-dot.none{background:var(--green);}
+    .md-detail-backdrop{display:none;position:absolute;inset:0;z-index:399;}
+    .md-detail-backdrop.show{display:block;}
     .md-detail{position:absolute;bottom:16px;right:16px;z-index:400;background:rgba(20,23,30,0.97);backdrop-filter:blur(12px);border:1px solid var(--md-border);border-radius:var(--r);padding:14px 16px;max-width:300px;min-width:220px;box-shadow:0 4px 24px rgba(0,0,0,.5);display:none;}
     .md-detail.show{display:block;}
     .md-detail-num{font-size:0.65rem;font-weight:800;color:var(--md-color);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
@@ -477,10 +479,9 @@
     .md-detail-row{display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text-4);margin-bottom:4px;}
     .md-detail-row .material-symbols-rounded{font-size:13px;}
     .md-detail-actions{display:flex;gap:8px;margin-top:10px;}
-    .md-detail-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 10px;border-radius:7px;font-size:0.72rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;text-decoration:none;border:none;}
+    .md-detail-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 10px;border-radius:7px;font-size:0.78rem;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;text-decoration:none;border:none;}
     .md-detail-btn.primary{background:var(--md-color);color:#fff;}
-    .md-detail-btn.primary:hover{background:#ea6c0a;}
-    .md-detail-btn.secondary{background:rgba(255,255,255,0.07);color:var(--text-3);border:1px solid var(--border-2);}
+    .md-detail-btn.primary:hover{filter:brightness(1.1);}
     .md-detail-close{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--text-4);}
     .md-detail-close:hover{color:var(--text);}
     .md-detail-close .material-symbols-rounded{font-size:16px;}
@@ -868,6 +869,7 @@
         <div class="status-dot" id="md-status-dot"></div>
         <span id="md-status-text">Loading…</span>
       </div>
+      <div class="md-detail-backdrop" id="md-detail-backdrop" onclick="closeMdDetail()"></div>
       <div class="md-detail" id="md-detail">
         <button class="md-detail-close" onclick="closeMdDetail()"><span class="material-symbols-rounded">close</span></button>
         <div class="md-detail-num" id="mdd-num"></div>
@@ -877,8 +879,7 @@
         <div id="mdd-text" style="display:none;font-size:0.72rem;line-height:1.7;color:var(--text-2);margin:8px 0;max-height:180px;overflow-y:auto;border-top:1px solid var(--border);padding-top:8px;white-space:pre-wrap;"></div>
         <div id="mdd-text-loading" style="display:none;font-size:0.72rem;color:var(--text-3);padding:8px 0;border-top:1px solid var(--border);margin-top:8px;">Loading discussion…</div>
         <div class="md-detail-actions">
-          <a class="md-detail-btn primary" id="mdd-link" href="#" target="_blank"><span class="material-symbols-rounded" style="font-size:13px;">open_in_new</span>SPC Page</a>
-          <button class="md-detail-btn secondary" onclick="closeMdDetail()">Dismiss</button>
+          <button class="md-detail-btn primary" onclick="closeMdDetail()">Dismiss</button>
         </div>
       </div>
     </div>
@@ -2520,9 +2521,7 @@ async function showMesoDetail(feat, i) {
   const expStr = expires ? new Date(expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
   const numStr = String(num).replace(/[^0-9]/g,'').padStart(4,'0');
   const year = new Date().getFullYear();
-  const url = `https://www.spc.noaa.gov/products/md/${year}/md${numStr}.html`;
-
-  // Apply concern color theme to detail panel
+  const url = `https://www.spc.noaa.gov/products/md/${year}/md${numStr}.html`; // kept for reference
   const detail = document.getElementById('md-detail');
   detail.style.setProperty('--md-color', color);
   detail.style.setProperty('--md-dim', dim);
@@ -2534,7 +2533,6 @@ async function showMesoDetail(feat, i) {
   const expireRow = document.getElementById('mdd-expire-row');
   if (area && area !== '—') { areaEl.textContent = area; areaEl.style.display = 'block'; } else { areaEl.style.display = 'none'; }
   if (expStr && expStr !== '—') { document.getElementById('mdd-expire').textContent = `Until ${expStr}`; expireRow.style.display = 'flex'; } else { expireRow.style.display = 'none'; }
-  document.getElementById('mdd-link').href = url;
 
   // Reset text panel
   const textEl = document.getElementById('mdd-text');
@@ -2544,6 +2542,7 @@ async function showMesoDetail(feat, i) {
   loadEl.style.display = 'block';
   textEl.textContent = '';
   detail.classList.add('show');
+  document.getElementById('md-detail-backdrop').classList.add('show');
 
   // Fetch SPC discussion HTML, then AI-summarize it
   try {
@@ -2584,7 +2583,10 @@ async function showMesoDetail(feat, i) {
   }
 }
 
-function closeMdDetail() { document.getElementById('md-detail').classList.remove('show'); }
+function closeMdDetail() {
+  document.getElementById('md-detail').classList.remove('show');
+  document.getElementById('md-detail-backdrop').classList.remove('show');
+}
 
 function renderMesoOnMap(features) {
   Object.values(mesoLayers).forEach(l => mesoMap.removeLayer(l));
