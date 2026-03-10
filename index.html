@@ -2473,10 +2473,11 @@ function renderMesoList(features) {
   }
   features.forEach((feat, i) => {
     const p = feat.properties;
-    const num = p.num || p.product_id?.match(/\d+/)?.[0] || i+1;
-    const concern = p.watch_confidence || p.concerning || p.discussion_type || 'Potential Thunderstorm';
-    const area = p.area || p.attn || p.affected_area || '';
-    const expires = p.expire || p.expiration;
+    // NOAA MapServer field names
+    const num = p.name || p.num || i+1;
+    const concern = p.concerning || p.watch_confidence || p.discussion_type || 'Potential Thunderstorm';
+    const area = p.affected || p.area || p.attn || p.affected_area || '';
+    const expires = p.expire || p.expiration || p.expireTime;
     const expStr = expires ? new Date(expires).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
     const soon = expires && (new Date(expires) - Date.now()) < 3600000;
     const card = document.createElement('div'); card.className = 'md-card';
@@ -2499,17 +2500,33 @@ function selectMeso(i, card) {
 
 function showMesoDetail(feat, i) {
   const p = feat.properties;
-  const num = p.num || i+1;
-  const concern = p.watch_confidence || p.concerning || p.discussion_type || 'Potential Thunderstorm';
-  const area = p.area || p.affected_area || '—';
-  const expires = p.expire || p.expiration;
+  const num = p.name || p.num || i+1;
+  const concern = p.concerning || p.watch_confidence || p.discussion_type || 'Potential Thunderstorm';
+  const area = p.affected || p.area || p.affected_area || '—';
+  const expires = p.expire || p.expiration || p.expireTime;
   const expStr = expires ? new Date(expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-  const url = p.url || `https://www.spc.noaa.gov/products/md/md${String(num).padStart(4,'0')}.html`;
+  const numStr = String(num).replace(/\D/g,'').padStart(4,'0');
+  const year = new Date().getFullYear();
+  const url = p.url || `https://www.spc.noaa.gov/products/md/${year}/md${numStr}.html`;
   document.getElementById('mdd-num').textContent = `MCD #${num}`;
   document.getElementById('mdd-concern').textContent = concern;
   document.getElementById('mdd-area').textContent = area;
   document.getElementById('mdd-expire').textContent = `Until ${expStr}`;
   document.getElementById('mdd-link').href = url;
+
+  // Show discussion text if available
+  const summary = p.summary || p.discussion || p.text || '';
+  let textEl = document.getElementById('mdd-text');
+  if (!textEl) {
+    textEl = document.createElement('div');
+    textEl.id = 'mdd-text';
+    textEl.style.cssText = 'font-size:0.72rem;line-height:1.65;color:var(--text-2);margin:8px 0;max-height:160px;overflow-y:auto;white-space:pre-wrap;border-top:1px solid var(--border);padding-top:8px;';
+    const actions = document.querySelector('.md-detail-actions');
+    if (actions) actions.parentNode.insertBefore(textEl, actions);
+  }
+  textEl.style.display = summary ? 'block' : 'none';
+  textEl.textContent = summary;
+
   document.getElementById('md-detail').classList.add('show');
 }
 
@@ -2522,8 +2539,8 @@ function renderMesoOnMap(features) {
     style: () => ({ fillColor:'#f97316', fillOpacity:0.2, color:'#f97316', weight:2, opacity:0.8 }),
     onEachFeature: (feat, lyr) => {
       const p = feat.properties;
-      const num = p.num || '—';
-      const concern = p.watch_confidence || p.concerning || 'Discussion';
+      const num = p.name || p.num || '—';
+      const concern = p.concerning || p.watch_confidence || 'Discussion';
       lyr.bindPopup(`<div class="popup-inner"><div style="font-size:0.65rem;font-weight:800;color:#f97316;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">MCD #${num}</div><div class="popup-risk" style="font-size:0.83rem">${concern}</div></div>`);
       lyr.on('click', () => {
         const idx = mesoData.findIndex(f => f === feat);
