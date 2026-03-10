@@ -364,6 +364,7 @@
     .disc-close .material-symbols-rounded{font-size:18px;}
     .disc-modal-body{padding:18px 22px 24px;overflow-y:auto;flex:1;}
     .disc-modal-body pre{white-space:pre-wrap;font-family:var(--font);font-size:0.8rem;line-height:1.85;color:var(--text-2);}
+    .disc-err{font-size:0.82rem;color:var(--text-3);padding:8px 0;}
     .disc-loading{display:flex;align-items:center;gap:12px;padding:32px 0;color:var(--text-4);font-size:0.83rem;}
     .disc-err{color:var(--red);font-size:0.82rem;}
 
@@ -1687,27 +1688,27 @@ const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8'
 const OUTLOOK_CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
 
 const PROB_TORN = [
-  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Very Low' },
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Low'      },
-  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Moderate' },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Critical' },
+  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Isolated chance'       },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Scattered areas'       },
+  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Several possible'      },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely in spots'       },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Widespread threat'     },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Major outbreak likely' },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme outbreak'      },
 ];
 const PROB_WIND = [
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Low'      },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Critical' },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated gusts'        },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Damaging winds likely' },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Widespread damage'     },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Destructive winds'     },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme wind threat'   },
 ];
 const PROB_HAIL = [
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Low'      },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Critical' },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated hail'         },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Large hail likely'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Widespread large hail' },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Very large hail'       },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme hail threat'   },
 ];
 function getOutlookProbScale(mode) {
   if (mode === 'wind') return PROB_WIND;
@@ -2118,16 +2119,44 @@ async function loadOutlookHazard(day, mode) {
 
 async function openDiscModal(day) {
   document.getElementById('disc-modal').style.display = 'flex';
-  document.getElementById('disc-modal-title').textContent = `Day ${day} SPC Discussion`;
-  document.getElementById('disc-modal-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading discussion…</div>';
+  document.getElementById('disc-modal-title').textContent = `Day ${day} Outlook Discussion`;
+  document.getElementById('disc-modal-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>';
   try {
-    const res = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
-    if (!res.ok) throw new Error('Failed');
-    const html = await res.text();
+    // Step 1: fetch raw SPC text
+    const spcRes = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
+    if (!spcRes.ok) throw new Error('SPC fetch failed');
+    const html = await spcRes.text();
     const div = document.createElement('div'); div.innerHTML = html;
     const pre = div.querySelector('pre');
-    const text = pre ? pre.textContent : div.textContent;
-    document.getElementById('disc-modal-body').innerHTML = `<pre>${text.trim()}</pre>`;
+    const rawText = (pre ? pre.textContent : div.textContent).trim().slice(0, 4000);
+
+    // Step 2: send to AI for plain-language summary
+    const aiRes = await fetch(`${WORKER_URL}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are a friendly, plain-English weather explainer for a mobile weather app called jWeather. 
+Your job is to rewrite SPC severe weather outlook discussions so everyday people can understand them. 
+Use short paragraphs, no jargon, no percentages, no technical codes. 
+Focus on: what's happening, where, when, and what people should watch out for.
+Be concise — aim for 3-5 short paragraphs. Do not use bullet points.
+Do not start with "Sure" or any filler phrases. Get straight to the weather.`,
+        messages: [{ role: 'user', content: `Please summarize this SPC outlook discussion in plain English:
+
+${rawText}` }],
+        max_tokens: 600,
+      })
+    });
+    if (!aiRes.ok) throw new Error('AI fetch failed');
+    const aiData = await aiRes.json();
+    const summary = aiData.content?.[0]?.text || aiData.choices?.[0]?.message?.content || '';
+    if (!summary) throw new Error('Empty AI response');
+
+    // Render as styled paragraphs
+    const paragraphs = summary.trim().split('\n').filter(p => p.trim());
+    document.getElementById('disc-modal-body').innerHTML = paragraphs
+      .map(p => `<p style="margin:0 0 14px;font-size:0.85rem;line-height:1.75;color:var(--text-2);">${p.trim()}</p>`)
+      .join('') + `<div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border);"><a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="font-size:0.72rem;color:var(--text-4);text-decoration:none;">View original SPC discussion ↗</a></div>`;
   } catch(e) {
     document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion. <a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="color:var(--red)">View on SPC ↗</a></div>`;
   }
