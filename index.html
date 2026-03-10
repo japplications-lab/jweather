@@ -1541,52 +1541,78 @@ async function fetchSpcOutlookForPoint(lat, lng) {
 async function loadWeather(loc) {
   curLoc = loc;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
-  document.getElementById('spinner-overlay').style.display = 'flex';
+  const [lat, lng] = [Number(loc.lat), Number(loc.lng)];
+
+  // Render location/date immediately — no waiting
+  document.getElementById('current-loc').textContent = loc.label || 'Your Location';
+  document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  document.getElementById('current-temp-val').textContent = '--';
+  document.getElementById('current-desc').textContent = 'Loading…';
+  document.getElementById('stat-feels').textContent = '--';
+  document.getElementById('stat-humidity').textContent = '--';
+  document.getElementById('stat-wind').textContent = '--';
+
   try {
-    const [lat, lng] = [Number(loc.lat), Number(loc.lng)];
-    const pt = await fetch(`https://api.weather.gov/points/${lat},${lng}`);
-    if (!pt.ok) throw new Error('NWS failed');
-    const ptd = await pt.json();
-    const [stR, fcR, alR, hrR] = await Promise.all([
-      fetch(ptd.properties.observationStations),
-      fetch(ptd.properties.forecast),
-      fetch(`https://api.weather.gov/alerts/active?point=${lat},${lng}`),
-      fetch(ptd.properties.forecastHourly),
-    ]);
-    let temp='--', desc='--', feels='--', humid='--', wind='--', isDaytime=true;
-    if (stR.ok) {
-      const std = await stR.json();
-      const stId = std.features[0]?.properties?.stationIdentifier;
-      if (stId) {
-        const oR = await fetch(`https://api.weather.gov/stations/${stId}/observations/latest`);
-        if (oR.ok) {
-          const o = (await oR.json()).properties;
-          temp = o.temperature?.value != null ? `${Math.round(o.temperature.value*9/5+32)}` : '--';
-          desc = o.textDescription || '--';
-          const h = o.timestamp ? new Date(o.timestamp).getHours() : new Date().getHours();
-          isDaytime = h >= 6 && h < 20;
-          feels = o.heatIndex?.value != null ? `${Math.round(o.heatIndex.value*9/5+32)}°F`
-                : o.windChill?.value != null ? `${Math.round(o.windChill.value*9/5+32)}°F` : `${temp}°F`;
-          humid = o.relativeHumidity?.value != null ? `${Math.round(o.relativeHumidity.value)}%` : '--';
-          wind = o.windSpeed?.value != null && o.windDirection?.value != null
-            ? `${Math.round(o.windSpeed.value * 2.237)} mph ${compass(o.windDirection.value)}` : '--';
-        }
+    // Cache points grid — valid for 24h, saves a full round trip on repeat loads
+    const cacheKey = `nws_pts_${lat.toFixed(3)}_${lng.toFixed(3)}`;
+    let props;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { ts, data } = JSON.parse(cached);
+        if (Date.now() - ts < 86400000) { props = data; }
       }
+    } catch(e) {}
+
+    if (!props) {
+      const pt = await fetch(`${WORKER_URL}/nws/points/${lat},${lng}`);
+      if (!pt.ok) throw new Error('NWS points failed');
+      props = (await pt.json()).properties;
+      try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: props })); } catch(e) {}
     }
+
+    // Step 2: fire ALL remaining fetches in parallel immediately
+    const [stR, fcR, alR, hrR, spcResult] = await Promise.all([
+      fetch(props.observationStations.replace('https://api.weather.gov', `${WORKER_URL}/nws`)),
+      fetch(props.forecast.replace('https://api.weather.gov', `${WORKER_URL}/nws`)),
+      fetch(`${WORKER_URL}/nws/alerts/active?point=${lat},${lng}`),
+      fetch(props.forecastHourly.replace('https://api.weather.gov', `${WORKER_URL}/nws`)),
+      fetchSpcOutlookForPoint(lat, lng),
+    ]);
+
+    // Render forecast & alerts as soon as they're ready — don't wait for observations
     const periods = fcR.ok ? (await fcR.json()).properties.periods : [];
     const alData = alR.ok ? await alR.json() : { features: [] };
     const hrData = hrR.ok ? (await hrR.json()).properties.periods : [];
     window._hourlyPeriods = hrData;
-    const spcResult = await fetchSpcOutlookForPoint(lat, lng);
-    renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime);
     renderForecast(periods);
     renderAlerts(alData, spcResult);
     if (currentPage === 'hourly') renderHourly(hrData, loc);
+
+    // Fetch current conditions (obs) — update hero when ready
+    if (stR.ok) {
+      const std = await stR.json();
+      const stId = std.features[0]?.properties?.stationIdentifier;
+      if (stId) {
+        const oR = await fetch(`${WORKER_URL}/nws/stations/${stId}/observations/latest`);
+        if (oR.ok) {
+          const o = (await oR.json()).properties;
+          const temp = o.temperature?.value != null ? `${Math.round(o.temperature.value*9/5+32)}` : '--';
+          const desc = o.textDescription || '--';
+          const h = o.timestamp ? new Date(o.timestamp).getHours() : new Date().getHours();
+          const isDaytime = h >= 6 && h < 20;
+          const feels = o.heatIndex?.value != null ? `${Math.round(o.heatIndex.value*9/5+32)}°F`
+                      : o.windChill?.value != null ? `${Math.round(o.windChill.value*9/5+32)}°F` : `${temp}°F`;
+          const humid = o.relativeHumidity?.value != null ? `${Math.round(o.relativeHumidity.value)}%` : '--';
+          const wind = o.windSpeed?.value != null && o.windDirection?.value != null
+            ? `${Math.round(o.windSpeed.value * 2.237)} mph ${compass(o.windDirection.value)}` : '--';
+          renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime);
+        }
+      }
+    }
   } catch(e) {
     console.error(e);
-    document.getElementById('current-loc').textContent = 'Unavailable';
-  } finally {
-    document.getElementById('spinner-overlay').style.display = 'none';
+    document.getElementById('current-desc').textContent = 'Unavailable';
   }
 }
 
