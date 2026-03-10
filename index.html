@@ -306,6 +306,10 @@
     .radar-gps-btn.loading .material-symbols-rounded{animation:spin .8s linear infinite;color:var(--red);}
     .radar-gps-btn.located{color:var(--red);}
     .radar-gps-btn .material-symbols-rounded{font-size:20px;}
+    .radar-loc-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9;pointer-events:none;}
+    .radar-loc-center{width:14px;height:14px;border-radius:50%;background:#f97316;border:2.5px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.5);position:relative;z-index:2;}
+    .radar-loc-pulse{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:rgba(249,115,22,0.4);animation:radar-pulse 1.8s ease-out infinite;z-index:1;}
+    @keyframes radar-pulse{0%{transform:translate(-50%,-50%) scale(1);opacity:0.8;}100%{transform:translate(-50%,-50%) scale(3.5);opacity:0;}}
 
     /* ══════════════════════════════════
        PAGE: OUTLOOK
@@ -806,6 +810,10 @@
   <div class="app-body">
     <div class="radar-wrap" id="radar-wrap">
       <iframe id="windy-frame" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=5&overlay=radar&product=radar&level=surface&lat=38.5&lon=-96&detail=false&pressure=false&message=false" allowfullscreen loading="eager"></iframe>
+      <div class="radar-loc-dot" id="radar-loc-dot" style="display:none;">
+        <div class="radar-loc-pulse"></div>
+        <div class="radar-loc-center"></div>
+      </div>
       <button class="radar-gps-btn" id="radar-gps-btn" onclick="radarGoToGPS()" title="Go to my location">
         <span class="material-symbols-rounded">my_location</span>
       </button>
@@ -1383,6 +1391,11 @@ async function useGPS() {
     showToast('GPS not supported on this device');
     return;
   }
+  // iOS Safari requires HTTPS for geolocation
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    showToast('Location requires HTTPS');
+    return;
+  }
   setGpsState('loading');
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
@@ -1413,10 +1426,16 @@ async function useGPS() {
     },
     (err) => {
       setGpsState('idle');
-      if (err.code === 1) showToast('Location access denied');
-      else showToast('Could not get your location');
+      if (err.code === 1) {
+        // PERMISSION_DENIED — show actionable iOS instructions
+        showToast('Allow location in Settings → Safari → Location');
+      } else if (err.code === 2) {
+        showToast('Location unavailable — check Location Services');
+      } else {
+        showToast('Location timed out — try again');
+      }
     },
-    { timeout: 10000, maximumAge: 60000 }
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
   );
 }
 
@@ -1772,10 +1791,16 @@ document.getElementById('tornado-continue').addEventListener('click', () => {
 function updateRadar(lat, lng) {
   document.getElementById('radar-iframe').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=10&overlay=radar&product=radar&level=surface&lat=${+lat}&lon=${+lng}`;
   document.getElementById('windy-frame').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=8&overlay=radar&product=radar&level=surface&lat=${+lat}&lon=${+lng}&detail=false&pressure=false&message=false`;
+  // Hide GPS dot — map is now centered on searched location, not user's GPS
+  const dot = document.getElementById('radar-loc-dot');
+  if (dot) dot.style.display = 'none';
+  const btn = document.getElementById('radar-gps-btn');
+  if (btn) btn.classList.remove('located');
 }
 
 function radarGoToGPS() {
   const btn = document.getElementById('radar-gps-btn');
+  const dot = document.getElementById('radar-loc-dot');
   if (!navigator.geolocation) { showToast('GPS not supported'); return; }
   btn.classList.add('loading');
   btn.disabled = true;
@@ -1785,12 +1810,17 @@ function radarGoToGPS() {
       btn.classList.remove('loading');
       btn.classList.add('located');
       btn.disabled = false;
+      // Recenter map on user — dot will be at center of iframe
       document.getElementById('windy-frame').src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=10&overlay=radar&product=radar&level=surface&lat=${lat}&lon=${lng}&detail=false&pressure=false&message=false`;
+      // Show dot at center after iframe reloads
+      dot.style.display = 'block';
     },
-    () => {
+    (err) => {
       btn.classList.remove('loading');
       btn.disabled = false;
-      showToast('Could not get your location');
+      if (err.code === 1) showToast('Allow location in Settings → Safari → Location');
+      else if (err.code === 2) showToast('Location unavailable — check Location Services');
+      else showToast('Location timed out — try again');
     },
     { timeout: 10000, maximumAge: 60000 }
   );
