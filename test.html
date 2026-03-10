@@ -319,7 +319,7 @@
     .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
     .mob-day-tab{flex:1;padding:9px 4px 0;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;flex-direction:column;align-items:center;gap:4px;}
     .mob-day-tab-label{padding-bottom:5px;}
-    .mob-day-threat-bar{display:block;width:70%;height:3px;border-radius:2px;background:transparent;opacity:0;transition:opacity .3s;margin-bottom:4px;}
+    .mob-day-threat-bar{display:block;width:60%;height:3px;border-radius:2px;background:var(--border-2);margin-bottom:5px;transition:background .3s;}
     .mob-day-tab.active{color:var(--red);border-bottom-color:var(--red);}
     .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;}
     .mob-mode-row::-webkit-scrollbar{display:none;}
@@ -1730,7 +1730,7 @@ function buildOutlookSidebar() {
     // Async color bar
     fetchDayMaxThreat(day).then(color => {
       const bar = document.getElementById(`threat-bar-${day}`);
-      if (bar && color) { bar.style.background = color; bar.style.opacity = '1'; }
+      if (bar && color) bar.style.background = color;
     });
   });
 
@@ -1904,15 +1904,6 @@ async function loadOutlookHazard(day, mode) {
       }
     }).addTo(outlookMap);
 
-    // Render CIG (significant threat) features as a separate top layer for clean solid-black hatching
-    const cigFeats = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
-    if (cigFeats.length) {
-      L.geoJSON({ type:'FeatureCollection', features: cigFeats }, {
-        style: { fillColor:'url(#outlook-sig-hatch)', fillOpacity:1, color:'#000', weight:2, opacity:1 },
-        interactive: false,
-      }).addTo(outlookMap);
-    }
-
     // Legend: only visible when sig/CIG hatching is present
     const legendEl = document.getElementById('outlook-legend');
     const legendItems = document.getElementById('outlook-legend-items');
@@ -1932,9 +1923,20 @@ async function loadOutlookHazard(day, mode) {
     }
 
     // CIG features (embedded in main layer): overlay hatch lines on top of threat color
+    // Only for prob modes (torn/wind/hail) — cat has no sig hatching
     const cigFeatures = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
-    if (cigFeatures.length) {
-      // Hatch lines only (transparent bg so threat color shows through)
+    if (cigFeatures.length && mode !== 'cat') {
+      // Two passes: first the threat-colored polygon fill (already rendered in main layer, CIG style returns transparent)
+      // Re-render CIG polys with their actual prob color, then overlay hatch lines on top
+      const scale = getOutlookProbScale(mode);
+      cigFeatures.forEach(f => {
+        const dnRaw = f.properties?.DN ?? f.properties?.dn ?? 0;
+        const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
+        let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
+        // Solid colored fill
+        L.geoJSON(f, { style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 }, interactive:false }).addTo(outlookMap);
+      });
+      // Hatch lines on top (transparent bg so threat color shows through)
       L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
         style: { fillColor:'url(#outlook-hatch-lines)', fillOpacity:1, color:'#000', weight:2.5, opacity:1 },
         interactive: false,
@@ -1942,8 +1944,8 @@ async function loadOutlookHazard(day, mode) {
       appendHatchLegend(mode);
     }
 
-    // Separate sig layer (dedicated layer IDs)
-    const sigId = OUTLOOK_SIG_IDS[`${day}-${mode}`];
+    // Separate sig layer (dedicated layer IDs) — only for prob modes
+    const sigId = mode !== 'cat' ? OUTLOOK_SIG_IDS[`${day}-${mode}`] : null;
     if (sigId) {
       try {
         const sigRes = await fetch(`${NOAA_OUTLOOK_BASE}/${sigId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
