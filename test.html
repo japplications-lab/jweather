@@ -748,7 +748,8 @@
       <div class="map-topbar">
         <div class="map-context-pill" id="outlook-context-pill">Day 1 — <span>Categorical</span></div>
       </div>
-      <div class="map-legend" id="outlook-legend" style="display:none;">
+      <div class="map-legend" id="outlook-legend">
+        <div class="legend-title">Risk Level</div>
         <div class="legend-items" id="outlook-legend-items"></div>
       </div>
       <div class="map-loading-ov" id="outlook-map-loading">
@@ -1033,8 +1034,8 @@ const PAGES = ['forecast','hourly','radar','outlook','watches','meso','severe101
 let currentPage = 'forecast';
 let outlookMapInit = false, watchesMapInit = false, mesoMapInit = false;
 
-function navigate(page) {
-  if (currentPage === page) return;
+function navigate(page, updateHash = true) {
+  if (!PAGES.includes(page)) page = 'forecast';
   PAGES.forEach(p => {
     document.getElementById('page-'+p).classList.toggle('active', p === page);
   });
@@ -1049,12 +1050,21 @@ function navigate(page) {
 
   currentPage = page;
 
+  // Update URL hash so refresh restores this page
+  if (updateHash) history.replaceState(null, '', '#' + page);
+
   // Lazy init maps
   if (page === 'outlook' && !outlookMapInit) { initOutlookMap(); outlookMapInit = true; }
   if (page === 'watches' && !watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
   if (page === 'hourly') loadHourly();
 }
+
+// Restore page from hash on load
+(function() {
+  const hash = location.hash.replace('#', '');
+  if (hash && PAGES.includes(hash)) navigate(hash, false);
+})();
 
 // ── Severe sheet (mobile) ──
 function closeSevereSheet() {
@@ -1817,8 +1827,7 @@ function outlookPopupContent(f, mode, day) {
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('outlook-legend-items');
   items.innerHTML = '';
-  // Legend only shown when hatch entries are appended below
-  document.getElementById('outlook-legend').style.display = 'none';
+  document.getElementById('outlook-legend').style.display = 'block';
   if (mode === 'cat') {
     const present = new Set();
     (gj.features || []).forEach(f => {
@@ -1904,11 +1913,7 @@ async function loadOutlookHazard(day, mode) {
       }
     }).addTo(outlookMap);
 
-    // Legend: only visible when sig/CIG hatching is present
-    const legendEl = document.getElementById('outlook-legend');
-    const legendItems = document.getElementById('outlook-legend-items');
-    legendItems.innerHTML = '';
-    legendEl.style.display = 'none';
+    updateOutlookLegend(gj, mode);
 
     function appendHatchLegend(mode) {
       const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible'
@@ -1916,10 +1921,9 @@ async function loadOutlookHazard(day, mode) {
         : mode === 'hail' ? '2"+ Hail Possible'
         : 'Sig. Severe Possible';
       const div = document.createElement('div');
-      div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:2px 0;';
+      div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:2px 0;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
       div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div style="font-size:0.72rem;font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
-      legendItems.appendChild(div);
-      legendEl.style.display = 'block';
+      document.getElementById('outlook-legend-items').appendChild(div);
     }
 
     // CIG features (embedded in main layer): overlay hatch lines on top of threat color
