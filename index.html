@@ -2437,9 +2437,12 @@ async function loadMesoDiscussions() {
   document.getElementById('md-list').innerHTML = '<div class="md-empty"><span class="material-symbols-rounded spin">progress_activity</span><div class="md-empty-sub">Loading discussions…</div></div>';
   document.getElementById('md-status-text').textContent = 'Loading…';
   try {
-    const res = await fetch(`${WORKER_URL}/iem/geojson/spc_mcd.geojson`);
-    if (!res.ok) throw new Error('IEM failed');
-    const data = await res.json();
+    // Fetch active MCDs from IEM
+    const res = await fetch(`${WORKER_URL}/iem/geojson/spc_mcd.geojson`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`IEM returned ${res.status}`);
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Invalid JSON from IEM'); }
     mesoData = data.features || [];
     document.getElementById('md-sub').textContent = `${mesoData.length} active discussion${mesoData.length !== 1 ? 's' : ''}`;
     document.getElementById('mob-md-count').textContent = mesoData.length;
@@ -2455,8 +2458,9 @@ async function loadMesoDiscussions() {
       txt.textContent = 'No Active Discussions';
     }
   } catch(e) {
-    document.getElementById('md-list').innerHTML = '<div class="md-empty"><span class="material-symbols-rounded">cloud_off</span><div class="md-empty-title">Failed to load</div><div class="md-empty-sub">Check connection and reload.</div></div>';
-    document.getElementById('md-status-text').textContent = 'Error loading';
+    document.getElementById('md-list').innerHTML = `<div class="md-empty"><span class="material-symbols-rounded">cloud_off</span><div class="md-empty-title">Failed to load</div><div class="md-empty-sub">${e.message}</div></div>`;
+    document.getElementById('md-status-text').textContent = 'Failed to load data';
+    console.error('MCD load error:', e);
   }
 }
 
