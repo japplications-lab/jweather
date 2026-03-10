@@ -587,8 +587,7 @@
     .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
     .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
     .leaflet-attribution-flag{display:none !important;}
-    .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(15,17,21,0.85) !important;color:var(--text-4) !important;backdrop-filter:blur(4px);}
-    .leaflet-control-attribution a{color:var(--text-4) !important;}
+    .leaflet-control-attribution{display:none !important;}
     .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);border:1px solid var(--border-2);font-family:var(--font);padding:0;min-width:220px;max-width:260px;background:var(--surface);}
     .leaflet-popup-content{margin:0;font-size:0.78rem;}
     .leaflet-popup-tip{background:var(--surface);}
@@ -747,8 +746,7 @@
       <div class="map-topbar">
         <div class="map-context-pill" id="outlook-context-pill">Day 1 — <span>Categorical</span></div>
       </div>
-      <div class="map-legend" id="outlook-legend">
-        <div class="legend-title">Risk Level</div>
+      <div class="map-legend" id="outlook-legend" style="display:none;">
         <div class="legend-items" id="outlook-legend-items"></div>
       </div>
       <div class="map-loading-ov" id="outlook-map-loading">
@@ -1714,7 +1712,7 @@ function buildOutlookMobModeRow(day) {
 function outlookStyleFeature(f, mode) {
   const p = f.properties || {};
   const lbl = (p.LABEL || p.label || '').toString();
-  if (lbl.startsWith('CIG')) return { fillColor:'url(#outlook-sig-hatch)', fillOpacity:1, color:'#000', weight:2, dashArray:'8 5', opacity:0.8 };
+  if (lbl.startsWith('CIG')) return { fillColor:'transparent', fillOpacity:0, color:'transparent', weight:0, opacity:0 };
 
   if (mode === 'cat') {
     const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
@@ -1774,6 +1772,8 @@ function outlookPopupContent(f, mode, day) {
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('outlook-legend-items');
   items.innerHTML = '';
+  // Legend only shown when hatch entries are appended below
+  document.getElementById('outlook-legend').style.display = 'none';
   if (mode === 'cat') {
     const present = new Set();
     (gj.features || []).forEach(f => {
@@ -1859,6 +1859,15 @@ async function loadOutlookHazard(day, mode) {
       }
     }).addTo(outlookMap);
 
+    // Render CIG (significant threat) features as a separate top layer for clean solid-black hatching
+    const cigFeats = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
+    if (cigFeats.length) {
+      L.geoJSON({ type:'FeatureCollection', features: cigFeats }, {
+        style: { fillColor:'url(#outlook-sig-hatch)', fillOpacity:1, color:'#000', weight:2, opacity:1 },
+        interactive: false,
+      }).addTo(outlookMap);
+    }
+
     updateOutlookLegend(gj, mode);
 
     // Append CIG/sig-hatch entry if this layer has CIG features
@@ -1867,10 +1876,11 @@ async function loadOutlookHazard(day, mode) {
       const items = document.getElementById('outlook-legend-items');
       const div = document.createElement('div');
       div.className = 'legend-item legend-active';
-      div.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
-      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible' : mode === 'wind' ? '65+ mph Wind Possible' : mode === 'hail' ? '2\u221e+ Hail Possible' : 'Sig. Severe Possible';
-      div.innerHTML = `<div class="legend-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #555;box-sizing:border-box;border-radius:2px;flex-shrink:0;width:13px;height:13px;"></div><div class="legend-label" style="font-weight:600;color:var(--text);">⚠ ${hazardLabel}</div>`;
+      div.style.cssText = 'display:flex;align-items:center;gap:7px;';
+      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible' : mode === 'wind' ? '65+ mph Wind Possible' : mode === 'hail' ? '2"+ Hail Possible' : 'Sig. Severe Possible';
+      div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div class="legend-label" style="font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
       items.appendChild(div);
+      document.getElementById('outlook-legend').style.display = 'block';
     }
 
     // Load sig layer if available — render with hatch fill + dashed outline
@@ -1910,8 +1920,10 @@ async function loadOutlookHazard(day, mode) {
       div.className = 'legend-item legend-active';
       div.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
       const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible' : mode === 'wind' ? '65+ mph Wind Possible' : '2"+ Hail Possible';
-      div.innerHTML = `<div class="legend-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #555;box-sizing:border-box;border-radius:2px;flex-shrink:0;width:13px;height:13px;"></div><div class="legend-label" style="font-weight:600;color:var(--text);">⚠ ${hazardLabel}</div>`;
+      div.style.cssText = 'display:flex;align-items:center;gap:7px;';
+      div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div class="legend-label" style="font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
       items.appendChild(div);
+      document.getElementById('outlook-legend').style.display = 'block';
     }
 
   } catch(e) {
