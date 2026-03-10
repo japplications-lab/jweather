@@ -13,8 +13,8 @@
       --red: #e5182a;
       --red-dim: rgba(229,24,42,0.12);
       --red-border: rgba(229,24,42,0.25);
-      --bg: #0f1115;
-      --surface: #1a1d24;
+      --bg: #16181e;
+      --surface: #1e2028;
       --surface-2: #20242d;
       --border: rgba(255,255,255,0.07);
       --border-2: rgba(255,255,255,0.11);
@@ -50,7 +50,7 @@
     .logo-mark { width: 30px; height: 30px; background: var(--red); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
     .logo-mark .material-symbols-rounded { font-size: 16px; color: #fff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .logo-name { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
-    .logo-name span { color: var(--red); }
+    .logo-name span { color: #fff; }
     .header-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
     .header-nav a { font-size: 0.8rem; font-weight: 500; color: var(--text-3); text-decoration: none; padding: 5px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s; white-space: nowrap; }
     .header-nav a:hover { color: var(--text); background: var(--bg); }
@@ -73,15 +73,6 @@
 
 
     /* ─── MOBILE MENU BUTTON & PANEL ─── */
-    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;}
-    .mob-menu-btn .material-symbols-rounded{font-size:19px;color:var(--text-3);}
-    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.55);}
-    .mob-menu-panel{position:absolute;top:0;right:0;width:250px;height:100%;background:var(--surface);border-left:1px solid var(--border-2);padding:12px 0;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5);}
-    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:0.83rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
-    .mob-menu-panel a:last-child{border-bottom:none;}
-    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
-    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
 
     /* On desktop, bar divs are transparent wrappers */
     .mob-bar-1{display:contents;}
@@ -100,7 +91,6 @@
       /* Hide desktop nav entirely */
       .header-nav{display:none !important;}
       /* Show hamburger */
-      .mob-menu-btn{display:flex;margin-left:auto;}
       /* Always show logo text */
       .logo-name{display:block !important;}
     }
@@ -280,6 +270,54 @@
     #cs-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border-2); color: var(--text-2); font-family: var(--font); font-size: 0.8rem; font-weight: 600; padding: 10px 20px; border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 9999; white-space: nowrap; }
     #cs-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     #cs-toast .material-symbols-rounded { font-size: 15px; color: var(--amber); font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+  
+    /* ═══════════════════════════════════════════════
+       BOTTOM NAV BAR  (mobile ≤768px only)
+    ═══════════════════════════════════════════════ */
+    .mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--surface);border-top:1px solid var(--border-2);z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
+    .mob-bottom-nav-inner{display:flex;align-items:stretch;height:100%;}
+    .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.6rem;font-weight:600;color:var(--text-4);letter-spacing:0.02em;text-decoration:none;transition:color .15s;padding:6px 4px;-webkit-tap-highlight-color:transparent;}
+    .mob-tab .material-symbols-rounded{font-size:22px;transition:color .15s;}
+    .mob-tab.active{color:var(--red);}
+    .mob-tab.active .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .mob-tab-severe .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    /* Severe slide-up sheet */
+    .severe-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);z-index:1050;}
+    .severe-sheet-backdrop.open{display:block;}
+    .severe-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border-2);border-radius:18px 18px 0 0;z-index:1060;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
+    .severe-sheet.open{transform:translateY(0);}
+    .severe-sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:10px auto 0;}
+    .severe-sheet-title{font-size:0.7rem;font-weight:700;color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px 6px;}
+    .severe-sheet-items{padding:4px 12px 16px;}
+    .severe-sheet-item{display:flex;align-items:center;gap:14px;padding:13px 10px;border-radius:var(--r-sm);font-size:0.88rem;font-weight:500;color:var(--text-2);text-decoration:none;transition:background .12s;border-bottom:1px solid var(--border);}
+    .severe-sheet-item:last-child{border-bottom:none;}
+    .severe-sheet-item:active,.severe-sheet-item:hover{background:rgba(255,255,255,0.05);}
+    .severe-sheet-item.active{color:var(--red);}
+    .severe-sheet-item .material-symbols-rounded{font-size:20px;color:var(--text-4);flex-shrink:0;}
+    .severe-sheet-item.active .material-symbols-rounded{color:var(--red);}
+    .severe-sheet-item[data-coming-soon]{opacity:0.38;pointer-events:none;}
+    .severe-sheet-item-text{flex:1;}
+    .severe-sheet-item-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
+    .severe-sheet-item-badge{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;}
+    .severe-sheet-item-badge.soon{color:var(--amber);background:rgba(245,158,11,0.1);}
+    @media(max-width:768px){
+      .mob-bottom-nav{display:block;}
+      body.has-bottom-nav main,body.has-bottom-nav .app-body,body.has-bottom-nav .page-body{padding-bottom:62px;}
+    }
+    /* Mobile header: logo row + pill search row */
+    @media(max-width:640px){
+      header{height:auto !important;}
+      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
+      .mob-bar-1 .search-wrap{display:none;}
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      .header-nav{display:none !important;}
+      .logo-name{display:block !important;}
+      .mob-bar-2 .search-row{border-radius:24px;background:rgba(255,255,255,0.07);border-color:transparent;padding:0 10px 0 14px;}
+      .mob-bar-2 .search-row:focus-within{border-color:var(--red);background:rgba(255,255,255,0.09);}
+      #search-bar-mob{padding:10px 8px;}
+    }
   </style>
 </head>
 <body>
@@ -310,7 +348,7 @@
             <div class="nav-dropdown-menu-inner">
               <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
               <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-              <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
               <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
               <a href="severe101.html" class="active"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
             </div>
@@ -319,7 +357,6 @@
         <a href="#" data-coming-soon>Contact</a>
         <a href="#" data-coming-soon>About</a>
       </nav>
-      <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div><!-- /.mob-bar-1 -->
     <!-- Row 2: search bar (mobile only) -->
     <div class="mob-bar-2">
@@ -335,18 +372,7 @@
 </header>
 
 <!-- Mobile nav menu -->
-<div class="mob-menu-overlay" id="mob-menu-overlay">
-  <div class="mob-menu-panel">
-    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
-    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-    <a href="watches.html"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-    <a href="severe101.html" class="active"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
-  </div>
-</div>
+
 
 <div class="page-wrap">
   <div class="hero">
@@ -742,18 +768,63 @@
   document.addEventListener('click',e=>{_sI.forEach(({bar,sug})=>{if(!sug.contains(e.target)&&e.target!==bar){sug.style.display='none';selIdx=-1;}});});
 })();
 
-// ── Mobile nav menu ──
+</script>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="mob-bottom-nav" aria-label="Main navigation">
+  <div class="mob-bottom-nav-inner">
+    <a href="index.html" class="mob-tab">
+      <span class="material-symbols-rounded">wb_sunny</span>Home
+    </a>
+    <a href="hourly.html" class="mob-tab">
+      <span class="material-symbols-rounded">schedule</span>Hourly
+    </a>
+    <a href="radar.html" class="mob-tab">
+      <span class="material-symbols-rounded">radar</span>Radar
+    </a>
+    <button class="mob-tab mob-tab-severe" id="mob-severe-tab">
+      <span class="material-symbols-rounded">thunderstorm</span>Severe
+    </button>
+  </div>
+</nav>
+<div class="severe-sheet-backdrop" id="severe-backdrop"></div>
+<div class="severe-sheet" id="severe-sheet">
+  <div class="severe-sheet-handle"></div>
+  <div class="severe-sheet-title">Severe Weather</div>
+  <div class="severe-sheet-items">
+    <a href="outlook.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">thunderstorm</span>
+      <div class="severe-sheet-item-text">Severe Outlook<div class="severe-sheet-item-sub">SPC convective outlooks</div></div>
+    </a>
+    <a href="watches.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">emergency_home</span>
+      <div class="severe-sheet-item-text">Current Watches<div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div></div>
+    </a>
+    <a href="meso.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">crisis_alert</span>
+      <div class="severe-sheet-item-text">Mesoscale Discussions<div class="severe-sheet-item-sub">SPC short-term forecasts</div></div>
+    </a>
+    <a href="severe101.html" class="severe-sheet-item active">
+      <span class="material-symbols-rounded">school</span>
+      <div class="severe-sheet-item-text">Severe Weather 101<div class="severe-sheet-item-sub">Learn about severe weather</div></div>
+    </a>
+    <a href="#" class="severe-sheet-item" data-coming-soon>
+      <span class="material-symbols-rounded">tune</span>
+      <div class="severe-sheet-item-text">Storm Parameters<div class="severe-sheet-item-sub">Atmospheric instability data</div></div>
+      <span class="severe-sheet-item-badge soon">Soon</span>
+    </a>
+  </div>
+</div>
+<script>
 (function(){
-  var btn=document.getElementById('mob-menu-btn');
-  var overlay=document.getElementById('mob-menu-overlay');
-  if(!btn||!overlay)return;
-  btn.addEventListener('click',function(e){
-    e.stopPropagation();
-    overlay.style.display=overlay.style.display==='block'?'none':'block';
-  });
-  overlay.addEventListener('click',function(e){
-    if(e.target===overlay)overlay.style.display='none';
-  });
+  var tab=document.getElementById('mob-severe-tab');
+  var sheet=document.getElementById('severe-sheet');
+  var bd=document.getElementById('severe-backdrop');
+  function open(){sheet.classList.add('open');bd.classList.add('open');}
+  function close(){sheet.classList.remove('open');bd.classList.remove('open');}
+  if(tab)tab.addEventListener('click',function(){sheet.classList.contains('open')?close():open();});
+  if(bd)bd.addEventListener('click',close);
+  document.body.classList.add('has-bottom-nav');
 })();
 </script>
 </body>

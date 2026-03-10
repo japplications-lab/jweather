@@ -13,7 +13,7 @@
     :root {
       --red:#e5182a; --red-dim:rgba(229,24,42,0.12); --red-border:rgba(229,24,42,0.25);
       --header:58px;
-      --bg:#0f1115; --surface:#1a1d24;
+      --bg:#16181e; --surface:#1e2028;
       --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
       --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
       --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
@@ -38,7 +38,7 @@
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-    .logo-name span{color:var(--red);}
+    .logo-name span{color:#fff;}
     .search-wrap{flex:1;max-width:440px;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
@@ -73,15 +73,6 @@
     .nav-dropdown-menu a.active .material-symbols-rounded,.nav-dropdown-menu a:hover .material-symbols-rounded{color:var(--red);}
 
     /* ── MOBILE MENU ── */
-    .mob-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;background:none;border:1px solid var(--border-2);border-radius:7px;cursor:pointer;}
-    .mob-menu-btn .material-symbols-rounded{font-size:19px;color:var(--text-3);}
-    .mob-menu-overlay{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.55);}
-    .mob-menu-panel{position:absolute;top:0;right:0;width:250px;height:100%;background:var(--surface);border-left:1px solid var(--border-2);padding:12px 0;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,0.5);}
-    .mob-menu-panel a{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:0.83rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;}
-    .mob-menu-panel a:last-child{border-bottom:none;}
-    .mob-menu-panel a.active{background:var(--red-dim);color:var(--red);}
-    .mob-menu-panel a .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .mob-menu-panel a.active .material-symbols-rounded{color:var(--red);}
 
     /* ── TWO-BAR MOBILE HEADER ── */
     .mob-bar-1{display:contents;}
@@ -211,7 +202,6 @@
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
       .header-nav{display:none !important;}
       .logo-name{display:block !important;}
-      .mob-menu-btn{display:flex;margin-left:auto;}
       /* Sidebar becomes bottom drawer */
       .watch-panel{position:fixed;bottom:0;left:0;right:0;width:100%;height:280px;border-right:none;border-top:1px solid var(--border-2);z-index:450;transform:translateY(100%);transition:transform .3s ease;}
       .watch-panel.mob-open{transform:translateY(0);}
@@ -241,6 +231,54 @@
     .leaflet-control-zoom a:hover{color:var(--red) !important;background:var(--surface) !important;}
     .leaflet-control-zoom-in{border-bottom:1px solid var(--border) !important;}
     .leaflet-control-attribution{font-family:var(--font);font-size:10px;background:rgba(255,255,255,0.8) !important;backdrop-filter:blur(4px);}
+  
+    /* ═══════════════════════════════════════════════
+       BOTTOM NAV BAR  (mobile ≤768px only)
+    ═══════════════════════════════════════════════ */
+    .mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--surface);border-top:1px solid var(--border-2);z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
+    .mob-bottom-nav-inner{display:flex;align-items:stretch;height:100%;}
+    .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.6rem;font-weight:600;color:var(--text-4);letter-spacing:0.02em;text-decoration:none;transition:color .15s;padding:6px 4px;-webkit-tap-highlight-color:transparent;}
+    .mob-tab .material-symbols-rounded{font-size:22px;transition:color .15s;}
+    .mob-tab.active{color:var(--red);}
+    .mob-tab.active .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .mob-tab-severe .material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    /* Severe slide-up sheet */
+    .severe-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);z-index:1050;}
+    .severe-sheet-backdrop.open{display:block;}
+    .severe-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border-2);border-radius:18px 18px 0 0;z-index:1060;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);}
+    .severe-sheet.open{transform:translateY(0);}
+    .severe-sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:10px auto 0;}
+    .severe-sheet-title{font-size:0.7rem;font-weight:700;color:var(--text-4);letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px 6px;}
+    .severe-sheet-items{padding:4px 12px 16px;}
+    .severe-sheet-item{display:flex;align-items:center;gap:14px;padding:13px 10px;border-radius:var(--r-sm);font-size:0.88rem;font-weight:500;color:var(--text-2);text-decoration:none;transition:background .12s;border-bottom:1px solid var(--border);}
+    .severe-sheet-item:last-child{border-bottom:none;}
+    .severe-sheet-item:active,.severe-sheet-item:hover{background:rgba(255,255,255,0.05);}
+    .severe-sheet-item.active{color:var(--red);}
+    .severe-sheet-item .material-symbols-rounded{font-size:20px;color:var(--text-4);flex-shrink:0;}
+    .severe-sheet-item.active .material-symbols-rounded{color:var(--red);}
+    .severe-sheet-item[data-coming-soon]{opacity:0.38;pointer-events:none;}
+    .severe-sheet-item-text{flex:1;}
+    .severe-sheet-item-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
+    .severe-sheet-item-badge{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.07);color:var(--text-4);letter-spacing:0.04em;text-transform:uppercase;}
+    .severe-sheet-item-badge.soon{color:var(--amber);background:rgba(245,158,11,0.1);}
+    @media(max-width:768px){
+      .mob-bottom-nav{display:block;}
+      body.has-bottom-nav main,body.has-bottom-nav .app-body,body.has-bottom-nav .page-body{padding-bottom:62px;}
+    }
+    /* Mobile header: logo row + pill search row */
+    @media(max-width:640px){
+      header{height:auto !important;}
+      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
+      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 14px;height:48px;gap:0;}
+      .mob-bar-1 .search-wrap{display:none;}
+      .mob-bar-2{display:flex;align-items:center;width:100%;padding:0 12px 10px;}
+      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
+      .header-nav{display:none !important;}
+      .logo-name{display:block !important;}
+      .mob-bar-2 .search-row{border-radius:24px;background:rgba(255,255,255,0.07);border-color:transparent;padding:0 10px 0 14px;}
+      .mob-bar-2 .search-row:focus-within{border-color:var(--red);background:rgba(255,255,255,0.09);}
+      #search-bar-mob{padding:10px 8px;}
+    }
   </style>
 </head>
 <body>
@@ -270,7 +308,7 @@
             <div class="nav-dropdown-menu-inner">
               <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
               <a href="watches.html" class="active"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-              <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
+              <a href="meso.html"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
               <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
               <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
             </div>
@@ -279,7 +317,6 @@
         <a href="#" data-coming-soon>Contact</a>
         <a href="#" data-coming-soon>About</a>
       </nav>
-      <button class="mob-menu-btn" id="mob-menu-btn" aria-label="Open menu"><span class="material-symbols-rounded">menu</span></button>
     </div><!-- /.mob-bar-1 -->
     <!-- Row 2: search bar (mobile only) -->
     <div class="mob-bar-2">
@@ -295,19 +332,6 @@
   </div>
 </header>
 
-<!-- Mobile nav overlay -->
-<div class="mob-menu-overlay" id="mob-menu-overlay">
-  <div class="mob-menu-panel">
-    <a href="index.html"><span class="material-symbols-rounded">wb_sunny</span>Forecast</a>
-    <a href="outlook.html"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</a>
-    <a href="watches.html" class="active"><span class="material-symbols-rounded">emergency_home</span>Current Watches</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</a>
-    <a href="severe101.html"><span class="material-symbols-rounded">school</span>Severe Weather 101</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">mail</span>Contact</a>
-    <a href="#" data-coming-soon><span class="material-symbols-rounded">info</span>About</a>
-  </div>
-</div>
 
 <!-- ── APP BODY ── -->
 <div class="app-body">
@@ -392,6 +416,7 @@
 // ─────────────────────────────────────────────
 // NWS alerts API — CORS-enabled, no proxy needed
 const WATCHES_URL = 'https://api.weather.gov/alerts/active';
+const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
 
 const WATCH_STYLES = {
   'Tornado Watch':             { cls:'tor', fill:'#ff0000', stroke:'#cc0000', label:'Tornado Watch' },
@@ -461,28 +486,29 @@ let selectedWatchId = null;
 // ─────────────────────────────────────────────
 // FETCH WATCHES
 // ─────────────────────────────────────────────
-// Resolve geometry for a null-geometry watch by merging its affected zone polygons
-async function resolveWatchGeometry(feature) {
-  if (feature.geometry) return feature;
-  const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
-  const zoneUrls = feature.properties.affectedZones || [];
-  if (!zoneUrls.length) return null;
+
+// Fetch NWS county zones GeoJSON — contains all US county forecast zones with their IDs.
+// Returns a Map of zoneId (e.g. "OHZ001") -> GeoJSON Feature
+let _countyZoneCache = null;
+async function fetchCountyZones() {
+  if (_countyZoneCache) return _countyZoneCache;
   try {
-    const zoneResponses = await Promise.all(zoneUrls.map(u => fetch(u, { headers }).then(r => r.ok ? r.json() : null)));
-    const rings = [];
-    for (const zone of zoneResponses) {
-      if (!zone?.geometry) continue;
-      const g = zone.geometry;
-      if (g.type === 'Polygon') rings.push(...g.coordinates);
-      else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => rings.push(...p));
+    const res = await fetch('https://api.weather.gov/zones?type=county&limit=2000', {
+      headers: { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const gj = await res.json();
+    const m = new Map();
+    for (const feat of (gj.features || [])) {
+      const id = feat.properties?.id || feat.id;
+      if (id && feat.geometry) m.set(id, feat);
     }
-    if (!rings.length) return null;
-    // Combine all zone polygons into a MultiPolygon
-    const merged = { type: 'MultiPolygon', coordinates: rings.map(r => [r]) };
-    return { ...feature, geometry: merged };
-  } catch (e) {
-    console.warn('Zone geometry resolve failed:', e);
-    return null;
+    _countyZoneCache = m;
+    console.log('[watches] loaded county zones:', m.size);
+    return m;
+  } catch(e) {
+    console.warn('[watches] county zones fetch failed:', e);
+    return new Map();
   }
 }
 
@@ -490,28 +516,50 @@ async function fetchWatches() {
   setLoading(true);
   const headers = { 'Accept': 'application/geo+json', 'User-Agent': 'jWeather/1.0 (jweather.app)' };
   try {
-    const [torRes, svrRes] = await Promise.all([
+    // Fetch alerts + US counties GeoJSON in parallel
+    const [torRes, svrRes, countiesRes] = await Promise.all([
       fetch(`${WATCHES_URL}?event=Tornado%20Watch&status=actual&message_type=alert`, { headers }),
       fetch(`${WATCHES_URL}?event=Severe%20Thunderstorm%20Watch&status=actual&message_type=alert`, { headers }),
+      fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'),
     ]);
-    if (!torRes.ok) throw new Error(`Tornado watch fetch: HTTP ${torRes.status}`);
-    if (!svrRes.ok) throw new Error(`SVR watch fetch: HTTP ${svrRes.status}`);
-    const [torData, svrData] = await Promise.all([torRes.json(), svrRes.json()]);
-    const allFeatures = [
-      ...(torData.features || []),
-      ...(svrData.features || []),
-    ];
+    if (!torRes.ok) throw new Error(`Tornado watch HTTP ${torRes.status}`);
+    if (!svrRes.ok) throw new Error(`SVR watch HTTP ${svrRes.status}`);
+    const [torData, svrData, countiesGJ] = await Promise.all([torRes.json(), svrRes.json(), countiesRes.json()]);
+    const allFeatures = [...(torData.features || []), ...(svrData.features || [])];
+    console.log('[watches] NWS alert features:', allFeatures.length);
 
-    // Resolve geometries — watches are county-based and often have geometry:null
-    // For those, merge the affected zone polygons to build the watch area
-    const resolved = await Promise.all(allFeatures.map(f => resolveWatchGeometry(f)));
-    watchData = resolved.filter(Boolean).sort((a, b) => {
+    watchData = allFeatures.sort((a, b) => {
       const aIsTor = a.properties.event === 'Tornado Watch';
       const bIsTor = b.properties.event === 'Tornado Watch';
       if (aIsTor !== bIsTor) return aIsTor ? -1 : 1;
       return new Date(a.properties.expires) - new Date(b.properties.expires);
     });
-    renderWatches();
+
+    // Build FIPS -> event map from geocode.SAME codes
+    // SAME codes are 6-digit strings: leading '0' + 5-digit FIPS (e.g. "006037" = FIPS "06037")
+    const fipsToEvent = new Map();
+    for (const f of watchData) {
+      const sameCodes = f.properties?.geocode?.SAME || [];
+      for (const code of sameCodes) {
+        const fips = code.replace(/^0/, '');
+        if (!fipsToEvent.has(fips) || f.properties.event === 'Tornado Watch') {
+          fipsToEvent.set(fips, f.properties.event);
+        }
+      }
+    }
+    console.log('[watches] FIPS counties covered:', fipsToEvent.size);
+
+    // Filter counties GeoJSON to only affected counties
+    const countyFeatures = (countiesGJ.features || [])
+      .filter(f => fipsToEvent.has(f.id))
+      .map(f => ({
+        ...f,
+        properties: { ...f.properties, event: fipsToEvent.get(f.id) }
+      }));
+
+    console.log('[watches] matched county features:', countyFeatures.length);
+
+    renderWatches(countyFeatures);
     updateStatus();
     document.getElementById('watch-updated').textContent =
       `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
@@ -526,7 +574,7 @@ async function fetchWatches() {
 // ─────────────────────────────────────────────
 // RENDER WATCH LIST + MAP LAYER
 // ─────────────────────────────────────────────
-function renderWatches() {
+function renderWatches(countyFeatures = []) {
   const list = document.getElementById('watch-list');
   const panelSub = document.getElementById('panel-sub');
   const mobCount = document.getElementById('mob-watch-count');
@@ -585,35 +633,20 @@ function renderWatches() {
     card.addEventListener('click', () => selectWatch(parseInt(card.dataset.idx)));
   });
 
-  // Draw on map
-  watchLayer = L.geoJSON({ type: 'FeatureCollection', features: watchData }, {
+  // Draw counties on map
+  watchLayer = L.geoJSON({ type: 'FeatureCollection', features: countyFeatures }, {
     style: feat => {
       const style = WATCH_STYLES[feat.properties.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
       return {
         fillColor: style.fill,
-        fillOpacity: 0.18,
+        fillOpacity: 0.22,
         color: style.stroke,
-        weight: 1.5,
-        opacity: 0.85,
+        weight: 0.8,
+        opacity: 0.7,
       };
     },
     onEachFeature: (feat, layer) => {
-      const p = feat.properties;
-      const style = WATCH_STYLES[p.event] || WATCH_STYLES['Severe Thunderstorm Watch'];
-      const watchNum = extractWatchNum(p);
-      const expireStr = formatExpire(p.expires);
-      layer.bindPopup(`
-        <div class="popup-bar ${style.cls}"></div>
-        <div class="popup-inner">
-          <span class="popup-type ${style.cls}">${style.label}</span>
-          <div class="popup-title">${watchNum ? `Watch #${watchNum}` : p.event}</div>
-          <div class="popup-expires">Expires ${expireStr}</div>
-        </div>`, { closeButton: false, maxWidth: 260 });
-
-      layer.on('click', () => {
-        const idx = watchData.indexOf(feat);
-        if (idx >= 0) selectWatch(idx);
-      });
+      // No per-county popup — watch list cards handle detail
     }
   }).addTo(map);
 
@@ -849,11 +882,6 @@ document.getElementById('mob-watch-toggle').addEventListener('click', () => {
 // MOBILE NAV
 // ─────────────────────────────────────────────
 (function(){
-  const btn=document.getElementById('mob-menu-btn');
-  const overlay=document.getElementById('mob-menu-overlay');
-  if(!btn||!overlay)return;
-  btn.addEventListener('click',e=>{e.stopPropagation();overlay.style.display=overlay.style.display==='block'?'none':'block';});
-  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.style.display='none';});
 })();
 
 // ─────────────────────────────────────────────
@@ -872,6 +900,64 @@ document.querySelectorAll('[data-coming-soon]').forEach(el => {
 // INIT
 // ─────────────────────────────────────────────
 fetchWatches();
+</script>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="mob-bottom-nav" aria-label="Main navigation">
+  <div class="mob-bottom-nav-inner">
+    <a href="index.html" class="mob-tab">
+      <span class="material-symbols-rounded">wb_sunny</span>Home
+    </a>
+    <a href="hourly.html" class="mob-tab">
+      <span class="material-symbols-rounded">schedule</span>Hourly
+    </a>
+    <a href="radar.html" class="mob-tab">
+      <span class="material-symbols-rounded">radar</span>Radar
+    </a>
+    <button class="mob-tab mob-tab-severe" id="mob-severe-tab">
+      <span class="material-symbols-rounded">thunderstorm</span>Severe
+    </button>
+  </div>
+</nav>
+<div class="severe-sheet-backdrop" id="severe-backdrop"></div>
+<div class="severe-sheet" id="severe-sheet">
+  <div class="severe-sheet-handle"></div>
+  <div class="severe-sheet-title">Severe Weather</div>
+  <div class="severe-sheet-items">
+    <a href="outlook.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">thunderstorm</span>
+      <div class="severe-sheet-item-text">Severe Outlook<div class="severe-sheet-item-sub">SPC convective outlooks</div></div>
+    </a>
+    <a href="watches.html" class="severe-sheet-item active">
+      <span class="material-symbols-rounded">emergency_home</span>
+      <div class="severe-sheet-item-text">Current Watches<div class="severe-sheet-item-sub">Tornado &amp; thunderstorm watches</div></div>
+    </a>
+    <a href="meso.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">crisis_alert</span>
+      <div class="severe-sheet-item-text">Mesoscale Discussions<div class="severe-sheet-item-sub">SPC short-term forecasts</div></div>
+    </a>
+    <a href="severe101.html" class="severe-sheet-item">
+      <span class="material-symbols-rounded">school</span>
+      <div class="severe-sheet-item-text">Severe Weather 101<div class="severe-sheet-item-sub">Learn about severe weather</div></div>
+    </a>
+    <a href="#" class="severe-sheet-item" data-coming-soon>
+      <span class="material-symbols-rounded">tune</span>
+      <div class="severe-sheet-item-text">Storm Parameters<div class="severe-sheet-item-sub">Atmospheric instability data</div></div>
+      <span class="severe-sheet-item-badge soon">Soon</span>
+    </a>
+  </div>
+</div>
+<script>
+(function(){
+  var tab=document.getElementById('mob-severe-tab');
+  var sheet=document.getElementById('severe-sheet');
+  var bd=document.getElementById('severe-backdrop');
+  function open(){sheet.classList.add('open');bd.classList.add('open');}
+  function close(){sheet.classList.remove('open');bd.classList.remove('open');}
+  if(tab)tab.addEventListener('click',function(){sheet.classList.contains('open')?close():open();});
+  if(bd)bd.addEventListener('click',close);
+  document.body.classList.add('has-bottom-nav');
+})();
 </script>
 </body>
 </html>
