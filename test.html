@@ -1586,7 +1586,7 @@ const OUTLOOK_MODE_LABELS = {cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail
 let outlookMap = null;
 let activeOutlookLayer = null;
 let activeOutlookSigLayer = null;
-let activeHatchLayers = [];
+let activeCigLayer = null;
 let activeOutlookDay = 1;
 let activeOutlookMode = 'cat';
 
@@ -1865,7 +1865,7 @@ async function loadOutlookHazard(day, mode) {
 
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
-  activeHatchLayers.forEach(l => { try { outlookMap.removeLayer(l); } catch(e){} }); activeHatchLayers = [];
+  if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
 
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
   if (!layerId) { loading.classList.add('hidden'); return; }
@@ -1928,26 +1928,17 @@ async function loadOutlookHazard(day, mode) {
     // Only for prob modes (torn/wind/hail) — cat has no sig hatching
     const cigFeatures = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
     if (cigFeatures.length && mode !== 'cat') {
-      // Pass 1: re-render each CIG polygon with its actual threat color (main layer hides them)
-      const scale = getOutlookProbScale(mode);
-      cigFeatures.forEach(f => {
-        const dnRaw = f.properties?.DN ?? f.properties?.dn ?? 0;
-        const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
-        let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
-        const fillLyr = L.geoJSON(f, {
-          renderer: outlookMap._outlookRenderer,
-          style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 },
-          interactive: false,
-        }).addTo(outlookMap);
-        activeHatchLayers.push(fillLyr);
-      });
-      // Pass 2: hatch overlay on top
-      const cigHatchLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
+      // Ensure defs injected into outlookPane SVG
+      const cigSvgEl = outlookMap.getPane('outlookPane')?.querySelector('svg');
+      const cigDefsEl = cigSvgEl?.querySelector('defs');
+      if (cigSvgEl && cigDefsEl && !cigSvgEl.querySelector('#cig-hatch')) {
+        cigSvgEl.insertBefore(cigDefsEl, cigSvgEl.firstChild);
+      }
+      activeCigLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
         renderer: outlookMap._outlookRenderer,
         style: () => ({ fillColor:'url(#cig-hatch)', fillOpacity:1, color:'#000000', weight:1.5, opacity:0.7 }),
         interactive: false,
       }).addTo(outlookMap);
-      activeHatchLayers.push(cigHatchLayer);
       appendHatchLegend(mode);
     }
 
@@ -1960,6 +1951,11 @@ async function loadOutlookHazard(day, mode) {
           const sigGj = await sigRes.json();
           if (sigGj.features?.length) {
             const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2"+ Hail';
+            const sigSvgEl = outlookMap.getPane('outlookPane')?.querySelector('svg');
+            const sigDefsEl = sigSvgEl?.querySelector('defs');
+            if (sigSvgEl && sigDefsEl && !sigSvgEl.querySelector('#cig-hatch')) {
+              sigSvgEl.insertBefore(sigDefsEl, sigSvgEl.firstChild);
+            }
             activeOutlookSigLayer = L.geoJSON(sigGj, {
               renderer: outlookMap._outlookRenderer,
               style: () => ({ fillColor:'url(#cig-hatch)', fillOpacity:1, color:'#000000', weight:1.5, opacity:0.7 }),
