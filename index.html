@@ -2410,12 +2410,11 @@ const watchPanel = document.getElementById('watches-panel');
 let mesoMap, mesoLayers = {}, mesoData = [];
 
 function initMesoMap() {
-  mesoMap = L.map('meso-map', { zoomControl:true }).setView([38.5, -96], 4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
-  }).addTo(mesoMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-    attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
+  mesoMap = L.map('meso-map', { zoomControl: false }).setView([38.5, -96], 4);
+  L.control.zoom({ position: 'topright' }).addTo(mesoMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19,
+    updateWhenZooming: false,
   }).addTo(mesoMap);
   loadMesoDiscussions();
 }
