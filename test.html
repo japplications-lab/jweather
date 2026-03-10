@@ -1259,7 +1259,7 @@ document.addEventListener('click', e => {
 
 function pick(loc, activeBar, activeSug) {
   curLoc = loc;
-  _searchInputs.forEach(({bar, sug}) => { bar.value = loc.label; sug.style.display = 'none'; });
+  _searchInputs.forEach(({bar, sug}) => { bar.value = loc.label; sug.style.display = 'none'; bar.blur(); });
   selIdx = -1;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
   saveRecent(loc);
