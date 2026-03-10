@@ -874,6 +874,8 @@
         <div class="md-detail-concern" id="mdd-concern"></div>
         <div class="md-detail-area" id="mdd-area"></div>
         <div class="md-detail-row"><span class="material-symbols-rounded">schedule</span><span id="mdd-expire"></span></div>
+        <div id="mdd-text" style="display:none;font-size:0.72rem;line-height:1.7;color:var(--text-2);margin:8px 0;max-height:180px;overflow-y:auto;border-top:1px solid var(--border);padding-top:8px;white-space:pre-wrap;"></div>
+        <div id="mdd-text-loading" style="display:none;font-size:0.72rem;color:var(--text-3);padding:8px 0;border-top:1px solid var(--border);margin-top:8px;">Loading discussion…</div>
         <div class="md-detail-actions">
           <a class="md-detail-btn primary" id="mdd-link" href="#" target="_blank"><span class="material-symbols-rounded" style="font-size:13px;">open_in_new</span>SPC Page</a>
           <button class="md-detail-btn secondary" onclick="closeMdDetail()">Dismiss</button>
@@ -2498,36 +2500,54 @@ function selectMeso(i, card) {
   }
 }
 
-function showMesoDetail(feat, i) {
+async function showMesoDetail(feat, i) {
   const p = feat.properties;
   const num = p.name || p.num || i+1;
   const concern = p.concerning || p.watch_confidence || p.discussion_type || 'Potential Thunderstorm';
   const area = p.affected || p.area || p.affected_area || '—';
   const expires = p.expire || p.expiration || p.expireTime;
   const expStr = expires ? new Date(expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-  const numStr = String(num).replace(/\D/g,'').padStart(4,'0');
+  const numStr = String(num).replace(/[^0-9]/g,'').padStart(4,'0');
   const year = new Date().getFullYear();
-  const url = p.url || `https://www.spc.noaa.gov/products/md/${year}/md${numStr}.html`;
+  const url = `https://www.spc.noaa.gov/products/md/${year}/md${numStr}.html`;
+
   document.getElementById('mdd-num').textContent = `MCD #${num}`;
   document.getElementById('mdd-concern').textContent = concern;
   document.getElementById('mdd-area').textContent = area;
   document.getElementById('mdd-expire').textContent = `Until ${expStr}`;
   document.getElementById('mdd-link').href = url;
 
-  // Show discussion text if available
-  const summary = p.summary || p.discussion || p.text || '';
-  let textEl = document.getElementById('mdd-text');
-  if (!textEl) {
-    textEl = document.createElement('div');
-    textEl.id = 'mdd-text';
-    textEl.style.cssText = 'font-size:0.72rem;line-height:1.65;color:var(--text-2);margin:8px 0;max-height:160px;overflow-y:auto;white-space:pre-wrap;border-top:1px solid var(--border);padding-top:8px;';
-    const actions = document.querySelector('.md-detail-actions');
-    if (actions) actions.parentNode.insertBefore(textEl, actions);
-  }
-  textEl.style.display = summary ? 'block' : 'none';
-  textEl.textContent = summary;
-
+  // Reset text panel
+  const textEl = document.getElementById('mdd-text');
+  const loadEl = document.getElementById('mdd-text-loading');
+  textEl.style.display = 'none';
+  loadEl.style.display = 'block';
+  textEl.textContent = '';
   document.getElementById('md-detail').classList.add('show');
+
+  // Fetch discussion text via worker proxy
+  try {
+    const res = await fetch(`${WORKER_URL}/proxy/products/md/${year}/md${numStr}.html`);
+    if (!res.ok) throw new Error('fetch failed');
+    const html = await res.text();
+    const doc = document.createElement('div');
+    doc.innerHTML = html;
+    const pre = doc.querySelector('pre');
+    let text = (pre ? pre.textContent : doc.textContent).trim();
+    // Strip the header lines (everything before the actual discussion body)
+    const bodyStart = text.search(/\.{3}|
+
+/);
+    if (bodyStart > 0) text = text.slice(bodyStart).trim();
+    text = text.slice(0, 2000);
+    loadEl.style.display = 'none';
+    textEl.textContent = text;
+    textEl.style.display = 'block';
+  } catch(e) {
+    loadEl.style.display = 'none';
+    textEl.textContent = 'Could not load discussion text.';
+    textEl.style.display = 'block';
+  }
 }
 
 function closeMdDetail() { document.getElementById('md-detail').classList.remove('show'); }
