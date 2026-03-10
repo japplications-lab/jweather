@@ -2535,9 +2535,7 @@ async function showMesoDetail(feat, i) {
     const pre = doc.querySelector('pre');
     let text = (pre ? pre.textContent : doc.textContent).trim();
     // Strip the header lines (everything before the actual discussion body)
-    const bodyStart = text.search(/\.{3}|
-
-/);
+    const bodyStart = text.search(/\.{3}|\n\n/);
     if (bodyStart > 0) text = text.slice(bodyStart).trim();
     text = text.slice(0, 2000);
     loadEl.style.display = 'none';
