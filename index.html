@@ -2203,11 +2203,17 @@ async function openDiscModal(day) {
   try {
     // Step 1: fetch raw SPC text
     const spcRes = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
-    if (!spcRes.ok) throw new Error('SPC fetch failed');
+    if (!spcRes.ok) throw new Error(`SPC fetch failed: ${spcRes.status}`);
     const html = await spcRes.text();
     const div = document.createElement('div'); div.innerHTML = html;
-    const pre = div.querySelector('pre');
-    const rawText = (pre ? pre.textContent : div.textContent).trim().slice(0, 4000);
+    // Try multiple selectors — SPC HTML structure varies
+    const pre = div.querySelector('pre') || div.querySelector('.discussion') || div.querySelector('body');
+    let rawText = (pre ? pre.textContent : div.textContent).trim();
+    // Strip boilerplate headers (everything before the actual discussion text)
+    const discStart = rawText.search(/\.\.\.|(Day [123])|(ACUS0[123])|SPC|CONVECTIVE/i);
+    if (discStart > 50) rawText = rawText.slice(discStart);
+    rawText = rawText.slice(0, 4000);
+    if (!rawText || rawText.length < 50) throw new Error('SPC text empty or too short');
     _discRawText = rawText;
 
     // Step 2: send to AI for plain-language summary
@@ -2266,7 +2272,7 @@ ${rawText}` }],
     discHtml += `<div style="margin-top:4px;padding-top:10px;border-top:1px solid var(--border);"><a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="font-size:0.72rem;color:var(--text-4);text-decoration:none;">View original SPC discussion ↗</a></div>`;
     document.getElementById('disc-modal-body').innerHTML = discHtml;
   } catch(e) {
-    document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion. <a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="color:var(--red)">View on SPC ↗</a></div>`;
+    document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion (${e.message}). <a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="color:var(--red)">View on SPC ↗</a></div>`;
   }
 }
 let _discRawText = '';
