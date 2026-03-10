@@ -12,7 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --red:#e5182a; --red-dim:rgba(229,24,42,0.12); --red-border:rgba(229,24,42,0.25);
+      --red:#f97316; --red-dim:rgba(249,115,22,0.12); --red-border:rgba(249,115,22,0.25);
       --sidebar:240px; --header:58px;
       --bg:#16181e; --surface:#1e2028;
       --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
@@ -527,7 +527,7 @@
     .ww-accent{position:absolute;top:0;left:0;right:0;height:3px;}
     .ww-watch{background:linear-gradient(160deg,rgba(245,158,11,0.07),rgba(245,158,11,0.02));}
     .ww-watch .ww-accent{background:var(--amber);}
-    .ww-warning{background:linear-gradient(160deg,rgba(229,24,42,0.09),rgba(229,24,42,0.02));}
+    .ww-warning{background:linear-gradient(160deg,rgba(249,115,22,0.09),rgba(249,115,22,0.02));}
     .ww-warning .ww-accent{background:var(--red);}
     .ww-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;padding:4px 10px;border-radius:20px;margin-bottom:12px;}
     .ww-badge .material-symbols-rounded{font-size:11px;font-variation-settings:'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24;}
@@ -955,7 +955,7 @@
         <div class="hail-card"><div class="hail-icon-text" style="width:36px;height:36px;background:rgba(255,255,255,0.08);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--text-4);letter-spacing:-0.02em;">¼″</div><div class="hail-size">Pea</div><div class="hail-threat" style="background:rgba(34,197,94,0.12);color:#4ade80;">Minor</div></div>
         <div class="hail-card"><div class="hail-icon-text" style="width:42px;height:42px;background:rgba(255,255,255,0.08);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:var(--text-4);letter-spacing:-0.02em;">½″</div><div class="hail-size">Marble</div><div class="hail-threat" style="background:rgba(234,179,8,0.12);color:#facc15;">Moderate</div></div>
         <div class="hail-card"><div class="hail-icon-text" style="width:50px;height:50px;background:rgba(249,115,22,0.15);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#fb923c;letter-spacing:-0.02em;border:2px solid rgba(249,115,22,0.3);">¾″</div><div class="hail-size">Penny</div><div class="hail-threat" style="background:rgba(249,115,22,0.12);color:#fb923c;">Severe</div></div>
-        <div class="hail-card"><div class="hail-icon-text" style="width:64px;height:64px;background:rgba(229,24,42,0.15);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:800;color:var(--red);letter-spacing:-0.02em;border:2px solid rgba(229,24,42,0.4);">2½″</div><div class="hail-size">Baseball</div><div class="hail-threat" style="background:rgba(229,24,42,0.12);color:var(--red);">Extreme</div></div>
+        <div class="hail-card"><div class="hail-icon-text" style="width:64px;height:64px;background:rgba(249,115,22,0.15);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:800;color:var(--red);letter-spacing:-0.02em;border:2px solid rgba(249,115,22,0.4);">2½″</div><div class="hail-size">Baseball</div><div class="hail-threat" style="background:rgba(249,115,22,0.12);color:var(--red);">Extreme</div></div>
       </div>
       <div class="info-note" style="margin-top:14px;"><span class="material-symbols-rounded">info</span><p><strong>Severe threshold:</strong> The NWS considers hail ¾ inch (penny-size) or larger as severe. Baseball-sized hail (&gt;2.75″) can penetrate car roofs and cause severe injuries. Never stand outside during hail storms.</p></div>
     </div>
@@ -2482,7 +2482,18 @@ function selectMeso(i, card) {
   if (mesoMap && mesoData[i].geometry) {
     const coords = mesoData[i].geometry.coordinates[0];
     const latlngs = coords.map(c => [c[1], c[0]]);
-    try { mesoMap.fitBounds(latlngs, { padding:[40,40] }); } catch(e) {}
+    try {
+      // Fit bounds first, then pan up so polygon sits above the detail panel
+      const bounds = L.latLngBounds(latlngs);
+      const detailEl = document.getElementById('md-detail');
+      const detailH = detailEl ? detailEl.offsetHeight + 24 : 260;
+      const mapH = mesoMap.getContainer().offsetHeight;
+      // Pad bottom by detail panel height so polygon is visible above it
+      mesoMap.fitBounds(bounds, {
+        paddingTopLeft: [16, 16],
+        paddingBottomRight: [16, detailH]
+      });
+    } catch(e) {}
   }
 }
 
@@ -2568,10 +2579,6 @@ function renderMesoOnMap(features) {
   const layer = L.geoJSON({ type:'FeatureCollection', features }, {
     style: () => ({ fillColor:'#f97316', fillOpacity:0.2, color:'#f97316', weight:2, opacity:0.8 }),
     onEachFeature: (feat, lyr) => {
-      const p = feat.properties;
-      const num = p.name || p.num || '—';
-      const { label: concern, color: cColor } = classifyConcern(p.concerning || p.watch_confidence || '');
-      lyr.bindPopup(`<div class="popup-inner"><div style="font-size:0.65rem;font-weight:800;color:${cColor};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">MCD #${num}</div><div class="popup-risk" style="font-size:0.83rem">${concern}</div></div>`);
       lyr.on('click', () => {
         const idx = mesoData.findIndex(f => f === feat);
         if (idx >= 0) {
