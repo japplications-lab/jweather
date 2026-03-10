@@ -62,6 +62,11 @@
     .search-clear-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--text-3);transition:background .15s,color .15s;flex-shrink:0;}
     .search-clear-btn:hover{background:var(--border-2);color:var(--text);}
     .search-clear-btn .material-symbols-rounded{font-size:20px;}
+    .gps-btn{background:none;border:none;cursor:pointer;padding:5px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--text-3);transition:background .15s,color .15s;flex-shrink:0;margin-left:1px;}
+    .gps-btn:hover{background:var(--red-dim);color:var(--red);}
+    .gps-btn .material-symbols-rounded{font-size:17px;}
+    .gps-btn.loading .material-symbols-rounded{animation:spin .8s linear infinite;color:var(--red);}
+    .gps-btn.located .material-symbols-rounded{color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
 
     /* Nav */
     .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
@@ -653,6 +658,7 @@
           <span class="material-symbols-rounded">search</span>
           <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
           <button id="search-clear" class="search-clear-btn" onclick="clearSearch('search-bar','suggestions')" style="display:none"><span class="material-symbols-rounded">close</span></button>
+          <button class="gps-btn" id="gps-btn-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
         </div>
         <ul id="suggestions"></ul>
       </div>
@@ -682,6 +688,7 @@
           <span class="material-symbols-rounded">search</span>
           <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city or ZIP…"/>
           <button id="search-clear-mob" class="search-clear-btn" onclick="clearSearch('search-bar-mob','suggestions-mob')" style="display:none"><span class="material-symbols-rounded">close</span></button>
+          <button class="gps-btn" id="gps-btn-mob" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
         </div>
         <ul id="suggestions-mob"></ul>
       </div>
@@ -1326,6 +1333,72 @@ const _searchInputs = [
   { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
 ].filter(x => x.bar && x.sug);
+
+const _gpsBtns = [
+  document.getElementById('gps-btn-desk'),
+  document.getElementById('gps-btn-mob'),
+].filter(Boolean);
+
+function setGpsState(state) {
+  // state: 'idle' | 'loading' | 'located' | 'error'
+  _gpsBtns.forEach(btn => {
+    btn.classList.remove('loading','located');
+    btn.disabled = false;
+    if (state === 'loading') { btn.classList.add('loading'); btn.disabled = true; }
+    else if (state === 'located') btn.classList.add('located');
+  });
+}
+
+async function useGPS() {
+  if (!navigator.geolocation) {
+    showToast('GPS not supported on this device');
+    return;
+  }
+  setGpsState('loading');
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      try {
+        // Reverse geocode with Nominatim
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+          { headers: { 'Accept-Language': 'en-US,en', 'User-Agent': 'jWeather/1.0' } }
+        );
+        const data = await res.json();
+        const a = data.address || {};
+        const city = a.city || a.town || a.village || a.county || 'My Location';
+        const state = stateAbbr(a.state || '');
+        const label = state ? `${city}, ${state}` : city;
+        const loc = { label, city, state, lat, lng };
+        curLoc = loc;
+        saveRecent(loc);
+        _searchInputs.forEach(({bar, sug}) => { bar.value = label; sug.style.display = 'none'; bar.blur(); });
+        setGpsState('located');
+        loadWeather(loc);
+        updateRadar(lat, lng);
+      } catch(e) {
+        setGpsState('error');
+        showToast('Could not determine your location');
+        setTimeout(() => setGpsState('idle'), 2000);
+      }
+    },
+    (err) => {
+      setGpsState('idle');
+      if (err.code === 1) showToast('Location access denied');
+      else showToast('Could not get your location');
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function showToast(msg) {
+  const t = document.getElementById('coming-soon-toast');
+  if (!t) return;
+  t.querySelector('span.material-symbols-rounded').textContent = 'info';
+  t.childNodes[1] && (t.childNodes[1].textContent = ' ' + msg);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
 
 async function fetchSuggestions(q) {
   if (searchController) searchController.abort();
