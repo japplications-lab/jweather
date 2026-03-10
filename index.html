@@ -362,21 +362,16 @@
     }
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
-    .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
-    .disc-head{padding:16px 20px 14px;border-bottom:none;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-    .disc-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .disc-tab{flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--font);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-4);cursor:pointer;transition:color .15s,border-color .15s;}
-    .disc-tab.active{color:var(--red);border-bottom-color:var(--red);}
+    .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:500px;width:100%;max-height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
+    .disc-head{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
     .disc-pip{width:9px;height:9px;background:var(--red);border-radius:50%;flex-shrink:0;}
-    .disc-modal-title{font-size:0.95rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
+    .disc-modal-title{font-size:0.88rem;font-weight:700;color:var(--text);flex:1;letter-spacing:-0.01em;}
     .disc-close{background:none;border:none;color:var(--text-4);cursor:pointer;}
     .disc-close:hover{color:var(--red);}
     .disc-close .material-symbols-rounded{font-size:18px;}
-    .disc-modal-body{padding:18px 22px 24px;overflow-y:auto;flex:1;}
-    .disc-modal-body pre{white-space:pre-wrap;font-family:var(--font);font-size:0.8rem;line-height:1.85;color:var(--text-2);}
-    .disc-err{font-size:0.82rem;color:var(--text-3);padding:8px 0;}
-    .disc-loading{display:flex;align-items:center;gap:12px;padding:32px 0;color:var(--text-4);font-size:0.83rem;}
-    .disc-err{color:var(--red);font-size:0.82rem;}
+    .disc-modal-body{padding:16px 18px 20px;overflow-y:auto;flex:1;}
+    .disc-err{font-size:0.8rem;color:var(--red);}
+    .disc-loading{display:flex;align-items:center;gap:12px;padding:24px 0;color:var(--text-4);font-size:0.83rem;}
 
     /* ══════════════════════════════════
        PAGE: WATCHES
@@ -810,10 +805,6 @@
         <div class="disc-pip"></div>
         <div class="disc-modal-title" id="disc-modal-title">SPC Discussion</div>
         <button class="disc-close" id="disc-close"><span class="material-symbols-rounded">close</span></button>
-      </div>
-      <div class="disc-tabs">
-        <button class="disc-tab active" id="disc-tab-ai" onclick="switchDiscTab('ai')">AI Summary</button>
-        <button class="disc-tab" id="disc-tab-orig" onclick="switchDiscTab('orig')">Original</button>
       </div>
       <div class="disc-modal-body" id="disc-modal-body">
         <div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>
@@ -2204,97 +2195,73 @@ async function loadOutlookHazard(day, mode) {
 
 async function openDiscModal(day) {
   _discDay = day;
-  document.getElementById('disc-tab-ai').classList.add('active');
-  document.getElementById('disc-tab-orig').classList.remove('active');
   document.getElementById('disc-modal').style.display = 'flex';
-  document.getElementById('disc-modal-title').textContent = `Day ${day} — ${day===1?'Today':day===2?'Tomorrow':'Day 3'} — SPC Forecast Discussion`;
+  document.getElementById('disc-modal-title').textContent = `Day ${day} — ${day===1?'Today':day===2?'Tomorrow':'Day 3'} — SPC Outlook`;
   document.getElementById('disc-modal-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>';
   try {
-    // Step 1: fetch raw SPC text
+    // Fetch raw SPC discussion HTML
     const spcRes = await fetch(`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`);
     if (!spcRes.ok) throw new Error(`SPC fetch failed: ${spcRes.status}`);
     const html = await spcRes.text();
     const div = document.createElement('div'); div.innerHTML = html;
-    // Try multiple selectors — SPC HTML structure varies
     const pre = div.querySelector('pre') || div.querySelector('.discussion') || div.querySelector('body');
     let rawText = (pre ? pre.textContent : div.textContent).trim();
-    // Strip boilerplate headers (everything before the actual discussion text)
     const discStart = rawText.search(/\.\.\.|(Day [123])|(ACUS0[123])|SPC|CONVECTIVE/i);
     if (discStart > 50) rawText = rawText.slice(discStart);
     rawText = rawText.slice(0, 4000);
-    if (!rawText || rawText.length < 50) throw new Error('SPC text empty or too short');
+    if (!rawText || rawText.length < 50) throw new Error('Discussion text unavailable');
     _discRawText = rawText;
 
-    // Step 2: send to AI for plain-language summary
+    // AI summary — short, punchy, threat-focused
     const aiRes = await fetch(`${WORKER_URL}/ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: `You are a concise weather briefing writer for jWeather, a mobile app for everyday users.
-Rewrite the SPC outlook discussion as a structured briefing with exactly 4 sections.
-Each section must start with its label on its own line in ALL CAPS followed by a colon, then the content on the next line.
-Use this exact format:
+        system: `You are a weather alert writer for a mobile app. Summarize the SPC outlook in exactly 3 sections. Be brief and direct — one sentence each. Lead with the most dangerous threat.
 
-WHAT'S HAPPENING:
-[1-2 sentences — the big picture situation]
+Format (use exactly these labels):
+SITUATION:
+[one sentence — what's happening and where]
 
-MAIN THREATS:
-[1-2 sentences — what hazards to expect and where]
+BIGGEST THREAT:
+[one sentence — the most dangerous hazard]
 
-WHEN TO EXPECT IT:
-[1-2 sentences — timing]
+TIMING:
+[one sentence — when to expect it]
 
-HOW CONFIDENT ARE FORECASTERS?:
-[1 sentence — confidence level in plain terms]
-
-Rules: No jargon. No percentages. No technical codes. Plain English only. Keep each section to 1-2 sentences max. Do not add any other text, headers, or commentary outside the 4 sections.`,
-        messages: [{ role: 'user', content: `Please summarize this SPC outlook discussion in plain English:
-
-${rawText}` }],
-        max_tokens: 600,
+No jargon. No codes. No extra text outside these 3 sections.`,
+        messages: [{ role: 'user', content: rawText }],
+        max_tokens: 250,
       })
     });
-    if (!aiRes.ok) throw new Error('AI fetch failed');
+    if (!aiRes.ok) throw new Error('AI unavailable');
     const aiData = await aiRes.json();
-    const summary = aiData.content?.[0]?.text || aiData.choices?.[0]?.message?.content || '';
+    const summary = aiData.content?.[0]?.text || '';
     if (!summary) throw new Error('Empty AI response');
 
-    // Parse structured sections and render like the screenshot
+    // Render sections
     const lines = summary.trim().split('\n').map(l => l.trim()).filter(Boolean);
     let discHtml = '';
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
-      if (line.match(/^[A-Z][A-Z\s'?]+:$/)) {
+      if (/^[A-Z][A-Z\s'?]+:$/.test(line)) {
         const label = line.replace(/:$/, '');
         const body = lines[i+1] || '';
-        discHtml += `<div style="margin-bottom:16px;">
-          <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:4px;">${label}</div>
-          <div style="font-size:0.84rem;line-height:1.7;color:var(--text-2);">${body}</div>
-        </div>`;
+        discHtml += `<div style="margin-bottom:14px;"><div style="font-size:0.62rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:3px;">${label}</div><div style="font-size:0.82rem;line-height:1.6;color:var(--text-2);">${body}</div></div>`;
         i += 2;
       } else {
-        discHtml += `<div style="font-size:0.84rem;line-height:1.7;color:var(--text-2);margin-bottom:12px;">${line}</div>`;
+        discHtml += `<div style="font-size:0.82rem;line-height:1.6;color:var(--text-2);margin-bottom:10px;">${line}</div>`;
         i++;
       }
     }
-    discHtml += `<div style="margin-top:4px;padding-top:10px;border-top:1px solid var(--border);"><a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="font-size:0.72rem;color:var(--text-4);text-decoration:none;">View original SPC discussion ↗</a></div>`;
     document.getElementById('disc-modal-body').innerHTML = discHtml;
   } catch(e) {
-    document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion (${e.message}). <a href="https://www.spc.noaa.gov/products/outlook/day${day}otlk.html" target="_blank" style="color:var(--red)">View on SPC ↗</a></div>`;
+    document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion (${e.message}).</div>`;
   }
 }
 let _discRawText = '';
 let _discDay = 1;
-function switchDiscTab(tab) {
-  document.getElementById('disc-tab-ai').classList.toggle('active', tab === 'ai');
-  document.getElementById('disc-tab-orig').classList.toggle('active', tab === 'orig');
-  if (tab === 'orig') {
-    document.getElementById('disc-modal-body').innerHTML = `<pre>${_discRawText}</pre>`;
-  } else {
-    openDiscModal(_discDay);
-  }
-}
 document.getElementById('disc-close').addEventListener('click', () => { document.getElementById('disc-modal').style.display = 'none'; });
 document.getElementById('disc-modal').addEventListener('click', e => { if (e.target === document.getElementById('disc-modal')) document.getElementById('disc-modal').style.display = 'none'; });
 
