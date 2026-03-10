@@ -600,6 +600,9 @@
     .severe-list-body{flex:1;min-width:0;}
     .severe-list-label{font-size:0.85rem;font-weight:600;color:var(--text);line-height:1.25;}
     .severe-list-item.primary .severe-list-label{color:var(--text);}
+    .severe-list-item.active-page{background:var(--red-dim);}
+    .severe-list-item.active-page .severe-list-label{color:var(--red);font-weight:700;}
+    .severe-list-item.active-page .severe-list-chevron .material-symbols-rounded{color:var(--red);}
     .severe-list-sub{font-size:0.7rem;color:var(--text-4);margin-top:1px;}
     .severe-list-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
     .severe-list-chevron .material-symbols-rounded{font-size:17px;color:var(--text-4);}
@@ -1015,11 +1018,19 @@
     <button class="severe-sheet-header-close" onclick="closeSevereSheet()"><span class="material-symbols-rounded">close</span></button>
   </div>
   <div class="severe-sheet-list">
-    <button class="severe-list-item primary" onclick="navigate('outlook');closeSevereSheet()">
+    <button class="severe-list-item primary" id="ssi-outlook" onclick="navigate('outlook');closeSevereSheet()">
       <div class="severe-list-icon"><span class="material-symbols-rounded">thunderstorm</span></div>
       <div class="severe-list-body">
         <div class="severe-list-label">Severe Outlook</div>
         <div class="severe-list-sub">SPC convective outlooks by day</div>
+      </div>
+      <div class="severe-list-right"><div class="severe-list-chevron"><span class="material-symbols-rounded">chevron_right</span></div></div>
+    </button>
+    <button class="severe-list-item primary" id="ssi-meso" onclick="navigate('meso');closeSevereSheet()">
+      <div class="severe-list-icon"><span class="material-symbols-rounded">crisis_alert</span></div>
+      <div class="severe-list-body">
+        <div class="severe-list-label">Mesoscale Discussions</div>
+        <div class="severe-list-sub">SPC forecaster discussions</div>
       </div>
       <div class="severe-list-right"><div class="severe-list-chevron"><span class="material-symbols-rounded">chevron_right</span></div></div>
     </button>
@@ -1030,15 +1041,7 @@
         <div class="severe-list-label">Active Watches</div>
         <div class="severe-list-sub">Tornado &amp; thunderstorm watches</div>
       </div>
-      <div class="severe-list-right"><span class="severe-list-soon">Coming Soon</span></div>
-    </button>
-    <button class="severe-list-item primary" onclick="navigate('meso');closeSevereSheet()">
-      <div class="severe-list-icon"><span class="material-symbols-rounded">crisis_alert</span></div>
-      <div class="severe-list-body">
-        <div class="severe-list-label">Mesoscale Discussions</div>
-        <div class="severe-list-sub">SPC forecaster discussions</div>
-      </div>
-      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:16px;color:var(--text-3);">chevron_right</span></div>
+      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
     </button>
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">storm</span></div>
@@ -1046,7 +1049,7 @@
         <div class="severe-list-label">Storm Reports</div>
         <div class="severe-list-sub">LSR &amp; spotter reports</div>
       </div>
-      <div class="severe-list-right"><span class="severe-list-soon">Coming Soon</span></div>
+      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
     </button>
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">water</span></div>
@@ -1054,7 +1057,7 @@
         <div class="severe-list-label">Flood Alerts</div>
         <div class="severe-list-sub">Flash flood warnings &amp; data</div>
       </div>
-      <div class="severe-list-right"><span class="severe-list-soon">Coming Soon</span></div>
+      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
     </button>
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">school</span></div>
@@ -1062,7 +1065,7 @@
         <div class="severe-list-label">Severe 101</div>
         <div class="severe-list-sub">Learn the basics of severe weather</div>
       </div>
-      <div class="severe-list-right"><span class="severe-list-soon">Coming Soon</span></div>
+      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
     </button>
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">tune</span></div>
@@ -1070,7 +1073,7 @@
         <div class="severe-list-label">Storm Parameters</div>
         <div class="severe-list-sub">Instability &amp; shear data</div>
       </div>
-      <div class="severe-list-right"><span class="severe-list-soon">Coming Soon</span></div>
+      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
     </button>
   </div>
 </div>
@@ -1159,9 +1162,25 @@ function closeSevereSheet() {
   document.getElementById('severe-sheet').classList.remove('open');
   document.getElementById('severe-backdrop').classList.remove('open');
 }
+function updateSevereSheetActive() {
+  // Only highlight the item matching the current page
+  const map = { outlook: 'ssi-outlook', meso: 'ssi-meso' };
+  ['ssi-outlook', 'ssi-meso'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isActive = map[currentPage] === id;
+    el.classList.toggle('active-page', isActive);
+  });
+}
 document.getElementById('mob-severe-tab').addEventListener('click', () => {
   const sheet = document.getElementById('severe-sheet');
-  sheet.classList.contains('open') ? closeSevereSheet() : (sheet.classList.add('open'), document.getElementById('severe-backdrop').classList.add('open'));
+  if (sheet.classList.contains('open')) {
+    closeSevereSheet();
+  } else {
+    updateSevereSheetActive();
+    sheet.classList.add('open');
+    document.getElementById('severe-backdrop').classList.add('open');
+  }
 });
 document.getElementById('severe-backdrop').addEventListener('click', closeSevereSheet);
 
