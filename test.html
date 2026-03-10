@@ -1957,30 +1957,35 @@ function outlookPopupContent(f, mode, day) {
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('outlook-legend-items');
   items.innerHTML = '';
-  // legend bar is always visible
   if (mode === 'cat') {
+    // Collect only present keys, excluding TSTM
     const present = new Set();
     (gj.features || []).forEach(f => {
       const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
       const key = OUTLOOK_CAT[raw] ? raw : OUTLOOK_DN_CAT[raw];
-      if (key && key !== 'TSTM') present.add(key);
+      if (key && key !== 'TSTM' && !raw.startsWith('CIG')) present.add(key);
     });
-    OUTLOOK_CAT_ORDER.forEach(k => {
+    // Render only present, lowest→highest (OUTLOOK_CAT_ORDER is already low→high)
+    OUTLOOK_CAT_ORDER.filter(k => present.has(k)).forEach(k => {
       const c = OUTLOOK_CAT[k];
       const item = document.createElement('div');
-      item.className = 'legend-item' + (present.has(k) ? ' legend-active' : ' legend-dim');
+      item.className = 'legend-item legend-active';
       item.innerHTML = `<div class="legend-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div class="legend-label">${c.label}</div>`;
       items.appendChild(item);
     });
   } else {
+    // Collect present DN values
     const present = new Set();
     (gj.features || []).forEach(f => {
+      const raw = (f.properties?.LABEL || f.properties?.label || '').toString();
+      if (raw.startsWith('CIG')) return;
       const dn = Math.round(parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) * (parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) <= 1 ? 100 : 1));
       if (dn > 0) present.add(dn);
     });
-    [...getOutlookProbScale(mode)].reverse().forEach(p => {
+    // Render only present, lowest→highest (scale is already low→high, no reverse)
+    getOutlookProbScale(mode).filter(p => present.has(p.dn)).forEach(p => {
       const item = document.createElement('div');
-      item.className = 'legend-item' + (present.has(p.dn) ? ' legend-active' : ' legend-dim');
+      item.className = 'legend-item legend-active';
       item.innerHTML = `<div class="legend-swatch" style="background:${p.fill};border-color:${p.stroke}"></div><div class="legend-label">${p.label}</div>`;
       items.appendChild(item);
     });
@@ -2048,13 +2053,13 @@ async function loadOutlookHazard(day, mode) {
     updateOutlookLegend(gj, mode);
 
     function appendHatchLegend(mode) {
-      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible'
-        : mode === 'wind' ? '65+ mph Wind Possible'
-        : mode === 'hail' ? '2"+ Hail Possible'
-        : 'Sig. Severe Possible';
+      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado'
+        : mode === 'wind' ? '65+ mph Wind'
+        : mode === 'hail' ? '2"+ Hail'
+        : 'Sig. Severe';
       const div = document.createElement('div');
-      div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:2px 0;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
-      div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div style="font-size:0.72rem;font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
+      div.className = 'legend-item legend-active';
+      div.innerHTML = `<div style="width:10px;height:10px;flex-shrink:0;border-radius:2px;border:1px solid #555;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 5px);box-sizing:border-box;"></div><div class="legend-label">10%+ ${hazardLabel}</div>`;
       document.getElementById('outlook-legend-items').appendChild(div);
     }
 
