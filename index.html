@@ -2437,9 +2437,10 @@ async function loadMesoDiscussions() {
   document.getElementById('md-list').innerHTML = '<div class="md-empty"><span class="material-symbols-rounded spin">progress_activity</span><div class="md-empty-sub">Loading discussions…</div></div>';
   document.getElementById('md-status-text').textContent = 'Loading…';
   try {
-    // Fetch active MCDs from SPC via proxy
-    const res = await fetch(`${WORKER_URL}/proxy/products/spcmcd.geojson`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`SPC returned ${res.status}`);
+    // Fetch active MCDs from NOAA MapServer (same proxy used for outlook)
+    const mcdUrl = `${WORKER_URL}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson`;
+    const res = await fetch(mcdUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`NOAA returned ${res.status}`);
     const text = await res.text();
     let data;
     try { data = JSON.parse(text); } catch(e) { throw new Error('Invalid JSON: ' + text.slice(0, 80)); }
