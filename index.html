@@ -92,7 +92,10 @@
       .mob-bar-1 .search-wrap{display:none;}
       .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      body.page-outlook .mob-bar-2, body.page-watches .mob-bar-2, body.page-meso .mob-bar-2, body.page-severe101 .mob-bar-2{display:none;}
+      body.page-watches .mob-bar-2, body.page-meso .mob-bar-2, body.page-severe101 .mob-bar-2{display:none;}
+      body.page-outlook .mob-bar-2{display:flex;padding:0;}
+      body.page-outlook #mob-search-wrap{display:none;}
+      body.page-outlook #outlook-legend{display:flex !important;flex:1;border-bottom:none;}
       .header-nav{display:none !important;}
       .logo-name{display:block !important;}
     }
@@ -310,7 +313,7 @@
     .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
     .map-context-pill{background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
-    .outlook-legend-bar{display:flex;align-items:center;justify-content:center;padding:6px 12px 5px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;gap:0;background:#2a2d36;}
+    .outlook-legend-bar{display:flex;align-items:center;justify-content:center;padding:4px 12px;overflow-x:auto;scrollbar-width:none;gap:0;background:#2a2d36;width:100%;}
     .outlook-legend-bar::-webkit-scrollbar{display:none;}
     .outlook-legend-items{display:flex;flex-direction:row;gap:2px;flex-wrap:nowrap;justify-content:center;}
     .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
@@ -671,14 +674,17 @@
         </div>
       </nav>
     </div>
-    <div class="mob-bar-2">
-      <div class="search-wrap">
+    <div class="mob-bar-2" id="mob-bar-2">
+      <div class="search-wrap" id="mob-search-wrap">
         <div class="search-row">
           <span class="material-symbols-rounded">search</span>
           <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city or ZIP…"/>
           <button id="search-clear-mob" class="search-clear-btn" onclick="clearSearch('search-bar-mob','suggestions-mob')" style="display:none"><span class="material-symbols-rounded">close</span></button>
         </div>
         <ul id="suggestions-mob"></ul>
+      </div>
+      <div class="outlook-legend-bar" id="outlook-legend" style="display:none;">
+        <div class="outlook-legend-items" id="outlook-legend-items"></div>
       </div>
     </div>
   </div>
@@ -786,9 +792,6 @@
   </div>
   <!-- Mobile controls -->
   <div class="mob-controls" id="mob-outlook-controls">
-    <div class="outlook-legend-bar" id="outlook-legend">
-      <div class="outlook-legend-items" id="outlook-legend-items"></div>
-    </div>
     <div class="mob-day-tabs" id="mob-day-tabs"></div>
     <div class="mob-mode-row" id="mob-mode-row"></div>
     <div class="mob-disc-row" id="mob-disc-row"></div>
