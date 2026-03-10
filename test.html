@@ -151,17 +151,23 @@
     .alert-expires{font-size:0.72rem;color:var(--text-3);margin-top:2px;}
     .alert-chevron{font-size:16px;color:var(--text-4);flex-shrink:0;margin-top:1px;}
     @keyframes pulse-tornado-row{0%{background:#e5182a;box-shadow:none;}50%{background:#ff2233;box-shadow:0 0 12px rgba(229,24,42,0.7);}100%{background:#e5182a;box-shadow:none;}}
-    .alert-row-tornado{background:#e5182a;border-radius:var(--r-xs);padding-left:10px;padding-right:10px;margin:0 -10px;border-bottom:none !important;animation:pulse-tornado-row 0.8s ease-in-out 3;}
+    .alert-row-tornado{background:#e5182a;border-radius:var(--r-xs);padding-left:10px;padding-right:10px;margin:0 -10px;border-bottom:none !important;animation:pulse-tornado-row 1s ease-in-out infinite;}
     .alert-row-tornado .alert-event,.alert-row-tornado .alert-chevron{color:#fff;}
     .alert-row-tornado .alert-expires{color:rgba(255,255,255,0.75);}
     .alert-row-tornado .alert-pip{display:none;}
     .alert-row-tornado:hover{background:#c8101f !important;}
     @keyframes pulse-tstm-row{0%{background:#e07800;}50%{background:#ff8c00;box-shadow:0 0 12px rgba(255,140,0,0.7);}100%{background:#e07800;}}
-    .alert-row-tstm{background:#e07800;border-radius:var(--r-xs);padding-left:10px;padding-right:10px;margin:0 -10px;border-bottom:none !important;animation:pulse-tstm-row 0.8s ease-in-out 3;}
+    @keyframes pulse-flood-row{0%{background:#00a832;}50%{background:#00cc3e;box-shadow:0 0 14px rgba(0,204,62,0.75);}100%{background:#00a832;}}
+    .alert-row-tstm{background:#e07800;border-radius:var(--r-xs);padding-left:10px;padding-right:10px;margin:0 -10px;border-bottom:none !important;animation:pulse-tstm-row 1.2s ease-in-out infinite;}
     .alert-row-tstm .alert-event,.alert-row-tstm .alert-chevron{color:#fff;}
     .alert-row-tstm .alert-expires{color:rgba(255,255,255,0.85);}
     .alert-row-tstm .alert-pip{display:none;}
     .alert-row-tstm:hover{background:#c06800 !important;}
+    .alert-row-flood{background:#00a832;border-radius:var(--r-xs);padding-left:10px;padding-right:10px;margin:0 -10px;border-bottom:none !important;animation:pulse-flood-row 1.2s ease-in-out infinite;}
+    .alert-row-flood .alert-event,.alert-row-flood .alert-chevron{color:#fff;}
+    .alert-row-flood .alert-expires{color:rgba(255,255,255,0.85);}
+    .alert-row-flood .alert-pip{display:none;}
+    .alert-row-flood:hover{background:#007a24 !important;}
     /* Forecast */
     .forecast-body{padding:0 0 4px;}
     .forecast-row{display:grid;grid-template-columns:90px 32px 1fr auto;align-items:center;gap:0 12px;padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
@@ -1039,6 +1045,8 @@ let outlookMapInit = false, watchesMapInit = false, mesoMapInit = false;
 
 function navigate(page) {
   if (currentPage === page) return;
+  // Close alert modal when switching tabs
+  document.getElementById('alert-modal').style.display = 'none';
   PAGES.forEach(p => {
     document.getElementById('page-'+p).classList.toggle('active', p === page);
   });
@@ -1414,10 +1422,12 @@ function renderAlerts(data, spcResult) {
     const evt = (a.event || '').toLowerCase();
     const isTornado = evt.includes('tornado warning');
     const isTstm = evt.includes('severe thunderstorm warning');
+    const isFlood = evt.includes('flash flood warning');
     const row = document.createElement('div');
-    row.className = 'alert-row' + (isTornado ? ' alert-row-tornado' : isTstm ? ' alert-row-tstm' : '');
+    row.className = 'alert-row' + (isTornado ? ' alert-row-tornado' : isTstm ? ' alert-row-tstm' : isFlood ? ' alert-row-flood' : '');
     const leadIcon = isTornado ? `<span class="material-symbols-rounded alert-type-icon" style="color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;font-size:18px">tornado</span>`
       : isTstm ? `<span class="material-symbols-rounded alert-type-icon" style="color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;font-size:18px">bolt</span>`
+      : isFlood ? `<span class="material-symbols-rounded alert-type-icon" style="color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;font-size:18px">water</span>`
       : `<div class="alert-pip"></div>`;
     row.innerHTML = `${leadIcon}<div class="alert-info"><div class="alert-event">${a.event}</div><div class="alert-expires">Until ${exp}</div></div><span class="material-symbols-rounded alert-chevron">chevron_right</span>`;
     row.addEventListener('click', () => showAlertModal(i));
@@ -1444,10 +1454,17 @@ function maybeShowTornadoOverlay(feats, locLabel) {
   const a = w.properties;
   const desc = (a.description||'').trim();
   const isObs = /\bOBSERVED\b/.test(desc);
+  const isEmergency = /TORNADO EMERGENCY/i.test(desc) || /TORNADO EMERGENCY/i.test(a.headline||'');
   const expires = a.expires ? new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : null;
   const summary = desc.slice(0, desc.search(/[.!?]\s/)+1) || desc.slice(0,160);
   const box = document.getElementById('tornado-box'), slot = document.getElementById('tornado-observed-slot');
-  if (isObs) {
+  if (isEmergency) {
+    box.classList.add('observed'); slot.style.display = 'block';
+    document.getElementById('tornado-eyebrow').textContent = '🚨 TORNADO EMERGENCY';
+    document.getElementById('tornado-title').textContent = 'Tornado Emergency';
+    document.getElementById('tornado-action-title').textContent = '🚨 CATASTROPHIC THREAT — TAKE SHELTER NOW';
+    document.getElementById('tornado-action-body').textContent = 'This is a TORNADO EMERGENCY — an extremely dangerous and life-threatening situation. Seek the lowest floor of a sturdy building immediately. This is not a drill.';
+  } else if (isObs) {
     box.classList.add('observed'); slot.style.display = 'block';
     document.getElementById('tornado-eyebrow').textContent = '🚨 CONFIRMED TORNADO';
     document.getElementById('tornado-title').textContent = 'Tornado on the Ground';
