@@ -1089,7 +1089,7 @@ function compass(deg) {
   const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
   return dirs[Math.round(deg/22.5) % 16];
 }
-const METEOCONS = 'https://unpkg.com/meteocons@latest/src/fill/svg/';
+const METEOCONS = 'https://cdn.jsdelivr.net/gh/basmilius/weather-icons@2.0.0/production/fill/svg/';
 function getIconUrl(desc, day=true) {
   if (!desc) return METEOCONS + (day ? 'clear-day.svg' : 'clear-night.svg');
   const d = desc.toLowerCase();
