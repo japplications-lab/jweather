@@ -1034,8 +1034,8 @@ const PAGES = ['forecast','hourly','radar','outlook','watches','meso','severe101
 let currentPage = 'forecast';
 let outlookMapInit = false, watchesMapInit = false, mesoMapInit = false;
 
-function navigate(page, updateHash = true) {
-  if (!PAGES.includes(page)) page = 'forecast';
+function navigate(page) {
+  if (currentPage === page) return;
   PAGES.forEach(p => {
     document.getElementById('page-'+p).classList.toggle('active', p === page);
   });
@@ -1050,21 +1050,12 @@ function navigate(page, updateHash = true) {
 
   currentPage = page;
 
-  // Update URL hash so refresh restores this page
-  if (updateHash) history.replaceState(null, '', '#' + page);
-
   // Lazy init maps
   if (page === 'outlook' && !outlookMapInit) { initOutlookMap(); outlookMapInit = true; }
   if (page === 'watches' && !watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
   if (page === 'hourly') loadHourly();
 }
-
-// Restore page from hash on load
-(function() {
-  const hash = location.hash.replace('#', '');
-  if (hash && PAGES.includes(hash)) navigate(hash, false);
-})();
 
 // ── Severe sheet (mobile) ──
 function closeSevereSheet() {
