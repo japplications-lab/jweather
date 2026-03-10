@@ -1384,10 +1384,9 @@ function renderForecast(periods) {
   const wrap = document.getElementById('forecast-content'); wrap.innerHTML = '';
   if (!periods?.length) { wrap.innerHTML='<div style="padding:20px;color:var(--text-4);font-size:.83rem">No data.</div>'; return; }
   periods.forEach(p => {
-    const icon = getIcon(p.shortForecast, p.isDaytime);
     const row = document.createElement('div'); row.className = 'forecast-row';
-    const iconUrl = getIconUrl(p.shortForecast, p.isDaytime);
-    row.innerHTML = `<div class="forecast-period${p.isDaytime?' day':''}">${abbr(p.name)}</div><img class="forecast-icon-img" src="${iconUrl}" alt="" width="28" height="28"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
+    row.innerHTML = `<div class="forecast-period${p.isDaytime?' day':''}">${abbr(p.name)}</div><img class="forecast-icon-img" alt="" width="28" height="28"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
+    row.querySelector('.forecast-icon-img').src = getIconUrl(p.shortForecast, p.isDaytime);
     const det = document.createElement('div'); det.className = 'forecast-detail-row'; det.textContent = p.detailedForecast;
     row.addEventListener('click', () => row.classList.toggle('open'));
     wrap.appendChild(row); wrap.appendChild(det);
@@ -1512,7 +1511,6 @@ function renderHourly(periods, loc) {
       const start = new Date(p.startTime);
       const isNow = Math.abs(start - now) < 3600000;
       const timeStr = start.toLocaleTimeString('en-US',{hour:'numeric',hour12:true}).replace(':00','');
-      const icon = getIcon(p.shortForecast, p.isDaytime);
       const precip = p.probabilityOfPrecipitation?.value ?? 0;
       const precipClass = precip === 0 ? 'precip-0' : precip < 30 ? 'precip-low' : precip < 60 ? 'precip-mid' : 'precip-high';
       const windSpeed = p.windSpeed || '--';
@@ -1522,12 +1520,13 @@ function renderHourly(periods, loc) {
       const row = document.createElement('div'); row.className = 'hour-row';
       row.innerHTML = `
         <div class="hr-time${isNow?' now':''}">${isNow?'Now':timeStr}</div>
-        <div class="hr-icon"><img src="${getIconUrl(p.shortForecast, p.isDaytime)}" alt="" width="30" height="30" style="display:block;"></div>
+        <div class="hr-icon"><img class="hr-icon-img" alt="" width="30" height="30" style="display:block;"></div>
         <div class="hr-precip ${precipClass}"><span class="material-symbols-rounded">water_drop</span>${precip}%</div>
         <div class="hr-temp">${p.temperature}°</div>
         <div class="hr-arrow"><svg viewBox="0 0 20 20" fill="none"><polygon points="10,2 14,14 10,11 6,14" fill="var(--text-3)" transform="rotate(${windDeg}, 10, 10)"/></svg></div>
         <div class="hr-wind"><span class="hr-wind-speed">${windSpeed}</span><span class="hr-wind-dir"> ${windDir}</span></div>
         <button class="hr-plus"><span class="material-symbols-rounded">add</span></button>`;
+      row.querySelector('.hr-icon-img').src = getIconUrl(p.shortForecast, p.isDaytime);
       const drawer = document.createElement('div'); drawer.className = 'hour-drawer';
       drawer.innerHTML = `
         <div class="hd-stat"><span class="material-symbols-rounded">water_drop</span><div><div class="hd-label">Precip Chance</div><div class="hd-val">${precip}%</div></div></div>
