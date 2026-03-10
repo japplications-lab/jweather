@@ -2268,7 +2268,7 @@ ${rawText}` }],
       if (line.match(/^[A-Z][A-Z\s'?]+:$/)) {
         const label = line.replace(/:$/, '');
         const body = lines[i+1] || '';
-        html += `<div style="margin-bottom:16px;">
+        discHtml += `<div style="margin-bottom:16px;">
           <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:4px;">${label}</div>
           <div style="font-size:0.84rem;line-height:1.7;color:var(--text-2);">${body}</div>
         </div>`;
