@@ -283,6 +283,7 @@
     ══════════════════════════════════ */
     #page-outlook{flex:1;flex-direction:column;min-height:0;}
     #page-outlook .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
+    #page-outlook .map-panel{padding-bottom:38px;}
     /* Sidebar */
     .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
     .sidebar-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -308,19 +309,23 @@
     .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
     .map-context-pill{background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
-    .map-legend{position:absolute;top:50%;left:14px;transform:translateY(-50%);z-index:400;background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:10px;padding:10px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
+    .outlook-legend-bar{display:flex;align-items:center;padding:6px 12px 5px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;gap:0;}
+    .outlook-legend-bar::-webkit-scrollbar{display:none;}
+    .outlook-legend-items{display:flex;flex-direction:row;gap:2px;flex-wrap:nowrap;}
     .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
     .legend-items{display:flex;flex-direction:column;gap:5px;}
-    .legend-item{display:flex;align-items:center;gap:7px;font-size:0.72rem;font-weight:500;color:var(--text-2);padding:1px 0;}
-    .legend-swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.15);}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:500;color:var(--text-2);padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+    .legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,0.15);}
     .legend-num{font-size:0.65rem;font-weight:700;color:var(--text-4);min-width:26px;font-variant-numeric:tabular-nums;}
-    .legend-label{color:var(--text-2);}
+    .legend-label{color:var(--text-3);font-size:0.68rem;}
+    .legend-active{background:rgba(255,255,255,0.06);}
     .legend-active .legend-label{color:var(--text);font-weight:600;}
-    .legend-dim{opacity:0.38;}
+    .legend-dim{opacity:0.3;}
     .map-loading-ov{position:absolute;inset:0;z-index:410;background:rgba(15,17,21,0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading-ov.hidden{opacity:0;pointer-events:none;}
     /* Mobile outlook controls */
     .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
+    #page-outlook.active .mob-controls{display:block;}
     .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
     .mob-day-tab{flex:1;padding:9px 4px 0;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;flex-direction:column;align-items:center;gap:4px;}
     .mob-day-tab-label{padding-bottom:5px;}
@@ -335,16 +340,17 @@
     .mob-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .mob-mode-btn .material-symbols-rounded{font-size:13px;}
     @media(max-width:768px){
-      /* mob-controls must sit above the 62px bottom nav */
       .mob-controls{bottom:62px;}
+    }
+    @media(min-width:769px){
+      #page-outlook.active .mob-controls{bottom:0;}
+      #page-outlook .mob-day-tabs,#page-outlook .mob-mode-row,#page-outlook .mob-disc-row{display:none;}
     }
     @media(max-width:640px){
       .sidebar{display:none !important;}
       .mob-controls{display:block;}
-      /* 62px bottom nav + ~88px mob-controls = ~150px total reserved */
       #page-outlook .app-body{padding-bottom:0;}
       #page-outlook .map-panel{padding-bottom:188px;}
-      .map-legend{top:50%;left:10px;transform:translateY(calc(-50% - 75px));padding:8px 10px;}
       .map-topbar{top:8px;left:8px;}
     }
     /* Discussion modal */
@@ -768,10 +774,6 @@
       <div class="map-topbar">
         <div class="map-context-pill" id="outlook-context-pill">Day 1 — <span>Categorical</span></div>
       </div>
-      <div class="map-legend" id="outlook-legend">
-        <div class="legend-title">Risk Level</div>
-        <div class="legend-items" id="outlook-legend-items"></div>
-      </div>
       <div class="map-loading-ov" id="outlook-map-loading">
         <div class="spin-ring"></div>
       </div>
@@ -779,6 +781,9 @@
   </div>
   <!-- Mobile controls -->
   <div class="mob-controls" id="mob-outlook-controls">
+    <div class="outlook-legend-bar" id="outlook-legend">
+      <div class="outlook-legend-items" id="outlook-legend-items"></div>
+    </div>
     <div class="mob-day-tabs" id="mob-day-tabs"></div>
     <div class="mob-mode-row" id="mob-mode-row"></div>
     <div class="mob-disc-row" id="mob-disc-row"></div>
@@ -1952,7 +1957,7 @@ function outlookPopupContent(f, mode, day) {
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('outlook-legend-items');
   items.innerHTML = '';
-  document.getElementById('outlook-legend').style.display = 'block';
+  // legend bar is always visible
   if (mode === 'cat') {
     const present = new Set();
     (gj.features || []).forEach(f => {
