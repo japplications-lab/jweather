@@ -1606,45 +1606,78 @@ function initOutlookMap() {
     attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
   }).addTo(outlookMap);
 
-  // Inject SVG hatch pattern for sig severe / CIG areas
-  function injectOutlookHatch() {
-    const svgEl = outlookMap.getPanes().overlayPane?.querySelector('svg');
-    if (!svgEl || svgEl.querySelector('#outlook-sig-hatch')) return;
-    const ns = 'http://www.w3.org/2000/svg';
-    const defs = document.createElementNS(ns, 'defs');
+  // Canvas-based hatch layer — works on all browsers including mobile WebKit
+  // Returns a Leaflet layer that draws diagonal black lines over the given GeoJSON features
+  function makeHatchLayer(geojsonFeatures) {
+    const HatchLayer = L.Layer.extend({
+      initialize(features) { this._features = features; },
+      onAdd(map) {
+        this._map = map;
+        this._canvas = L.DomUtil.create('canvas', 'leaflet-hatch-canvas');
+        const pane = map.getPanes().overlayPane;
+        pane.appendChild(this._canvas);
+        this._canvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;';
+        map.on('moveend zoomend resize', this._redraw, this);
+        this._redraw();
+      },
+      onRemove(map) {
+        map.off('moveend zoomend resize', this._redraw, this);
+        if (this._canvas && this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+      },
+      _redraw() {
+        const map = this._map;
+        const size = map.getSize();
+        const c = this._canvas;
+        c.width = size.x; c.height = size.y;
+        // Offset canvas to align with Leaflet's overlay pane
+        const topLeft = map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(c, topLeft);
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, c.width, c.height);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
 
-    // Pattern 1: white bg + black lines (for legend swatch)
-    const pat1 = document.createElementNS(ns, 'pattern');
-    pat1.setAttribute('id', 'outlook-sig-hatch');
-    pat1.setAttribute('patternUnits', 'userSpaceOnUse');
-    pat1.setAttribute('width', '8'); pat1.setAttribute('height', '8');
-    pat1.setAttribute('patternTransform', 'rotate(45)');
-    const bg = document.createElementNS(ns, 'rect');
-    bg.setAttribute('width', '8'); bg.setAttribute('height', '8'); bg.setAttribute('fill', '#ffffff');
-    const l1 = document.createElementNS(ns, 'line');
-    l1.setAttribute('x1', '0'); l1.setAttribute('y1', '0');
-    l1.setAttribute('x2', '0'); l1.setAttribute('y2', '8');
-    l1.setAttribute('stroke', '#000000'); l1.setAttribute('stroke-width', '2');
-    pat1.appendChild(bg); pat1.appendChild(l1); defs.appendChild(pat1);
-
-    // Pattern 2: transparent bg + black lines (overlays threat color on map)
-    const pat2 = document.createElementNS(ns, 'pattern');
-    pat2.setAttribute('id', 'outlook-hatch-lines');
-    pat2.setAttribute('patternUnits', 'userSpaceOnUse');
-    pat2.setAttribute('width', '8'); pat2.setAttribute('height', '8');
-    pat2.setAttribute('patternTransform', 'rotate(45)');
-    const l2 = document.createElementNS(ns, 'line');
-    l2.setAttribute('x1', '0'); l2.setAttribute('y1', '0');
-    l2.setAttribute('x2', '0'); l2.setAttribute('y2', '8');
-    l2.setAttribute('stroke', '#000000'); l2.setAttribute('stroke-width', '2');
-    pat2.appendChild(l2); defs.appendChild(pat2);
-
-    svgEl.insertBefore(defs, svgEl.firstChild);
+        // Clip to each polygon, then draw diagonal lines across it
+        this._features.forEach(f => {
+          const geom = f.geometry;
+          if (!geom) return;
+          const polys = geom.type === 'Polygon' ? [geom.coordinates]
+            : geom.type === 'MultiPolygon' ? geom.coordinates : [];
+          polys.forEach(poly => {
+            ctx.save();
+            ctx.beginPath();
+            poly.forEach(ring => {
+              ring.forEach((coord, i) => {
+                const pt = map.latLngToContainerPoint(L.latLng(coord[1], coord[0]));
+                i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+              });
+              ctx.closePath();
+            });
+            ctx.clip();
+            // Draw border
+            ctx.stroke();
+            // Draw diagonal hatch lines across bounding box
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            poly[0].forEach(coord => {
+              const pt = map.latLngToContainerPoint(L.latLng(coord[1], coord[0]));
+              if (pt.x < minX) minX = pt.x; if (pt.x > maxX) maxX = pt.x;
+              if (pt.y < minY) minY = pt.y; if (pt.y > maxY) maxY = pt.y;
+            });
+            const span = (maxX - minX) + (maxY - minY);
+            const step = 10;
+            ctx.beginPath();
+            for (let d = -span; d < span * 2; d += step) {
+              ctx.moveTo(minX + d, minY);
+              ctx.lineTo(minX + d + (maxY - minY), maxY);
+            }
+            ctx.stroke();
+            ctx.restore();
+          });
+        });
+      }
+    });
+    return new HatchLayer(geojsonFeatures);
   }
-  // Try immediately after tiles load, then on every layeradd until injected
-  outlookMap.on('load', injectOutlookHatch);
-  outlookMap.on('layeradd', injectOutlookHatch);
-  setTimeout(injectOutlookHatch, 300);
 
   buildOutlookSidebar();
   loadOutlookHazard(1, 'cat');
@@ -1931,11 +1964,8 @@ async function loadOutlookHazard(day, mode) {
         // Solid colored fill
         L.geoJSON(f, { style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 }, interactive:false }).addTo(outlookMap);
       });
-      // Hatch lines on top (transparent bg so threat color shows through)
-      L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
-        style: { fillColor:'url(#outlook-hatch-lines)', fillOpacity:1, color:'#000', weight:2.5, opacity:1 },
-        interactive: false,
-      }).addTo(outlookMap);
+      // Hatch lines on top via canvas (works on mobile WebKit)
+      makeHatchLayer(cigFeatures).addTo(outlookMap);
       appendHatchLegend(mode);
     }
 
@@ -1947,13 +1977,16 @@ async function loadOutlookHazard(day, mode) {
         if (sigRes.ok) {
           const sigGj = await sigRes.json();
           if (sigGj.features?.length) {
+            // Colored fill layer (interactive for popups)
             activeOutlookSigLayer = L.geoJSON(sigGj, {
-              style: { fillColor:'url(#outlook-hatch-lines)', fillOpacity:1, color:'#000', weight:2.5, opacity:1 },
+              style: { fillColor:'rgba(0,0,0,0)', fillOpacity:0, color:'transparent', weight:0 },
               onEachFeature: (f, lyr) => {
                 const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2"+ Hail';
                 lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #000;width:13px;height:13px;"></div><div><div class="popup-risk" style="font-size:0.82rem;">&#9888; Significant Threat</div><div class="popup-sub">${hazardName} particularly likely</div></div></div></div>`, { closeButton:false, maxWidth:260 });
               }
             }).addTo(outlookMap);
+            // Canvas hatch on top
+            makeHatchLayer(sigGj.features).addTo(outlookMap);
             if (!cigFeatures.length) appendHatchLegend(mode);
           }
         }
