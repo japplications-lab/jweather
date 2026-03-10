@@ -40,8 +40,8 @@
     .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;cursor:pointer;}
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    .logo-name{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-    .logo-name span{color:var(--red);}
+    .logo-name{font-size:0.95rem;font-weight:700;color:#ffffff;letter-spacing:-0.02em;}
+    .logo-name span{color:#ffffff;}
 
     /* Search */
     .search-wrap{flex:1;max-width:440px;position:relative;}
@@ -59,6 +59,9 @@
     .sug-remove{font-size:11px;color:var(--text-4);background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;font-family:var(--font);line-height:1;flex-shrink:0;}
     .sug-remove:hover{color:var(--red);background:var(--red-dim);}
     .sug-city{font-weight:500;flex:1;}
+    .search-clear-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--text-3);transition:background .15s,color .15s;flex-shrink:0;}
+    .search-clear-btn:hover{background:var(--border-2);color:var(--text);}
+    .search-clear-btn .material-symbols-rounded{font-size:20px;}
 
     /* Nav */
     .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
@@ -105,7 +108,7 @@
     @media(max-width:768px){#page-forecast .page-inner{grid-template-columns:1fr;padding:14px 14px 80px;}}
     .left-col,.right-col{display:flex;flex-direction:column;gap:16px;}
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-    .card-top{padding:16px 18px 0;display:flex;align-items:center;justify-content:space-between;}
+    .card-top{padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between;}
     .card-top-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
     .card-top-icon{font-size:15px;color:var(--text-4);}
     /* Current conditions */
@@ -244,7 +247,7 @@
     .precip-mid{color:var(--blue);}
     .precip-high{color:#38bdf8;}
     .hr-temp{font-size:1.6rem;font-weight:700;letter-spacing:-0.03em;white-space:nowrap;line-height:1;}
-    .hr-arrow svg{width:16px;height:16px;}
+    .hr-arrow svg{width:22px;height:22px;}
     .hr-wind{font-size:0.8rem;color:var(--text-3);white-space:nowrap;}
     .hr-wind-speed{font-weight:600;color:var(--text-2);}
     .hr-plus{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border-2);background:none;cursor:pointer;transition:border-color .15s,transform .2s;flex-shrink:0;padding:0;}
@@ -604,6 +607,7 @@
         <div class="search-row">
           <span class="material-symbols-rounded">search</span>
           <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+          <button id="search-clear" class="search-clear-btn" onclick="clearSearch('search-bar','suggestions')" style="display:none"><span class="material-symbols-rounded">close</span></button>
         </div>
         <ul id="suggestions"></ul>
       </div>
@@ -632,6 +636,7 @@
         <div class="search-row">
           <span class="material-symbols-rounded">search</span>
           <input id="search-bar-mob" type="search" autocomplete="off" placeholder="Search city or ZIP…"/>
+          <button id="search-clear-mob" class="search-clear-btn" onclick="clearSearch('search-bar-mob','suggestions-mob')" style="display:none"><span class="material-symbols-rounded">close</span></button>
         </div>
         <ul id="suggestions-mob"></ul>
       </div>
@@ -849,6 +854,7 @@
       <a class="toc-item" onclick="document.getElementById('s101-watches').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-rounded">warning</span>Watches vs. Warnings</a>
       <a class="toc-item" onclick="document.getElementById('s101-ef').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-rounded">tornado</span>EF Scale</a>
       <a class="toc-item" onclick="document.getElementById('s101-hail').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-rounded">severe_cold</span>Hail</a>
+      <a class="toc-item" onclick="document.getElementById('s101-wind').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-rounded">air</span>Damaging Wind</a>
       <a class="toc-item" onclick="document.getElementById('s101-flood').scrollIntoView({behavior:'smooth'})"><span class="material-symbols-rounded">water</span>Flash Floods</a>
     </div>
     <!-- Watches vs Warnings -->
@@ -877,6 +883,7 @@
     </div>
     <!-- EF Scale -->
     <div class="s101-section" id="s101-ef">
+      <img src="/elements/images/TornadoBanner.png" alt="Tornado" style="width:100%;border-radius:var(--r);margin-bottom:22px;display:block;object-fit:cover;max-height:200px;">
       <div class="section-header">
         <div class="section-icon icon-red"><span class="material-symbols-rounded">tornado</span></div>
         <div><div class="section-title">Enhanced Fujita Scale</div><div class="section-subtitle">Tornado intensity rated by damage indicators</div></div>
@@ -892,20 +899,40 @@
     </div>
     <!-- Hail -->
     <div class="s101-section" id="s101-hail">
+      <img src="/elements/images/HailBanner.png" alt="Hail" style="width:100%;border-radius:var(--r);margin-bottom:22px;display:block;object-fit:cover;max-height:200px;">
       <div class="section-header">
         <div class="section-icon icon-blue"><span class="material-symbols-rounded">severe_cold</span></div>
         <div><div class="section-title">Hail Size Reference</div><div class="section-subtitle">Comparing hail to common objects</div></div>
       </div>
       <div class="hail-grid">
-        <div class="hail-card"><div class="hail-icon">🫘</div><div class="hail-size">¼″ — Pea</div><div class="hail-threat" style="background:rgba(34,197,94,0.12);color:#4ade80;">Minor</div></div>
-        <div class="hail-card"><div class="hail-icon">🔵</div><div class="hail-size">½″ — Marble</div><div class="hail-threat" style="background:rgba(234,179,8,0.12);color:#facc15;">Moderate</div></div>
-        <div class="hail-card"><div class="hail-icon">🟤</div><div class="hail-size">¾″ — Penny</div><div class="hail-threat" style="background:rgba(249,115,22,0.12);color:#fb923c;">Severe</div></div>
-        <div class="hail-card"><div class="hail-icon">🎾</div><div class="hail-size">2½″ — Baseball</div><div class="hail-threat" style="background:rgba(229,24,42,0.12);color:var(--red);">Extreme</div></div>
+        <div class="hail-card"><div class="hail-icon-text" style="width:36px;height:36px;background:rgba(255,255,255,0.08);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:var(--text-4);letter-spacing:-0.02em;">¼″</div><div class="hail-size">Pea</div><div class="hail-threat" style="background:rgba(34,197,94,0.12);color:#4ade80;">Minor</div></div>
+        <div class="hail-card"><div class="hail-icon-text" style="width:42px;height:42px;background:rgba(255,255,255,0.08);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:var(--text-4);letter-spacing:-0.02em;">½″</div><div class="hail-size">Marble</div><div class="hail-threat" style="background:rgba(234,179,8,0.12);color:#facc15;">Moderate</div></div>
+        <div class="hail-card"><div class="hail-icon-text" style="width:50px;height:50px;background:rgba(249,115,22,0.15);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#fb923c;letter-spacing:-0.02em;border:2px solid rgba(249,115,22,0.3);">¾″</div><div class="hail-size">Penny</div><div class="hail-threat" style="background:rgba(249,115,22,0.12);color:#fb923c;">Severe</div></div>
+        <div class="hail-card"><div class="hail-icon-text" style="width:64px;height:64px;background:rgba(229,24,42,0.15);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:800;color:var(--red);letter-spacing:-0.02em;border:2px solid rgba(229,24,42,0.4);">2½″</div><div class="hail-size">Baseball</div><div class="hail-threat" style="background:rgba(229,24,42,0.12);color:var(--red);">Extreme</div></div>
       </div>
       <div class="info-note" style="margin-top:14px;"><span class="material-symbols-rounded">info</span><p><strong>Severe threshold:</strong> The NWS considers hail ¾ inch (penny-size) or larger as severe. Baseball-sized hail (&gt;2.75″) can penetrate car roofs and cause severe injuries. Never stand outside during hail storms.</p></div>
     </div>
+    <!-- Damaging Wind -->
+    <div class="s101-section" id="s101-wind">
+      <img src="/elements/images/WindBanner.png" alt="Damaging Wind" style="width:100%;border-radius:var(--r);margin-bottom:22px;display:block;object-fit:cover;max-height:200px;">
+      <div class="section-header">
+        <div class="section-icon icon-amber"><span class="material-symbols-rounded">air</span></div>
+        <div><div class="section-title">Damaging Wind</div><div class="section-subtitle">The most common severe weather hazard</div></div>
+      </div>
+      <div class="flood-stats">
+        <div class="flood-stat"><div class="flood-stat-num" style="color:var(--amber);">58+</div><div class="flood-stat-label">mph for severe threshold</div></div>
+        <div class="flood-stat"><div class="flood-stat-num" style="color:var(--amber);">~75%</div><div class="flood-stat-label">of severe reports are wind</div></div>
+        <div class="flood-stat"><div class="flood-stat-num" style="color:var(--amber);">100+</div><div class="flood-stat-label">mph in the most extreme events</div></div>
+      </div>
+      <div class="flood-cards">
+        <div class="flood-card"><h4><span class="material-symbols-rounded" style="color:var(--amber)">bolt</span>Straight-Line Wind</h4><p>Unlike tornadoes, straight-line winds blow in one direction and can affect a broad area. Downbursts and microbursts from thunderstorms can produce winds exceeding 100 mph — strong enough to damage roofs, snap trees, and flip vehicles.</p></div>
+        <div class="flood-card"><h4><span class="material-symbols-rounded" style="color:var(--amber)">warning</span>What To Do</h4><p>Move away from windows and doors. Avoid sheltering under trees. If outdoors, lie flat in a low-lying area. Mobile homes offer little protection — seek a sturdy building. Flying debris is the primary cause of injuries.</p></div>
+      </div>
+      <div class="info-note" style="margin-top:14px;"><span class="material-symbols-rounded">info</span><p><strong>Derecho:</strong> A widespread, long-lived windstorm associated with a band of rapidly moving showers or thunderstorms. Derechos can cause hurricane-force winds over hundreds of miles and are often underestimated.</p></div>
+    </div>
     <!-- Flash Floods -->
     <div class="s101-section" id="s101-flood">
+      <img src="/elements/images/FloodBanner.png" alt="Flash Floods" style="width:100%;border-radius:var(--r);margin-bottom:22px;display:block;object-fit:cover;max-height:200px;">
       <div class="section-header">
         <div class="section-icon icon-blue"><span class="material-symbols-rounded">water</span></div>
         <div><div class="section-title">Flash Floods</div><div class="section-subtitle">The deadliest weather hazard in the US</div></div>
@@ -1087,6 +1114,17 @@ function parseNominatim(r) {
   return { label: state ? `${city}, ${state}` : city, city, state, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
 }
 
+function clearSearch(barId, sugId) {
+  const bar = document.getElementById(barId);
+  const sug = document.getElementById(sugId);
+  bar.value = '';
+  sug.style.display = 'none';
+  sugs = []; selIdx = -1;
+  const clearBtn = bar.parentElement.querySelector('.search-clear-btn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  bar.focus();
+}
+
 // ── Search ──
 const _searchInputs = [
   { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
@@ -1155,6 +1193,8 @@ _searchInputs.forEach(({bar, sug}) => {
   bar.addEventListener('input', e => {
     _activeBar = bar; _activeSug = sug;
     const q = e.target.value.trim();
+    const clearBtn = bar.parentElement.querySelector('.search-clear-btn');
+    if (clearBtn) clearBtn.style.display = q.length > 0 ? 'flex' : 'none';
     if (q.length < 2) { sugs = []; renderSugs(bar, sug); return; }
     renderSugs(bar, sug); debouncedFetch(q);
   });
@@ -1439,7 +1479,7 @@ function renderHourly(periods, loc) {
         <div class="hr-icon"><span class="material-symbols-rounded fi" style="color:${p.isDaytime?'#f59e0b':'#60a5fa'}">${icon}</span></div>
         <div class="hr-precip ${precipClass}"><span class="material-symbols-rounded">water_drop</span>${precip}%</div>
         <div class="hr-temp">${p.temperature}°</div>
-        <div class="hr-arrow"><svg viewBox="0 0 16 16" fill="none"><line x1="8" y1="13" x2="8" y2="3" stroke="var(--text-4)" stroke-width="1.5" stroke-linecap="round"/><polyline points="5,6 8,3 11,6" stroke="var(--text-4)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${windDeg}, 8, 8)"/></svg></div>
+        <div class="hr-arrow"><svg viewBox="0 0 20 20" fill="none"><polygon points="10,2 14,14 10,11 6,14" fill="var(--text-3)" transform="rotate(${windDeg}, 10, 10)"/></svg></div>
         <div class="hr-wind"><span class="hr-wind-speed">${windSpeed}</span><span class="hr-wind-dir"> ${windDir}</span></div>
         <button class="hr-plus"><span class="material-symbols-rounded">add</span></button>`;
       const drawer = document.createElement('div'); drawer.className = 'hour-drawer';
@@ -1616,8 +1656,10 @@ async function loadOutlookLayer(day, mode) {
     layer.addTo(outlookMap);
     outlookLayers[key] = layer;
     updateOutlookLegend(day, mode, features);
-  } catch(e) { console.error(e); }
-  finally { loading.classList.add('hidden'); }
+  } catch(e) { 
+    console.error('Outlook load error:', e);
+    loading.innerHTML = '<div style="color:var(--text-4);font-size:0.75rem;text-align:center;padding:20px">Failed to load outlook data.<br><small>Check console for details.</small></div>';
+  } finally { loading.classList.add('hidden'); }
   updateContextPill(day, mode);
 }
 
@@ -1688,7 +1730,7 @@ async function loadWatches() {
   refreshBtn.classList.add('spinning');
   document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches…</div>';
   try {
-    const res = await fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Watch,Severe%20Thunderstorm%20Watch&status=actual`);
+    const res = await fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Watch%2CSevere%20Thunderstorm%20Watch&status=actual`);
     if (!res.ok) throw new Error('NWS failed');
     const data = await res.json();
     watchesList = data.features || [];
@@ -1802,7 +1844,7 @@ async function loadMesoDiscussions() {
   document.getElementById('md-list').innerHTML = '<div class="md-empty"><span class="material-symbols-rounded spin">progress_activity</span><div class="md-empty-sub">Loading discussions…</div></div>';
   document.getElementById('md-status-text').textContent = 'Loading…';
   try {
-    const res = await fetch(`${WORKER_URL}/iem/products/spc_mcd.geojson`);
+    const res = await fetch(`${WORKER_URL}/iem/geojson/spc_mcd.geojson`);
     if (!res.ok) throw new Error('IEM failed');
     const data = await res.json();
     mesoData = data.features || [];
