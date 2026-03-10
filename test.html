@@ -1928,17 +1928,20 @@ async function loadOutlookHazard(day, mode) {
     // Only for prob modes (torn/wind/hail) — cat has no sig hatching
     const cigFeatures = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
     if (cigFeatures.length && mode !== 'cat') {
-      // Two passes: first the threat-colored polygon fill (already rendered in main layer, CIG style returns transparent)
-      // Re-render CIG polys with their actual prob color, then overlay hatch lines on top
+      // Pass 1: re-render each CIG polygon with its actual threat color (main layer hides them)
       const scale = getOutlookProbScale(mode);
       cigFeatures.forEach(f => {
         const dnRaw = f.properties?.DN ?? f.properties?.dn ?? 0;
         const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
         let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
-        // Solid colored fill
-        L.geoJSON(f, { renderer: outlookMap._outlookRenderer, style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 }, interactive:false }).addTo(outlookMap);
+        const fillLyr = L.geoJSON(f, {
+          renderer: outlookMap._outlookRenderer,
+          style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 },
+          interactive: false,
+        }).addTo(outlookMap);
+        activeHatchLayers.push(fillLyr);
       });
-      // CIG hatch overlay — renders into outlookPane SVG where #cig-hatch is defined
+      // Pass 2: hatch overlay on top
       const cigHatchLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
         renderer: outlookMap._outlookRenderer,
         style: () => ({ fillColor:'url(#cig-hatch)', fillOpacity:1, color:'#000000', weight:1.5, opacity:0.7 }),
