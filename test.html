@@ -1587,14 +1587,20 @@ let activeOutlookDay = 1;
 let activeOutlookMode = 'cat';
 
 function initOutlookMap() {
-  outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:true, minZoom:4 })
+  outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:false, minZoom:4 })
     .setView([38.5, -96], 4);
 
   L.control.zoom({ position:'topright' }).addTo(outlookMap);
 
+  // Create dedicated pane + SVG renderer for outlook polygons
+  // This ensures url(#cig-hatch) resolves in the same SVG that renders the CIG layer
+  outlookMap.createPane('outlookPane');
+  outlookMap.getPane('outlookPane').style.zIndex = 310;
+  outlookMap._outlookRenderer = L.svg({ pane: 'outlookPane' }).addTo(outlookMap);
+
   const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
-    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
+    attribution:'', subdomains:'abcd', maxZoom:19
   }).addTo(outlookMap);
 
   // State borders
@@ -1607,88 +1613,30 @@ function initOutlookMap() {
     attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
   }).addTo(outlookMap);
 
-  // Canvas hatch layer — solid black diagonal lines clipped to polygon shapes
-  // Works on all browsers including mobile WebKit (no SVG pattern fill refs needed)
-  function makeHatchLayer(geojsonFeatures) {
-    const HatchLayer = L.Layer.extend({
-      initialize(features) { this._features = features; },
-      onAdd(map) {
-        this._map = map;
-        this._canvas = document.createElement('canvas');
-        this._canvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:300;';
-        map.getPanes().overlayPane.appendChild(this._canvas);
-        map.on('moveend zoomend resize', this._redraw, this);
-        this._redraw();
-      },
-      onRemove(map) {
-        map.off('moveend zoomend resize', this._redraw, this);
-        if (this._canvas && this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
-        this._canvas = null;
-      },
-      _redraw() {
-        if (!this._canvas) return;
-        const map = this._map;
-        const size = map.getSize();
-        const c = this._canvas;
-        c.width = size.x; c.height = size.y;
-        const topLeft = map.containerPointToLayerPoint([0,0]);
-        c.style.left = topLeft.x + 'px';
-        c.style.top  = topLeft.y + 'px';
-        const ctx = c.getContext('2d');
-        ctx.clearRect(0, 0, c.width, c.height);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2.5;
-        ctx.lineJoin = 'round';
-
-        this._features.forEach(f => {
-          const geom = f.geometry;
-          if (!geom) return;
-          const polys = geom.type === 'Polygon' ? [geom.coordinates]
-            : geom.type === 'MultiPolygon' ? geom.coordinates : [];
-          polys.forEach(poly => {
-            // Build clip path
-            ctx.save();
-            ctx.beginPath();
-            poly.forEach(ring => {
-              ring.forEach((coord, i) => {
-                const pt = map.latLngToContainerPoint(L.latLng(coord[1], coord[0]));
-                i === 0 ? ctx.moveTo(pt.x - topLeft.x, pt.y - topLeft.y)
-                        : ctx.lineTo(pt.x - topLeft.x, pt.y - topLeft.y);
-              });
-              ctx.closePath();
-            });
-            ctx.clip();
-            // Draw solid polygon border
-            ctx.stroke();
-            // Bounding box for hatch lines
-            let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
-            poly[0].forEach(coord => {
-              const pt = map.latLngToContainerPoint(L.latLng(coord[1], coord[0]));
-              const px = pt.x - topLeft.x, py = pt.y - topLeft.y;
-              if (px<x0)x0=px; if (px>x1)x1=px; if (py<y0)y0=py; if (py>y1)y1=py;
-            });
-            const step = 10;
-            const diag = (x1-x0) + (y1-y0);
-            ctx.beginPath();
-            for (let d = -diag; d < diag * 2; d += step) {
-              ctx.moveTo(x0 + d,        y0);
-              ctx.lineTo(x0 + d + diag, y0 + diag);
-            }
-            ctx.stroke();
-            ctx.restore();
-          });
-        });
-      }
-    });
-    const layer = new HatchLayer(geojsonFeatures);
-    return layer;
-  }
-  function addHatchLayer(features) {
-    const l = makeHatchLayer(features);
-    l.addTo(outlookMap);
-    activeHatchLayers.push(l);
-    return l;
-  }
+  // Inject SVG hatch pattern into the outlookPane SVG (same SVG the CIG layer renders into)
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const cigDefs = document.createElementNS(svgNS, 'defs');
+  const cigPat  = document.createElementNS(svgNS, 'pattern');
+  cigPat.setAttribute('id', 'cig-hatch');
+  cigPat.setAttribute('patternUnits', 'userSpaceOnUse');
+  cigPat.setAttribute('width', '8');
+  cigPat.setAttribute('height', '8');
+  cigPat.setAttribute('patternTransform', 'rotate(45)');
+  const cigRect = document.createElementNS(svgNS, 'rect');
+  cigRect.setAttribute('width', '8'); cigRect.setAttribute('height', '8'); cigRect.setAttribute('fill', 'none');
+  const cigLine = document.createElementNS(svgNS, 'line');
+  cigLine.setAttribute('x1', '0'); cigLine.setAttribute('y1', '0');
+  cigLine.setAttribute('x2', '0'); cigLine.setAttribute('y2', '8');
+  cigLine.setAttribute('stroke', '#000000'); cigLine.setAttribute('stroke-width', '2');
+  cigPat.appendChild(cigRect); cigPat.appendChild(cigLine);
+  cigDefs.appendChild(cigPat);
+  // Inject on every layeradd until it sticks
+  outlookMap.on('layeradd', function injectCigDefs() {
+    const svgEl = outlookMap.getPane('outlookPane')?.querySelector('svg');
+    if (svgEl && !svgEl.querySelector('#cig-hatch')) {
+      svgEl.insertBefore(cigDefs, svgEl.firstChild);
+    }
+  });
 
   buildOutlookSidebar();
   loadOutlookHazard(1, 'cat');
@@ -1931,6 +1879,7 @@ async function loadOutlookHazard(day, mode) {
     }
 
     activeOutlookLayer = L.geoJSON(gj, {
+      renderer: outlookMap._outlookRenderer,
       style: f => outlookStyleFeature(f, mode),
       onEachFeature: (f, lyr) => {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
@@ -1974,10 +1923,15 @@ async function loadOutlookHazard(day, mode) {
         const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
         let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
         // Solid colored fill
-        L.geoJSON(f, { style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 }, interactive:false }).addTo(outlookMap);
+        L.geoJSON(f, { renderer: outlookMap._outlookRenderer, style: { fillColor:c.fill, fillOpacity:0.82, color:'transparent', weight:0 }, interactive:false }).addTo(outlookMap);
       });
-      // Hatch lines on top via canvas (works on mobile WebKit)
-      addHatchLayer(cigFeatures);
+      // CIG hatch overlay — renders into outlookPane SVG where #cig-hatch is defined
+      const cigHatchLayer = L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
+        renderer: outlookMap._outlookRenderer,
+        style: () => ({ fillColor:'url(#cig-hatch)', fillOpacity:1, color:'#000000', weight:1.5, opacity:0.7 }),
+        interactive: false,
+      }).addTo(outlookMap);
+      activeHatchLayers.push(cigHatchLayer);
       appendHatchLegend(mode);
     }
 
@@ -1989,16 +1943,14 @@ async function loadOutlookHazard(day, mode) {
         if (sigRes.ok) {
           const sigGj = await sigRes.json();
           if (sigGj.features?.length) {
-            // Colored fill layer (interactive for popups)
+            const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2"+ Hail';
             activeOutlookSigLayer = L.geoJSON(sigGj, {
-              style: { fillColor:'rgba(0,0,0,0)', fillOpacity:0, color:'transparent', weight:0 },
+              renderer: outlookMap._outlookRenderer,
+              style: () => ({ fillColor:'url(#cig-hatch)', fillOpacity:1, color:'#000000', weight:1.5, opacity:0.7 }),
               onEachFeature: (f, lyr) => {
-                const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2"+ Hail';
-                lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #000;width:13px;height:13px;"></div><div><div class="popup-risk" style="font-size:0.82rem;">&#9888; Significant Threat</div><div class="popup-sub">${hazardName} particularly likely</div></div></div></div>`, { closeButton:false, maxWidth:260 });
+                lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #000;width:13px;height:13px;box-sizing:border-box;border-radius:2px;"></div><div><div class="popup-risk" style="font-size:0.82rem;">&#9888; Significant Threat</div><div class="popup-sub">${hazardName} particularly likely</div></div></div></div>`, { closeButton:false, maxWidth:260 });
               }
             }).addTo(outlookMap);
-            // Canvas hatch on top
-            addHatchLayer(sigGj.features);
             if (!cigFeatures.length) appendHatchLegend(mode);
           }
         }
