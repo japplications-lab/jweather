@@ -2248,13 +2248,14 @@ No jargon. No codes. No extra text outside these 3 sections.`,
       if (/^[A-Z][A-Z\s'?]+:$/.test(line)) {
         const label = line.replace(/:$/, '');
         const body = lines[i+1] || '';
-        discHtml += `<div style="margin-bottom:14px;"><div style="font-size:0.62rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:3px;">${label}</div><div style="font-size:0.82rem;line-height:1.6;color:var(--text-2);">${body}</div></div>`;
+        discHtml += `<div style="margin-bottom:14px;"><div style="font-size:0.62rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#f97316;margin-bottom:3px;">${label}</div><div style="font-size:0.82rem;line-height:1.6;color:var(--text-2);">${body}</div></div>`;
         i += 2;
       } else {
         discHtml += `<div style="font-size:0.82rem;line-height:1.6;color:var(--text-2);margin-bottom:10px;">${line}</div>`;
         i++;
       }
     }
+    discHtml += `<button onclick="document.getElementById('disc-modal').style.display='none'" style="width:100%;margin-top:6px;padding:10px;background:#f97316;border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:0.8rem;font-weight:700;cursor:pointer;">Dismiss</button>`;
     document.getElementById('disc-modal-body').innerHTML = discHtml;
   } catch(e) {
     document.getElementById('disc-modal-body').innerHTML = `<div class="disc-err">Could not load discussion (${e.message}).</div>`;
