@@ -201,6 +201,17 @@
     #spinner-overlay{position:fixed;inset:0;z-index:900;background:rgba(15,17,21,0.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;display:none;}
     .spin-ring{width:28px;height:28px;border:3px solid var(--border-2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
+    @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+    .skel{border-radius:6px;background:linear-gradient(90deg,var(--surface) 25%,var(--border-2) 50%,var(--surface) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear;}
+    .skel-hero{height:80px;border-radius:var(--r-sm);margin:12px 0 8px;}
+    .skel-line{height:12px;margin-bottom:8px;}
+    .skel-line.short{width:55%;}
+    .skel-line.mid{width:75%;}
+    .skel-forecast-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+    .skel-forecast-row:last-child{border-bottom:none;}
+    .skel-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;}
+    .skel-bar{height:11px;border-radius:6px;flex:1;}
+    .skel-temp{width:28px;height:14px;border-radius:6px;flex-shrink:0;}
     /* Alert modal */
     #alert-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
     .modal-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:640px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
@@ -715,9 +726,9 @@
         <div class="current-body">
           <div id="current-loc" class="current-loc">—</div>
           <div id="current-time" class="current-time">—</div>
-          <div class="current-hero">
+          <div class="current-hero" id="current-hero">
             <div class="current-temp-big"><span id="current-temp-val">—</span><span class="current-temp-unit">°F</span></div>
-            <img id="current-hero-icon" class="current-hero-icon" src="https://unpkg.com/meteocons@latest/src/fill/svg/clear-day.svg" alt="" width="72" height="72">
+            <img id="current-hero-icon" class="current-hero-icon" src="" alt="" width="72" height="72" style="opacity:0;transition:opacity .3s;">
           </div>
           <div id="current-desc" class="current-desc">—</div>
           <div class="current-stats">
@@ -762,7 +773,13 @@
           <span class="card-top-label">7-Day Forecast</span>
           <span class="material-symbols-rounded card-top-icon">calendar_month</span>
         </div>
-        <div class="forecast-body" id="forecast-content"></div>
+        <div class="forecast-body" id="forecast-content">
+          <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar"></div><div class="skel skel-temp"></div></div>
+          <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar mid"></div><div class="skel skel-temp"></div></div>
+          <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar"></div><div class="skel skel-temp"></div></div>
+          <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar mid"></div><div class="skel skel-temp"></div></div>
+          <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar"></div><div class="skel skel-temp"></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1624,7 +1641,12 @@ function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   document.getElementById('stat-feels').textContent = feels;
   document.getElementById('stat-humidity').textContent = humid;
   document.getElementById('stat-wind').textContent = wind;
-  document.getElementById('current-hero-icon').src = getIconUrl(desc, isDaytime);
+  const icon = document.getElementById('current-hero-icon');
+  const newSrc = getIconUrl(desc, isDaytime);
+  icon.style.opacity = '0';
+  icon.onload = () => { icon.style.opacity = '1'; };
+  icon.onerror = () => { icon.style.opacity = '0'; };
+  icon.src = newSrc;
 }
 
 const DA = { Monday:'Mon', Tuesday:'Tue', Wednesday:'Wed', Thursday:'Thu', Friday:'Fri', Saturday:'Sat', Sunday:'Sun' };
@@ -1635,8 +1657,10 @@ function renderForecast(periods) {
   if (!periods?.length) { wrap.innerHTML='<div style="padding:20px;color:var(--text-4);font-size:.83rem">No data.</div>'; return; }
   periods.forEach(p => {
     const row = document.createElement('div'); row.className = 'forecast-row';
-    row.innerHTML = `<div class="forecast-period${p.isDaytime?' day':''}">${abbr(p.name)}</div><img class="forecast-icon-img" alt="" width="28" height="28"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
-    row.querySelector('.forecast-icon-img').src = getIconUrl(p.shortForecast, p.isDaytime);
+    row.innerHTML = `<div class="forecast-period${p.isDaytime?' day':''}">${abbr(p.name)}</div><img class="forecast-icon-img" alt="" width="28" height="28" style="opacity:0;transition:opacity .25s;"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
+    const fIcon = row.querySelector('.forecast-icon-img');
+    fIcon.onload = () => { fIcon.style.opacity = '1'; };
+    fIcon.src = getIconUrl(p.shortForecast, p.isDaytime);
     const det = document.createElement('div'); det.className = 'forecast-detail-row'; det.textContent = p.detailedForecast;
     row.addEventListener('click', () => {
       const isOpen = row.classList.contains('open');
