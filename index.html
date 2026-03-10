@@ -1160,6 +1160,44 @@ document.getElementById('mob-severe-tab').addEventListener('click', () => {
 });
 document.getElementById('severe-backdrop').addEventListener('click', closeSevereSheet);
 
+// Swipe down to close severe sheet
+(function() {
+  const sheet = document.getElementById('severe-sheet');
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  let dragging = false;
+
+  sheet.addEventListener('touchstart', e => {
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+    dragging = true;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (dy > 0) {
+      sheet.style.transform = `translateY(${dy}px)`;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', e => {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const dt = Date.now() - touchStartTime;
+    const isFlick = dt < 250 && dy > 40;
+    const isDrag  = dy > sheet.offsetHeight * 0.35;
+    if (isFlick || isDrag) {
+      closeSevereSheet();
+    } else {
+      sheet.style.transform = '';
+    }
+  }, { passive: true });
+})();
+
 // ── Coming Soon ──
 let _toastTimer = null;
 function showComingSoon() {
