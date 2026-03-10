@@ -1510,33 +1510,93 @@ function compassToDegs(dir) {
 // ══════════════════════════════════
 // OUTLOOK MAP
 // ══════════════════════════════════
-let outlookMap, outlookLayers = {};
-let currentDay = 1, currentMode = 'cat';
 
-const OUTLOOK_MODES = [
-  { key:'cat', label:'Categorical', icon:'thunderstorm' },
-  { key:'torn', label:'Tornado', icon:'tornado' },
-  { key:'hail', label:'Hail', icon:'severe_cold' },
-  { key:'wind', label:'Wind', icon:'air' },
-];
-const DAY_URLS = {
-  1: { cat:'day1otlk.json', torn:'day1probotlk_torn.json', hail:'day1probotlk_hail.json', wind:'day1probotlk_wind.json' },
-  2: { cat:'day2otlk.json', torn:'day2probotlk_torn.json', hail:'day2probotlk_hail.json', wind:'day2probotlk_wind.json' },
-  3: { cat:'day3otlk.json' },
+// NOAA ArcGIS MapServer via worker /noaa/ proxy
+const NOAA_OUTLOOK_BASE = `${WORKER_URL}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer`;
+
+// Layer IDs confirmed from NOAA MapServer
+// Day 1: 1=cat, 2=sig_torn, 3=torn, 4=sig_hail, 5=hail, 6=sig_wind, 7=wind
+// Day 2: 9=cat, 10=sig_torn, 11=torn, 12=sig_hail, 13=hail, 14=sig_wind, 15=wind
+// Day 3: 17=cat, 18=prob, 19=sig
+const OUTLOOK_LAYER_IDS = {
+  '1-cat':1,  '1-torn':3,  '1-wind':7,  '1-hail':5,
+  '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
+  '3-cat':17, '3-prob':18,
 };
-const PROB_COLORS = {'2':'#008B00','5':'#8B4726','10':'#FFA500','15':'#FF0000','30':'#FF00FF','45':'#912CEE','60':'#104E8B','sig':'#000000'};
-const CAT_FILL = { TSTM:'#c8eec8', MRGL:'#6abf6a', SLGT:'#f0e040', ENH:'#e88020', MDT:'#e04040', HIGH:'#ee30a0' };
+const OUTLOOK_SIG_IDS = {
+  '1-torn':2, '1-hail':4, '1-wind':6,
+  '2-torn':10,'2-hail':12,'2-wind':14,
+};
+
+const OUTLOOK_CAT = {
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Low Risk'       },
+  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Some Risk'       },
+  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Elevated Risk'   },
+  'MDT': { fill:'#e04040', stroke:'#a81818', label:'High Risk'       },
+  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Extreme Risk'    },
+};
+const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+const OUTLOOK_CAT_ORDER = ['HIGH','MDT','ENH','SLGT','MRGL'];
+
+const PROB_TORN = [
+  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Very Low' },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Low'      },
+  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Moderate' },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Critical' },
+];
+const PROB_WIND = [
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Low'      },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Critical' },
+];
+const PROB_HAIL = [
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Low'      },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Critical' },
+];
+function getOutlookProbScale(mode) {
+  if (mode === 'wind') return PROB_WIND;
+  if (mode === 'hail') return PROB_HAIL;
+  return PROB_TORN;
+}
+
+const OUTLOOK_MODE_LABELS = {cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic'};
+
+let outlookMap = null;
+let activeOutlookLayer = null;
+let activeOutlookSigLayer = null;
+let activeOutlookDay = 1;
+let activeOutlookMode = 'cat';
 
 function initOutlookMap() {
-  outlookMap = L.map('outlook-map', { zoomControl:true, attributionControl:true }).setView([38.5, -96], 4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+  outlookMap = L.map('outlook-map', { zoomControl:true, attributionControl:true, minZoom:4 })
+    .setView([38.5, -96], 4);
+
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
     attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
   }).addTo(outlookMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+
+  // State borders
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+    .then(r => r.json())
+    .then(gj => L.geoJSON(gj, { style:{ color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive:false }).addTo(outlookMap))
+    .catch(() => {});
+
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
     attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
   }).addTo(outlookMap);
+
   buildOutlookSidebar();
-  loadOutlookLayer(1, 'cat');
+  loadOutlookHazard(1, 'cat');
 }
 
 function buildOutlookSidebar() {
@@ -1546,12 +1606,18 @@ function buildOutlookSidebar() {
   const mobModeRow = document.getElementById('mob-mode-row');
   mobDayTabs.innerHTML = ''; mobModeRow.innerHTML = '';
 
+  const modeList = [
+    {key:'cat',  label:'Overall',  icon:'thunderstorm'},
+    {key:'torn', label:'Tornado',  icon:'tornado'     },
+    {key:'wind', label:'Wind',     icon:'air'         },
+    {key:'hail', label:'Hail',     icon:'weather_hail'},
+  ];
+
   [1,2,3].forEach(day => {
-    const now = new Date();
-    const d = new Date(now); d.setDate(now.getDate() + day - 1);
+    const d = new Date(); d.setDate(d.getDate() + day - 1);
     const dayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
     const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const modes = day < 3 ? OUTLOOK_MODES : [OUTLOOK_MODES[0]];
+    const modes = day < 3 ? modeList : [modeList[0]];
 
     const sec = document.createElement('div'); sec.className = 'day-section';
     sec.innerHTML = `<div class="day-section-head"><div class="day-section-label"><div class="day-eyebrow">Day ${day}</div><div class="day-name">${dayName}</div></div><div class="day-badge">${dateStr}</div></div>`;
@@ -1560,16 +1626,21 @@ function buildOutlookSidebar() {
       const btn = document.createElement('button'); btn.className = 'cat-btn'; btn.dataset.day = day; btn.dataset.mode = m.key;
       btn.innerHTML = `<span class="material-symbols-rounded cat-icon">${m.icon}</span>${m.label}`;
       if (day === 1 && m.key === 'cat') btn.classList.add('active');
-      btn.addEventListener('click', () => selectOutlookMode(day, m.key));
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadOutlookHazard(day, m.key);
+        buildOutlookMobModeRow(day);
+      });
       catList.appendChild(btn);
     });
     sec.appendChild(catList);
-    if (day === 1) {
-      const discBtn = document.createElement('button'); discBtn.className = 'disc-sidebar-btn';
-      discBtn.innerHTML = `<span class="material-symbols-rounded">article</span>View Discussion`;
-      discBtn.addEventListener('click', () => openDiscModal(day));
-      sec.appendChild(discBtn);
-    }
+
+    const discBtn = document.createElement('button'); discBtn.className = 'disc-sidebar-btn';
+    discBtn.innerHTML = `<span class="material-symbols-rounded">article</span>View Discussion`;
+    discBtn.addEventListener('click', () => openDiscModal(day));
+    sec.appendChild(discBtn);
+
     cont.appendChild(sec);
 
     // Mobile day tab
@@ -1578,115 +1649,174 @@ function buildOutlookSidebar() {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.mob-day-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      selectOutlookMode(day, day < 3 ? currentMode : 'cat');
-      buildMobModeRow(day);
+      const mode = day < 3 ? activeOutlookMode : 'cat';
+      loadOutlookHazard(day, mode);
+      buildOutlookMobModeRow(day);
     });
     mobDayTabs.appendChild(tab);
   });
 
-  buildMobModeRow(1);
+  buildOutlookMobModeRow(1);
 }
 
-function buildMobModeRow(day) {
+function buildOutlookMobModeRow(day) {
   const row = document.getElementById('mob-mode-row'); row.innerHTML = '';
-  const modes = day < 3 ? OUTLOOK_MODES : [OUTLOOK_MODES[0]];
+  const modes = day < 3
+    ? [{key:'cat',label:'Overall',icon:'thunderstorm'},{key:'torn',label:'Tornado',icon:'tornado'},{key:'wind',label:'Wind',icon:'air'},{key:'hail',label:'Hail',icon:'weather_hail'}]
+    : [{key:'cat',label:'Overall',icon:'thunderstorm'}];
   modes.forEach(m => {
     const btn = document.createElement('button'); btn.className = 'mob-mode-btn'; btn.dataset.day = day; btn.dataset.mode = m.key;
     btn.innerHTML = `<span class="material-symbols-rounded">${m.icon}</span>${m.label}`;
-    if (m.key === (day < 3 ? currentMode : 'cat')) btn.classList.add('active');
-    btn.addEventListener('click', () => { selectOutlookMode(day, m.key); document.querySelectorAll('.mob-mode-btn').forEach(b => b.classList.toggle('active', b === btn)); });
+    if (m.key === activeOutlookMode) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      loadOutlookHazard(day, m.key);
+      document.querySelectorAll('.mob-mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+    });
     row.appendChild(btn);
   });
 }
 
-function selectOutlookMode(day, mode) {
-  currentDay = day; currentMode = mode;
-  document.querySelectorAll('.cat-btn').forEach(b => {
-    b.classList.toggle('active', +b.dataset.day === day && b.dataset.mode === mode);
-  });
-  loadOutlookLayer(day, mode);
-}
+function outlookStyleFeature(f, mode) {
+  const p = f.properties || {};
+  const lbl = (p.LABEL || p.label || '').toString();
+  if (lbl.startsWith('CIG')) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
 
-async function loadOutlookLayer(day, mode) {
-  const loading = document.getElementById('outlook-map-loading');
-  loading.classList.remove('hidden');
-  const key = `${day}_${mode}`;
-  if (outlookLayers[key]) {
-    // Already loaded — toggle visibility
-    Object.values(outlookLayers).forEach(l => { if (outlookMap.hasLayer(l)) outlookMap.removeLayer(l); });
-    outlookMap.addLayer(outlookLayers[key]);
-    loading.classList.add('hidden');
-    updateOutlookLegend(day, mode, outlookLayers[key]._features || []);
-    return;
+  if (mode === 'cat') {
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+    if (key === 'TSTM') return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
+    const c = OUTLOOK_CAT[key] || { fill:'#cccccc', stroke:'#888' };
+    return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
+  } else {
+    const dnRaw = p.DN ?? p.dn ?? 0;
+    const dn = Math.round(parseFloat(dnRaw) * (parseFloat(dnRaw) <= 1 ? 100 : 1));
+    const scale = getOutlookProbScale(mode);
+    let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
+    return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
   }
-  const urlKey = DAY_URLS[day]?.[mode];
-  if (!urlKey) { loading.classList.add('hidden'); return; }
-  try {
-    const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${urlKey}`);
-    if (!res.ok) throw new Error('fetch failed');
-    const gj = await res.json();
-    Object.values(outlookLayers).forEach(l => { if (outlookMap.hasLayer(l)) outlookMap.removeLayer(l); });
-
-    const features = gj.features || [];
-    const layer = L.geoJSON(gj, {
-      style: feat => {
-        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
-        if (mode === 'cat') {
-          const catKey = CAT_FILL[raw] ? raw : (DN_TO_CAT[raw] || null);
-          const isCIG = feat.properties?.dn === 2 && feat.properties?.label?.toUpperCase() === 'CIG1';
-          const fill = catKey ? CAT_FILL[catKey] : '#ffffff';
-          if (isCIG) return { fillColor: fill, fillOpacity: 0.55, color: '#000', weight: 1.5, dashArray: '8 5', opacity: 0.9 };
-          return { fillColor: fill, fillOpacity: 0.5, color: '#000', weight: 0.5, opacity: 0.5 };
-        } else {
-          const fill = PROB_COLORS[raw.toLowerCase()] || PROB_COLORS[raw] || '#888';
-          return { fillColor: fill, fillOpacity: 0.5, color: '#000', weight: 0.5, opacity: 0.5 };
-        }
-      },
-      onEachFeature: (feat, lyr) => {
-        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
-        const catKey = mode === 'cat' ? (CAT_FILL[raw] ? raw : DN_TO_CAT[raw]) : null;
-        const label = catKey ? SPC_CAT[catKey]?.label : raw;
-        const color = catKey ? CAT_FILL[catKey] : (PROB_COLORS[raw.toLowerCase()] || '#888');
-        if (label) {
-          lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${color}"></div><div class="popup-risk">${label}</div></div><div class="popup-sub">Day ${day} ${mode === 'cat' ? 'Categorical' : mode.charAt(0).toUpperCase()+mode.slice(1)} Outlook</div></div>`);
-        }
-      }
-    });
-    layer._features = features;
-    layer.addTo(outlookMap);
-    outlookLayers[key] = layer;
-    updateOutlookLegend(day, mode, features);
-  } catch(e) { 
-    console.error('Outlook load error:', e);
-    loading.innerHTML = '<div style="color:var(--text-4);font-size:0.75rem;text-align:center;padding:20px">Failed to load outlook data.<br><small>Check console for details.</small></div>';
-  } finally { loading.classList.add('hidden'); }
-  updateContextPill(day, mode);
 }
 
-function updateContextPill(day, mode) {
-  const dayStr = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : 'Day 3';
-  const modeStr = OUTLOOK_MODES.find(m => m.key === mode)?.label || mode;
-  document.getElementById('outlook-context-pill').innerHTML = `${dayStr} — <span>${modeStr}</span>`;
+function outlookPopupContent(f, mode, day) {
+  const p = f.properties || {};
+  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : 'Day 3';
+  if (mode === 'cat') {
+    const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
+    const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+    const c = OUTLOOK_CAT[key] || { fill:'#ccc', stroke:'#999', label: raw };
+    return `<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div class="popup-risk">${c.label}</div></div><div class="popup-sub">${dayLabel} · Categorical Outlook</div></div>`;
+  } else {
+    const dn = Math.round(parseFloat(p.DN ?? p.dn ?? 0) * (parseFloat(p.DN ?? p.dn ?? 0) <= 1 ? 100 : 1));
+    const scale = getOutlookProbScale(mode);
+    let c = scale[0]; for (const x of scale) { if (dn >= x.dn) c = x; }
+    return `<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div class="popup-risk">${c.label}</div></div><div class="popup-sub">${dayLabel} · ${OUTLOOK_MODE_LABELS[mode]} Outlook</div></div>`;
+  }
 }
 
-function updateOutlookLegend(day, mode, features) {
+function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('outlook-legend-items');
   items.innerHTML = '';
   if (mode === 'cat') {
     const present = new Set();
-    features.forEach(f => {
+    (gj.features || []).forEach(f => {
       const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
-      const key = CAT_FILL[raw] ? raw : DN_TO_CAT[raw];
-      if (key) present.add(key);
+      const key = OUTLOOK_CAT[raw] ? raw : OUTLOOK_DN_CAT[raw];
+      if (key && key !== 'TSTM') present.add(key);
     });
-    const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
-    order.forEach(k => {
-      const info = SPC_CAT[k];
+    OUTLOOK_CAT_ORDER.forEach(k => {
+      const c = OUTLOOK_CAT[k];
       const item = document.createElement('div');
       item.className = 'legend-item' + (present.has(k) ? ' legend-active' : ' legend-dim');
-      item.innerHTML = `<div class="legend-swatch" style="background:${info.color}"></div><div class="legend-label">${info.label}</div>`;
+      item.innerHTML = `<div class="legend-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div class="legend-label">${c.label}</div>`;
       items.appendChild(item);
     });
+  } else {
+    const present = new Set();
+    (gj.features || []).forEach(f => {
+      const dn = Math.round(parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) * (parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) <= 1 ? 100 : 1));
+      if (dn > 0) present.add(dn);
+    });
+    getOutlookProbScale(mode).forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'legend-item' + (present.has(p.dn) ? ' legend-active' : ' legend-dim');
+      item.innerHTML = `<div class="legend-swatch" style="background:${p.fill};border-color:${p.stroke}"></div><div class="legend-label">${p.label}</div>`;
+      items.appendChild(item);
+    });
+  }
+}
+
+async function loadOutlookHazard(day, mode) {
+  activeOutlookDay = day; activeOutlookMode = mode;
+
+  // Update context pill
+  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : 'Day 3';
+  document.getElementById('outlook-context-pill').innerHTML = `${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
+
+  const loading = document.getElementById('outlook-map-loading');
+  loading.classList.remove('hidden');
+
+  if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
+  if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
+
+  const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
+  if (!layerId) { loading.classList.add('hidden'); return; }
+
+  try {
+    const url = `${NOAA_OUTLOOK_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const gjRaw = await res.json();
+
+    // Sort cat: largest first; prob: ascending DN (lowest below, highest on top)
+    let gj;
+    if (mode === 'cat') {
+      gj = { ...gjRaw, features: [...(gjRaw.features||[])].sort((a,b) => {
+        const area = f => { const g=f.geometry; if(!g)return 0; const rings=(g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[]).flat(1); return rings.reduce((s,r)=>{let a=0;for(let i=0,j=r.length-1;i<r.length;j=i++){a+=(r[j][0]+r[i][0])*(r[j][1]-r[i][1]);}return s+Math.abs(a/2);},0); };
+        return area(b) - area(a);
+      })};
+    } else {
+      gj = { ...gjRaw, features: [...(gjRaw.features||[])].sort((a,b) => {
+        const dnA = parseFloat(a.properties?.DN ?? a.properties?.dn ?? 0);
+        const dnB = parseFloat(b.properties?.DN ?? b.properties?.dn ?? 0);
+        return dnA - dnB;
+      })};
+    }
+
+    activeOutlookLayer = L.geoJSON(gj, {
+      style: f => outlookStyleFeature(f, mode),
+      onEachFeature: (f, lyr) => {
+        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+        const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+        if (mode === 'cat' && (key === 'TSTM' || !OUTLOOK_CAT[key])) return;
+        lyr.bindPopup(outlookPopupContent(f, mode, day), { closeButton:false, maxWidth:290 });
+        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.95, weight:2.5 }); });
+        lyr.on('mouseout',  function(){ activeOutlookLayer.resetStyle(this); });
+      }
+    }).addTo(outlookMap);
+
+    updateOutlookLegend(gj, mode);
+
+    // Load sig layer if available
+    const sigId = OUTLOOK_SIG_IDS[`${day}-${mode}`];
+    if (sigId) {
+      try {
+        const sigUrl = `${NOAA_OUTLOOK_BASE}/${sigId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
+        const sigRes = await fetch(sigUrl);
+        if (sigRes.ok) {
+          const sigGj = await sigRes.json();
+          if (sigGj.features?.length) {
+            activeOutlookSigLayer = L.geoJSON(sigGj, {
+              style: { color:'#000', weight:3, opacity:1, dashArray:'8 6', fillColor:'#000', fillOpacity:0.08 },
+            }).addTo(outlookMap);
+          }
+        }
+      } catch(e) { /* sig layer optional */ }
+    }
+
+  } catch(e) {
+    console.error('Outlook load error:', e);
+    document.getElementById('outlook-legend-items').innerHTML = `<div style="font-size:0.75rem;color:var(--text-4);padding:4px 0">Failed to load. Check connection.</div>`;
+  } finally {
+    loading.classList.add('hidden');
   }
 }
 
