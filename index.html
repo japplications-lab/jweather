@@ -2295,12 +2295,18 @@ document.getElementById('disc-modal').addEventListener('click', e => { if (e.tar
 let watchesMap, watchesLayer = null, watchesList = [];
 
 function initWatchesMap() {
-  watchesMap = L.map('watches-map', { zoomControl:true }).setView([38.5, -96], 4);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
+  watchesMap = L.map('watches-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
+  L.control.zoom({ position: 'topright' }).addTo(watchesMap);
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
+    attribution: '', subdomains: 'abcd', maxZoom: 19, updateWhenZooming: false,
   }).addTo(watchesMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-    attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+    .then(r => r.json())
+    .then(gj => L.geoJSON(gj, { style:{ color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive:false }).addTo(watchesMap))
+    .catch(() => {});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
+    attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
   }).addTo(watchesMap);
   loadWatches();
 }
@@ -2410,11 +2416,19 @@ const watchPanel = document.getElementById('watches-panel');
 let mesoMap, mesoLayers = {}, mesoData = [];
 
 function initMesoMap() {
-  mesoMap = L.map('meso-map', { zoomControl: false }).setView([38.5, -96], 4);
+  mesoMap = L.map('meso-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
   L.control.zoom({ position: 'topright' }).addTo(mesoMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19,
-    updateWhenZooming: false,
+  const ret = window.devicePixelRatio > 1 ? '@2x' : '';
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
+    attribution: '', subdomains: 'abcd', maxZoom: 19, updateWhenZooming: false,
+  }).addTo(mesoMap);
+  // State borders
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+    .then(r => r.json())
+    .then(gj => L.geoJSON(gj, { style:{ color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive:false }).addTo(mesoMap))
+    .catch(() => {});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
+    attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
   }).addTo(mesoMap);
   loadMesoDiscussions();
 }
