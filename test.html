@@ -317,7 +317,9 @@
     /* Mobile outlook controls */
     .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
-    .mob-day-tab{flex:1;padding:9px 4px 7px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+    .mob-day-tab{flex:1;padding:9px 4px 0;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .mob-day-tab-label{padding-bottom:5px;}
+    .mob-day-threat-bar{display:block;width:70%;height:3px;border-radius:2px;background:transparent;opacity:0;transition:opacity .3s;margin-bottom:4px;}
     .mob-day-tab.active{color:var(--red);border-bottom-color:var(--red);}
     .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;}
     .mob-mode-row::-webkit-scrollbar{display:none;}
@@ -1609,18 +1611,33 @@ function initOutlookMap() {
     if (!svgEl || svgEl.querySelector('#outlook-sig-hatch')) return;
     const ns = 'http://www.w3.org/2000/svg';
     const defs = document.createElementNS(ns, 'defs');
-    const pat = document.createElementNS(ns, 'pattern');
-    pat.setAttribute('id', 'outlook-sig-hatch');
-    pat.setAttribute('patternUnits', 'userSpaceOnUse');
-    pat.setAttribute('width', '8'); pat.setAttribute('height', '8');
-    pat.setAttribute('patternTransform', 'rotate(45)');
-    const bgRect = document.createElementNS(ns, 'rect');
-    bgRect.setAttribute('width', '8'); bgRect.setAttribute('height', '8'); bgRect.setAttribute('fill', '#ffffff');
-    const line = document.createElementNS(ns, 'line');
-    line.setAttribute('x1', '0'); line.setAttribute('y1', '0');
-    line.setAttribute('x2', '0'); line.setAttribute('y2', '8');
-    line.setAttribute('stroke', '#000000'); line.setAttribute('stroke-width', '2');
-    pat.appendChild(bgRect); pat.appendChild(line); defs.appendChild(pat);
+
+    // Pattern 1: white bg + black lines (for legend swatch)
+    const pat1 = document.createElementNS(ns, 'pattern');
+    pat1.setAttribute('id', 'outlook-sig-hatch');
+    pat1.setAttribute('patternUnits', 'userSpaceOnUse');
+    pat1.setAttribute('width', '8'); pat1.setAttribute('height', '8');
+    pat1.setAttribute('patternTransform', 'rotate(45)');
+    const bg = document.createElementNS(ns, 'rect');
+    bg.setAttribute('width', '8'); bg.setAttribute('height', '8'); bg.setAttribute('fill', '#ffffff');
+    const l1 = document.createElementNS(ns, 'line');
+    l1.setAttribute('x1', '0'); l1.setAttribute('y1', '0');
+    l1.setAttribute('x2', '0'); l1.setAttribute('y2', '8');
+    l1.setAttribute('stroke', '#000000'); l1.setAttribute('stroke-width', '2');
+    pat1.appendChild(bg); pat1.appendChild(l1); defs.appendChild(pat1);
+
+    // Pattern 2: transparent bg + black lines (overlays threat color on map)
+    const pat2 = document.createElementNS(ns, 'pattern');
+    pat2.setAttribute('id', 'outlook-hatch-lines');
+    pat2.setAttribute('patternUnits', 'userSpaceOnUse');
+    pat2.setAttribute('width', '8'); pat2.setAttribute('height', '8');
+    pat2.setAttribute('patternTransform', 'rotate(45)');
+    const l2 = document.createElementNS(ns, 'line');
+    l2.setAttribute('x1', '0'); l2.setAttribute('y1', '0');
+    l2.setAttribute('x2', '0'); l2.setAttribute('y2', '8');
+    l2.setAttribute('stroke', '#000000'); l2.setAttribute('stroke-width', '2');
+    pat2.appendChild(l2); defs.appendChild(pat2);
+
     svgEl.insertBefore(defs, svgEl.firstChild);
   }
   // Try immediately after tiles load, then on every layeradd until injected
@@ -1630,6 +1647,28 @@ function initOutlookMap() {
 
   buildOutlookSidebar();
   loadOutlookHazard(1, 'cat');
+}
+
+async function fetchDayMaxThreat(day) {
+  // Fetch cat layer for the day, return the highest threat color
+  const layerId = OUTLOOK_LAYER_IDS[`${day}-cat`];
+  if (!layerId) return null;
+  try {
+    const res = await fetch(`${NOAA_OUTLOOK_BASE}/${layerId}/query?where=1%3D1&outFields=LABEL,DN&f=json&returnGeometry=false`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const order = ['HIGH','MDT','ENH','SLGT','MRGL'];
+    let best = null;
+    (data.features || []).forEach(f => {
+      const raw = (f.attributes?.LABEL || f.attributes?.DN || '').toString().toUpperCase().trim();
+      const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+      if (key && key !== 'TSTM') {
+        const rank = order.indexOf(key);
+        if (best === null || rank < best.rank) best = { rank, color: OUTLOOK_CAT[key].fill };
+      }
+    });
+    return best ? best.color : null;
+  } catch(e) { return null; }
 }
 
 function buildOutlookSidebar() {
@@ -1677,7 +1716,8 @@ function buildOutlookSidebar() {
     cont.appendChild(sec);
 
     // Mobile day tab
-    const tab = document.createElement('button'); tab.className = 'mob-day-tab'; tab.textContent = `Day ${day}`;
+    const tab = document.createElement('button'); tab.className = 'mob-day-tab'; tab.dataset.day = day;
+    tab.innerHTML = `<span class="mob-day-tab-label">Day ${day}</span><span class="mob-day-threat-bar" id="threat-bar-${day}"></span>`;
     if (day === 1) tab.classList.add('active');
     tab.addEventListener('click', () => {
       document.querySelectorAll('.mob-day-tab').forEach(t => t.classList.remove('active'));
@@ -1687,6 +1727,11 @@ function buildOutlookSidebar() {
       buildOutlookMobModeRow(day);
     });
     mobDayTabs.appendChild(tab);
+    // Async color bar
+    fetchDayMaxThreat(day).then(color => {
+      const bar = document.getElementById(`threat-bar-${day}`);
+      if (bar && color) { bar.style.background = color; bar.style.opacity = '1'; }
+    });
   });
 
   buildOutlookMobModeRow(1);
@@ -1868,62 +1913,54 @@ async function loadOutlookHazard(day, mode) {
       }).addTo(outlookMap);
     }
 
-    updateOutlookLegend(gj, mode);
+    // Legend: only visible when sig/CIG hatching is present
+    const legendEl = document.getElementById('outlook-legend');
+    const legendItems = document.getElementById('outlook-legend-items');
+    legendItems.innerHTML = '';
+    legendEl.style.display = 'none';
 
-    // Append CIG/sig-hatch entry if this layer has CIG features
-    const cigFeatures = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
-    if (cigFeatures.length) {
-      const items = document.getElementById('outlook-legend-items');
+    function appendHatchLegend(mode) {
+      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible'
+        : mode === 'wind' ? '65+ mph Wind Possible'
+        : mode === 'hail' ? '2"+ Hail Possible'
+        : 'Sig. Severe Possible';
       const div = document.createElement('div');
-      div.className = 'legend-item legend-active';
-      div.style.cssText = 'display:flex;align-items:center;gap:7px;';
-      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible' : mode === 'wind' ? '65+ mph Wind Possible' : mode === 'hail' ? '2"+ Hail Possible' : 'Sig. Severe Possible';
-      div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div class="legend-label" style="font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
-      items.appendChild(div);
-      document.getElementById('outlook-legend').style.display = 'block';
+      div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:2px 0;';
+      div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div style="font-size:0.72rem;font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
+      legendItems.appendChild(div);
+      legendEl.style.display = 'block';
     }
 
-    // Load sig layer if available — render with hatch fill + dashed outline
+    // CIG features (embedded in main layer): overlay hatch lines on top of threat color
+    const cigFeatures = (gj.features || []).filter(f => (f.properties?.LABEL || f.properties?.label || '').toString().startsWith('CIG'));
+    if (cigFeatures.length) {
+      // Hatch lines only (transparent bg so threat color shows through)
+      L.geoJSON({ type:'FeatureCollection', features: cigFeatures }, {
+        style: { fillColor:'url(#outlook-hatch-lines)', fillOpacity:1, color:'#000', weight:2.5, opacity:1 },
+        interactive: false,
+      }).addTo(outlookMap);
+      appendHatchLegend(mode);
+    }
+
+    // Separate sig layer (dedicated layer IDs)
     const sigId = OUTLOOK_SIG_IDS[`${day}-${mode}`];
-    let hasSig = false;
     if (sigId) {
       try {
-        const sigUrl = `${NOAA_OUTLOOK_BASE}/${sigId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
-        const sigRes = await fetch(sigUrl);
+        const sigRes = await fetch(`${NOAA_OUTLOOK_BASE}/${sigId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
         if (sigRes.ok) {
           const sigGj = await sigRes.json();
           if (sigGj.features?.length) {
-            hasSig = true;
-            // Hatch fill layer
             activeOutlookSigLayer = L.geoJSON(sigGj, {
-              style: {
-                fillColor: 'url(#outlook-sig-hatch)',
-                fillOpacity: 1,
-                color: '#000',
-                weight: 2.5,
-                opacity: 0.85,
-                dashArray: '8 5',
-              },
+              style: { fillColor:'url(#outlook-hatch-lines)', fillOpacity:1, color:'#000', weight:2.5, opacity:1 },
               onEachFeature: (f, lyr) => {
                 const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2"+ Hail';
-                lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(45deg,#fff 0px,#fff 3px,#000 3px,#000 5px);border:1.5px solid #000;"></div><div><div class="popup-risk" style="font-size:0.82rem;">⚠ Significant Threat</div></div></div><div class="popup-sub">${hazardName} particularly possible</div></div>`, { closeButton:false, maxWidth:260 });
+                lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #000;width:13px;height:13px;"></div><div><div class="popup-risk" style="font-size:0.82rem;">&#9888; Significant Threat</div><div class="popup-sub">${hazardName} particularly likely</div></div></div></div>`, { closeButton:false, maxWidth:260 });
               }
             }).addTo(outlookMap);
+            if (!cigFeatures.length) appendHatchLegend(mode);
           }
         }
       } catch(e) { /* sig layer optional */ }
-    }
-    // Append sig hatch entry to legend if needed
-    if (hasSig) {
-      const items = document.getElementById('outlook-legend-items');
-      const div = document.createElement('div');
-      div.className = 'legend-item legend-active';
-      div.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);';
-      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible' : mode === 'wind' ? '65+ mph Wind Possible' : '2"+ Hail Possible';
-      div.style.cssText = 'display:flex;align-items:center;gap:7px;';
-      div.innerHTML = `<div style="width:16px;height:16px;flex-shrink:0;border-radius:2px;border:1.5px solid #333;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);box-sizing:border-box;"></div><div class="legend-label" style="font-weight:600;color:var(--text);flex:1;">${hazardLabel}</div><svg width="14" height="14" viewBox="0 0 14 14" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="7,1 13.5,13 0.5,13" fill="#e5182a"/><text x="7" y="11.5" text-anchor="middle" font-size="7" font-weight="900" fill="white" font-family="system-ui,sans-serif">!</text></svg>`;
-      items.appendChild(div);
-      document.getElementById('outlook-legend').style.display = 'block';
     }
 
   } catch(e) {
