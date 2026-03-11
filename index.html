@@ -229,28 +229,30 @@
       .header-nav button:hover,.header-nav a:hover{
         background:var(--bg);
       }
-      /* Severe Weather section header */
+      /* Severe Weather section header — label style */
       .nav-section-header{
         display:flex;
         align-items:center;
-        gap:10px;
-        padding:10px 14px 5px;
-        font-size:0.95rem !important;
-        font-weight:600;
-        text-transform:none;
-        letter-spacing:0;
+        justify-content:space-between;
+        padding:16px 14px 4px 14px;
+        font-size:0.72rem !important;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:0.1em;
         color:var(--text-4);
-        margin-top:4px;
         border-top:1px solid var(--border);
       }
-      .nav-section-header .material-symbols-rounded{font-size:16px;color:var(--red);}
-      /* Child nav items — same left edge as parent items, slightly smaller */
+      .nav-section-header .material-symbols-rounded{font-size:13px;color:var(--red);margin-left:auto;}
+      /* Child nav items — slightly indented to show hierarchy */
       .header-nav .nav-child{
-        padding-left:14px !important;
-        font-size:0.88rem !important;
+        padding-left:20px !important;
+        padding-top:8px !important;
+        padding-bottom:8px !important;
+        font-size:0.92rem !important;
         color:var(--text-3);
       }
       .header-nav .nav-child .material-symbols-rounded{font-size:15px;color:var(--text-4);}
+      .header-nav .nav-child:hover{color:var(--text);}
       .header-nav .nav-child:hover .material-symbols-rounded{color:var(--red);}
       .header-nav .nav-child.active{color:var(--red);}
       .header-nav .nav-child.active .material-symbols-rounded{color:var(--red);}
@@ -1016,7 +1018,7 @@
         <button id="nav-hourly" onclick="navigate('hourly')">Hourly</button>
         <button id="nav-radar" onclick="navigate('radar')">Radar</button>
         <div class="nav-section-header">
-          <span class="material-symbols-rounded">thunderstorm</span>Severe Weather
+          Severe Weather<span class="material-symbols-rounded">thunderstorm</span>
         </div>
         <button id="nav-outlook" class="nav-child" onclick="navigate('outlook')"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</button>
         <button id="nav-watches" class="nav-child" onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Watches/Warnings</button>
