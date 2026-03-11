@@ -137,6 +137,147 @@
     @media(min-width:641px){
       .mob-bar-meso { display:none !important; }
     }
+
+    /* ── DESKTOP SIDEBAR LAYOUT (Weather Channel style) ── */
+    @media(min-width:641px){
+      :root{ --desk-sidebar:220px; }
+
+      /* Body becomes a row: sidebar + main content */
+      html,body{height:100%;overflow:hidden;}
+      body{flex-direction:row !important;}
+
+      /* Header becomes a vertical left sidebar */
+      header{
+        width:var(--desk-sidebar);
+        height:100% !important;
+        flex-shrink:0;
+        border-bottom:none !important;
+        border-right:1px solid var(--border);
+        display:flex;
+        flex-direction:column;
+        overflow-y:auto;
+        overflow-x:hidden;
+      }
+
+      /* Header inner stacks vertically */
+      .header-inner{
+        flex-direction:column;
+        align-items:stretch;
+        height:auto !important;
+        padding:0 !important;
+        gap:0 !important;
+        flex:1;
+      }
+
+      /* mob-bar-1 becomes the sidebar content */
+      .mob-bar-1{
+        display:flex !important;
+        flex-direction:column;
+        align-items:stretch;
+        width:100%;
+        height:auto !important;
+        padding:0 !important;
+        gap:0;
+      }
+
+      /* Logo block at top of sidebar */
+      .mob-bar-1 .logo{
+        padding:20px 20px 16px;
+        border-bottom:1px solid var(--border);
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+      }
+      .mob-bar-1 .logo .logo-mark{
+        width:44px;height:44px;border-radius:11px;
+      }
+      .mob-bar-1 .logo .logo-mark .material-symbols-rounded{ font-size:24px; }
+      .mob-bar-1 .logo .logo-name{ font-size:1.3rem; }
+
+      /* Search bar sits below logo in sidebar */
+      .mob-bar-1 .search-wrap{
+        display:block !important;
+        max-width:none !important;
+        width:100%;
+        flex:none;
+        padding:14px 14px 10px;
+        border-bottom:1px solid var(--border);
+      }
+      .mob-bar-1 .search-wrap .search-row{ border-radius:8px; }
+
+      /* Nav becomes a vertical list of links */
+      .header-nav{
+        display:flex !important;
+        flex-direction:column;
+        align-items:stretch;
+        gap:2px;
+        padding:10px 10px;
+        margin-left:0 !important;
+        flex:1;
+      }
+      .header-nav button,.header-nav a{
+        text-align:left;
+        border-radius:8px;
+        padding:10px 14px !important;
+        font-size:0.95rem !important;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        width:100%;
+        justify-content:flex-start;
+      }
+      .header-nav button:hover,.header-nav a:hover{
+        background:var(--bg);
+      }
+
+      /* Dropdown opens to the right instead of down */
+      .nav-dropdown{ position:relative; width:100%; }
+      .nav-dropdown-btn{
+        width:100%;
+        justify-content:space-between !important;
+      }
+      .nav-dropdown-menu{
+        position:absolute;
+        top:0;
+        left:calc(var(--desk-sidebar) - 10px);
+        padding-top:0;
+        padding-left:8px;
+        min-width:220px;
+      }
+      .nav-dropdown:hover .nav-dropdown-menu-inner{
+        opacity:1;pointer-events:auto;transform:translateX(0);
+      }
+      .nav-dropdown-menu-inner{
+        transform:translateX(-6px);
+        transition:opacity .15s,transform .15s;
+      }
+
+      /* Main content area fills remaining space beside sidebar */
+      .app-main{
+        flex:1;
+        min-width:0;
+        display:flex;
+        flex-direction:column;
+        overflow:hidden;
+        height:100%;
+      }
+
+      /* Pages fill remaining space */
+      .page{ flex:1; min-width:0; }
+
+      /* mob-bar-2 hidden on desktop (search is in sidebar) */
+      .mob-bar-2{ display:none !important; }
+    }
+
+    @media(min-width:1024px){
+      :root{ --desk-sidebar:240px; }
+      .nav-dropdown-menu{ left:calc(var(--desk-sidebar) - 10px); }
+    }
+    @media(min-width:1440px){
+      :root{ --desk-sidebar:260px; }
+      .nav-dropdown-menu{ left:calc(var(--desk-sidebar) - 10px); }
+    }
+
     html,body{height:100%;overflow:hidden;}
     body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
     .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
@@ -867,6 +1008,7 @@
   </div>
 </header>
 
+<main class="app-main">
 <!-- ══ PAGE: FORECAST ══ -->
 <div id="page-forecast" class="page active">
   <div class="page-inner">
@@ -1197,6 +1339,7 @@
   </div>
 </div>
 
+</main>
 <!-- ══ BOTTOM NAV ══ -->
 <nav class="mob-bottom-nav">
   <div class="mob-bottom-nav-inner">
