@@ -90,9 +90,9 @@
       #page-forecast .page-inner{padding:36px 48px 80px;gap:24px;}
       .current-temp-big{font-size:6rem;}
     }
-    /* Hide Mesoscale Discussions from desktop nav dropdown */
+    /* Hide mob-bar-meso (Mesoscale Discussions title bar) on desktop */
     @media(min-width:641px){
-      .nav-dropdown-menu button[onclick="navigate('meso')"] { display:none; }
+      .mob-bar-meso { display:none !important; }
     }
     html,body{height:100%;overflow:hidden;}
     body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
