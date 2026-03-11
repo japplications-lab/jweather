@@ -470,6 +470,24 @@
     .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
     .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
     .watches-map-legend{position:absolute;bottom:20px;left:20px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 14px;z-index:400;}
+    .watches-mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
+    #page-watches.active .watches-mob-controls{display:block;}
+    .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;}
+    .wf-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
+    .wf-btn .wf-swatch{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+    .wf-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
+    .wf-btn.active-watches{background:rgba(255,230,0,0.1);border-color:rgba(255,230,0,0.4);color:#ffe600;}
+    .wf-btn.active-warnings{background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.35);color:#ff6b6b;}
+    @media(max-width:768px){
+      .watches-mob-controls{bottom:62px;}
+      #page-watches .watch-map-panel{padding-bottom:52px;}
+    }
+    @media(min-width:769px){
+      #page-watches.active .watches-mob-controls{bottom:0;}
+      #page-watches .watches-filter-row{display:none;}
+      .watches-mob-controls{display:block !important;}
+      .watches-filter-row{display:flex !important;}
+    }
     @media(max-width:768px){
       .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
       .watch-panel.mob-open{display:flex;}
@@ -912,6 +930,17 @@
           <div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>
         </div>
       </div>
+    </div>
+  </div>
+  <div class="watches-mob-controls" id="watches-mob-controls">
+    <div class="watches-filter-row">
+      <button class="wf-btn active-watches active" id="wf-watches" onclick="setWatchFilter('watches')">
+        <span class="wf-swatch" style="background:#ffe600;"></span>Watches
+      </button>
+      <button class="wf-btn" id="wf-warnings" onclick="setWatchFilter('warnings')">
+        <span class="wf-swatch" style="background:#ff0000;"></span>Warnings
+      </button>
+
     </div>
   </div>
 </div>
@@ -2593,12 +2622,19 @@ function getWatchType(event, feat) {
 }
 
 function renderWatchList(features) {
+  const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
+  let visible = features;
+  if (watchFilter === 'watches')  visible = features.filter(f => !isWarning(f));
+  if (watchFilter === 'warnings') visible = features.filter(f =>  isWarning(f));
+
   const list = document.getElementById('watch-list'); list.innerHTML = '';
-  if (!features.length) {
-    list.innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">check_circle</span><div class="watch-empty-title">No Active Watches/Warnings</div><div class="watch-empty-sub">No active watches or warnings in effect.</div></div>';
+  if (!visible.length) {
+    const label = watchFilter === 'watches' ? 'watches' : watchFilter === 'warnings' ? 'warnings' : 'watches or warnings';
+    list.innerHTML = `<div class="watch-empty"><span class="material-symbols-rounded">check_circle</span><div class="watch-empty-title">No Active ${watchFilter === 'watches' ? 'Watches' : watchFilter === 'warnings' ? 'Warnings' : 'Watches/Warnings'}</div><div class="watch-empty-sub">No active ${label} in effect.</div></div>`;
     return;
   }
-  features.forEach((feat, i) => {
+  visible.forEach((feat) => {
+    const i = watchesList.indexOf(feat);
     const a = feat.properties;
     const { cls, label } = getWatchType(a.event, feat);
     const expires = a.expires ? new Date(a.expires) : null;
@@ -2678,11 +2714,38 @@ function showWatchDetail(feats) {
 
 function closeWatchDetail() { document.getElementById('watch-detail').classList.remove('open'); }
 
+let watchFilter = 'watches';
+
+function setWatchFilter(filter) {
+  watchFilter = filter;
+  // Update button states
+  ['watches','warnings'].forEach(f => {
+    const btn = document.getElementById(`wf-${f}`);
+    if (!btn) return;
+    btn.classList.remove('active', 'active-watches', 'active-warnings');
+    if (f === filter) {
+      btn.classList.add('active');
+      if (f === 'watches')  btn.classList.add('active-watches');
+      if (f === 'warnings') btn.classList.add('active-warnings');
+    }
+  });
+  // Re-render map with filter applied
+  if (watchesList.length) renderWatchesOnMap(watchesList);
+  // Filter sidebar list too
+  renderWatchList(watchesList);
+}
+
 function renderWatchesOnMap(features) {
   if (watchesLayer) { watchesMap.removeLayer(watchesLayer); watchesLayer = null; }
   const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
-  const watches  = features.filter(f => !isWarning(f));
-  const warnings = features.filter(f =>  isWarning(f));
+
+  // Apply filter
+  let filtered = features;
+  if (watchFilter === 'watches')  filtered = features.filter(f => !isWarning(f));
+  if (watchFilter === 'warnings') filtered = features.filter(f =>  isWarning(f));
+
+  const watches  = filtered.filter(f => !isWarning(f));
+  const warnings = filtered.filter(f =>  isWarning(f));
 
   watchesLayer = L.layerGroup().addTo(watchesMap);
 
@@ -2696,6 +2759,7 @@ function renderWatchesOnMap(features) {
       onEachFeature: (feat, lyr) => {
         lyr.on('click', e => {
           L.DomEvent.stopPropagation(e);
+          // Check against ALL features (not just filtered) so overlap detection still works
           const clicked = features
             .filter(f => featureContainsPoint(f, e.latlng))
             .sort((a, b) => (isWarning(b) ? 1 : 0) - (isWarning(a) ? 1 : 0));
