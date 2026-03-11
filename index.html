@@ -21,8 +21,11 @@
       --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12); --amber-border:rgba(245,158,11,0.25);
       --blue:#60a5fa; --blue-dim:rgba(59,130,246,0.12); --blue-border:rgba(59,130,246,0.25);
       --md-color:#f97316; --md-dim:rgba(249,115,22,0.13); --md-border:rgba(249,115,22,0.3);
-      --tor-watch:#ff0000; --tor-watch-dim:rgba(255,0,0,0.15); --tor-watch-border:rgba(255,0,0,0.35);
-      --svr-watch:#ffa500; --svr-watch-dim:rgba(255,165,0,0.15); --svr-watch-border:rgba(255,165,0,0.35);
+      --tor-watch:#ffe600; --tor-watch-dim:rgba(255,230,0,0.18); --tor-watch-border:rgba(255,230,0,0.4);
+      --svr-watch:#c2185b; --svr-watch-dim:rgba(194,24,91,0.18); --svr-watch-border:rgba(194,24,91,0.4);
+      --tor-warn:#ff0000;  --tor-warn-dim:rgba(255,0,0,0.18);    --tor-warn-border:rgba(255,0,0,0.4);
+      --svr-warn:#ff6600;  --svr-warn-dim:rgba(255,102,0,0.18);  --svr-warn-border:rgba(255,102,0,0.4);
+      --flood-warn:#00c851;--flood-warn-dim:rgba(0,200,81,0.18); --flood-warn-border:rgba(0,200,81,0.4);
       --r:12px; --r-sm:8px; --r-xs:6px;
       --font:'Geist',system-ui,sans-serif;
       --shadow:0 1px 3px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.2);
@@ -411,11 +414,17 @@
     .watch-card-bar{height:4px;width:100%);}
     .watch-card-bar.tor{background:var(--tor-watch);}
     .watch-card-bar.svr{background:var(--svr-watch);}
+    .watch-card-bar.tor-warn{background:var(--tor-warn);}
+    .watch-card-bar.svr-warn{background:var(--svr-warn);}
+    .watch-card-bar.flood-warn{background:var(--flood-warn);}
     .watch-card-inner{padding:10px 12px;}
     .watch-card-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
     .watch-type-badge{font-size:0.58rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
-    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
-    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
+    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
+    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
+    .watch-type-badge.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
+    .watch-type-badge.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
+    .watch-type-badge.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
     .watch-num{font-size:0.72rem;font-weight:700;color:var(--text-3);}
     .watch-card-states{font-size:0.72rem;color:var(--text-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .watch-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);margin-top:5px;}
@@ -437,10 +446,16 @@
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
     .watch-detail-bar.tor{background:var(--tor-watch);}
     .watch-detail-bar.svr{background:var(--svr-watch);}
+    .watch-detail-bar.tor-warn{background:var(--tor-warn);}
+    .watch-detail-bar.svr-warn{background:var(--svr-warn);}
+    .watch-detail-bar.flood-warn{background:var(--flood-warn);}
     .watch-detail-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .watch-detail-type{font-size:0.65rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
-    .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ff6b6b;border:1px solid var(--tor-watch-border);}
-    .watch-detail-type.svr{background:var(--svr-watch-dim);color:#ffb347;border:1px solid var(--svr-watch-border);}
+    .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
+    .watch-detail-type.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
+    .watch-detail-type.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
+    .watch-detail-type.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
+    .watch-detail-type.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
     .watch-detail-num{font-size:0.83rem;font-weight:700;color:var(--text);flex:1;}
     .watch-detail-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;}
     .watch-detail-close:hover{color:var(--text);}
@@ -694,7 +709,7 @@
           <div class="nav-dropdown-menu">
             <div class="nav-dropdown-menu-inner">
               <button onclick="navigate('outlook')"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</button>
-              <button onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Current Watches</button>
+              <button onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Watches/Warnings</button>
               <button onclick="navigate('meso')"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</button>
               <button data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</button>
               <button onclick="navigate('severe101')"><span class="material-symbols-rounded">school</span>Severe Weather 101</button>
@@ -860,7 +875,7 @@
   <div class="app-body">
     <div class="watch-panel" id="watches-panel">
       <div class="watch-panel-head">
-        <div class="watch-panel-title">Current Watches</div>
+        <div class="watch-panel-title">Watches &amp; Warnings</div>
         <div class="watch-panel-sub" id="watches-sub">Loading…</div>
       </div>
       <div class="watch-list" id="watch-list"></div>
@@ -882,10 +897,13 @@
         <div class="watch-detail-body" id="wd-body"></div>
       </div>
       <div class="watches-map-legend">
-        <div class="legend-title">Watch Type</div>
+        <div class="legend-title">Watches &amp; Warnings</div>
         <div class="legend-items">
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.5;"></div><span class="legend-label">Tornado Watch</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.5;"></div><span class="legend-label">Severe T-Storm Watch</span></div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.7;"></div><span class="legend-label">Tornado Warning</span></div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Warning</span></div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.7;"></div><span class="legend-label">Flash Flood Warning</span></div>
         </div>
       </div>
     </div>
@@ -1080,7 +1098,7 @@
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">emergency_home</span></div>
       <div class="severe-list-body">
-        <div class="severe-list-label">Active Watches</div>
+        <div class="severe-list-label">Watches/Warnings</div>
         <div class="severe-list-sub">Tornado &amp; thunderstorm watches</div>
       </div>
       <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
@@ -2490,39 +2508,61 @@ function initWatchesMap() {
 async function loadWatches() {
   const refreshBtn = document.getElementById('watches-refresh-btn');
   refreshBtn.classList.add('spinning');
-  document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches…</div>';
+  document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
   try {
-    const res = await fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Watch%2CSevere%20Thunderstorm%20Watch&status=actual`);
-    if (!res.ok) throw new Error('NWS failed');
-    const data = await res.json();
-    watchesList = data.features || [];
-    document.getElementById('watches-sub').textContent = `${watchesList.length} active watch${watchesList.length !== 1 ? 'es' : ''}`;
+    const [watchRes, warnRes] = await Promise.all([
+      fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Watch%2CSevere%20Thunderstorm%20Watch&status=actual`),
+      fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Warning%2CSevere%20Thunderstorm%20Warning%2CFlash%20Flood%20Warning&status=actual`)
+    ]);
+    const watchData = watchRes.ok ? (await watchRes.json()).features || [] : [];
+    const warnData  = warnRes.ok  ? (await warnRes.json()).features  || [] : [];
+    // Sort: tor warnings first, then svr warnings, flood warnings, tor watches, svr watches
+    const priority = f => {
+      const ev = (f.properties?.event||'').toLowerCase();
+      if (ev.includes('tornado warning'))              return 0;
+      if (ev.includes('severe thunderstorm warning'))  return 1;
+      if (ev.includes('flash flood warning'))          return 2;
+      if (ev.includes('tornado watch'))                return 3;
+      return 4;
+    };
+    watchesList = [...watchData, ...warnData].sort((a,b) => priority(a) - priority(b));
+    const total = watchesList.length;
+    document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     renderWatchList(watchesList);
     if (watchesMap) renderWatchesOnMap(watchesList);
   } catch(e) {
-    document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading watches</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
+    document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
   } finally {
     refreshBtn.classList.remove('spinning');
   }
 }
 
+function getWatchType(event) {
+  const ev = (event||'').toLowerCase();
+  if (ev.includes('tornado warning'))             return { cls:'tor-warn',   label:'Tornado Warning',     color:'#ff0000' };
+  if (ev.includes('severe thunderstorm warning')) return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600' };
+  if (ev.includes('flash flood warning'))         return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851' };
+  if (ev.includes('tornado watch'))               return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600' };
+  return                                                 { cls:'svr',        label:'Svr T-Storm Watch',   color:'#c2185b' };
+}
+
 function renderWatchList(features) {
   const list = document.getElementById('watch-list'); list.innerHTML = '';
   if (!features.length) {
-    list.innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">check_circle</span><div class="watch-empty-title">No Active Watches</div><div class="watch-empty-sub">No tornado or severe thunderstorm watches in effect.</div></div>';
+    list.innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">check_circle</span><div class="watch-empty-title">No Active Watches/Warnings</div><div class="watch-empty-sub">No active watches or warnings in effect.</div></div>';
     return;
   }
   features.forEach((feat, i) => {
     const a = feat.properties;
-    const isTor = (a.event||'').toLowerCase().includes('tornado');
-    const type = isTor ? 'tor' : 'svr';
+    const { cls, label } = getWatchType(a.event);
     const expires = a.expires ? new Date(a.expires) : null;
     const expStr = expires ? expires.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
     const soon = expires && (expires - Date.now()) < 3600000;
-    const num = (a.parameters?.watchNumber?.[0] || a.headline?.match(/\d+/)?.[0] || i+1);
+    const num = a.parameters?.watchNumber?.[0] || a.headline?.match(/\d+/)?.[0] || '';
+    const numStr = num ? ` #${num}` : '';
     const stateAreas = (a.areaDesc || '').split(';').slice(0,3).map(s => s.trim()).join(', ');
     const card = document.createElement('div'); card.className = 'watch-card';
-    card.innerHTML = `<div class="watch-card-bar ${type}"></div><div class="watch-card-inner"><div class="watch-card-header"><span class="watch-type-badge ${type}">${isTor ? 'TORNADO' : 'SVR T-STORM'}</span><span class="watch-num">Watch #${num}</span></div><div class="watch-card-states">${stateAreas}</div><div class="watch-card-expire${soon?' expiring-soon':''}"><span class="material-symbols-rounded">schedule</span>Until ${expStr}</div></div>`;
+    card.innerHTML = `<div class="watch-card-bar ${cls}"></div><div class="watch-card-inner"><div class="watch-card-header"><span class="watch-type-badge ${cls}">${label.toUpperCase()}</span><span class="watch-num">${numStr}</span></div><div class="watch-card-states">${stateAreas}</div><div class="watch-card-expire${soon?' expiring-soon':''}"><span class="material-symbols-rounded">schedule</span>Until ${expStr}</div></div>`;
     card.addEventListener('click', () => { selectWatch(i, card); });
     list.appendChild(card);
   });
@@ -2533,22 +2573,25 @@ function selectWatch(i, card) {
   card.classList.add('selected');
   showWatchDetail(watchesList[i]);
   if (watchesMap && watchesList[i].geometry) {
-    const coords = watchesList[i].geometry.coordinates[0];
-    const latlngs = coords.map(c => [c[1], c[0]]);
-    watchesMap.fitBounds(latlngs, { padding: [40,40] });
+    try {
+      const geom = watchesList[i].geometry;
+      const coords = geom.type === 'MultiPolygon' ? geom.coordinates[0][0] : geom.coordinates[0];
+      const latlngs = coords.map(c => [c[1], c[0]]);
+      watchesMap.fitBounds(latlngs, { padding: [40,40] });
+    } catch(e) {}
   }
 }
 
 function showWatchDetail(feat) {
   const a = feat.properties;
-  const isTor = (a.event||'').toLowerCase().includes('tornado');
-  const type = isTor ? 'tor' : 'svr';
-  const num = a.parameters?.watchNumber?.[0] || '—';
+  const { cls, label } = getWatchType(a.event);
+  const num = a.parameters?.watchNumber?.[0] || '';
+  const numStr = num ? ` #${num}` : '';
   const expires = a.expires ? new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-  document.getElementById('wd-bar').className = `watch-detail-bar ${type}`;
-  document.getElementById('wd-type').className = `watch-detail-type ${type}`;
-  document.getElementById('wd-type').textContent = isTor ? 'Tornado Watch' : 'Svr T-Storm Watch';
-  document.getElementById('wd-num').textContent = `Watch #${num}`;
+  document.getElementById('wd-bar').className = `watch-detail-bar ${cls}`;
+  document.getElementById('wd-type').className = `watch-detail-type ${cls}`;
+  document.getElementById('wd-type').textContent = label;
+  document.getElementById('wd-num').textContent = numStr;
   document.getElementById('wd-body').innerHTML = `
     <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${a.areaDesc||'—'}</div></div>
     <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${expires}</div></div>
@@ -2563,15 +2606,15 @@ function renderWatchesOnMap(features) {
   if (watchesLayer) watchesMap.removeLayer(watchesLayer);
   watchesLayer = L.geoJSON({ type:'FeatureCollection', features }, {
     style: feat => {
-      const isTor = (feat.properties?.event||'').toLowerCase().includes('tornado');
-      return { fillColor: isTor ? '#ff0000' : '#ffa500', fillOpacity: 0.2, color: isTor ? '#ff0000' : '#ffa500', weight: 2, opacity: 0.8 };
+      const { color } = getWatchType(feat.properties?.event);
+      return { fillColor: color, fillOpacity: 0.25, color, weight: 2, opacity: 0.85 };
     },
     onEachFeature: (feat, lyr) => {
       const a = feat.properties;
-      const isTor = (a.event||'').toLowerCase().includes('tornado');
-      const type = isTor ? 'tor' : 'svr';
+      const { cls, label } = getWatchType(a.event);
       const num = a.parameters?.watchNumber?.[0] || '';
-      lyr.bindPopup(`<div class="popup-inner"><span class="watch-type-badge ${type}" style="display:inline-block;margin-bottom:6px">${isTor?'TORNADO WATCH':'SVR T-STORM WATCH'}</span><div class="popup-risk">Watch #${num}</div><div class="popup-sub">${a.areaDesc?.split(';').slice(0,2).join(', ')||''}</div></div>`);
+      const numStr = num ? ` #${num}` : '';
+      lyr.bindPopup(`<div class="popup-inner"><span class="watch-type-badge ${cls}" style="display:inline-block;margin-bottom:6px">${label.toUpperCase()}</span><div class="popup-risk">${numStr}</div><div class="popup-sub">${a.areaDesc?.split(';').slice(0,2).join(', ')||''}</div></div>`);
       lyr.on('click', () => {
         const idx = watchesList.findIndex(f => f === feat);
         if (idx >= 0) {
