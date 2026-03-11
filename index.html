@@ -2510,46 +2510,41 @@ async function loadWatches() {
   refreshBtn.classList.add('spinning');
   document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
   try {
-    // Fetch watches from NOAA MapServer (has geometry) + NWS alerts for warnings + list metadata
-    // Layer 1 = active watches on spc_watch MapServer
-    const WATCH_BASE = `${WORKER_URL}/noaa/vector/rest/services/outlooks/spc_watch/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&_=${Date.now()}`;
-    const [watchGeoRes, warnRes] = await Promise.all([
-      fetch(WATCH_BASE, { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Warning%2CSevere%20Thunderstorm%20Warning%2CFlash%20Flood%20Warning&status=actual`)
+    // Correct NOAA endpoint: eventdriven WWA service
+    // Layer 0 = storm-based warnings, Layer 1 = county-based watches
+    const ts = Date.now();
+    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
+    const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&_=${ts}`;
+
+    const [watchGeoRes, warnGeoRes, floodRes] = await Promise.all([
+      fetch(WATCH_URL, { cache: 'no-store' }),
+      fetch(WARN_URL,  { cache: 'no-store' }),
+      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`)
     ]);
 
-    // Watches from NOAA MapServer GeoJSON (has real polygons)
-    let watchFeatures = [];
-    if (watchGeoRes.ok) {
-      const gj = await watchGeoRes.json();
-      console.log('Watch GeoJSON features:', gj.features?.length, gj.features?.[0]?.properties);
-      watchFeatures = (gj.features || []).map(f => {
-        const p = f.properties || {};
-        // NOAA spc_watch fields: PROD_TYPE, WATCH_NUM, EXPIRATION, STATES
-        const type = (p.PROD_TYPE || p.TYPE || p.prod_type || '').toUpperCase();
-        const isTor = type.includes('TOR') || type.includes('TORNADO');
-        const watchNum = p.WATCH_NUM || p.watch_num || p.WFO || '';
-        const expRaw = p.EXPIRATION || p.EXPIRE_TIME || p.expiration || null;
-        return {
-          ...f,
-          properties: {
-            ...p,
-            event: isTor ? 'Tornado Watch' : 'Severe Thunderstorm Watch',
-            expires: expRaw,
-            areaDesc: p.AFFECTED_AREA || p.STATES || p.states || p.AREA || '',
-            senderName: 'SPC',
-            parameters: { watchNumber: [watchNum] }
-          }
-        };
-      });
-    } else {
-      console.warn('Watch GeoJSON failed:', watchGeoRes.status);
-    }
+    const normalizeWatch = (f) => {
+      const p = f.properties || {};
+      const type = p.prod_type || '';
+      const isTor = type.includes('Tornado');
+      return {
+        ...f,
+        properties: {
+          ...p,
+          event: type,
+          expires: p.expiration || null,
+          areaDesc: p.area_desc || p.states || '',
+          senderName: 'NWS',
+          parameters: { watchNumber: [p.watch_num || p.phenom || ''] }
+        }
+      };
+    };
 
-    // Warnings from NWS alerts (already have geometry for warnings)
-    const warnData = warnRes.ok ? (await warnRes.json()).features || [] : [];
-    // Filter out any warnings with no geometry
-    const warnFeatures = warnData.filter(f => f.geometry);
+    let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
+    let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
+    // Flash flood warnings from NWS alerts (have geometry)
+    const floodFeatures = floodRes.ok ? ((await floodRes.json()).features || []).filter(f => f.geometry) : [];
+
+    console.log('Watches:', watchFeatures.length, 'Warnings:', warnFeatures.length, 'Flood:', floodFeatures.length);
 
     // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
@@ -2560,7 +2555,7 @@ async function loadWatches() {
       if (ev.includes('tornado watch'))               return 3;
       return 4;
     };
-    watchesList = [...warnFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
+    watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
     const total = watchesList.length;
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     renderWatchList(watchesList);
@@ -2574,12 +2569,12 @@ async function loadWatches() {
 }
 
 function getWatchType(event) {
-  const ev = (event||'').toLowerCase();
-  if (ev.includes('tornado warning'))             return { cls:'tor-warn',   label:'Tornado Warning',     color:'#ff0000' };
-  if (ev.includes('severe thunderstorm warning')) return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600' };
-  if (ev.includes('flash flood warning'))         return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851' };
-  if (ev.includes('tornado watch'))               return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600' };
-  return                                                 { cls:'svr',        label:'Svr T-Storm Watch',   color:'#c2185b' };
+  const ev = (event||'');
+  if (ev === 'Tornado Warning'             || ev.toLowerCase().includes('tornado warning'))             return { cls:'tor-warn',   label:'Tornado Warning',     color:'#ff0000' };
+  if (ev === 'Severe Thunderstorm Warning' || ev.toLowerCase().includes('severe thunderstorm warning')) return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600' };
+  if (ev === 'Flash Flood Warning'         || ev.toLowerCase().includes('flash flood warning'))         return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851' };
+  if (ev === 'Tornado Watch'               || ev.toLowerCase().includes('tornado watch'))               return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600' };
+  return                                                                                                       { cls:'svr',        label:'Svr T-Storm Watch',   color:'#c2185b' };
 }
 
 function renderWatchList(features) {
