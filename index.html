@@ -143,7 +143,6 @@
       :root{ --desk-sidebar:220px; }
 
       /* Body becomes a row: sidebar + main content */
-      html,body{height:100%;overflow:hidden;}
       body{flex-direction:row !important;}
 
       /* Header becomes a vertical left sidebar */
@@ -254,12 +253,9 @@
 
       /* Main content area fills remaining space beside sidebar */
       .app-main{
-        flex:1;
-        min-width:0;
-        display:flex;
         flex-direction:column;
-        overflow:hidden;
         height:100%;
+        min-width:0;
       }
 
       /* Pages fill remaining space */
@@ -280,6 +276,9 @@
 
     html,body{height:100%;overflow:hidden;}
     body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
+
+    /* app-main: mobile base — fills remaining vertical space */
+    .app-main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
     .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
     .msr-fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .fi{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 48;}
