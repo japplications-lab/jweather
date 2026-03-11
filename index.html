@@ -1095,13 +1095,13 @@
       <div class="severe-list-right"><div class="severe-list-chevron"><span class="material-symbols-rounded">chevron_right</span></div></div>
     </button>
     <div class="severe-list-divider"></div>
-    <button class="severe-list-item" disabled>
+    <button class="severe-list-item primary" id="ssi-watches" onclick="navigate('watches');closeSevereSheet()">
       <div class="severe-list-icon"><span class="material-symbols-rounded">emergency_home</span></div>
       <div class="severe-list-body">
         <div class="severe-list-label">Watches/Warnings</div>
         <div class="severe-list-sub">Tornado &amp; thunderstorm watches</div>
       </div>
-      <div class="severe-list-right"><span class="material-symbols-rounded" style="font-size:15px;color:var(--text-4);">lock</span></div>
+      <div class="severe-list-chevron"><span class="material-symbols-rounded">chevron_right</span></div>
     </button>
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">storm</span></div>
@@ -1225,8 +1225,8 @@ function closeSevereSheet() {
 }
 function updateSevereSheetActive() {
   // Only highlight the item matching the current page
-  const map = { outlook: 'ssi-outlook', meso: 'ssi-meso' };
-  ['ssi-outlook', 'ssi-meso'].forEach(id => {
+  const map = { outlook: 'ssi-outlook', meso: 'ssi-meso', watches: 'ssi-watches' };
+  ['ssi-outlook', 'ssi-meso', 'ssi-watches'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const isActive = map[currentPage] === id;
