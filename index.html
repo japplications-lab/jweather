@@ -920,14 +920,10 @@
         <div class="watch-detail-body" id="wd-body"></div>
       </div>
       <div class="watches-map-legend">
-        <div class="legend-title">Watches &amp; Warnings</div>
-        <div class="legend-items">
+        <div class="legend-title" id="ww-legend-title">Watches</div>
+        <div class="legend-items" id="ww-legend-items">
           <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>
           <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-pds);opacity:0.9;"></div><span class="legend-label">PDS/Emergency Tornado Warning</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.9;"></div><span class="legend-label">Tornado Warning</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.9;"></div><span class="legend-label">Severe T-Storm Warning</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>
         </div>
       </div>
     </div>
@@ -2729,23 +2725,40 @@ function setWatchFilter(filter) {
       if (f === 'warnings') btn.classList.add('active-warnings');
     }
   });
-  // Re-render map with filter applied
+  // Update legend
+  const title = document.getElementById('ww-legend-title');
+  const items = document.getElementById('ww-legend-items');
+  if (filter === 'watches') {
+    if (title) title.textContent = 'Watches';
+    if (items) items.innerHTML = `
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>`;
+  } else {
+    if (title) title.textContent = 'Warnings';
+    if (items) items.innerHTML = `
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-pds);opacity:0.9;"></div><span class="legend-label">PDS/Emergency Tornado Warn.</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.9;"></div><span class="legend-label">Tornado Warning</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.9;"></div><span class="legend-label">Severe T-Storm Warning</span></div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>`;
+  }
+  // Re-render map and list with filter applied
   if (watchesList.length) renderWatchesOnMap(watchesList);
-  // Filter sidebar list too
   renderWatchList(watchesList);
 }
 
 function renderWatchesOnMap(features) {
   if (watchesLayer) { watchesMap.removeLayer(watchesLayer); watchesLayer = null; }
-  const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
+  const isWarning  = f => (f.properties?.event||'').toLowerCase().includes('warning');
+  const isTorWarn  = f => { const ev = (f.properties?.event||'').toLowerCase(); return ev.includes('tornado warning'); };
 
   // Apply filter
   let filtered = features;
   if (watchFilter === 'watches')  filtered = features.filter(f => !isWarning(f));
   if (watchFilter === 'warnings') filtered = features.filter(f =>  isWarning(f));
 
-  const watches  = filtered.filter(f => !isWarning(f));
-  const warnings = filtered.filter(f =>  isWarning(f));
+  const watches    = filtered.filter(f => !isWarning(f));
+  const nonTorWarn = filtered.filter(f =>  isWarning(f) && !isTorWarn(f));
+  const torWarns   = filtered.filter(f =>  isTorWarn(f));  // drawn last = on top
 
   watchesLayer = L.layerGroup().addTo(watchesMap);
 
@@ -2759,10 +2772,13 @@ function renderWatchesOnMap(features) {
       onEachFeature: (feat, lyr) => {
         lyr.on('click', e => {
           L.DomEvent.stopPropagation(e);
-          // Check against ALL features (not just filtered) so overlap detection still works
           const clicked = features
             .filter(f => featureContainsPoint(f, e.latlng))
-            .sort((a, b) => (isWarning(b) ? 1 : 0) - (isWarning(a) ? 1 : 0));
+            .sort((a, b) => {
+              // Sort: tor warnings first, then other warnings, then watches
+              const rank = f => isTorWarn(f) ? 0 : isWarning(f) ? 1 : 2;
+              return rank(a) - rank(b);
+            });
           if (!clicked.length) return;
           const idx = watchesList.findIndex(f => f === clicked[0]);
           document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
@@ -2773,8 +2789,10 @@ function renderWatchesOnMap(features) {
     }
   );
 
-  makeLayer(watches,  0.2,  1.5, null).addTo(watchesLayer);
-  makeLayer(warnings, 0.75, 1,   'rgba(0,0,0,0.45)').addTo(watchesLayer);
+  // Draw order: watches (bottom) → non-tornado warnings → tornado warnings (top)
+  makeLayer(watches,    0.2,  1.5, null).addTo(watchesLayer);
+  makeLayer(nonTorWarn, 0.75, 1,   'rgba(0,0,0,0.45)').addTo(watchesLayer);
+  makeLayer(torWarns,   0.75, 1.5, 'rgba(0,0,0,0.55)').addTo(watchesLayer);
 }
 
 // Mobile watches panel toggle
