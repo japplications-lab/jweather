@@ -2510,27 +2510,63 @@ async function loadWatches() {
   refreshBtn.classList.add('spinning');
   document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
   try {
-    const [watchRes, warnRes] = await Promise.all([
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Watch%2CSevere%20Thunderstorm%20Watch&status=actual`),
+    // Fetch watches from NOAA MapServer (has geometry) + NWS alerts for warnings + list metadata
+    // Layer 1 = active watches on spc_watch MapServer
+    const WATCH_BASE = `${WORKER_URL}/noaa/vector/rest/services/outlooks/spc_watch/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&_=${Date.now()}`;
+    const [watchGeoRes, warnRes] = await Promise.all([
+      fetch(WATCH_BASE, { cache: 'no-store' }),
       fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado%20Warning%2CSevere%20Thunderstorm%20Warning%2CFlash%20Flood%20Warning&status=actual`)
     ]);
-    const watchData = watchRes.ok ? (await watchRes.json()).features || [] : [];
-    const warnData  = warnRes.ok  ? (await warnRes.json()).features  || [] : [];
-    // Sort: tor warnings first, then svr warnings, flood warnings, tor watches, svr watches
+
+    // Watches from NOAA MapServer GeoJSON (has real polygons)
+    let watchFeatures = [];
+    if (watchGeoRes.ok) {
+      const gj = await watchGeoRes.json();
+      console.log('Watch GeoJSON features:', gj.features?.length, gj.features?.[0]?.properties);
+      watchFeatures = (gj.features || []).map(f => {
+        const p = f.properties || {};
+        // NOAA spc_watch fields: PROD_TYPE, WATCH_NUM, EXPIRATION, STATES
+        const type = (p.PROD_TYPE || p.TYPE || p.prod_type || '').toUpperCase();
+        const isTor = type.includes('TOR') || type.includes('TORNADO');
+        const watchNum = p.WATCH_NUM || p.watch_num || p.WFO || '';
+        const expRaw = p.EXPIRATION || p.EXPIRE_TIME || p.expiration || null;
+        return {
+          ...f,
+          properties: {
+            ...p,
+            event: isTor ? 'Tornado Watch' : 'Severe Thunderstorm Watch',
+            expires: expRaw,
+            areaDesc: p.AFFECTED_AREA || p.STATES || p.states || p.AREA || '',
+            senderName: 'SPC',
+            parameters: { watchNumber: [watchNum] }
+          }
+        };
+      });
+    } else {
+      console.warn('Watch GeoJSON failed:', watchGeoRes.status);
+    }
+
+    // Warnings from NWS alerts (already have geometry for warnings)
+    const warnData = warnRes.ok ? (await warnRes.json()).features || [] : [];
+    // Filter out any warnings with no geometry
+    const warnFeatures = warnData.filter(f => f.geometry);
+
+    // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
-      if (ev.includes('tornado warning'))              return 0;
-      if (ev.includes('severe thunderstorm warning'))  return 1;
-      if (ev.includes('flash flood warning'))          return 2;
-      if (ev.includes('tornado watch'))                return 3;
+      if (ev.includes('tornado warning'))             return 0;
+      if (ev.includes('severe thunderstorm warning')) return 1;
+      if (ev.includes('flash flood warning'))         return 2;
+      if (ev.includes('tornado watch'))               return 3;
       return 4;
     };
-    watchesList = [...watchData, ...warnData].sort((a,b) => priority(a) - priority(b));
+    watchesList = [...warnFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
     const total = watchesList.length;
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     renderWatchList(watchesList);
     if (watchesMap) renderWatchesOnMap(watchesList);
   } catch(e) {
+    console.error('loadWatches error:', e);
     document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
   } finally {
     refreshBtn.classList.remove('spinning');
