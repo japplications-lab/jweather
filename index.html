@@ -404,7 +404,7 @@
     ══════════════════════════════════ */
     #page-watches{flex:1;}
     #page-watches .app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
-    .watch-panel{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
+    .watch-panel{width:340px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
     .watch-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .watch-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
     .watch-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
@@ -499,9 +499,9 @@
     ══════════════════════════════════ */
     #page-meso{flex:1;}
     #page-meso .app-body{flex:1;display:flex;overflow:hidden;position:relative;}
-    .md-panel{width:320px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
+    .md-panel{width:380px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
     .md-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .md-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
+    .md-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;display:none;}  @media(max-width:768px){.md-panel-title{display:block;}}
     .md-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
     .md-list{flex:1;overflow-y:auto;padding:8px;}
     .md-card{border-radius:var(--r-sm);border:1px solid var(--border-2);margin-bottom:6px;cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;}
@@ -527,21 +527,21 @@
     .meso-refresh-btn:hover{background:var(--red-dim);color:var(--red);}
     .meso-refresh-btn.spinning .material-symbols-rounded{animation:spin .6s linear infinite;color:var(--red);}
     .meso-refresh-btn .material-symbols-rounded{font-size:18px;transition:color .15s;}
-    .status-pill{position:absolute;top:12px;left:calc(320px + 12px);z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:6px;font-size:0.72rem;font-weight:600;color:var(--text-3);box-shadow:0 2px 10px rgba(0,0,0,.3);}
+    .status-pill{position:absolute;top:12px;left:calc(380px + 12px);z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:6px;font-size:0.72rem;font-weight:600;color:var(--text-3);box-shadow:0 2px 10px rgba(0,0,0,.3);}
     .status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-4);flex-shrink:0;}
     .status-dot.active{background:var(--md-color);box-shadow:0 0 0 3px rgba(249,115,22,0.2);}
     .status-dot.none{background:var(--green);}
     .md-detail-backdrop{display:none;position:absolute;inset:0;z-index:399;}
     .md-detail-backdrop.show{display:block;}
-    .md-detail{position:absolute;bottom:16px;right:16px;z-index:400;background:rgba(20,23,30,0.97);backdrop-filter:blur(12px);border:1px solid var(--md-border);border-radius:var(--r);padding:14px 16px;max-width:300px;min-width:220px;box-shadow:0 4px 24px rgba(0,0,0,.5);display:none;}
+    .md-detail{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:400;background:rgba(20,23,30,0.97);backdrop-filter:blur(12px);border:1px solid var(--md-border);border-radius:var(--r);padding:18px 20px;width:440px;max-width:calc(100% - 48px);box-shadow:0 8px 40px rgba(0,0,0,.6);display:none;}
     .md-detail.show{display:block;}
-    .md-detail-num{font-size:0.65rem;font-weight:800;color:var(--md-color);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
-    .md-detail-concern{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.3;}
-    .md-detail-area{font-size:0.72rem;color:var(--text-3);margin-bottom:8px;line-height:1.4;}
-    .md-detail-row{display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text-4);margin-bottom:4px;}
+    .md-detail-num{font-size:0.7rem;font-weight:800;color:var(--md-color);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
+    .md-detail-concern{font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3;}
+    .md-detail-area{font-size:0.78rem;color:var(--text-3);margin-bottom:8px;line-height:1.4;}
+    .md-detail-row{display:flex;align-items:center;gap:6px;font-size:0.74rem;color:var(--text-4);margin-bottom:4px;}
     .md-detail-row .material-symbols-rounded{font-size:13px;}
     .md-detail-actions{display:flex;gap:8px;margin-top:10px;}
-    .md-detail-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 10px;border-radius:7px;font-size:0.78rem;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;text-decoration:none;border:none;}
+    .md-detail-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 14px;border-radius:7px;font-size:0.85rem;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;text-decoration:none;border:none;}
     .md-detail-btn.primary{background:var(--md-color);color:#fff;}
     .md-detail-btn.primary:hover{filter:brightness(1.1);}
     .md-detail-close{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--text-4);}
@@ -551,7 +551,7 @@
       .md-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
       .md-panel.mob-open{display:flex;}
       .status-pill{left:12px;}
-      .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
+      .md-detail{width:calc(100vw - 32px);left:16px;transform:none;bottom:16px;}
       :root{--md-panel:0px;}
     }
     .mob-md-toggle{display:none !important;}
@@ -967,7 +967,7 @@
         <div class="md-detail-concern" id="mdd-concern"></div>
         <div class="md-detail-area" id="mdd-area" style="display:none;"></div>
         <div class="md-detail-row" id="mdd-expire-row" style="display:none;"><span class="material-symbols-rounded">schedule</span><span id="mdd-expire"></span></div>
-        <div id="mdd-text" style="display:none;font-size:0.72rem;line-height:1.7;color:var(--text-2);margin:8px 0;max-height:180px;overflow-y:auto;border-top:1px solid var(--border);padding-top:8px;white-space:pre-wrap;"></div>
+        <div id="mdd-text" style="display:none;font-size:0.72rem;line-height:1.7;color:var(--text-2);margin:8px 0;max-height:220px;overflow-y:auto;border-top:1px solid var(--border);padding-top:8px;white-space:pre-wrap;font-size:0.78rem;"></div>
         <div id="mdd-text-loading" style="display:none;font-size:0.72rem;color:var(--text-3);padding:8px 0;border-top:1px solid var(--border);margin-top:8px;">Loading discussion…</div>
         <div class="md-detail-actions">
           <button class="md-detail-btn primary" onclick="closeMdDetail()">Dismiss</button>
@@ -2025,7 +2025,7 @@ let activeOutlookMode = 'cat';
 
 function initOutlookMap() {
   outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:false, minZoom:4 })
-    .setView([38.5, -96], 4);
+    .setView([37.5, -95], 5);
 
   L.control.zoom({ position:'topright' }).addTo(outlookMap);
 
@@ -2520,7 +2520,7 @@ document.getElementById('disc-modal').addEventListener('click', e => { if (e.tar
 let watchesMap, watchesLayer = null, watchesList = [];
 
 function initWatchesMap() {
-  watchesMap = L.map('watches-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
+  watchesMap = L.map('watches-map', { zoomControl: false, attributionControl: false }).setView([37.5, -95], 5);
   L.control.zoom({ position: 'topright' }).addTo(watchesMap);
   const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
@@ -2820,7 +2820,7 @@ const watchPanel = document.getElementById('watches-panel');
 let mesoMap, mesoLayers = {}, mesoData = [];
 
 function initMesoMap() {
-  mesoMap = L.map('meso-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
+  mesoMap = L.map('meso-map', { zoomControl: false, attributionControl: false }).setView([37.5, -95], 5);
   L.control.zoom({ position: 'topright' }).addTo(mesoMap);
   const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
