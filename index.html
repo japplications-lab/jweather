@@ -228,28 +228,31 @@
       .header-nav button:hover,.header-nav a:hover{
         background:var(--bg);
       }
-
-      /* Dropdown opens to the right instead of down */
-      .nav-dropdown{ position:relative; width:100%; }
-      .nav-dropdown-btn{
-        width:100%;
-        justify-content:space-between !important;
+      /* Severe Weather section header */
+      .nav-section-header{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        padding:12px 14px 5px;
+        font-size:0.7rem !important;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:0.1em;
+        color:var(--text-4);
+        margin-top:6px;
+        border-top:1px solid var(--border);
       }
-      .nav-dropdown-menu{
-        position:absolute;
-        top:0;
-        left:calc(var(--desk-sidebar) - 10px);
-        padding-top:0;
-        padding-left:8px;
-        min-width:220px;
+      .nav-section-header .material-symbols-rounded{font-size:14px;color:var(--red);}
+      /* Child nav items indented */
+      .header-nav .nav-child{
+        padding-left:24px !important;
+        font-size:0.88rem !important;
+        color:var(--text-3);
       }
-      .nav-dropdown:hover .nav-dropdown-menu-inner{
-        opacity:1;pointer-events:auto;transform:translateX(0);
-      }
-      .nav-dropdown-menu-inner{
-        transform:translateX(-6px);
-        transition:opacity .15s,transform .15s;
-      }
+      .header-nav .nav-child .material-symbols-rounded{font-size:16px;color:var(--text-4);}
+      .header-nav .nav-child:hover .material-symbols-rounded{color:var(--red);}
+      .header-nav .nav-child.active{color:var(--red);}
+      .header-nav .nav-child.active .material-symbols-rounded{color:var(--red);}
 
       /* Main content area fills remaining space beside sidebar */
       .app-main{
@@ -267,11 +270,9 @@
 
     @media(min-width:1024px){
       :root{ --desk-sidebar:240px; }
-      .nav-dropdown-menu{ left:calc(var(--desk-sidebar) - 10px); }
     }
     @media(min-width:1440px){
       :root{ --desk-sidebar:260px; }
-      .nav-dropdown-menu{ left:calc(var(--desk-sidebar) - 10px); }
     }
 
     html,body{height:100%;overflow:hidden;}
@@ -793,6 +794,26 @@
     .md-detail-close{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--text-4);}
     .md-detail-close:hover{color:var(--text);}
     .md-detail-close .material-symbols-rounded{font-size:16px;}
+    /* Desktop: hide list panel, show map count overlay, bigger detail popup */
+    @media(min-width:769px){
+      .md-panel{display:none !important;}
+      .status-pill{left:12px;}
+      /* Larger detail popup on desktop */
+      .md-detail{
+        width:600px;
+        max-width:calc(100% - 64px);
+        padding:28px 32px;
+        bottom:32px;
+      }
+      .md-detail-num{font-size:0.85rem;margin-bottom:6px;}
+      .md-detail-concern{font-size:1.25rem;margin-bottom:12px;}
+      .md-detail-area{font-size:0.95rem;margin-bottom:12px;}
+      .md-detail-row{font-size:0.88rem;margin-bottom:6px;}
+      .md-detail-row .material-symbols-rounded{font-size:16px;}
+      #mdd-text{font-size:0.95rem !important;max-height:300px !important;line-height:1.75 !important;}
+      .md-detail-btn{font-size:0.95rem;padding:13px 18px;}
+      .md-detail-close .material-symbols-rounded{font-size:20px;}
+    }
     @media(max-width:768px){
       .md-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
       .md-panel.mob-open{display:flex;}
@@ -800,10 +821,32 @@
       .md-detail{width:calc(100vw - 32px);left:16px;transform:none;bottom:16px;}
       :root{--md-panel:0px;}
     }
-    .mob-md-toggle{display:none !important;}
+    .mob-md-toggle{display:none;}
     .mob-md-toggle .material-symbols-rounded{font-size:17px;}
     .mob-md-count{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:0.68rem;}
-    @media(max-width:768px){.mob-md-toggle{display:none !important;}}
+    @media(max-width:768px){
+      .mob-md-toggle{
+        display:flex !important;
+        position:fixed;
+        bottom:70px;
+        left:50%;
+        transform:translateX(-50%);
+        z-index:460;
+        align-items:center;
+        gap:7px;
+        padding:9px 18px;
+        background:rgba(20,23,30,0.93);
+        backdrop-filter:blur(10px);
+        border:1px solid var(--border-2);
+        border-radius:20px;
+        font-family:var(--font);
+        font-size:0.82rem;
+        font-weight:700;
+        color:var(--text-2);
+        cursor:pointer;
+        box-shadow:0 4px 16px rgba(0,0,0,.4);
+      }
+    }
 
     /* ══════════════════════════════════
        PAGE: SEVERE 101
@@ -971,20 +1014,14 @@
         <button id="nav-forecast" class="active" onclick="navigate('forecast')">Forecast</button>
         <button id="nav-hourly" onclick="navigate('hourly')">Hourly</button>
         <button id="nav-radar" onclick="navigate('radar')">Radar</button>
-        <div class="nav-dropdown">
-          <button class="nav-dropdown-btn">
-            Severe Weather <span class="material-symbols-rounded">expand_more</span>
-          </button>
-          <div class="nav-dropdown-menu">
-            <div class="nav-dropdown-menu-inner">
-              <button onclick="navigate('outlook')"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</button>
-              <button onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Watches/Warnings</button>
-              <button onclick="navigate('meso')"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</button>
-              <button data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</button>
-              <button onclick="navigate('severe101')"><span class="material-symbols-rounded">school</span>Severe Weather 101</button>
-            </div>
-          </div>
+        <div class="nav-section-header">
+          <span class="material-symbols-rounded">thunderstorm</span>Severe Weather
         </div>
+        <button id="nav-outlook" class="nav-child" onclick="navigate('outlook')"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</button>
+        <button id="nav-watches" class="nav-child" onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Watches/Warnings</button>
+        <button id="nav-meso" class="nav-child" onclick="navigate('meso')"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</button>
+        <button class="nav-child" data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</button>
+        <button id="nav-severe101" class="nav-child" onclick="navigate('severe101')"><span class="material-symbols-rounded">school</span>Severe Weather 101</button>
       </nav>
     </div>
     <div class="mob-bar-2" id="mob-bar-2">
@@ -3068,7 +3105,12 @@ const watchPanel = document.getElementById('watches-panel');
 let mesoMap, mesoLayers = {}, mesoData = [];
 
 function initMesoMap() {
-  mesoMap = L.map('meso-map', { zoomControl: false, attributionControl: false }).setView([37.5, -95], 5);
+  // Use zoom 4 on mobile (narrower), zoom 4 on desktop — both show full lower-48
+  const isMobile = window.innerWidth <= 768;
+  const defaultZoom = isMobile ? 3 : 4;
+  mesoMap = L.map('meso-map', { zoomControl: false, attributionControl: false }).setView([37.5, -95], defaultZoom);
+  // Update the default view constant to match
+  MESO_DEFAULT_VIEW.zoom = defaultZoom;
   L.control.zoom({ position: 'topright' }).addTo(mesoMap);
   const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
@@ -3254,9 +3296,17 @@ async function showMesoDetail(feat, i) {
   }
 }
 
+const MESO_DEFAULT_VIEW = { center: [37.5, -95], zoom: 4 };
+
 function closeMdDetail() {
   document.getElementById('md-detail').classList.remove('show');
   document.getElementById('md-detail-backdrop').classList.remove('show');
+  // Zoom back to default lower-48 view
+  if (mesoMap) {
+    mesoMap.flyTo(MESO_DEFAULT_VIEW.center, MESO_DEFAULT_VIEW.zoom, { animate: true, duration: 0.8 });
+  }
+  // Deselect all cards
+  document.querySelectorAll('.md-card').forEach(c => c.classList.remove('selected'));
 }
 
 function renderMesoOnMap(features) {
