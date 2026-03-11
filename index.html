@@ -444,7 +444,7 @@
     .watch-refresh-btn.spinning .material-symbols-rounded{animation:spin .7s linear infinite;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;bottom:20px;right:20px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:400;display:none;overflow:hidden;max-height:calc(100% - 40px);flex-direction:column;}
+    .watch-detail{position:absolute;top:16px;right:16px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;overflow:hidden;max-height:calc(100% - 32px);flex-direction:column;}
     .watch-detail.open{display:flex;}
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
     .watch-detail-bar.tor{background:var(--tor-watch);}
@@ -2589,8 +2589,7 @@ async function loadWatches() {
     watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
     const total = watchesList.length;
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
-    renderWatchList(watchesList);
-    if (watchesMap) renderWatchesOnMap(watchesList);
+    setWatchFilter(watchFilter);
   } catch(e) {
     console.error('loadWatches error:', e);
     document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
@@ -2678,6 +2677,8 @@ function featureContainsPoint(feat, latlng) {
   return polys.some(poly => pointInPolygon([lng, lat], poly[0]));
 }
 
+function isTorWarnType(f) { return (f.properties?.event||'').toLowerCase().includes('tornado warning'); }
+
 function showWatchDetail(feats) {
   const primary = feats[0];
   const a = primary.properties;
@@ -2689,11 +2690,21 @@ function showWatchDetail(feats) {
   document.getElementById('wd-type').className = `watch-detail-type ${cls}`;
   document.getElementById('wd-type').textContent = label;
   document.getElementById('wd-num').textContent = numStr;
+
+  const summaryHtml = (desc) => {
+    if (!desc) return '';
+    // Trim to ~250 chars at a sentence boundary
+    let s = desc.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (s.length > 250) { const cut = s.lastIndexOf('.', 250); s = s.slice(0, cut > 80 ? cut + 1 : 250) + '…'; }
+    return `<div class="wd-row" style="align-items:flex-start"><div class="wd-label">Summary</div><div class="wd-value" style="font-size:0.72rem;line-height:1.55">${s}</div></div>`;
+  };
+
   let html = `
     <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${a.areaDesc||'—'}</div></div>
     <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${expires}</div></div>
     <div class="wd-row"><div class="wd-label">Source</div><div class="wd-value">${a.senderName||'NWS'}</div></div>
-    ${a.description ? `<div class="wd-row" style="align-items:flex-start"><div class="wd-label">Summary</div><div class="wd-value" style="font-size:0.72rem;line-height:1.55">${a.description.slice(0,300)}…</div></div>` : ''}`;
+    ${summaryHtml(a.description || a.headline)}`;
+
   feats.slice(1).forEach(f => {
     const b = f.properties;
     const { cls: cls2, label: label2 } = getWatchType(b.event, f);
@@ -2702,6 +2713,7 @@ function showWatchDetail(feats) {
       <span class="watch-type-badge ${cls2}" style="display:inline-block;margin-bottom:6px">${label2.toUpperCase()}</span>
       <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${b.areaDesc||'—'}</div></div>
       <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${exp2}</div></div>
+      ${summaryHtml(b.description || b.headline)}
     </div>`;
   });
   document.getElementById('wd-body').innerHTML = html;
@@ -2730,19 +2742,23 @@ function setWatchFilter(filter) {
   const items = document.getElementById('ww-legend-items');
   if (filter === 'watches') {
     if (title) title.textContent = 'Watches';
-    if (items) items.innerHTML = `
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>`;
+    if (items) items.innerHTML =
+      '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>' +
+      '<div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>';
   } else {
     if (title) title.textContent = 'Warnings';
-    if (items) items.innerHTML = `
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-pds);opacity:0.9;"></div><span class="legend-label">PDS/Emergency Tornado Warn.</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.9;"></div><span class="legend-label">Tornado Warning</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.9;"></div><span class="legend-label">Severe T-Storm Warning</span></div>
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>`;
+    const hasPDS = watchesList.some(f => isTorWarnType(f) && isPDS(f));
+    let legendHtml = hasPDS
+      ? '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-pds);opacity:0.9;"></div><span class="legend-label">PDS Tornado Warning</span></div>'
+      : '';
+    legendHtml +=
+      '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.9;"></div><span class="legend-label">Tornado Warning</span></div>' +
+      '<div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.9;"></div><span class="legend-label">Severe T-Storm Warning</span></div>' +
+      '<div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>';
+    if (items) items.innerHTML = legendHtml;
   }
   // Re-render map and list with filter applied
-  if (watchesList.length) renderWatchesOnMap(watchesList);
+  if (watchesList.length && watchesMap) renderWatchesOnMap(watchesList);
   renderWatchList(watchesList);
 }
 
