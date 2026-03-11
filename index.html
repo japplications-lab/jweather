@@ -35,60 +35,103 @@
 
     /* ── DESKTOP SCALE UP ── */
     @media(min-width:1024px){
-      :root{ --header:66px; }
+      :root{ --header:74px; }
       /* Header */
-      .logo-mark{width:34px;height:34px;border-radius:8px;}
-      .logo-mark .material-symbols-rounded{font-size:18px;}
-      .logo-name{font-size:1.05rem;}
-      #search-bar{font-size:0.92rem;}
-      .search-wrap{max-width:500px;}
-      .header-nav button,.header-nav a{font-size:0.88rem;padding:6px 13px;}
-      /* Forecast page */
-      .card-head{padding:16px 20px 14px;}
-      .card-head-label{font-size:0.72rem;}
-      .current-loc{font-size:1.45rem;}
-      .current-temp-big{font-size:5.5rem;}
-      .current-desc{font-size:0.92rem;}
-      .stat-chip-label{font-size:0.68rem;}
-      .stat-chip-val{font-size:1rem;}
-      .forecast-day{font-size:0.9rem;}
-      .forecast-desc{font-size:0.82rem;}
-      .forecast-temp{font-size:0.9rem;}
-      .hr-time{font-size:0.78rem;}
-      .hr-temp{font-size:1rem;}
-      /* Sidebar panels */
-      .md-panel{width:420px;}
-      .watch-panel{width:380px;}
-      .status-pill{left:calc(420px + 12px);}
-      .md-card-inner{padding:12px 16px;}
-      .md-num{font-size:0.8rem;}
-      .md-card-area{font-size:0.83rem;}
-      .md-concern-badge{font-size:0.65rem;padding:3px 9px;}
-      .md-card-expire{font-size:0.72rem;}
-      .watch-card-inner{padding:12px 14px;}
-      .watch-type-badge{font-size:0.65rem;padding:3px 9px;}
-      .watch-card-states{font-size:0.8rem;}
-      .watch-card-expire{font-size:0.72rem;}
+      .logo-mark{width:42px;height:42px;border-radius:10px;}
+      .logo-mark .material-symbols-rounded{font-size:22px;}
+      .logo-name{font-size:1.3rem;}
+      .search-wrap{max-width:560px;}
+      .search-row{padding:0 8px 0 14px;}
+      .search-row .material-symbols-rounded{font-size:20px;}
+      #search-bar{font-size:1.05rem;padding:12px 10px;}
+      .header-nav button,.header-nav a{font-size:1rem;padding:8px 16px;}
+      .nav-dropdown-btn .material-symbols-rounded{font-size:17px;}
+      .nav-dropdown-menu a,.nav-dropdown-menu button{font-size:0.95rem;padding:13px 20px;}
+      /* Forecast page cards */
+      .card-top{padding:20px 24px 12px;}
+      .card-top-label{font-size:0.85rem;}
+      .card-top-icon{font-size:20px;}
+      .current-body{padding:18px 24px 24px;}
+      .current-loc{font-size:1.9rem;}
+      .current-time{font-size:0.92rem;}
+      .current-hero{padding:24px 28px;margin-top:20px;border-radius:12px;}
+      .current-temp-big{font-size:7rem;}
+      .current-temp-unit{font-size:2.2rem;}
+      .current-hero-icon{width:96px;height:96px;}
+      .current-desc{font-size:1.1rem;margin-top:18px;}
+      .current-stats{gap:14px;margin-top:16px;}
+      .stat-chip{padding:16px 16px 14px;gap:7px;}
+      .stat-chip-icon{font-size:17px;}
+      .stat-chip-label{font-size:0.82rem;}
+      .stat-chip-val{font-size:1.25rem;}
+      /* 7-day forecast rows */
+      .forecast-row{padding:15px 24px;gap:0 18px;}
+      .forecast-day{font-size:1.1rem;}
+      .forecast-desc{font-size:1rem;}
+      .forecast-temp{font-size:1.2rem;}
+      /* Alerts */
+      .alerts-body{padding:16px 24px 20px;}
+      .no-alerts-label{font-size:1rem;}
+      .no-alerts-sub{font-size:0.88rem;}
+      .alert-event{font-size:1rem;}
+      .alert-expires{font-size:0.88rem;}
+      /* Hourly page */
+      .page-title{font-size:2.6rem;}
+      .page-loc-line{font-size:0.95rem;}
+      .day-sticky{font-size:1.25rem;padding:18px 28px 12px;}
+      .hour-row{height:72px;padding:0 28px;gap:0 16px;grid-template-columns:68px 44px 80px 80px 24px minmax(120px,1fr) 40px;}
+      .hr-time{font-size:1rem;}
+      .hr-icon img{width:38px;height:38px;}
+      .hr-precip{font-size:0.95rem;}
+      .hr-precip .material-symbols-rounded{font-size:15px;}
+      .hr-temp{font-size:2rem;}
+      .hr-wind{font-size:0.95rem;}
+      .hour-drawer{padding:16px 28px 18px;}
+      .hd-stat .material-symbols-rounded{font-size:18px;}
+      .hd-label{font-size:0.78rem;}
+      .hd-val{font-size:1rem;}
+      /* Meso panel sidebar */
+      .md-panel{width:480px;}
+      .watch-panel{width:440px;}
+      .status-pill{left:calc(480px + 14px);}
+      .md-card-inner{padding:16px 20px;}
+      .md-num{font-size:1rem;}
+      .md-card-area{font-size:1rem;}
+      .md-concern-badge{font-size:0.8rem;padding:4px 12px;}
+      .md-card-expire{font-size:0.88rem;}
+      .md-card-expire .material-symbols-rounded{font-size:15px;}
+      /* Watch panel */
+      .watch-card-inner{padding:16px 18px;}
+      .watch-type-badge{font-size:0.8rem;padding:4px 12px;}
+      .watch-card-states{font-size:1rem;}
+      .watch-card-expire{font-size:0.88rem;}
+      .watch-card-expire .material-symbols-rounded{font-size:15px;}
       /* Meso detail popup */
-      .md-detail{width:520px;padding:22px 26px;}
-      .md-detail-concern{font-size:1rem;}
-      .md-detail-area{font-size:0.85rem;}
-      .md-detail-row{font-size:0.8rem;}
-      /* Watches legend & detail */
-      .watches-map-legend{padding:12px 18px;}
-      .legend-title{font-size:0.7rem;}
-      .legend-item{font-size:0.78rem;}
-      .wd-label{font-size:0.68rem;}
-      .wd-value{font-size:0.82rem;}
-      /* Outlook */
-      .sidebar-title{font-size:0.8rem;}
+      .md-detail{width:580px;padding:28px 32px;}
+      .md-detail-concern{font-size:1.2rem;}
+      .md-detail-area{font-size:1rem;}
+      .md-detail-row{font-size:0.95rem;}
+      /* Watches legend */
+      .watches-map-legend{padding:16px 22px;}
+      .legend-title{font-size:0.88rem;}
+      .legend-item{font-size:0.95rem;}
+      .wd-label{font-size:0.85rem;}
+      .wd-value{font-size:1rem;}
+      /* Outlook sidebar */
+      .sidebar-title{font-size:0.95rem;}
+      .day-name{font-size:1rem;}
+      .cat-btn{font-size:0.92rem;padding:7px 10px;}
+      .cat-icon{font-size:18px;}
     }
     @media(min-width:1440px){
-      .md-panel{width:460px;}
-      .watch-panel{width:420px;}
-      .status-pill{left:calc(460px + 12px);}
-      #page-forecast .page-inner{padding:36px 48px 80px;gap:24px;}
-      .current-temp-big{font-size:6rem;}
+      .md-panel{width:520px;}
+      .watch-panel{width:480px;}
+      .status-pill{left:calc(520px + 14px);}
+      #page-forecast .page-inner{padding:40px 56px 80px;gap:28px;}
+      .current-temp-big{font-size:8rem;}
+      .current-hero-icon{width:110px;height:110px;}
+      .hr-temp{font-size:2.4rem;}
+      .hour-row{height:80px;}
     }
     /* Hide mob-bar-meso (Mesoscale Discussions title bar) on desktop */
     @media(min-width:641px){
