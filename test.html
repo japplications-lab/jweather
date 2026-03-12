@@ -2553,45 +2553,32 @@ function watchesProgressDone() {
 }
 
 async function loadWatches() {
-  const refreshBtn = document.getElementById('watches-refresh-btn');
   watchesProgressStart();
   try {
-    // Correct NOAA endpoint: eventdriven WWA service
-    // Layer 0 = storm-based warnings, Layer 1 = county-based watches
-    const ts = Date.now();
-    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
-    const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&_=${ts}`;
-
-    const [watchGeoRes, warnGeoRes, floodRes] = await Promise.all([
-      fetch(WATCH_URL, { cache: 'no-store' }),
-      fetch(WARN_URL,  { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`)
+    // Use NWS alerts API for all types — it's near real-time (sub-minute),
+    // unlike the NOAA EventDriven MapServer which lags 5–10 minutes behind issuance.
+    // Fetch watches and warnings in parallel, then deduplicate by ID.
+    const EVENTS_WARN  = 'Tornado Warning,Severe Thunderstorm Warning,Flash Flood Warning';
+    const EVENTS_WATCH = 'Tornado Watch,Severe Thunderstorm Watch';
+    const [warnRes, watchRes] = await Promise.all([
+      fetch(`${WORKER_URL}/nws/alerts/active?event=${encodeURIComponent(EVENTS_WARN)}&status=actual`,  { cache: 'no-store' }),
+      fetch(`${WORKER_URL}/nws/alerts/active?event=${encodeURIComponent(EVENTS_WATCH)}&status=actual`, { cache: 'no-store' }),
     ]);
 
-    const normalizeWatch = (f) => {
-      const p = f.properties || {};
-      const type = p.prod_type || '';
-      const isTor = type.includes('Tornado');
-      return {
-        ...f,
-        properties: {
-          ...p,
-          event: type,
-          expires: p.expiration || null,
-          areaDesc: p.area_desc || p.states || '',
-          senderName: 'NWS',
-          parameters: { watchNumber: [p.watch_num || p.phenom || ''] }
-        }
-      };
-    };
+    // Parse both fully before touching the DOM
+    const warnData  = warnRes.ok  ? await warnRes.json()  : { features: [] };
+    const watchData = watchRes.ok ? await watchRes.json() : { features: [] };
 
-    // Parse all responses fully before touching watchesList or the DOM —
-    // sequential awaits here ensure we never render a half-empty state
-    const watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
-    const warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
-    const floodFeatures = floodRes.ok    ? ((await floodRes.json()).features    || []).filter(f => f.geometry) : [];
+    // Merge and deduplicate by alert ID, keep only features that have geometry for map rendering
+    const seen = new Set();
+    const all = [...(warnData.features || []), ...(watchData.features || [])].filter(f => {
+      const id = f.properties?.id || f.id;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
 
-    console.log('Watches:', watchFeatures.length, 'Warnings:', warnFeatures.length, 'Flood:', floodFeatures.length);
+    console.log('NWS alerts — warnings:', (warnData.features||[]).length, 'watches:', (watchData.features||[]).length, 'merged:', all.length);
 
     // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
@@ -2602,10 +2589,8 @@ async function loadWatches() {
       if (ev.includes('tornado watch'))               return 3;
       return 4;
     };
-    // Commit to watchesList only once all three datasets are fully parsed,
-    // then render in a single pass so the map and panel never go out of sync
-    const staged = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
-    watchesList = staged;
+    // Commit to watchesList only once fully built, then render in one pass
+    watchesList = all.sort((a, b) => priority(a) - priority(b));
     const total = watchesList.length;
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     setWatchFilter(watchFilter);
