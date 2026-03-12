@@ -2534,7 +2534,7 @@ function initWatchesMap() {
   }).addTo(watchesMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
     .then(r => r.json())
-    .then(gj => L.geoJSON(gj, { style:{ color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive:false }).addTo(watchesMap))
+    .then(gj => L.geoJSON(gj, { style:{ color:'#000000', weight:0.5, fill:false, opacity:0.5 }, interactive:false }).addTo(watchesMap))
     .catch(() => {});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
     attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
