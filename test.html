@@ -2536,6 +2536,9 @@ function initWatchesMap() {
     attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
   }).addTo(watchesMap);
   loadWatches();
+  // Poll every 10 seconds for updated watches & warnings
+  if (window._watchesInterval) clearInterval(window._watchesInterval);
+  window._watchesInterval = setInterval(loadWatches, 10000);
 }
 
 async function loadWatches() {
