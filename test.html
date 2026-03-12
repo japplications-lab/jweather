@@ -679,7 +679,10 @@
       body{padding-bottom:62px;}
     }
 
-    /* Coming soon toast */
+    .watches-progress-bar{height:2px;width:100%;background:var(--border);overflow:hidden;opacity:0;transition:opacity .2s;}
+    .watches-progress-bar.active{opacity:1;}
+    .watches-progress-fill{height:100%;width:40%;background:var(--red);border-radius:2px;animation:watches-progress-bounce 1s ease-in-out infinite alternate;}
+    @keyframes watches-progress-bounce{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
     #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
     #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
     #coming-soon-toast .material-symbols-rounded{font-size:16px;color:var(--amber);}
@@ -902,6 +905,7 @@
       <div class="watch-panel-head">
         <div class="watch-panel-title">Watches &amp; Warnings</div>
         <div class="watch-panel-sub" id="watches-sub">Loading…</div>
+        <div class="watches-progress-bar" id="watches-progress-bar"><div class="watches-progress-fill" id="watches-progress-fill"></div></div>
       </div>
       <div class="watch-list" id="watch-list"></div>
       <div class="watch-panel-actions">
@@ -2538,15 +2542,19 @@ function initWatchesMap() {
   loadWatches();
   // Poll every 10 seconds for updated watches & warnings
   if (window._watchesInterval) clearInterval(window._watchesInterval);
-  window._watchesInterval = setInterval(() => loadWatches(true), 10000);
+  window._watchesInterval = setInterval(() => loadWatches(), 10000);
 }
 
-async function loadWatches(silent = false) {
+function watchesProgressStart() {
+  document.getElementById('watches-progress-bar').classList.add('active');
+}
+function watchesProgressDone() {
+  document.getElementById('watches-progress-bar').classList.remove('active');
+}
+
+async function loadWatches() {
   const refreshBtn = document.getElementById('watches-refresh-btn');
-  if (!silent) {
-    refreshBtn.classList.add('spinning');
-    document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
-  }
+  watchesProgressStart();
   try {
     // Correct NOAA endpoint: eventdriven WWA service
     // Layer 0 = storm-based warnings, Layer 1 = county-based watches
@@ -2595,19 +2603,13 @@ async function loadWatches(silent = false) {
     };
     watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
     const total = watchesList.length;
-
-    // For silent polls, skip re-render if data hasn't changed
-    const fingerprint = watchesList.map(f => `${f.properties?.event}|${f.properties?.expires}|${f.properties?.areaDesc}`).join('::');
-    if (silent && fingerprint === window._watchesFingerprint) return;
-    window._watchesFingerprint = fingerprint;
-
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     setWatchFilter(watchFilter);
   } catch(e) {
     console.error('loadWatches error:', e);
-    if (!silent) document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
+    document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
   } finally {
-    if (!silent) refreshBtn.classList.remove('spinning');
+    watchesProgressDone();
   }
 }
 
