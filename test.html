@@ -2585,10 +2585,11 @@ async function loadWatches() {
       };
     };
 
-    let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
-    let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
-    // Flash flood warnings from NWS alerts (have geometry)
-    const floodFeatures = floodRes.ok ? ((await floodRes.json()).features || []).filter(f => f.geometry) : [];
+    // Parse all responses fully before touching watchesList or the DOM —
+    // sequential awaits here ensure we never render a half-empty state
+    const watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
+    const warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
+    const floodFeatures = floodRes.ok    ? ((await floodRes.json()).features    || []).filter(f => f.geometry) : [];
 
     console.log('Watches:', watchFeatures.length, 'Warnings:', warnFeatures.length, 'Flood:', floodFeatures.length);
 
@@ -2601,7 +2602,10 @@ async function loadWatches() {
       if (ev.includes('tornado watch'))               return 3;
       return 4;
     };
-    watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
+    // Commit to watchesList only once all three datasets are fully parsed,
+    // then render in a single pass so the map and panel never go out of sync
+    const staged = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
+    watchesList = staged;
     const total = watchesList.length;
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     setWatchFilter(watchFilter);
