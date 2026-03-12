@@ -2594,20 +2594,19 @@ async function loadWatches() {
           if ((spcWatchData.features||[]).length > 0) {
             console.log('[SPC ActiveWatch] first props:', JSON.stringify(spcWatchData.features[0].properties));
           }
+          // SPC activeww.json uses 'selname' for watch number (e.g. "0048")
           const watchBoxMap = {};
           (spcWatchData.features || []).forEach(f => {
             const p = f.properties || {};
-            const num = parseInt(p.WATCHNUM ?? p.WNO ?? p.WATCH_NUM ?? p.watch_num ?? p.number ?? p.NUM, 10);
+            const num = parseInt(p.selname ?? p.WATCHNUM ?? p.WNO ?? p.number, 10);
             if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
           });
-          console.log('[SPC ActiveWatch] watchBoxMap keys:', Object.keys(watchBoxMap));
           // Extract watch number from VTEC: "/O.CON.KLIX.TO.A.0048.000000T..."
           noGeom.forEach(f => {
             const p = f.properties || {};
             const vtec = (p.parameters?.VTEC || p.parameters?.vtec || [])[0] || '';
             const vtecMatch = vtec.match(/\.A\.(\d+)\./);
             const num = vtecMatch ? parseInt(vtecMatch[1], 10) : NaN;
-            console.log('[NWS noGeom] vtec:', vtec, '-> num:', num, '-> match:', !!watchBoxMap[num]);
             if (!isNaN(num) && watchBoxMap[num]) f.geometry = watchBoxMap[num];
           });
         }
