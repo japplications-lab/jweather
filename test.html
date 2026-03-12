@@ -2579,9 +2579,9 @@ async function loadWatches() {
       ...(floodData.features    || []),
       ...(torWatchData.features || []),
       ...(svrWatchData.features || []),
-    ].filter(f => f.geometry);
+    ];
 
-    console.log('NWS alerts — tor warns:', (torWarnData.features||[]).length, 'svr warns:', (svrWarnData.features||[]).length, 'flood:', (floodData.features||[]).length, 'tor watches:', (torWatchData.features||[]).length, 'svr watches:', (svrWatchData.features||[]).length);
+    console.log('NWS alerts — tor warns:', (torWarnData.features||[]).length, 'svr warns:', (svrWarnData.features||[]).length, 'flood:', (floodData.features||[]).length, 'tor watches:', (torWatchData.features||[]).length, 'svr watches:', (svrWatchData.features||[]).length, 'with geometry:', allFeatures.filter(f=>f.geometry).length);
 
     // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
@@ -2779,11 +2779,13 @@ function renderWatchesOnMap(features) {
   if (watchFilter === 'watches')  filtered = features.filter(f => !isWarning(f));
   if (watchFilter === 'warnings') filtered = features.filter(f =>  isWarning(f));
 
-  const watches    = filtered.filter(f => !isWarning(f));
-  const nonTorWarn = filtered.filter(f =>  isWarning(f) && !isTorWarn(f));
-  const torWarns   = filtered.filter(f =>  isTorWarn(f));  // drawn last = on top
-
   watchesLayer = L.layerGroup().addTo(watchesMap);
+
+  // Only draw features that have geometry — watches from NWS may have null geometry
+  const withGeom = f => !!f.geometry;
+  const watches    = filtered.filter(f => !isWarning(f) && withGeom(f));
+  const nonTorWarn = filtered.filter(f =>  isWarning(f) && !isTorWarn(f) && withGeom(f));
+  const torWarns   = filtered.filter(f =>  isTorWarn(f) && withGeom(f));
 
   const makeLayer = (feats, fillOpacity, weight, strokeColor) => L.geoJSON(
     { type:'FeatureCollection', features: feats },
