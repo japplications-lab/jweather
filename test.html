@@ -2538,13 +2538,15 @@ function initWatchesMap() {
   loadWatches();
   // Poll every 10 seconds for updated watches & warnings
   if (window._watchesInterval) clearInterval(window._watchesInterval);
-  window._watchesInterval = setInterval(loadWatches, 10000);
+  window._watchesInterval = setInterval(() => loadWatches(true), 10000);
 }
 
-async function loadWatches() {
+async function loadWatches(silent = false) {
   const refreshBtn = document.getElementById('watches-refresh-btn');
-  refreshBtn.classList.add('spinning');
-  document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
+  if (!silent) {
+    refreshBtn.classList.add('spinning');
+    document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
+  }
   try {
     // Correct NOAA endpoint: eventdriven WWA service
     // Layer 0 = storm-based warnings, Layer 1 = county-based watches
@@ -2593,13 +2595,19 @@ async function loadWatches() {
     };
     watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
     const total = watchesList.length;
+
+    // For silent polls, skip re-render if data hasn't changed
+    const fingerprint = watchesList.map(f => `${f.properties?.event}|${f.properties?.expires}|${f.properties?.areaDesc}`).join('::');
+    if (silent && fingerprint === window._watchesFingerprint) return;
+    window._watchesFingerprint = fingerprint;
+
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     setWatchFilter(watchFilter);
   } catch(e) {
     console.error('loadWatches error:', e);
-    document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
+    if (!silent) document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
   } finally {
-    refreshBtn.classList.remove('spinning');
+    if (!silent) refreshBtn.classList.remove('spinning');
   }
 }
 
