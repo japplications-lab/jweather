@@ -2586,23 +2586,21 @@ async function loadWatches() {
     const noGeom = allFeatures.filter(f => !f.geometry);
     if (noGeom.length) {
       try {
-        // IEM watch.geojson returns SPC watch box polygons (parallelograms), not storm-based warnings
-        const iemRes = await fetch(`${WORKER_URL}/iem/geojson/watch.geojson`, { cache: 'no-store' });
-        if (iemRes.ok) {
-          const iemData = await iemRes.json();
-          console.log('[IEM watch.geojson] total features:', (iemData.features||[]).length);
-          if ((iemData.features||[]).length > 0) {
-            console.log('[IEM watch.geojson] first feature props:', JSON.stringify(iemData.features[0].properties));
+        // SPC publishes active watch box outlines as GeoJSON
+        const spcWatchRes = await fetch(`${WORKER_URL}/proxy/products/watch/ActiveWatch.geojson`, { cache: 'no-store' });
+        if (spcWatchRes.ok) {
+          const spcWatchData = await spcWatchRes.json();
+          console.log('[SPC ActiveWatch] features:', (spcWatchData.features||[]).length);
+          if ((spcWatchData.features||[]).length > 0) {
+            console.log('[SPC ActiveWatch] first props:', JSON.stringify(spcWatchData.features[0].properties));
           }
-          // Build map: watch number (int) -> geometry
           const watchBoxMap = {};
-          (iemData.features || []).forEach(f => {
+          (spcWatchData.features || []).forEach(f => {
             const p = f.properties || {};
-            // Try all known IEM watch number property names
-            const num = parseInt(p.number ?? p.watch_num ?? p.WATCH_NUM ?? p.num ?? p.eventid, 10);
+            const num = parseInt(p.WATCH_NUM ?? p.watch_num ?? p.number ?? p.NUM ?? p.WNO, 10);
             if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
           });
-          console.log('[IEM watch.geojson] watchBoxMap keys:', Object.keys(watchBoxMap));
+          console.log('[SPC ActiveWatch] watchBoxMap keys:', Object.keys(watchBoxMap));
           // Extract watch number from VTEC: "/O.CON.KLIX.TO.A.0048.000000T..."
           noGeom.forEach(f => {
             const p = f.properties || {};
