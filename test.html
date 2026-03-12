@@ -2581,38 +2581,37 @@ async function loadWatches() {
       ...(svrWatchData.features || []),
     ];
 
-    // NWS watch alerts have null geometry — fetch zone polygons from affectedZones URLs
-    // and attach them so the map can render the watch areas
+    // NWS watch alerts have null geometry — fetch SPC watch box polygons from IEM.
+    // IEM publishes clean watch box outlines (not county fills) keyed by watch number.
     const noGeom = allFeatures.filter(f => !f.geometry);
     if (noGeom.length) {
-      // Collect unique zone URLs across all null-geometry alerts
-      const zoneUrls = [...new Set(noGeom.flatMap(f => f.properties?.affectedZones || []))];
-      // Fetch all zones in parallel, proxied through worker
-      const zoneFetches = zoneUrls.map(u =>
-        fetch(u.replace('https://api.weather.gov', `${WORKER_URL}/nws`), { cache: 'no-store' })
-          .then(r => r.ok ? r.json() : null)
-          .catch(() => null)
-      );
-      const zoneResults = await Promise.all(zoneFetches);
-      // Build a map of zone URL -> geometry
-      const zoneGeomMap = {};
-      zoneUrls.forEach((url, i) => {
-        const data = zoneResults[i];
-        if (data?.geometry) zoneGeomMap[url] = data.geometry;
-      });
-      // Merge zone geometries into each alert as a MultiPolygon
-      noGeom.forEach(f => {
-        const zones = f.properties?.affectedZones || [];
-        const coords = zones
-          .map(u => zoneGeomMap[u])
-          .filter(Boolean)
-          .flatMap(geom => {
-            if (geom.type === 'Polygon') return [geom.coordinates];
-            if (geom.type === 'MultiPolygon') return geom.coordinates;
-            return [];
+      try {
+        const iemRes = await fetch(`${WORKER_URL}/iem/geojson/sbw.geojson?wtype=TO,SV`, { cache: 'no-store' });
+        if (iemRes.ok) {
+          const iemData = await iemRes.json();
+          // Build map of watch number -> geometry from IEM
+          const watchBoxMap = {};
+          (iemData.features || []).forEach(f => {
+            const num = f.properties?.eventid || f.properties?.watch_num;
+            if (num != null && f.geometry) watchBoxMap[String(num)] = f.geometry;
           });
-        if (coords.length) f.geometry = { type: 'MultiPolygon', coordinates: coords };
-      });
+          // Match each null-geometry alert to its IEM watch box by watch number
+          noGeom.forEach(f => {
+            const p = f.properties || {};
+            // Watch number lives in parameters.watchNumber or can be parsed from headline
+            const num = String(
+              p.parameters?.watchNumber?.[0] ||
+              p.parameters?.SameAreaCodes?.[0] ||
+              (p.headline || '').match(/Watch\s+(\d+)/i)?.[1] ||
+              (p.description || '').match(/Watch\s+(\d+)/i)?.[1] ||
+              ''
+            ).replace(/\D/g, '');
+            if (num && watchBoxMap[num]) f.geometry = watchBoxMap[num];
+          });
+        }
+      } catch(e) {
+        console.warn('IEM watch box fetch failed:', e);
+      }
     }
 
     console.log('NWS alerts — tor warns:', (torWarnData.features||[]).length, 'svr warns:', (svrWarnData.features||[]).length, 'flood:', (floodData.features||[]).length, 'tor watches:', (torWatchData.features||[]).length, 'svr watches:', (svrWatchData.features||[]).length, 'with geometry after zone fetch:', allFeatures.filter(f=>f.geometry).length);
