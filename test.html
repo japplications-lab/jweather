@@ -2587,7 +2587,7 @@ async function loadWatches() {
     if (noGeom.length) {
       try {
         // SPC publishes active watch box outlines as GeoJSON
-        const spcWatchRes = await fetch(`${WORKER_URL}/proxy/products/watch/ActiveWatch.geojson`, { cache: 'no-store' });
+        const spcWatchRes = await fetch(`${WORKER_URL}/proxy/products/watch/activeww.json`, { cache: 'no-store' });
         if (spcWatchRes.ok) {
           const spcWatchData = await spcWatchRes.json();
           console.log('[SPC ActiveWatch] features:', (spcWatchData.features||[]).length);
@@ -2597,7 +2597,7 @@ async function loadWatches() {
           const watchBoxMap = {};
           (spcWatchData.features || []).forEach(f => {
             const p = f.properties || {};
-            const num = parseInt(p.WATCH_NUM ?? p.watch_num ?? p.number ?? p.NUM ?? p.WNO, 10);
+            const num = parseInt(p.WATCHNUM ?? p.WNO ?? p.WATCH_NUM ?? p.watch_num ?? p.number ?? p.NUM, 10);
             if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
           });
           console.log('[SPC ActiveWatch] watchBoxMap keys:', Object.keys(watchBoxMap));
