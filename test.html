@@ -2852,9 +2852,10 @@ function renderWatchesOnMap(features) {
   );
 
   // Draw order: watches (bottom) → non-tornado warnings → tornado warnings (top)
-  makeLayer(watches,    0.2,  1.5, null).addTo(watchesLayer);
-  makeLayer(nonTorWarn, 0.75, 1,   'rgba(0,0,0,0.45)').addTo(watchesLayer);
-  makeLayer(torWarns,   0.75, 1.5, 'rgba(0,0,0,0.55)').addTo(watchesLayer);
+  // Warnings are fully opaque (fillOpacity:1) so polygons never bleed into each other
+  makeLayer(watches,    0.2, 1.5, null).addTo(watchesLayer);
+  makeLayer(nonTorWarn, 1,   2,   '#000000').addTo(watchesLayer);
+  makeLayer(torWarns,   1,   2.5, '#000000').addTo(watchesLayer);
 }
 
 // Mobile watches panel toggle
