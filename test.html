@@ -12,14 +12,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      /* Restored all original alert and theme colors */
+      /* Your original color variables restored */
       --red:#f97316; --red-dim:rgba(249,115,22,0.12); --red-border:rgba(249,115,22,0.25);
-      --sidebar-width: 72px; 
-      --header:58px;
-      --bg:#0a0a0a; 
-      --surface:#16181e;
-      --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.11);
-      --text:#ffffff; --text-2:#f0f2f4; --text-3:#c8cdd6; --text-4:#9ba0aa;
       --green:#22c55e; --green-dim:rgba(34,197,94,0.12); --green-border:rgba(34,197,94,0.25);
       --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12); --amber-border:rgba(245,158,11,0.25);
       --blue:#60a5fa; --blue-dim:rgba(59,130,246,0.12); --blue-border:rgba(59,130,246,0.25);
@@ -30,18 +24,25 @@
       --tor-pds:#ff1493;   --tor-pds-dim:rgba(255,20,147,0.18);  --tor-pds-border:rgba(255,20,147,0.4);
       --svr-warn:#ff6600;  --svr-warn-dim:rgba(255,102,0,0.18);  --svr-warn-border:rgba(255,102,0,0.4);
       --flood-warn:#00c851;--flood-warn-dim:rgba(0,200,81,0.18); --flood-warn-border:rgba(0,200,81,0.4);
-      --r:12px; --r-sm:8px; --r-xs:6px;
-      --font:'Geist',system-ui,sans-serif;
-      --shadow:0 1px 3px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.2);
+
+      /* Layout variables */
+      --sidebar-width: 72px;
+      --header: 58px;
+      --bg: #000000;
+      --surface: #16181e;
+      --border: rgba(255,255,255,0.07);
+      --text: #ffffff;
+      --text-4: #9ba0aa;
+      --font: 'Geist', system-ui, sans-serif;
     }
 
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;overflow:hidden;}
     body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:row;}
-    
-    .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;display:inline-block;}
 
-    /* ── RESTORED NAVIGATION RAIL ── */
+    .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;vertical-align:middle;}
+
+    /* ── WEATHER.COM STYLE RAIL ── */
     aside {
       width: var(--sidebar-width);
       background: #000;
@@ -49,68 +50,43 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 20px;
+      padding-top: 16px;
       z-index: 1000;
       flex-shrink: 0;
     }
 
-    .nav-logo {
-      margin-bottom: 24px;
-      color: var(--red);
-    }
+    .nav-logo { margin-bottom: 20px; color: var(--red); }
 
-    .nav-items {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+    .nav-items { width: 100%; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+    .nav-items::-webkit-scrollbar { width: 0; }
 
-    .nav-item {
+    .nav-link {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 14px 0;
+      padding: 12px 0;
       color: var(--text-4);
       text-decoration: none;
-      font-size: 9px;
+      font-size: 8px; /* High-density label text */
       font-weight: 700;
-      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
       cursor: pointer;
       position: relative;
-      transition: all 0.2s ease;
-      text-transform: uppercase;
     }
 
-    .nav-item .material-symbols-rounded {
-      font-size: 24px;
-      margin-bottom: 5px;
-    }
-
-    .nav-item:hover {
-      color: #fff;
-      background: rgba(255,255,255,0.05);
-    }
-
-    .nav-item.active {
-      color: var(--red);
-    }
-
-    .nav-item.active::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 15%;
-      height: 70%;
-      width: 3px;
-      background: var(--red);
-      border-radius: 0 4px 4px 0;
+    .nav-link .material-symbols-rounded { font-size: 24px; margin-bottom: 4px; }
+    .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .nav-link.active { color: var(--red); }
+    .nav-link.active::before {
+      content: ""; position: absolute; left: 0; top: 15%; height: 70%; width: 3px;
+      background: var(--red); border-radius: 0 4px 4px 0;
     }
 
     /* ── MAIN LAYOUT ── */
-    main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #0a0a0a; }
 
     header {
       background: var(--surface);
@@ -118,20 +94,11 @@
       height: var(--header);
       display: flex;
       align-items: center;
-      padding: 0 24px;
-      flex-shrink: 0;
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
+      padding: 0 20px;
     }
 
     .search-box {
       background: #252833;
-      border: 1px solid var(--border-2);
       border-radius: 20px;
       padding: 6px 16px;
       display: flex;
@@ -141,17 +108,12 @@
     }
 
     .search-box input {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-family: var(--font);
-      outline: none;
-      width: 100%;
-      font-size: 14px;
+      background: transparent; border: none; color: #fff;
+      font-family: var(--font); outline: none; width: 100%; font-size: 14px;
     }
 
     #viewport { flex: 1; position: relative; overflow: hidden; display: flex; }
-    #map { flex: 1; background: #111; }
+    #map { flex: 1; background: #111; z-index: 1; }
 
     /* ── MESO PANEL ── */
     #md-panel {
@@ -162,20 +124,10 @@
       flex-direction: column;
       z-index: 400;
     }
-
-    .md-header {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
+    .md-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .md-scroll { flex: 1; overflow-y: auto; padding: 12px; }
 
-    @media (max-width: 768px) {
-      aside { display: none; }
-    }
+    @media (max-width: 768px) { aside { display: none; } }
   </style>
 </head>
 <body>
@@ -185,81 +137,92 @@
       <span class="material-symbols-rounded" style="font-size: 32px; font-variation-settings:'FILL' 1">thunderstorm</span>
     </div>
     <nav class="nav-items">
-      <div class="nav-item active">
+      <a href="#" class="nav-link active">
         <span class="material-symbols-rounded">map</span>
-        <span>Map</span>
-      </div>
-      <div class="nav-item">
+        <span>Live Map</span>
+      </a>
+      <a href="#" class="nav-link">
         <span class="material-symbols-rounded">cyclone</span>
         <span>Convective</span>
-      </div>
-      <div class="nav-item">
+      </a>
+      <a href="#" class="nav-link">
         <span class="material-symbols-rounded">satellite_alt</span>
         <span>Satellite</span>
-      </div>
-      <div class="nav-item">
+      </a>
+      <a href="#" class="nav-link">
+        <span class="material-symbols-rounded">waves</span>
+        <span>Tropical</span>
+      </a>
+      <a href="#" class="nav-link">
+        <span class="material-symbols-rounded">ac_unit</span>
+        <span>Winter</span>
+      </a>
+      <a href="#" class="nav-link">
+        <span class="material-symbols-rounded">monitoring</span>
+        <span>SPC</span>
+      </a>
+      <a href="#" class="nav-link">
+        <span class="material-symbols-rounded">warning</span>
+        <span>Severe</span>
+      </a>
+      <a href="#" class="nav-link">
+        <span class="material-symbols-rounded">sailing</span>
+        <span>Marine</span>
+      </a>
+      <a href="#" class="nav-link">
         <span class="material-symbols-rounded">bolt</span>
         <span>Lightning</span>
-      </div>
-      <div class="nav-item">
-        <span class="material-symbols-rounded">notification_important</span>
-        <span>Watches</span>
-      </div>
-      
-      <div class="nav-item" style="margin-top: auto; padding-bottom: 20px;">
+      </a>
+      <a href="#" class="nav-link" style="margin-top: auto; padding-bottom: 20px;">
         <span class="material-symbols-rounded">settings</span>
         <span>Settings</span>
-      </div>
+      </a>
     </nav>
   </aside>
 
   <main>
     <header>
-      <div class="header-content">
-        <div class="search-box">
-          <span class="material-symbols-rounded" style="font-size: 18px; color: var(--text-4)">search</span>
-          <input type="text" placeholder="Search City or Zip Code..." id="loc-search">
-        </div>
-        <div id="current-time" style="font-size: 13px; color: var(--text-3); font-weight: 500;"></div>
+      <div class="search-box">
+        <span class="material-symbols-rounded" style="font-size: 18px; color: var(--text-4)">search</span>
+        <input type="text" placeholder="Search City or Zip Code..." id="loc-search">
       </div>
+      <div id="current-time" style="margin-left: auto; font-size: 13px; color: var(--text-4); font-weight: 500;"></div>
     </header>
 
     <div id="viewport">
       <div id="map"></div>
-
       <section id="md-panel">
         <div class="md-header">
-          <h2 style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px; color: var(--red);">MESOSCALE DISCUSSIONS</h2>
+          <h2 style="font-size: 14px; font-weight: 700; color: var(--red);">MESOSCALE DISCUSSIONS</h2>
           <span class="material-symbols-rounded" style="color: var(--text-4); cursor: pointer;">filter_list</span>
         </div>
-        <div class="md-scroll" id="md-list">
-          </div>
+        <div class="md-scroll" id="md-list"></div>
       </section>
     </div>
   </main>
 
   <script>
-    // Initialize Leaflet Map
+    // Initialize Map with your original settings
     const map = L.map('map', { zoomControl: false }).setView([38.5, -96.5], 5);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    // Dynamic Time Header
-    function updateTime() {
+    // Dynamic Time
+    function updateHeader() {
       const now = new Date();
       document.getElementById('current-time').textContent = now.toLocaleDateString('en-US', { 
-        weekday:'long', month:'long', day:'numeric' 
+        weekday: 'long', month: 'long', day: 'numeric' 
       }).toUpperCase();
     }
-    updateTime();
+    updateHeader();
 
-    // Navigation switching logic
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', function() {
-        const currentActive = document.querySelector('.nav-item.active');
-        if (currentActive) currentActive.classList.remove('active');
-        this.classList.add('active');
+    // Restoration of Nav Click interactivity
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelector('.nav-link.active').classList.remove('active');
+        link.classList.add('active');
       });
     });
   </script>
