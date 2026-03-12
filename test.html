@@ -2590,27 +2590,22 @@ async function loadWatches() {
         if (iemRes.ok) {
           const iemData = await iemRes.json();
           // Build map of watch number -> geometry from IEM
+          // Key IEM map by integer watch number to avoid leading-zero mismatch
           const watchBoxMap = {};
           (iemData.features || []).forEach(f => {
-            const num = f.properties?.eventid || f.properties?.watch_num;
-            console.log('IEM feature props:', JSON.stringify(f.properties));
-            if (num != null && f.geometry) watchBoxMap[String(num)] = f.geometry;
+            const num = parseInt(f.properties?.eventid ?? f.properties?.watch_num, 10);
+            if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
           });
-          console.log('IEM watchBoxMap keys:', Object.keys(watchBoxMap));
-          // Match each null-geometry alert to its IEM watch box by watch number
+          // Match each null-geometry NWS alert to its IEM watch box
           noGeom.forEach(f => {
             const p = f.properties || {};
-            console.log('NWS alert parameters:', JSON.stringify(p.parameters));
-            // Watch number lives in parameters.watchNumber or can be parsed from headline
-            const num = String(
+            const raw =
               p.parameters?.watchNumber?.[0] ||
-              p.parameters?.SameAreaCodes?.[0] ||
               (p.headline || '').match(/Watch\s+(\d+)/i)?.[1] ||
               (p.description || '').match(/Watch\s+(\d+)/i)?.[1] ||
-              ''
-            ).replace(/\D/g, '');
-            console.log('Resolved watch num:', num, '-> match:', !!watchBoxMap[num]);
-            if (num && watchBoxMap[num]) f.geometry = watchBoxMap[num];
+              '';
+            const num = parseInt(raw, 10);
+            if (!isNaN(num) && watchBoxMap[num]) f.geometry = watchBoxMap[num];
           });
         }
       } catch(e) {
