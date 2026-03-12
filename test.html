@@ -2586,25 +2586,30 @@ async function loadWatches() {
     const noGeom = allFeatures.filter(f => !f.geometry);
     if (noGeom.length) {
       try {
-        const iemRes = await fetch(`${WORKER_URL}/iem/geojson/sbw.geojson?wtype=TO,SV`, { cache: 'no-store' });
+        // IEM watch.geojson returns SPC watch box polygons (parallelograms), not storm-based warnings
+        const iemRes = await fetch(`${WORKER_URL}/iem/geojson/watch.geojson`, { cache: 'no-store' });
         if (iemRes.ok) {
           const iemData = await iemRes.json();
-          // Build map of watch number -> geometry from IEM
-          // Key IEM map by integer watch number to avoid leading-zero mismatch
+          console.log('[IEM watch.geojson] total features:', (iemData.features||[]).length);
+          if ((iemData.features||[]).length > 0) {
+            console.log('[IEM watch.geojson] first feature props:', JSON.stringify(iemData.features[0].properties));
+          }
+          // Build map: watch number (int) -> geometry
           const watchBoxMap = {};
           (iemData.features || []).forEach(f => {
-            const num = parseInt(f.properties?.eventid ?? f.properties?.watch_num, 10);
+            const p = f.properties || {};
+            // Try all known IEM watch number property names
+            const num = parseInt(p.number ?? p.watch_num ?? p.WATCH_NUM ?? p.num ?? p.eventid, 10);
             if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
           });
-          // Match each null-geometry NWS alert to its IEM watch box
+          console.log('[IEM watch.geojson] watchBoxMap keys:', Object.keys(watchBoxMap));
+          // Extract watch number from VTEC: "/O.CON.KLIX.TO.A.0048.000000T..."
           noGeom.forEach(f => {
             const p = f.properties || {};
-            const raw =
-              p.parameters?.watchNumber?.[0] ||
-              (p.headline || '').match(/Watch\s+(\d+)/i)?.[1] ||
-              (p.description || '').match(/Watch\s+(\d+)/i)?.[1] ||
-              '';
-            const num = parseInt(raw, 10);
+            const vtec = (p.parameters?.VTEC || p.parameters?.vtec || [])[0] || '';
+            const vtecMatch = vtec.match(/\.A\.(\d+)\./);
+            const num = vtecMatch ? parseInt(vtecMatch[1], 10) : NaN;
+            console.log('[NWS noGeom] vtec:', vtec, '-> num:', num, '-> match:', !!watchBoxMap[num]);
             if (!isNaN(num) && watchBoxMap[num]) f.geometry = watchBoxMap[num];
           });
         }
