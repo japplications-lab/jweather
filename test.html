@@ -2586,32 +2586,35 @@ async function loadWatches() {
     const noGeom = allFeatures.filter(f => !f.geometry);
     if (noGeom.length) {
       try {
-        // SPC publishes active watch box outlines as GeoJSON
-        const spcWatchRes = await fetch(`${WORKER_URL}/proxy/products/watch/activeww.json`, { cache: 'no-store' });
-        if (spcWatchRes.ok) {
-          const spcWatchData = await spcWatchRes.json();
-          console.log('[SPC ActiveWatch] features:', (spcWatchData.features||[]).length);
-          if ((spcWatchData.features||[]).length > 0) {
-            console.log('[SPC ActiveWatch] first props:', JSON.stringify(spcWatchData.features[0].properties));
-          }
-          // SPC activeww.json uses 'selname' for watch number (e.g. "0048")
+        // IEM provides active SPC watch box outlines as GeoJSON — /iem/ is an open passthrough
+        const watchRes = await fetch(`${WORKER_URL}/iem/geojson/spc_watch.geojson`, { cache: 'no-store' });
+        if (watchRes.ok) {
+          const watchData = await watchRes.json();
+          console.log('[IEM spc_watch] features:', (watchData.features||[]).length,
+            'first props:', JSON.stringify(watchData.features?.[0]?.properties));
+          // Build map: integer watch number -> geometry
           const watchBoxMap = {};
-          (spcWatchData.features || []).forEach(f => {
+          (watchData.features || []).forEach(f => {
             const p = f.properties || {};
-            const num = parseInt(p.selname ?? p.WATCHNUM ?? p.WNO ?? p.number, 10);
+            const num = parseInt(p.watch_num ?? p.number ?? p.num ?? p.sel ?? p.selname, 10);
             if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
           });
-          // Extract watch number from VTEC: "/O.CON.KLIX.TO.A.0048.000000T..."
+          console.log('[IEM spc_watch] watchBoxMap keys:', Object.keys(watchBoxMap));
+          // Match NWS watch alerts to IEM polygons via VTEC watch number
+          // VTEC example: "/O.CON.KLIX.TO.A.0048.000000T0000Z-260312T0700Z/"
           noGeom.forEach(f => {
             const p = f.properties || {};
             const vtec = (p.parameters?.VTEC || p.parameters?.vtec || [])[0] || '';
-            const vtecMatch = vtec.match(/\.A\.(\d+)\./);
-            const num = vtecMatch ? parseInt(vtecMatch[1], 10) : NaN;
+            const m = vtec.match(/\.A\.(\d+)\./);
+            const num = m ? parseInt(m[1], 10) : NaN;
+            console.log('[watch match] vtec num:', num, 'found:', !!watchBoxMap[num]);
             if (!isNaN(num) && watchBoxMap[num]) f.geometry = watchBoxMap[num];
           });
+        } else {
+          console.warn('[IEM spc_watch] HTTP', watchRes.status);
         }
       } catch(e) {
-        console.warn('IEM watch box fetch failed:', e);
+        console.warn('Watch box fetch failed:', e);
       }
     }
 
