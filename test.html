@@ -2593,11 +2593,14 @@ async function loadWatches() {
           const watchBoxMap = {};
           (iemData.features || []).forEach(f => {
             const num = f.properties?.eventid || f.properties?.watch_num;
+            console.log('IEM feature props:', JSON.stringify(f.properties));
             if (num != null && f.geometry) watchBoxMap[String(num)] = f.geometry;
           });
+          console.log('IEM watchBoxMap keys:', Object.keys(watchBoxMap));
           // Match each null-geometry alert to its IEM watch box by watch number
           noGeom.forEach(f => {
             const p = f.properties || {};
+            console.log('NWS alert parameters:', JSON.stringify(p.parameters));
             // Watch number lives in parameters.watchNumber or can be parsed from headline
             const num = String(
               p.parameters?.watchNumber?.[0] ||
@@ -2606,6 +2609,7 @@ async function loadWatches() {
               (p.description || '').match(/Watch\s+(\d+)/i)?.[1] ||
               ''
             ).replace(/\D/g, '');
+            console.log('Resolved watch num:', num, '-> match:', !!watchBoxMap[num]);
             if (num && watchBoxMap[num]) f.geometry = watchBoxMap[num];
           });
         }
