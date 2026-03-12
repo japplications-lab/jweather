@@ -93,7 +93,6 @@
       .hd-val{font-size:1rem;}
       /* Meso panel sidebar */
       .md-panel{width:480px;}
-      .watch-panel{width:440px;}
       .status-pill{left:calc(480px + 14px);}
       .md-card-inner{padding:16px 20px;}
       .md-num{font-size:1rem;}
@@ -101,23 +100,11 @@
       .md-concern-badge{font-size:0.8rem;padding:4px 12px;}
       .md-card-expire{font-size:0.88rem;}
       .md-card-expire .material-symbols-rounded{font-size:15px;}
-      /* Watch panel */
-      .watch-card-inner{padding:16px 18px;}
-      .watch-type-badge{font-size:0.8rem;padding:4px 12px;}
-      .watch-card-states{font-size:1rem;}
-      .watch-card-expire{font-size:0.88rem;}
-      .watch-card-expire .material-symbols-rounded{font-size:15px;}
       /* Meso detail popup */
       .md-detail{width:580px;padding:28px 32px;}
       .md-detail-concern{font-size:1.2rem;}
       .md-detail-area{font-size:1rem;}
       .md-detail-row{font-size:0.95rem;}
-      /* Watches legend */
-      .watches-map-legend{padding:16px 22px;}
-      .legend-title{font-size:0.88rem;}
-      .legend-item{font-size:0.95rem;}
-      .wd-label{font-size:0.85rem;}
-      .wd-value{font-size:1rem;}
       /* Outlook sidebar */
       .sidebar-title{font-size:0.95rem;}
       .day-name{font-size:1rem;}
@@ -126,7 +113,6 @@
     }
     @media(min-width:1440px){
       .md-panel{width:520px;}
-      .watch-panel{width:480px;}
       .status-pill{left:calc(520px + 14px);}
       #page-forecast .page-inner{padding:40px 56px 80px;gap:28px;}
       .current-temp-big{font-size:8rem;}
@@ -202,8 +188,21 @@
         flex:none;
         padding:14px 14px 10px;
         border-bottom:1px solid var(--border);
+        position:relative;
       }
       .mob-bar-1 .search-wrap .search-row{ border-radius:8px; }
+      /* GPS button sits flush inside the search row on desktop */
+      #gps-btn-desk{
+        position:static;
+        width:28px;
+        height:28px;
+        padding:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex-shrink:0;
+      }
+      #gps-btn-desk .material-symbols-rounded{ font-size:16px; }
 
       /* Nav becomes a vertical list of links */
       .header-nav{
@@ -567,7 +566,7 @@
     #page-outlook .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
     #page-outlook .map-panel{padding-bottom:38px;}
     /* Sidebar */
-    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+    .sidebar{width:var(--sidebar);background:#252830;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
     .sidebar-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .sidebar-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.11em;color:var(--text-4);}
     .day-section{border-bottom:1px solid var(--border);}
@@ -649,100 +648,12 @@
     .disc-loading{display:flex;align-items:center;gap:12px;padding:24px 0;color:var(--text-4);font-size:0.83rem;}
 
     /* ══════════════════════════════════
-       PAGE: WATCHES
+       PAGE: WATCHES — map only (redesign pending)
     ══════════════════════════════════ */
     #page-watches{flex:1;}
     #page-watches .app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
-    .watch-panel{width:340px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
-    .watch-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .watch-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
-    .watch-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
-    .watch-list{flex:1;overflow-y:auto;padding:8px;}
-    .watch-card{border-radius:var(--r-sm);border:1px solid var(--border-2);margin-bottom:6px;cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;}
-    .watch-card:hover{background:rgba(255,255,255,0.03);}
-    .watch-card.selected{border-color:var(--red-border);background:var(--red-dim);}
-    .watch-card-bar{height:4px;width:100%);}
-    .watch-card-bar.tor{background:var(--tor-watch);}
-    .watch-card-bar.svr{background:var(--svr-watch);}
-    .watch-card-bar.tor-warn{background:var(--tor-warn);}
-    .watch-card-bar.tor-pds{background:var(--tor-pds);}
-    .watch-card-bar.svr-warn{background:var(--svr-warn);}
-    .watch-card-bar.flood-warn{background:var(--flood-warn);}
-    .watch-card-inner{padding:10px 12px;}
-    .watch-card-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-    .watch-type-badge{font-size:0.58rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
-    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
-    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
-    .watch-type-badge.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
-    .watch-type-badge.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
-    .watch-type-badge.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
-    .watch-type-badge.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
-    .watch-num{font-size:0.72rem;font-weight:700;color:var(--text-3);}
-    .watch-card-states{font-size:0.72rem;color:var(--text-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .watch-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);margin-top:5px;}
-    .watch-card-expire .material-symbols-rounded{font-size:12px;}
-    .watch-card-expire.expiring-soon{color:var(--amber);}
-    .watch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
-    .watch-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
-    .watch-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
-    .watch-empty-sub{font-size:0.72rem;line-height:1.5;}
-    .watch-panel-actions{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;}
-    .watch-refresh-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;background:none;border:1px solid var(--border-2);border-radius:var(--r-xs);cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:all .15s;}
-    .watch-refresh-btn:hover{background:var(--bg);color:var(--text);}
-    .watch-refresh-btn .material-symbols-rounded{font-size:14px;}
-    .watch-refresh-btn.spinning .material-symbols-rounded{animation:spin .7s linear infinite;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;top:16px;right:16px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;overflow:hidden;max-height:calc(100% - 32px);flex-direction:column;}
-    .watch-detail.open{display:flex;}
-    .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
-    .watch-detail-bar.tor{background:var(--tor-watch);}
-    .watch-detail-bar.svr{background:var(--svr-watch);}
-    .watch-detail-bar.tor-warn{background:var(--tor-warn);}
-    .watch-detail-bar.tor-pds{background:var(--tor-pds);}
-    .watch-detail-bar.svr-warn{background:var(--svr-warn);}
-    .watch-detail-bar.flood-warn{background:var(--flood-warn);}
-    .watch-detail-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .watch-detail-type{font-size:0.65rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
-    .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
-    .watch-detail-type.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
-    .watch-detail-type.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
-    .watch-detail-type.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
-    .watch-detail-type.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
-    .watch-detail-type.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
-    .watch-detail-num{font-size:0.83rem;font-weight:700;color:var(--text);flex:1;}
-    .watch-detail-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;}
-    .watch-detail-close:hover{color:var(--text);}
-    .watch-detail-close .material-symbols-rounded{font-size:17px;}
-    .watch-detail-body{padding:12px 14px 14px;overflow-y:auto;flex:1;}
-    .wd-row{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
-    .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
-    .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
-    .watches-map-legend{position:absolute;bottom:20px;left:20px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 14px;z-index:400;}
-    .watches-mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
-    #page-watches.active .watches-mob-controls{display:block;}
-    .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;}
-    .wf-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
-    .wf-btn .wf-swatch{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
-    .wf-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
-    .wf-btn.active-watches{background:rgba(255,230,0,0.1);border-color:rgba(255,230,0,0.4);color:#ffe600;}
-    .wf-btn.active-warnings{background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.35);color:#ff6b6b;}
-    @media(max-width:768px){
-      .watches-mob-controls{bottom:62px;}
-      #page-watches .watch-map-panel{padding-bottom:52px;}
-    }
-    @media(min-width:769px){
-      #page-watches.active .watches-mob-controls{bottom:0;}
-      #page-watches .watches-filter-row{display:none;}
-      .watches-mob-controls{display:block !important;}
-      .watches-filter-row{display:flex !important;}
-      .md-panel-title{display:none;}
-    }
-    @media(max-width:768px){
-      .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
-      .watch-panel.mob-open{display:flex;}
-      .watch-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
-    }
 
     /* ══════════════════════════════════
        PAGE: MESO
@@ -1183,47 +1094,8 @@
 <!-- ══ PAGE: WATCHES ══ -->
 <div id="page-watches" class="page">
   <div class="app-body">
-    <div class="watch-panel" id="watches-panel">
-      <div class="watch-panel-head">
-        <div class="watch-panel-title">Watches &amp; Warnings</div>
-        <div class="watch-panel-sub" id="watches-sub">Loading…</div>
-      </div>
-      <div class="watch-list" id="watch-list"></div>
-      <div class="watch-panel-actions">
-        <button class="watch-refresh-btn" id="watches-refresh-btn" onclick="loadWatches()">
-          <span class="material-symbols-rounded">refresh</span>Refresh
-        </button>
-      </div>
-    </div>
     <div class="watch-map-panel">
       <div id="watches-map"></div>
-      <div class="watch-detail" id="watch-detail">
-        <div class="watch-detail-bar" id="wd-bar"></div>
-        <div class="watch-detail-head">
-          <span class="watch-detail-type" id="wd-type"></span>
-          <span class="watch-detail-num" id="wd-num"></span>
-          <button class="watch-detail-close" onclick="closeWatchDetail()"><span class="material-symbols-rounded">close</span></button>
-        </div>
-        <div class="watch-detail-body" id="wd-body"></div>
-      </div>
-      <div class="watches-map-legend">
-        <div class="legend-title" id="ww-legend-title">Watches</div>
-        <div class="legend-items" id="ww-legend-items">
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="watches-mob-controls" id="watches-mob-controls">
-    <div class="watches-filter-row">
-      <button class="wf-btn active-watches active" id="wf-watches" onclick="setWatchFilter('watches')">
-        <span class="wf-swatch" style="background:#ffe600;"></span>Watches
-      </button>
-      <button class="wf-btn" id="wf-warnings" onclick="setWatchFilter('warnings')">
-        <span class="wf-swatch" style="background:#ff0000;"></span>Warnings
-      </button>
-
     </div>
   </div>
 </div>
@@ -2825,12 +2697,7 @@ function initWatchesMap() {
 }
 
 async function loadWatches() {
-  const refreshBtn = document.getElementById('watches-refresh-btn');
-  refreshBtn.classList.add('spinning');
-  document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
   try {
-    // Correct NOAA endpoint: eventdriven WWA service
-    // Layer 0 = storm-based warnings, Layer 1 = county-based watches
     const ts = Date.now();
     const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
     const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&_=${ts}`;
@@ -2844,7 +2711,6 @@ async function loadWatches() {
     const normalizeWatch = (f) => {
       const p = f.properties || {};
       const type = p.prod_type || '';
-      const isTor = type.includes('Tornado');
       return {
         ...f,
         properties: {
@@ -2860,12 +2726,8 @@ async function loadWatches() {
 
     let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
     let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
-    // Flash flood warnings from NWS alerts (have geometry)
     const floodFeatures = floodRes.ok ? ((await floodRes.json()).features || []).filter(f => f.geometry) : [];
 
-    console.log('Watches:', watchFeatures.length, 'Warnings:', warnFeatures.length, 'Flood:', floodFeatures.length);
-
-    // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
       if (ev.includes('tornado warning'))             return 0;
@@ -2875,14 +2737,9 @@ async function loadWatches() {
       return 4;
     };
     watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
-    const total = watchesList.length;
-    document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
-    setWatchFilter(watchFilter);
+    renderWatchesOnMap(watchesList);
   } catch(e) {
     console.error('loadWatches error:', e);
-    document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
-  } finally {
-    refreshBtn.classList.remove('spinning');
   }
 }
 
@@ -2904,49 +2761,19 @@ function getWatchType(event, feat) {
   return                                                                                                       { cls:'svr',        label:'Svr T-Storm Watch',   color:'#c2185b' };
 }
 
-function renderWatchList(features) {
-  const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
-  let visible = features;
-  if (watchFilter === 'watches')  visible = features.filter(f => !isWarning(f));
-  if (watchFilter === 'warnings') visible = features.filter(f =>  isWarning(f));
-
-  const list = document.getElementById('watch-list'); list.innerHTML = '';
-  if (!visible.length) {
-    const label = watchFilter === 'watches' ? 'watches' : watchFilter === 'warnings' ? 'warnings' : 'watches or warnings';
-    list.innerHTML = `<div class="watch-empty"><span class="material-symbols-rounded">check_circle</span><div class="watch-empty-title">No Active ${watchFilter === 'watches' ? 'Watches' : watchFilter === 'warnings' ? 'Warnings' : 'Watches/Warnings'}</div><div class="watch-empty-sub">No active ${label} in effect.</div></div>`;
-    return;
-  }
-  visible.forEach((feat) => {
-    const i = watchesList.indexOf(feat);
-    const a = feat.properties;
-    const { cls, label } = getWatchType(a.event, feat);
-    const expires = a.expires ? new Date(a.expires) : null;
-    const expStr = expires ? expires.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-    const soon = expires && (expires - Date.now()) < 3600000;
-    const num = a.parameters?.watchNumber?.[0] || a.headline?.match(/\d+/)?.[0] || '';
-    const numStr = num ? ` #${num}` : '';
-    const stateAreas = (a.areaDesc || '').split(';').slice(0,3).map(s => s.trim()).join(', ');
-    const card = document.createElement('div'); card.className = 'watch-card';
-    card.innerHTML = `<div class="watch-card-bar ${cls}"></div><div class="watch-card-inner"><div class="watch-card-header"><span class="watch-type-badge ${cls}">${label.toUpperCase()}</span><span class="watch-num">${numStr}</span></div><div class="watch-card-states">${stateAreas}</div><div class="watch-card-expire${soon?' expiring-soon':''}"><span class="material-symbols-rounded">schedule</span>Until ${expStr}</div></div>`;
-    card.addEventListener('click', () => { selectWatch(i, card); });
-    list.appendChild(card);
-  });
+// renderWatchList, selectWatch, showWatchDetail, closeWatchDetail, setWatchFilter
+// — stubbed out pending watches page redesign —
+function renderWatchList() {}
+function selectWatch() {}
+function showWatchDetail() {}
+function closeWatchDetail() {}
+let watchFilter = 'all';
+function setWatchFilter(filter) {
+  watchFilter = filter;
+  if (watchesList.length && watchesMap) renderWatchesOnMap(watchesList);
 }
 
-function selectWatch(i, card) {
-  document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  showWatchDetail([watchesList[i]]);
-  if (watchesMap && watchesList[i].geometry) {
-    try {
-      const geom = watchesList[i].geometry;
-      const coords = geom.type === 'MultiPolygon' ? geom.coordinates[0][0] : geom.coordinates[0];
-      watchesMap.fitBounds(coords.map(c => [c[1], c[0]]), { padding: [40,40] });
-    } catch(e) {}
-  }
-}
-
-// Ray-casting point-in-polygon
+function renderWatchesOnMap(features) {
 function pointInPolygon(pt, ring) {
   let inside = false;
   const [px, py] = pt;
@@ -2966,89 +2793,6 @@ function featureContainsPoint(feat, latlng) {
 }
 
 function isTorWarnType(f) { return (f.properties?.event||'').toLowerCase().includes('tornado warning'); }
-
-function showWatchDetail(feats) {
-  const primary = feats[0];
-  const a = primary.properties;
-  const { cls, label } = getWatchType(a.event, primary);
-  const num = a.parameters?.watchNumber?.[0] || '';
-  const numStr = num ? ` #${num}` : '';
-  const expires = a.expires ? new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-  document.getElementById('wd-bar').className = `watch-detail-bar ${cls}`;
-  document.getElementById('wd-type').className = `watch-detail-type ${cls}`;
-  document.getElementById('wd-type').textContent = label;
-  document.getElementById('wd-num').textContent = numStr;
-
-  const summaryHtml = (desc) => {
-    if (!desc) return '';
-    // Trim to ~250 chars at a sentence boundary
-    let s = desc.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-    if (s.length > 250) { const cut = s.lastIndexOf('.', 250); s = s.slice(0, cut > 80 ? cut + 1 : 250) + '…'; }
-    return `<div class="wd-row" style="align-items:flex-start"><div class="wd-label">Summary</div><div class="wd-value" style="font-size:0.72rem;line-height:1.55">${s}</div></div>`;
-  };
-
-  let html = `
-    <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${a.areaDesc||'—'}</div></div>
-    <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${expires}</div></div>
-    <div class="wd-row"><div class="wd-label">Source</div><div class="wd-value">${a.senderName||'NWS'}</div></div>
-    ${summaryHtml(a.description || a.headline)}`;
-
-  feats.slice(1).forEach(f => {
-    const b = f.properties;
-    const { cls: cls2, label: label2 } = getWatchType(b.event, f);
-    const exp2 = b.expires ? new Date(b.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-    html += `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
-      <span class="watch-type-badge ${cls2}" style="display:inline-block;margin-bottom:6px">${label2.toUpperCase()}</span>
-      <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${b.areaDesc||'—'}</div></div>
-      <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${exp2}</div></div>
-      ${summaryHtml(b.description || b.headline)}
-    </div>`;
-  });
-  document.getElementById('wd-body').innerHTML = html;
-  document.getElementById('watch-detail').classList.add('open');
-}
-
-function closeWatchDetail() { document.getElementById('watch-detail').classList.remove('open'); }
-
-let watchFilter = 'watches';
-
-function setWatchFilter(filter) {
-  watchFilter = filter;
-  // Update button states
-  ['watches','warnings'].forEach(f => {
-    const btn = document.getElementById(`wf-${f}`);
-    if (!btn) return;
-    btn.classList.remove('active', 'active-watches', 'active-warnings');
-    if (f === filter) {
-      btn.classList.add('active');
-      if (f === 'watches')  btn.classList.add('active-watches');
-      if (f === 'warnings') btn.classList.add('active-warnings');
-    }
-  });
-  // Update legend
-  const title = document.getElementById('ww-legend-title');
-  const items = document.getElementById('ww-legend-items');
-  if (filter === 'watches') {
-    if (title) title.textContent = 'Watches';
-    if (items) items.innerHTML =
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>' +
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>';
-  } else {
-    if (title) title.textContent = 'Warnings';
-    const hasPDS = watchesList.some(f => isTorWarnType(f) && isPDS(f));
-    let legendHtml = hasPDS
-      ? '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-pds);opacity:0.9;"></div><span class="legend-label">PDS Tornado Warning</span></div>'
-      : '';
-    legendHtml +=
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.9;"></div><span class="legend-label">Tornado Warning</span></div>' +
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.9;"></div><span class="legend-label">Severe T-Storm Warning</span></div>' +
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>';
-    if (items) items.innerHTML = legendHtml;
-  }
-  // Re-render map and list with filter applied
-  if (watchesList.length && watchesMap) renderWatchesOnMap(watchesList);
-  renderWatchList(watchesList);
-}
 
 function renderWatchesOnMap(features) {
   if (watchesLayer) { watchesMap.removeLayer(watchesLayer); watchesLayer = null; }
@@ -3110,7 +2854,7 @@ let mesoMap, mesoLayers = {}, mesoData = [];
 function initMesoMap() {
   // Use zoom 4 on mobile (narrower), zoom 4 on desktop — both show full lower-48
   const isMobile = window.innerWidth <= 768;
-  const defaultZoom = isMobile ? 3 : 4;
+  const defaultZoom = isMobile ? 3 : 5;
   mesoMap = L.map('meso-map', { zoomControl: false, attributionControl: false }).setView([37.5, -95], defaultZoom);
   // Update the default view constant to match
   MESO_DEFAULT_VIEW.zoom = defaultZoom;
