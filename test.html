@@ -1234,6 +1234,19 @@
 <script>
 const WORKER_URL = 'https://spc-proxy.justin-e-beck.workers.dev';
 
+// ── NOAA MapServer base (used by outlook map AND point queries) ──
+const NOAA_OUTLOOK_BASE = `${WORKER_URL}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer`;
+const OUTLOOK_LAYER_IDS = {
+  '1-cat':1,  '1-torn':3,  '1-wind':7,  '1-hail':5,
+  '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
+  '3-cat':17, '3-prob':18,
+};
+const OUTLOOK_SIG_IDS = {
+  '1-torn':2, '1-hail':4, '1-wind':6,
+  '2-torn':10,'2-hail':12,'2-wind':14,
+};
+const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
+
 // ── SPC Constants ──
 const SPC_CAT = {
   'TSTM': { color:'#c8eec8', label:'General Storms'  },
@@ -1662,27 +1675,41 @@ function pointInFeature(pt, feature) {
 }
 
 async function fetchSpcOutlookForPoint(lat, lng) {
-  const days = [
-    { url: 'day1otlk.json', label: 'Today',     day: 1 },
-    { url: 'day2otlk.json', label: 'Tomorrow',  day: 2 },
-    { url: 'day3otlk.json', label: 'in 2 Days', day: 3 },
+  // Query the same NOAA ArcGIS MapServer the outlook map uses.
+  // Do a spatial contains query for the point — far more reliable than
+  // downloading full GeoJSON and doing client-side point-in-polygon.
+  const catLayers = [
+    { id: OUTLOOK_LAYER_IDS['1-cat'], label: 'Today',     day: 1 },
+    { id: OUTLOOK_LAYER_IDS['2-cat'], label: 'Tomorrow',  day: 2 },
+    { id: OUTLOOK_LAYER_IDS['3-cat'], label: 'in 2 Days', day: 3 },
   ];
   const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
-  const pt = [lng, lat];
   const results = [];
-  for (const { url, label, day } of days) {
+
+  for (const { id, label, day } of catLayers) {
     try {
-      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${url}`);
+      const params = new URLSearchParams({
+        where: '1=1',
+        geometry: `${lng},${lat}`,
+        geometryType: 'esriGeometryPoint',
+        spatialRel: 'esriSpatialRelIntersects',
+        inSR: '4326',
+        outFields: 'LABEL,DN',
+        f: 'json',
+        returnGeometry: 'false',
+      });
+      const res = await fetch(`${NOAA_OUTLOOK_BASE}/${id}/query?${params}`);
       if (!res.ok) continue;
-      const gj = await res.json();
-      if (!gj.features?.length) continue;
+      const data = await res.json();
+      if (!data.features?.length) continue;
+
       let best = null, bestOrder = -1;
-      for (const feat of gj.features) {
-        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
-        const key = SPC_CAT[raw] ? raw : (DN_TO_CAT[raw] || null);
+      for (const feat of data.features) {
+        const raw = (feat.attributes?.LABEL || feat.attributes?.DN || '').toString().toUpperCase().trim();
+        const key = SPC_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || null);
         if (!key) continue;
         const rank = order.indexOf(key);
-        if (rank > bestOrder && pointInFeature(pt, feat)) { best = key; bestOrder = rank; }
+        if (rank > bestOrder) { best = key; bestOrder = rank; }
       }
       if (best) results.push({ risk: best, dayLabel: label, day });
     } catch(e) {}
@@ -2023,24 +2050,7 @@ function compassToDegs(dir) {
 // OUTLOOK MAP
 // ══════════════════════════════════
 
-// NOAA ArcGIS MapServer via worker /noaa/ proxy
-const NOAA_OUTLOOK_BASE = `${WORKER_URL}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer`;
-
-// Layer IDs confirmed from NOAA MapServer
-// Day 1: 1=cat, 2=sig_torn, 3=torn, 4=sig_hail, 5=hail, 6=sig_wind, 7=wind
-// Day 2: 9=cat, 10=sig_torn, 11=torn, 12=sig_hail, 13=hail, 14=sig_wind, 15=wind
-// Day 3: 17=cat, 18=prob, 19=sig
-const OUTLOOK_LAYER_IDS = {
-  '1-cat':1,  '1-torn':3,  '1-wind':7,  '1-hail':5,
-  '2-cat':9,  '2-torn':11, '2-wind':15, '2-hail':13,
-  '3-cat':17, '3-prob':18,
-};
-const OUTLOOK_SIG_IDS = {
-  '1-torn':2, '1-hail':4, '1-wind':6,
-  '2-torn':10,'2-hail':12,'2-wind':14,
-};
-
-const OUTLOOK_CAT = {
+// NOAA ArcGIS MapServer via worker /noaa/ proxy — constants declared at top of script
   'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General'   },
   'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'  },
   'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'     },
@@ -2048,7 +2058,6 @@ const OUTLOOK_CAT = {
   'MDT': { fill:'#e04040', stroke:'#a81818', label:'Moderate'   },
   'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'High'       },
 };
-const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const OUTLOOK_CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
 
 const PROB_TORN = [
