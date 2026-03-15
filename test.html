@@ -130,8 +130,11 @@
     .current-loc{font-size:1.25rem;font-weight:700;color:var(--text);letter-spacing:-0.025em;line-height:1.25;}
     .current-time{font-size:0.73rem;color:var(--text-3);margin-top:3px;}
     .current-hero{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:18px 20px;background:var(--red);border-radius:var(--r-sm);position:relative;overflow:hidden;}
-    .current-hero::after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(255,255,255,0.07);border-radius:50%;pointer-events:none;}
-    .current-hero::before{content:'';position:absolute;right:30px;bottom:-50px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%;pointer-events:none;}
+    .current-hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0;transition:opacity 1s ease;}
+    .current-hero-video.loaded{opacity:1;}
+    .current-hero-overlay{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,0.32);border-radius:var(--r-sm);pointer-events:none;}
+    .current-hero::after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(255,255,255,0.07);border-radius:50%;pointer-events:none;z-index:1;}
+    .current-hero::before{content:'';position:absolute;right:30px;bottom:-50px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%;pointer-events:none;z-index:1;}
     .current-temp-big{font-size:5rem;font-weight:800;color:#fff;letter-spacing:-0.04em;line-height:1;position:relative;z-index:1;}
     .current-temp-unit{font-size:1.6rem;font-weight:500;opacity:0.7;vertical-align:super;letter-spacing:0;}
     .current-hero-icon{width:72px;height:72px;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3));}
@@ -791,6 +794,8 @@
           <div id="current-loc" class="current-loc">—</div>
           <div id="current-time" class="current-time">—</div>
           <div class="current-hero" id="current-hero">
+            <video id="current-hero-video" class="current-hero-video" autoplay muted loop playsinline preload="none"></video>
+            <div class="current-hero-overlay"></div>
             <div class="current-temp-big"><span id="current-temp-val">—</span><span class="current-temp-unit">°F</span></div>
             <img id="current-hero-icon" class="current-hero-icon" src="" alt="" width="72" height="72" style="opacity:0;transition:opacity .3s;">
           </div>
@@ -1789,6 +1794,52 @@ async function loadWeather(loc) {
   }
 }
 
+// ── Weather background videos (Pixabay free CDN) ──
+function getWeatherVideoUrl(desc, isDaytime) {
+  const d = (desc || '').toLowerCase();
+  // Tornado / severe
+  if (d.includes('tornado'))
+    return 'https://cdn.pixabay.com/video/2020/05/06/38596-416887948_large.mp4';
+  // Thunderstorm
+  if (d.includes('thunder') || d.includes('tstm') || d.includes('lightning'))
+    return isDaytime
+      ? 'https://cdn.pixabay.com/video/2023/07/20/172267-847784283_large.mp4'
+      : 'https://cdn.pixabay.com/video/2022/10/14/134893-762269219_large.mp4';
+  // Snow / blizzard
+  if (d.includes('snow') || d.includes('blizzard') || d.includes('flurr'))
+    return 'https://cdn.pixabay.com/video/2016/12/30/7060-197634418_large.mp4';
+  // Sleet / freezing rain / ice
+  if (d.includes('sleet') || d.includes('ice') || d.includes('wintry') || d.includes('freezing'))
+    return 'https://cdn.pixabay.com/video/2021/01/08/60186-499845231_large.mp4';
+  // Rain / showers / drizzle
+  if (d.includes('rain') || d.includes('shower') || d.includes('drizzle'))
+    return isDaytime
+      ? 'https://cdn.pixabay.com/video/2019/09/08/26964-358536530_large.mp4'
+      : 'https://cdn.pixabay.com/video/2016/09/14/5008-183010148_large.mp4';
+  // Fog / mist / haze
+  if (d.includes('fog') || d.includes('mist') || d.includes('haze'))
+    return 'https://cdn.pixabay.com/video/2020/03/23/34156-401080170_large.mp4';
+  // Windy / breezy
+  if (d.includes('wind') || d.includes('breezy') || d.includes('blustery'))
+    return isDaytime
+      ? 'https://cdn.pixabay.com/video/2019/10/08/27973-365050790_large.mp4'
+      : null;
+  // Overcast / mostly cloudy
+  if (d.includes('overcast') || d.includes('mostly cloudy'))
+    return isDaytime
+      ? 'https://cdn.pixabay.com/video/2020/07/28/46082-447087950_large.mp4'
+      : 'https://cdn.pixabay.com/video/2016/09/01/4846-181385502_large.mp4';
+  // Partly cloudy
+  if (d.includes('partly') || d.includes('cloud') || d.includes('increasing'))
+    return isDaytime
+      ? 'https://cdn.pixabay.com/video/2023/06/05/165884-835471823_large.mp4'
+      : 'https://cdn.pixabay.com/video/2022/11/04/137820-769423569_large.mp4';
+  // Clear / sunny
+  return isDaytime
+    ? 'https://cdn.pixabay.com/video/2020/07/30/46176-447670469_large.mp4'
+    : 'https://cdn.pixabay.com/video/2021/08/11/83526-585302890_large.mp4';
+}
+
 function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   document.getElementById('current-loc').textContent = loc.label || 'Your Location';
   document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
@@ -1803,6 +1854,23 @@ function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   icon.onload = () => { icon.style.opacity = '1'; };
   icon.onerror = () => { icon.style.opacity = '0'; };
   icon.src = newSrc;
+
+  // Background video
+  const videoEl = document.getElementById('current-hero-video');
+  const videoUrl = getWeatherVideoUrl(desc, isDaytime);
+  if (videoEl) {
+    const prev = videoEl.src;
+    if (videoUrl && videoUrl !== prev) {
+      videoEl.classList.remove('loaded');
+      videoEl.src = videoUrl;
+      videoEl.load();
+      videoEl.oncanplay = () => videoEl.classList.add('loaded');
+      videoEl.onerror = () => { videoEl.classList.remove('loaded'); videoEl.src = ''; };
+    } else if (!videoUrl) {
+      videoEl.classList.remove('loaded');
+      videoEl.src = '';
+    }
+  }
 }
 
 const DA = { Monday:'Mon', Tuesday:'Tue', Wednesday:'Wed', Thursday:'Thu', Friday:'Fri', Saturday:'Sat', Sunday:'Sun' };
