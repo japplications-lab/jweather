@@ -354,6 +354,15 @@
     .legend-dim{opacity:0.3;}
     .map-loading-ov{position:absolute;inset:0;z-index:410;background:rgba(15,17,21,0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading-ov.hidden{opacity:0;pointer-events:none;}
+    /* On-map outlook legend */
+    .outlook-map-legend{position:absolute;bottom:20px;left:14px;z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 10px;pointer-events:none;}
+    .outlook-map-legend-items{display:flex;flex-direction:column;gap:4px;}
+    .outlook-map-legend-items .legend-item{padding:0;font-size:0.68rem;}
+    .outlook-map-legend-items .legend-swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);}
+    .outlook-map-legend-items .legend-label{color:var(--text-2);font-size:0.68rem;font-weight:500;}
+    @media(max-width:640px){
+      .outlook-map-legend{bottom:12px;left:10px;}
+    }
     /* Outlook map search overlay (desktop + always visible on map) */
     .outlook-map-search{position:absolute;top:14px;right:14px;z-index:420;width:220px;pointer-events:auto;}
     .outlook-map-search .search-wrap{max-width:none;width:100%;}
@@ -761,7 +770,7 @@
         <ul id="suggestions-mob"></ul>
       </div>
       <div class="outlook-legend-bar" id="outlook-legend" style="display:none;">
-        <div class="outlook-legend-items" id="outlook-legend-items"></div>
+        <div class="outlook-legend-items" id="outlook-legend-items-header"></div>
       </div>
     </div>
     <div class="mob-bar-meso" id="mob-bar-meso">
@@ -890,6 +899,10 @@
       </div>
       <div class="map-loading-ov" id="outlook-map-loading">
         <div class="spin-ring"></div>
+      </div>
+      <!-- On-map legend -->
+      <div class="outlook-map-legend" id="outlook-map-legend">
+        <div class="outlook-map-legend-items" id="outlook-legend-items"></div>
       </div>
     </div>
   </div>
@@ -2020,38 +2033,38 @@ const OUTLOOK_SIG_IDS = {
 };
 
 const OUTLOOK_CAT = {
-  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
-  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Low Risk'       },
-  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Some Risk'       },
-  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Elevated Risk'   },
-  'MDT': { fill:'#e04040', stroke:'#a81818', label:'High Risk'       },
-  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Extreme Risk'    },
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General'   },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'  },
+  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'     },
+  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Enhanced'   },
+  'MDT': { fill:'#e04040', stroke:'#a81818', label:'Moderate'   },
+  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'High'       },
 };
 const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const OUTLOOK_CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
 
 const PROB_TORN = [
-  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Low Risk'      },
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Elevated Risk' },
-  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Moderate Risk' },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High Risk'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Serious'       },
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Dangerous'     },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme'       },
+  {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Low'      },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Elevated' },
+  {dn:10, fill:'#ffa500',stroke:'#b87300',label:'Moderate' },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'High'     },
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Very High'},
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme+' },
 ];
 const PROB_WIND = [
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated'   },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Serious'    },
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Dangerous'  },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme'    },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated' },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Scattered'},
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Numerous' },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme+' },
 ];
 const PROB_HAIL = [
-  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated'   },
-  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Likely'     },
-  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Serious'    },
-  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Dangerous'  },
-  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme'    },
+  {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Isolated' },
+  {dn:15, fill:'#ff0000',stroke:'#b30000',label:'Scattered'},
+  {dn:30, fill:'#ff00ff',stroke:'#b300b3',label:'Numerous' },
+  {dn:45, fill:'#912cee',stroke:'#6600aa',label:'Extreme'  },
+  {dn:60, fill:'#104e8b',stroke:'#0a3060',label:'Extreme+' },
 ];
 function getOutlookProbScale(mode) {
   if (mode === 'wind') return PROB_WIND;
