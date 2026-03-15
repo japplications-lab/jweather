@@ -2329,7 +2329,7 @@ function buildOutlookSidebar() {
 
     // Mobile day tab
     const tab = document.createElement('button'); tab.className = 'mob-day-tab'; tab.dataset.day = day;
-    tab.innerHTML = `<span class="mob-day-tab-label">Day ${day}</span><span class="mob-day-threat-bar" id="threat-bar-${day}"></span>`;
+    tab.innerHTML = `<span class="mob-day-tab-label">${dayName}</span><span class="mob-day-threat-bar" id="threat-bar-${day}"></span>`;
     if (day === 1) tab.classList.add('active');
     tab.addEventListener('click', () => {
       document.querySelectorAll('.mob-day-tab').forEach(t => t.classList.remove('active'));
@@ -2354,9 +2354,11 @@ function buildOutlookMobModeRow(day) {
   const discRow = document.getElementById('mob-disc-row');
   if (discRow) {
     discRow.innerHTML = '';
+    const d2 = new Date(); d2.setDate(d2.getDate() + day - 1);
+    const discDayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d2.toLocaleDateString('en-US',{weekday:'long'});
     const btn = document.createElement('button');
     btn.className = 'mob-disc-btn';
-    btn.innerHTML = '<span class="material-symbols-rounded">article</span>View Day ' + day + ' Discussion';
+    btn.innerHTML = `<span class="material-symbols-rounded">article</span>View ${discDayName}'s Discussion`;
     btn.addEventListener('click', () => openDiscModal(day));
     discRow.appendChild(btn);
   }
@@ -2503,7 +2505,8 @@ async function loadOutlookHazard(day, mode) {
   activeOutlookDay = day; activeOutlookMode = mode;
 
   // Update context pill
-  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : 'Day 3';
+  const d3 = new Date(); d3.setDate(d3.getDate() + day - 1);
+  const dayLabel = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d3.toLocaleDateString('en-US',{weekday:'long'});
   document.getElementById('outlook-context-pill').innerHTML = `${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
 
   const loading = document.getElementById('outlook-map-loading');
@@ -2625,8 +2628,10 @@ async function loadOutlookHazard(day, mode) {
 
 async function openDiscModal(day) {
   _discDay = day;
+  const d4 = new Date(); d4.setDate(d4.getDate() + day - 1);
+  const discDayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d4.toLocaleDateString('en-US',{weekday:'long'});
   document.getElementById('disc-modal').style.display = 'flex';
-  document.getElementById('disc-modal-title').textContent = `Day ${day} — ${day===1?'Today':day===2?'Tomorrow':'Day 3'} — SPC Outlook`;
+  document.getElementById('disc-modal-title').textContent = `${discDayName} — SPC Outlook`;
   document.getElementById('disc-modal-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>';
   try {
     // Fetch raw SPC discussion HTML
