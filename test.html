@@ -48,7 +48,7 @@
     .logo-name span{color:#ffffff;}
 
     /* Search */
-    .search-wrap{width:320px;max-width:380px;position:relative;margin-left:16px;}
+    .search-wrap{flex:1;max-width:440px;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
     .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
@@ -80,10 +80,10 @@
     .nav-dropdown{position:relative;}
     .nav-dropdown-btn{display:flex;align-items:center;gap:3px;}
     .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
-    .nav-dropdown.open .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
-    .nav-dropdown-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:230px;z-index:600;transform-origin:top right;}
+    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
+    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:230px;z-index:600;transform-origin:top right;}
     .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
-    .nav-dropdown.open .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
+    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
     .nav-dropdown-menu a,.nav-dropdown-menu button{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;width:100%;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;font-family:var(--font);}
     .nav-dropdown-menu a:last-child,.nav-dropdown-menu button:last-child{border-bottom:none;}
     .nav-dropdown-menu a:hover,.nav-dropdown-menu button:hover,.nav-dropdown-menu a.active,.nav-dropdown-menu button.active{background:var(--red-dim);color:var(--red);}
@@ -94,7 +94,6 @@
     /* Mobile header */
     .mob-bar-1{display:contents;}
     .mob-bar-2{display:none;}
-    .mob-bar-meso{display:none;}
     @media(max-width:640px){
       header{height:auto !important;}
       .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
@@ -103,9 +102,9 @@
       .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
       .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
       body.page-watches .mob-bar-2, body.page-meso .mob-bar-2, body.page-severe101 .mob-bar-2{display:none;}
-      .mob-bar-meso{display:none !important;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
+      .mob-bar-meso{display:none;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
       .mob-bar-meso-title{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;}
-      body.page-meso .mob-bar-meso{display:flex !important;}
+      body.page-meso .mob-bar-meso{display:flex;}
       body.page-outlook .mob-bar-2{display:flex;padding:0;}
       body.page-outlook #mob-search-wrap{display:none;}
       body.page-outlook #outlook-legend{display:flex !important;flex:1;border-bottom:none;}
@@ -357,6 +356,13 @@
     .legend-dim{opacity:0.3;}
     .map-loading-ov{position:absolute;inset:0;z-index:410;background:rgba(15,17,21,0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading-ov.hidden{opacity:0;pointer-events:none;}
+    /* Outlook map search overlay (desktop + always visible on map) */
+    .outlook-map-search{position:absolute;top:14px;right:14px;z-index:420;width:220px;pointer-events:auto;}
+    .outlook-map-search .search-wrap{max-width:none;width:100%;}
+    .outlook-map-search .search-row{background:rgba(26,29,36,0.94);backdrop-filter:blur(8px);border-color:var(--border-2);}
+    .outlook-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
+    .outlook-map-search #suggestions-outlook-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
+    @media(max-width:640px){.outlook-map-search{display:none;}}
     /* Mobile outlook controls */
     .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-outlook.active .mob-controls{display:block;}
@@ -368,6 +374,11 @@
     .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;justify-content:center;}
     .mob-mode-row::-webkit-scrollbar{display:none;}
     .mob-disc-row{display:flex;padding:6px 10px 8px;gap:8px;}
+    .mob-outlook-search-row{display:flex;padding:6px 10px 4px;border-bottom:1px solid var(--border);}
+    .mob-outlook-search-row .search-wrap{flex:1;max-width:none;}
+    body.page-outlook .mob-bar-2{display:flex;padding:0;}
+    body.page-outlook #mob-search-wrap{display:none;}
+    body.page-outlook #outlook-legend{display:flex !important;flex:1;border-bottom:none;}
     .mob-disc-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 10px;background:var(--red);border:none;border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:700;color:#fff;letter-spacing:0.02em;}
     .mob-disc-btn .material-symbols-rounded{font-size:13px;}
     .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
@@ -379,12 +390,13 @@
     @media(min-width:769px){
       #page-outlook.active .mob-controls{bottom:0;}
       #page-outlook .mob-day-tabs,#page-outlook .mob-mode-row,#page-outlook .mob-disc-row{display:none;}
+      #mob-outlook-search-row{display:none;}
     }
     @media(max-width:640px){
       .sidebar{display:none !important;}
       .mob-controls{display:block;}
       #page-outlook .app-body{padding-bottom:0;}
-      #page-outlook .map-panel{padding-bottom:188px;}
+      #page-outlook .map-panel{padding-bottom:234px;}
       .map-topbar{top:8px;left:8px;}
     }
     /* Discussion modal */
@@ -529,7 +541,6 @@
     .meso-refresh-btn.spinning .material-symbols-rounded{animation:spin .6s linear infinite;color:var(--red);}
     .meso-refresh-btn .material-symbols-rounded{font-size:18px;transition:color .15s;}
     .status-pill{position:absolute;top:12px;left:calc(320px + 12px);z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;display:flex;align-items:center;gap:6px;font-size:0.72rem;font-weight:600;color:var(--text-3);box-shadow:0 2px 10px rgba(0,0,0,.3);}
-    @media(min-width:769px){.status-pill{display:flex !important;}}
     .status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-4);flex-shrink:0;}
     .status-dot.active{background:var(--md-color);box-shadow:0 0 0 3px rgba(249,115,22,0.2);}
     .status-dot.none{background:var(--green);}
@@ -679,10 +690,7 @@
       body{padding-bottom:62px;}
     }
 
-    .watches-progress-bar{height:2px;width:100%;background:var(--border);overflow:hidden;opacity:0;transition:opacity .2s;}
-    .watches-progress-bar.active{opacity:1;}
-    .watches-progress-fill{height:100%;width:40%;background:var(--red);border-radius:2px;animation:watches-progress-bounce 1s ease-in-out infinite alternate;}
-    @keyframes watches-progress-bounce{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+    /* Coming soon toast */
     #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
     #coming-soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
     #coming-soon-toast .material-symbols-rounded{font-size:16px;color:var(--amber);}
@@ -705,6 +713,10 @@
     .popup-sub{font-size:0.68rem;color:var(--text-4);font-weight:500;}
     .popup-divider{height:1px;background:var(--border);margin:8px 0;}
     .popup-desc{font-size:0.74rem;color:var(--text-2);line-height:1.6;}
+    /* Outlook location pin popup */
+    .outlook-pin-popup .leaflet-popup-content-wrapper{background:#1e2028;border:1px solid rgba(249,115,22,0.35);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);padding:6px 10px;}
+    .outlook-pin-popup .leaflet-popup-tip{background:#1e2028;}
+    .outlook-pin-popup .leaflet-popup-content{margin:0;}
   </style>
 </head>
 <body>
@@ -717,6 +729,15 @@
         <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
         <span class="logo-name">j<span>Weather</span></span>
       </a>
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
+          <button id="search-clear" class="search-clear-btn" onclick="clearSearch('search-bar','suggestions')" style="display:none"><span class="material-symbols-rounded">close</span></button>
+          <button class="gps-btn" id="gps-btn-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
+        </div>
+        <ul id="suggestions"></ul>
+      </div>
       <nav class="header-nav">
         <button id="nav-forecast" class="active" onclick="navigate('forecast')">Forecast</button>
         <button id="nav-hourly" onclick="navigate('hourly')">Hourly</button>
@@ -736,15 +757,6 @@
           </div>
         </div>
       </nav>
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-          <button id="search-clear" class="search-clear-btn" onclick="clearSearch('search-bar','suggestions')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-          <button class="gps-btn" id="gps-btn-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-        </div>
-        <ul id="suggestions"></ul>
-      </div>
     </div>
     <div class="mob-bar-2" id="mob-bar-2">
       <div class="search-wrap" id="mob-search-wrap">
@@ -872,6 +884,18 @@
       <div class="map-topbar">
         <div class="map-context-pill" id="outlook-context-pill">Day 1 — <span>Categorical</span></div>
       </div>
+      <!-- Desktop map search overlay -->
+      <div class="outlook-map-search" id="outlook-map-search">
+        <div class="search-wrap">
+          <div class="search-row">
+            <span class="material-symbols-rounded">search</span>
+            <input id="search-bar-outlook-desk" type="search" autocomplete="off" placeholder="Pin a location…"/>
+            <button id="search-clear-outlook-desk" class="search-clear-btn" onclick="clearSearch('search-bar-outlook-desk','suggestions-outlook-desk')" style="display:none"><span class="material-symbols-rounded">close</span></button>
+            <button class="gps-btn" id="gps-btn-outlook-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
+          </div>
+          <ul id="suggestions-outlook-desk"></ul>
+        </div>
+      </div>
       <div class="map-loading-ov" id="outlook-map-loading">
         <div class="spin-ring"></div>
       </div>
@@ -879,6 +903,17 @@
   </div>
   <!-- Mobile controls -->
   <div class="mob-controls" id="mob-outlook-controls">
+    <div class="mob-outlook-search-row" id="mob-outlook-search-row">
+      <div class="search-wrap">
+        <div class="search-row">
+          <span class="material-symbols-rounded">search</span>
+          <input id="search-bar-outlook" type="search" autocomplete="off" placeholder="Pin a location on map…"/>
+          <button id="search-clear-outlook" class="search-clear-btn" onclick="clearSearch('search-bar-outlook','suggestions-outlook')" style="display:none"><span class="material-symbols-rounded">close</span></button>
+          <button class="gps-btn" id="gps-btn-outlook" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
+        </div>
+        <ul id="suggestions-outlook"></ul>
+      </div>
+    </div>
     <div class="mob-day-tabs" id="mob-day-tabs"></div>
     <div class="mob-mode-row" id="mob-mode-row"></div>
     <div class="mob-disc-row" id="mob-disc-row"></div>
@@ -905,7 +940,6 @@
       <div class="watch-panel-head">
         <div class="watch-panel-title">Watches &amp; Warnings</div>
         <div class="watch-panel-sub" id="watches-sub">Loading…</div>
-        <div class="watches-progress-bar" id="watches-progress-bar"><div class="watches-progress-fill" id="watches-progress-fill"></div></div>
       </div>
       <div class="watch-list" id="watch-list"></div>
       <div class="watch-panel-actions">
@@ -1423,11 +1457,15 @@ function clearSearch(barId, sugId) {
 const _searchInputs = [
   { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
+  { bar: document.getElementById('search-bar-outlook'), sug: document.getElementById('suggestions-outlook'), outlookOnly: true },
+  { bar: document.getElementById('search-bar-outlook-desk'), sug: document.getElementById('suggestions-outlook-desk'), outlookOnly: true },
 ].filter(x => x.bar && x.sug);
 
 const _gpsBtns = [
   document.getElementById('gps-btn-desk'),
   document.getElementById('gps-btn-mob'),
+  document.getElementById('gps-btn-outlook'),
+  document.getElementById('gps-btn-outlook-desk'),
 ].filter(Boolean);
 
 function setGpsState(state) {
@@ -1472,6 +1510,7 @@ async function useGPS() {
         setGpsState('located');
         loadWeather(loc);
         updateRadar(lat, lng);
+        placeOutlookPin(loc);
       } catch(e) {
         setGpsState('error');
         showToast('Could not determine your location');
@@ -1584,9 +1623,30 @@ document.addEventListener('click', e => {
 });
 
 function pick(loc, activeBar, activeSug) {
-  curLoc = loc;
-  _searchInputs.forEach(({bar, sug}) => { bar.value = loc.label; sug.style.display = 'none'; bar.blur(); });
   selIdx = -1;
+  // Determine if this came from an outlook-only search bar
+  const activeInput = _searchInputs.find(x => x.bar === activeBar);
+  const isOutlookSearch = activeInput?.outlookOnly === true;
+
+  // Always close all suggestion dropdowns and update the active bar
+  _searchInputs.forEach(({bar, sug, outlookOnly}) => {
+    sug.style.display = 'none';
+    bar.blur();
+    // Sync label to all non-outlook bars always; sync outlook bars always too
+    bar.value = loc.label;
+  });
+
+  // Always place a pin on the outlook map
+  placeOutlookPin(loc);
+
+  if (isOutlookSearch) {
+    // Outlook-only: just pin the map, save recent, don't reload weather
+    saveRecent(loc);
+    return;
+  }
+
+  // Full weather search (from main search bars)
+  curLoc = loc;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
   saveRecent(loc);
   loadWeather(loc);
@@ -2028,6 +2088,7 @@ let activeOutlookSigLayer = null;
 let activeCigLayer = null;
 let activeOutlookDay = 1;
 let activeOutlookMode = 'cat';
+let outlookLocationMarker = null;
 
 function initOutlookMap() {
   outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:false, minZoom:4 })
@@ -2083,6 +2144,45 @@ function initOutlookMap() {
 
   buildOutlookSidebar();
   loadOutlookHazard(1, 'cat');
+
+  // Place pin for current location if one is set
+  if (curLoc?.lat) placeOutlookPin(curLoc);
+}
+
+function placeOutlookPin(loc) {
+  if (!outlookMap) return;
+  if (outlookLocationMarker) { outlookMap.removeLayer(outlookLocationMarker); outlookLocationMarker = null; }
+  if (!loc?.lat) return;
+
+  // Custom pulsing pin icon
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="
+      position:relative;width:28px;height:36px;
+      filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    ">
+      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
+          fill="#f97316" stroke="#fff" stroke-width="2"/>
+        <circle cx="14" cy="12" r="4" fill="#fff"/>
+      </svg>
+    </div>`,
+    iconSize: [28, 36],
+    iconAnchor: [14, 36],
+    popupAnchor: [0, -38],
+  });
+
+  outlookLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
+    .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
+      closeButton: false,
+      className: 'outlook-pin-popup',
+      maxWidth: 180,
+    })
+    .addTo(outlookMap);
+
+  // Show popup briefly, then leave pin
+  outlookLocationMarker.openPopup();
+  setTimeout(() => { if (outlookLocationMarker) outlookLocationMarker.closePopup(); }, 2500);
 }
 
 async function fetchDayMaxThreat(day) {
@@ -2534,91 +2634,54 @@ function initWatchesMap() {
   }).addTo(watchesMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
     .then(r => r.json())
-    .then(gj => L.geoJSON(gj, { style:{ color:'#000000', weight:0.5, fill:false, opacity:0.5 }, interactive:false }).addTo(watchesMap))
+    .then(gj => L.geoJSON(gj, { style:{ color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive:false }).addTo(watchesMap))
     .catch(() => {});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
     attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
   }).addTo(watchesMap);
   loadWatches();
-  // Poll every 10 seconds for updated watches & warnings
-  if (window._watchesInterval) clearInterval(window._watchesInterval);
-  window._watchesInterval = setInterval(() => loadWatches(), 10000);
-}
-
-function watchesProgressStart() {
-  document.getElementById('watches-progress-bar').classList.add('active');
-}
-function watchesProgressDone() {
-  document.getElementById('watches-progress-bar').classList.remove('active');
 }
 
 async function loadWatches() {
-  watchesProgressStart();
+  const refreshBtn = document.getElementById('watches-refresh-btn');
+  refreshBtn.classList.add('spinning');
+  document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
   try {
-    // All watches and warnings from NWS alerts API — real-time, one event per request
-    const [torWarnRes, svrWarnRes, floodRes, torWatchRes, svrWatchRes] = await Promise.all([
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado+Warning`,             { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Severe+Thunderstorm+Warning`, { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash+Flood+Warning`,         { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Tornado+Watch`,               { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Severe+Thunderstorm+Watch`,   { cache: 'no-store' }),
+    // Correct NOAA endpoint: eventdriven WWA service
+    // Layer 0 = storm-based warnings, Layer 1 = county-based watches
+    const ts = Date.now();
+    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
+    const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&_=${ts}`;
+
+    const [watchGeoRes, warnGeoRes, floodRes] = await Promise.all([
+      fetch(WATCH_URL, { cache: 'no-store' }),
+      fetch(WARN_URL,  { cache: 'no-store' }),
+      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`)
     ]);
 
-    // Parse all five fully before touching the DOM
-    const [torWarnData, svrWarnData, floodData, torWatchData, svrWatchData] = await Promise.all([
-      torWarnRes.ok  ? torWarnRes.json()  : Promise.resolve({ features: [] }),
-      svrWarnRes.ok  ? svrWarnRes.json()  : Promise.resolve({ features: [] }),
-      floodRes.ok    ? floodRes.json()    : Promise.resolve({ features: [] }),
-      torWatchRes.ok ? torWatchRes.json() : Promise.resolve({ features: [] }),
-      svrWatchRes.ok ? svrWatchRes.json() : Promise.resolve({ features: [] }),
-    ]);
-
-    const allFeatures = [
-      ...(torWarnData.features  || []),
-      ...(svrWarnData.features  || []),
-      ...(floodData.features    || []),
-      ...(torWatchData.features || []),
-      ...(svrWatchData.features || []),
-    ];
-
-    // NWS watch alerts have null geometry — fetch SPC watch box polygons from IEM.
-    // IEM publishes clean watch box outlines (not county fills) keyed by watch number.
-    const noGeom = allFeatures.filter(f => !f.geometry);
-    if (noGeom.length) {
-      try {
-        // IEM provides active SPC watch box outlines as GeoJSON — /iem/ is an open passthrough
-        const watchRes = await fetch(`${WORKER_URL}/iem/geojson/spc_watch.geojson`, { cache: 'no-store' });
-        if (watchRes.ok) {
-          const watchData = await watchRes.json();
-          console.log('[IEM spc_watch] features:', (watchData.features||[]).length,
-            'first props:', JSON.stringify(watchData.features?.[0]?.properties));
-          // Build map: integer watch number -> geometry
-          const watchBoxMap = {};
-          (watchData.features || []).forEach(f => {
-            const p = f.properties || {};
-            const num = parseInt(p.watch_num ?? p.number ?? p.num ?? p.sel ?? p.selname, 10);
-            if (!isNaN(num) && f.geometry) watchBoxMap[num] = f.geometry;
-          });
-          console.log('[IEM spc_watch] watchBoxMap keys:', Object.keys(watchBoxMap));
-          // Match NWS watch alerts to IEM polygons via VTEC watch number
-          // VTEC example: "/O.CON.KLIX.TO.A.0048.000000T0000Z-260312T0700Z/"
-          noGeom.forEach(f => {
-            const p = f.properties || {};
-            const vtec = (p.parameters?.VTEC || p.parameters?.vtec || [])[0] || '';
-            const m = vtec.match(/\.A\.(\d+)\./);
-            const num = m ? parseInt(m[1], 10) : NaN;
-            console.log('[watch match] vtec num:', num, 'found:', !!watchBoxMap[num]);
-            if (!isNaN(num) && watchBoxMap[num]) f.geometry = watchBoxMap[num];
-          });
-        } else {
-          console.warn('[IEM spc_watch] HTTP', watchRes.status);
+    const normalizeWatch = (f) => {
+      const p = f.properties || {};
+      const type = p.prod_type || '';
+      const isTor = type.includes('Tornado');
+      return {
+        ...f,
+        properties: {
+          ...p,
+          event: type,
+          expires: p.expiration || null,
+          areaDesc: p.area_desc || p.states || '',
+          senderName: 'NWS',
+          parameters: { watchNumber: [p.watch_num || p.phenom || ''] }
         }
-      } catch(e) {
-        console.warn('Watch box fetch failed:', e);
-      }
-    }
+      };
+    };
 
-    console.log('NWS alerts — tor warns:', (torWarnData.features||[]).length, 'svr warns:', (svrWarnData.features||[]).length, 'flood:', (floodData.features||[]).length, 'tor watches:', (torWatchData.features||[]).length, 'svr watches:', (svrWatchData.features||[]).length, 'with geometry after zone fetch:', allFeatures.filter(f=>f.geometry).length);
+    let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
+    let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
+    // Flash flood warnings from NWS alerts (have geometry)
+    const floodFeatures = floodRes.ok ? ((await floodRes.json()).features || []).filter(f => f.geometry) : [];
+
+    console.log('Watches:', watchFeatures.length, 'Warnings:', warnFeatures.length, 'Flood:', floodFeatures.length);
 
     // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
@@ -2629,8 +2692,7 @@ async function loadWatches() {
       if (ev.includes('tornado watch'))               return 3;
       return 4;
     };
-    // Commit only once all data is ready, render in one pass
-    watchesList = allFeatures.sort((a, b) => priority(a) - priority(b));
+    watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
     const total = watchesList.length;
     document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
     setWatchFilter(watchFilter);
@@ -2638,7 +2700,7 @@ async function loadWatches() {
     console.error('loadWatches error:', e);
     document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
   } finally {
-    watchesProgressDone();
+    refreshBtn.classList.remove('spinning');
   }
 }
 
@@ -2816,13 +2878,11 @@ function renderWatchesOnMap(features) {
   if (watchFilter === 'watches')  filtered = features.filter(f => !isWarning(f));
   if (watchFilter === 'warnings') filtered = features.filter(f =>  isWarning(f));
 
-  watchesLayer = L.layerGroup().addTo(watchesMap);
+  const watches    = filtered.filter(f => !isWarning(f));
+  const nonTorWarn = filtered.filter(f =>  isWarning(f) && !isTorWarn(f));
+  const torWarns   = filtered.filter(f =>  isTorWarn(f));  // drawn last = on top
 
-  // Only draw features that have geometry — watches from NWS may have null geometry
-  const withGeom = f => !!f.geometry;
-  const watches    = filtered.filter(f => !isWarning(f) && withGeom(f));
-  const nonTorWarn = filtered.filter(f =>  isWarning(f) && !isTorWarn(f) && withGeom(f));
-  const torWarns   = filtered.filter(f =>  isTorWarn(f) && withGeom(f));
+  watchesLayer = L.layerGroup().addTo(watchesMap);
 
   const makeLayer = (feats, fillOpacity, weight, strokeColor) => L.geoJSON(
     { type:'FeatureCollection', features: feats },
@@ -2852,10 +2912,9 @@ function renderWatchesOnMap(features) {
   );
 
   // Draw order: watches (bottom) → non-tornado warnings → tornado warnings (top)
-  // Warnings are fully opaque (fillOpacity:1) so polygons never bleed into each other
-  makeLayer(watches,    0.2, 1.5, null).addTo(watchesLayer);
-  makeLayer(nonTorWarn, 1,   2,   '#000000').addTo(watchesLayer);
-  makeLayer(torWarns,   1,   2.5, '#000000').addTo(watchesLayer);
+  makeLayer(watches,    0.2,  1.5, null).addTo(watchesLayer);
+  makeLayer(nonTorWarn, 0.75, 1,   'rgba(0,0,0,0.45)').addTo(watchesLayer);
+  makeLayer(torWarns,   0.75, 1.5, 'rgba(0,0,0,0.55)').addTo(watchesLayer);
 }
 
 // Mobile watches panel toggle
@@ -3080,24 +3139,6 @@ function renderMesoOnMap(features) {
 document.getElementById('mob-md-toggle').addEventListener('click', () => {
   document.getElementById('md-panel').classList.toggle('mob-open');
 });
-
-// ══════════════════════════════════
-// NAV DROPDOWN
-// ══════════════════════════════════
-(function() {
-  document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
-    const btn = dropdown.querySelector('.nav-dropdown-btn');
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const isOpen = dropdown.classList.contains('open');
-      document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
-      if (!isOpen) dropdown.classList.add('open');
-    });
-  });
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
-  });
-})();
 
 // ══════════════════════════════════
 // INIT
