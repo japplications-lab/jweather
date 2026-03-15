@@ -105,9 +105,7 @@
       .mob-bar-meso{display:none;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
       .mob-bar-meso-title{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;}
       body.page-meso .mob-bar-meso{display:flex;}
-      body.page-outlook .mob-bar-2{display:flex;padding:0;}
-      body.page-outlook #mob-search-wrap{display:none;}
-      body.page-outlook #outlook-legend{display:flex !important;flex:1;border-bottom:none;}
+      body.page-outlook .mob-bar-2{display:flex;}
       .header-nav{display:none !important;}
       .logo-name{display:block !important;}
     }
@@ -374,11 +372,6 @@
     .mob-mode-row{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;scrollbar-width:none;justify-content:center;}
     .mob-mode-row::-webkit-scrollbar{display:none;}
     .mob-disc-row{display:flex;padding:6px 10px 8px;gap:8px;}
-    .mob-outlook-search-row{display:flex;padding:6px 10px 4px;border-bottom:1px solid var(--border);}
-    .mob-outlook-search-row .search-wrap{flex:1;max-width:none;}
-    body.page-outlook .mob-bar-2{display:flex;padding:0;}
-    body.page-outlook #mob-search-wrap{display:none;}
-    body.page-outlook #outlook-legend{display:flex !important;flex:1;border-bottom:none;}
     .mob-disc-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 10px;background:var(--red);border:none;border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:700;color:#fff;letter-spacing:0.02em;}
     .mob-disc-btn .material-symbols-rounded{font-size:13px;}
     .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
@@ -390,13 +383,12 @@
     @media(min-width:769px){
       #page-outlook.active .mob-controls{bottom:0;}
       #page-outlook .mob-day-tabs,#page-outlook .mob-mode-row,#page-outlook .mob-disc-row{display:none;}
-      #mob-outlook-search-row{display:none;}
     }
     @media(max-width:640px){
       .sidebar{display:none !important;}
       .mob-controls{display:block;}
       #page-outlook .app-body{padding-bottom:0;}
-      #page-outlook .map-panel{padding-bottom:234px;}
+      #page-outlook .map-panel{padding-bottom:188px;}
       .map-topbar{top:8px;left:8px;}
     }
     /* Discussion modal */
@@ -903,17 +895,6 @@
   </div>
   <!-- Mobile controls -->
   <div class="mob-controls" id="mob-outlook-controls">
-    <div class="mob-outlook-search-row" id="mob-outlook-search-row">
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar-outlook" type="search" autocomplete="off" placeholder="Pin a location on map…"/>
-          <button id="search-clear-outlook" class="search-clear-btn" onclick="clearSearch('search-bar-outlook','suggestions-outlook')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-          <button class="gps-btn" id="gps-btn-outlook" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-        </div>
-        <ul id="suggestions-outlook"></ul>
-      </div>
-    </div>
     <div class="mob-day-tabs" id="mob-day-tabs"></div>
     <div class="mob-mode-row" id="mob-mode-row"></div>
     <div class="mob-disc-row" id="mob-disc-row"></div>
@@ -1457,14 +1438,12 @@ function clearSearch(barId, sugId) {
 const _searchInputs = [
   { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
-  { bar: document.getElementById('search-bar-outlook'), sug: document.getElementById('suggestions-outlook'), outlookOnly: true },
   { bar: document.getElementById('search-bar-outlook-desk'), sug: document.getElementById('suggestions-outlook-desk'), outlookOnly: true },
 ].filter(x => x.bar && x.sug);
 
 const _gpsBtns = [
   document.getElementById('gps-btn-desk'),
   document.getElementById('gps-btn-mob'),
-  document.getElementById('gps-btn-outlook'),
   document.getElementById('gps-btn-outlook-desk'),
 ].filter(Boolean);
 
