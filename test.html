@@ -2051,6 +2051,12 @@ function compassToDegs(dir) {
 // ══════════════════════════════════
 
 // NOAA ArcGIS MapServer via worker /noaa/ proxy — constants declared at top of script
+
+// Layer IDs: Day 1: 1=cat, 2=sig_torn, 3=torn, 4=sig_hail, 5=hail, 6=sig_wind, 7=wind
+//            Day 2: 9=cat, 10=sig_torn, 11=torn, 12=sig_hail, 13=hail, 14=sig_wind, 15=wind
+//            Day 3: 17=cat, 18=prob, 19=sig
+
+const OUTLOOK_CAT = {
   'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General'   },
   'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'  },
   'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'     },
