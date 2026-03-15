@@ -1675,45 +1675,38 @@ function pointInFeature(pt, feature) {
 }
 
 async function fetchSpcOutlookForPoint(lat, lng) {
-  // Query the same NOAA ArcGIS MapServer the outlook map uses.
-  // Do a spatial contains query for the point — far more reliable than
-  // downloading full GeoJSON and doing client-side point-in-polygon.
-  const catLayers = [
-    { id: OUTLOOK_LAYER_IDS['1-cat'], label: 'Today',     day: 1 },
-    { id: OUTLOOK_LAYER_IDS['2-cat'], label: 'Tomorrow',  day: 2 },
-    { id: OUTLOOK_LAYER_IDS['3-cat'], label: 'in 2 Days', day: 3 },
+  const days = [
+    { url: 'day1otlk_cat.lyr.geojson', label: 'Today',     day: 1 },
+    { url: 'day2otlk_cat.lyr.geojson', label: 'Tomorrow',  day: 2 },
+    { url: 'day3otlk_cat.lyr.geojson', label: 'in 2 Days', day: 3 },
   ];
   const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
+  const pt = [lng, lat];
   const results = [];
 
-  for (const { id, label, day } of catLayers) {
+  for (const { url, label, day } of days) {
     try {
-      const params = new URLSearchParams({
-        where: '1=1',
-        geometry: `${lng},${lat}`,
-        geometryType: 'esriGeometryPoint',
-        spatialRel: 'esriSpatialRelIntersects',
-        inSR: '4326',
-        outFields: 'LABEL,DN',
-        f: 'json',
-        returnGeometry: 'false',
-      });
-      const res = await fetch(`${NOAA_OUTLOOK_BASE}/${id}/query?${params}`);
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (!data.features?.length) continue;
+      const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${url}`);
+      if (!res.ok) { console.warn(`[SPC] Failed ${url}: HTTP ${res.status}`); continue; }
+      const gj = await res.json();
+      if (!gj.features?.length) continue;
 
-      let best = null, bestOrder = -1;
-      for (const feat of data.features) {
-        const raw = (feat.attributes?.LABEL || feat.attributes?.DN || '').toString().toUpperCase().trim();
-        const key = SPC_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || null);
+      let best = null, bestOrder = 999;
+      for (const feat of gj.features) {
+        const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
+        const key = SPC_CAT[raw] ? raw : (DN_TO_CAT[raw] || null);
         if (!key) continue;
         const rank = order.indexOf(key);
-        if (rank > bestOrder) { best = key; bestOrder = rank; }
+        if (rank < bestOrder && pointInFeature(pt, feat)) { best = key; bestOrder = rank; }
       }
-      if (best) results.push({ risk: best, dayLabel: label, day });
-    } catch(e) {}
+      if (best) {
+        console.log(`[SPC] Day ${day}: ${best} at ${lat},${lng}`);
+        results.push({ risk: best, dayLabel: label, day });
+      }
+    } catch(e) { console.error(`[SPC] Error parsing ${url}:`, e); }
   }
+
+  console.log('[SPC] All results:', results);
   return results.length ? results : null;
 }
 
