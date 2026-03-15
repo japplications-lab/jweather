@@ -1663,13 +1663,14 @@ function pointInFeature(pt, feature) {
 
 async function fetchSpcOutlookForPoint(lat, lng) {
   const days = [
-    { url: 'day1otlk.json', label: 'Today' },
-    { url: 'day2otlk.json', label: 'Tomorrow' },
-    { url: 'day3otlk.json', label: 'in 2 Days' },
+    { url: 'day1otlk.json', label: 'Today',     day: 1 },
+    { url: 'day2otlk.json', label: 'Tomorrow',  day: 2 },
+    { url: 'day3otlk.json', label: 'in 2 Days', day: 3 },
   ];
   const order = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
   const pt = [lng, lat];
-  for (const { url, label } of days) {
+  const results = [];
+  for (const { url, label, day } of days) {
     try {
       const res = await fetch(`${WORKER_URL}/proxy/products/outlook/${url}`);
       if (!res.ok) continue;
@@ -1679,14 +1680,14 @@ async function fetchSpcOutlookForPoint(lat, lng) {
       for (const feat of gj.features) {
         const raw = (feat.properties?.LABEL || feat.properties?.label || feat.properties?.DN || '').toString().toUpperCase().trim();
         const key = SPC_CAT[raw] ? raw : (DN_TO_CAT[raw] || null);
-        if (!key || key === 'TSTM') continue;
+        if (!key) continue;
         const rank = order.indexOf(key);
         if (rank > bestOrder && pointInFeature(pt, feat)) { best = key; bestOrder = rank; }
       }
-      if (best) return { risk: best, dayLabel: label };
+      if (best) results.push({ risk: best, dayLabel: label, day });
     } catch(e) {}
   }
-  return null;
+  return results.length ? results : null;
 }
 
 // ── Load Weather ──
@@ -1806,19 +1807,28 @@ function renderForecast(periods) {
   });
 }
 
-function renderAlerts(data, spcResult) {
+function renderAlerts(data, spcResults) {
   alerts = data.features || [];
   const c = document.getElementById('alerts-content'); c.innerHTML = '';
-  if (spcResult && SPC_CAT[spcResult.risk]) {
+
+  // SPC outlook banners — one per day with risk
+  const spcList = Array.isArray(spcResults) ? spcResults : (spcResults ? [spcResults] : []);
+  spcList.forEach(spcResult => {
+    if (!SPC_CAT[spcResult.risk]) return;
     const info = SPC_CAT[spcResult.risk];
+    const isTstm = spcResult.risk === 'TSTM';
     const banner = document.createElement('a'); banner.className = 'spc-alert-row';
     banner.style.cursor = 'pointer';
-    banner.innerHTML = `<div class="spc-pip" style="background:${info.color};box-shadow:0 0 0 3px ${info.color}44"></div><div class="spc-alert-info"><div class="spc-alert-event">Severe Weather Possible ${spcResult.dayLabel}</div><div class="spc-alert-sub">${info.label} — Tap for details</div></div><span class="material-symbols-rounded spc-alert-chevron">chevron_right</span>`;
+    const dayNum = spcResult.day === 1 ? 'Day 1' : spcResult.day === 2 ? 'Day 2' : 'Day 3';
+    const eventText = isTstm ? `Storms Possible ${spcResult.dayLabel}` : `Severe Weather Possible ${spcResult.dayLabel}`;
+    const subText = isTstm ? `General Storms — ${dayNum}` : `${info.label} Risk — ${dayNum}`;
+    banner.innerHTML = `<div class="spc-pip" style="background:${info.color};box-shadow:0 0 0 3px ${info.color}44"></div><div class="spc-alert-info"><div class="spc-alert-event">${eventText}</div><div class="spc-alert-sub">${subText}</div></div><span class="material-symbols-rounded spc-alert-chevron">chevron_right</span>`;
     banner.addEventListener('click', () => navigate('outlook'));
     c.appendChild(banner);
-  }
-  if (!alerts.length && !spcResult) {
-    c.innerHTML = `<div class="no-alerts-row"><div class="no-alerts-pip"></div><div><div class="no-alerts-label">No active alerts</div><div class="no-alerts-sub">All clear.</div></div></div>`;
+  });
+
+  if (!alerts.length && !spcList.length) {
+    c.innerHTML = `<div class="no-alerts-row"><div class="no-alerts-pip"></div><div><div class="no-alerts-label">No active alerts</div><div class="no-alerts-sub">All clear for your area.</div></div></div>`;
     return;
   }
   alerts.forEach((feat, i) => {
