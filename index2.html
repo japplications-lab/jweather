@@ -2272,11 +2272,17 @@ function initOutlookMap() {
 
 function _centerMap(map, lat, lng) {
   if (!map) return;
+  // setView only works correctly when the map container is visible.
+  // Use invalidateSize + setView after a brief tick to let the browser render.
   const doCenter = () => {
-    const currentZoom = map.getZoom();
-    map.setView([lat, lng], Math.max(currentZoom, 7), { animate: true });
+    try {
+      map.invalidateSize();
+      const currentZoom = map.getZoom() || 4;
+      map.setView([lat, lng], Math.max(currentZoom, 7));
+    } catch(e) {}
   };
-  map.whenReady(doCenter);
+  // Small timeout ensures the map container is painted before we try to center
+  setTimeout(doCenter, 50);
 }
 
 function placeOutlookPin(loc) {
@@ -2841,7 +2847,7 @@ function initWatchesMap() {
   loadWatches();
 
   // Place pin for current location if one is set
-  if (curLoc?.lat) placeWatchesPin(curLoc);
+  if (curLoc?.lat) setTimeout(() => placeWatchesPin(curLoc), 100);
   if (_watchesPollInterval) clearInterval(_watchesPollInterval);
   if (_watchesTimerInterval) clearInterval(_watchesTimerInterval);
   _watchesTimeLeft = WATCHES_POLL_MS / 1000;
@@ -3097,7 +3103,7 @@ function showWatchDetail(feats, clickLatlng) {
 
     html += `
       <div class="wd-alert-item${openClass}" id="wd-item-${idx}">
-        <div class="wd-alert-header" onclick="toggleWdItem('wd-item-${idx}')">
+        <div class="wd-alert-header">
           <div class="wd-alert-bar" style="background:${color}"></div>
           <div class="wd-alert-meta">
             <div class="wd-alert-label">${label}</div>
@@ -3113,12 +3119,18 @@ function showWatchDetail(feats, clickLatlng) {
   document.getElementById('watch-detail').classList.add('open');
 }
 
-function toggleWdItem(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
-}
-
 function closeWatchDetail() { document.getElementById('watch-detail').classList.remove('open'); }
+
+// Event delegation — handles dynamically rendered alert items
+document.getElementById('wd-body').addEventListener('click', e => {
+  const header = e.target.closest('.wd-alert-header');
+  if (!header) return;
+  const item = header.parentElement;
+  item.classList.toggle('open');
+  if (item.classList.contains('open')) {
+    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+});
 
 let watchFilter = 'all';
 
