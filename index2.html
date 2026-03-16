@@ -426,9 +426,9 @@
     .watch-panel{display:none !important;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;max-height:calc(100% - 32px);flex-direction:column;overflow:hidden;}
+    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;max-height:calc(100% - 32px);flex-direction:column;}
     .watch-detail.open{display:flex;}
-    .watch-detail-body{overflow-y:auto;flex:1;padding:0;}
+    .watch-detail-body{overflow-y:auto;flex:1;padding:0;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);}
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
     .watch-detail-bar.tor{background:var(--tor-watch);}
     .watch-detail-bar.svr{background:var(--svr-watch);}
@@ -2274,18 +2274,9 @@ function _centerMap(map, lat, lng) {
   if (!map) return;
   const doCenter = () => {
     const currentZoom = map.getZoom();
-    if (currentZoom <= 5) {
-      map.setView([lat, lng], 7, { animate: true });
-    } else {
-      map.setView([lat, lng], currentZoom, { animate: true });
-    }
+    map.setView([lat, lng], Math.max(currentZoom, 7), { animate: true });
   };
-  // If map is already initialized, center immediately; otherwise wait for it
-  if (map._loaded) {
-    doCenter();
-  } else {
-    map.once('load', doCenter);
-  }
+  map.whenReady(doCenter);
 }
 
 function placeOutlookPin(loc) {
@@ -2888,13 +2879,21 @@ async function loadWatches(silent = false) {
     const normalizeWatch = (f) => {
       const p = f.properties || {};
       const type = p.prod_type || '';
+      // Log first feature to see available fields
+      if (!normalizeWatch._logged) { normalizeWatch._logged = true; console.log('[WWA fields]', Object.keys(p), p); }
+      // County/area name: try multiple possible field names from NOAA eventdriven
+      const areaDesc = p.area_desc || p.cap_area_desc || p.ugcname || p.countyname || p.location || p.states || p.warnarea || '';
+      // Alert text: NOAA eventdriven may use prod_str, cap_headline, or similar
+      const description = p.prod_str || p.cap_desc || p.description || p.cap_headline || p.headline || '';
       return {
         ...f,
         properties: {
           ...p,
           event: type,
-          expires: p.expiration || null,
-          areaDesc: p.area_desc || p.states || '',
+          expires: p.expiration || p.expires || null,
+          areaDesc,
+          description,
+          headline: p.headline || p.cap_headline || '',
           senderName: 'NWS',
           parameters: { watchNumber: [p.watch_num || p.phenom || ''] }
         }
@@ -3049,14 +3048,17 @@ function featureContainsPoint(feat, latlng) {
 
 function isTorWarnType(f) { return (f.properties?.event||'').toLowerCase().includes('tornado warning'); }
 
-function showWatchDetail(feats) {
-  // Extract best county/area name from the clicked features
-  const allAreas = feats.flatMap(f => 
-    (f.properties?.areaDesc || '').split(';').map(s => s.trim()).filter(Boolean)
-  );
-  const uniqueAreas = [...new Set(allAreas)];
-  const countyName = uniqueAreas.slice(0, 3).join(', ') + (uniqueAreas.length > 3 ? ` +${uniqueAreas.length - 3} more` : '');
-  document.getElementById('wd-county-name').textContent = countyName || 'Selected Area';
+function showWatchDetail(feats, clickLatlng) {
+  // Log raw properties so we can see actual field names
+  if (feats[0]) console.log('[WWA click properties]', feats[0].properties);
+
+  // Extract county/area name — try all known field names
+  const p0 = feats[0]?.properties || {};
+  const rawArea = p0.areaDesc || p0.area_desc || p0.cap_area_desc || p0.ugcname ||
+                  p0.countyname || p0.location || p0.states || p0.warnarea || '';
+  // Parse first county from semicolon-separated list
+  const firstArea = rawArea.split(';')[0].split(',')[0].trim();
+  document.getElementById('wd-county-name').textContent = firstArea || 'Selected Area';
 
   // Sort by threat level: Emergency → Observed → PDS → Tor Warning → Svr Warning → Flood → Watches
   const threatRank = f => {
@@ -3091,8 +3093,7 @@ function showWatchDetail(feats) {
       desc = desc.slice(0, cut > 80 ? cut + 1 : 300) + '…';
     }
 
-    const openClass = isWarn ? ' open' : ''; // warnings auto-expanded
-    const chevronStyle = isWarn ? 'transform:rotate(180deg)' : '';
+    const openClass = isWarn ? ' open' : '';
 
     html += `
       <div class="wd-alert-item${openClass}" id="wd-item-${idx}">
@@ -3100,11 +3101,9 @@ function showWatchDetail(feats) {
           <div class="wd-alert-bar" style="background:${color}"></div>
           <div class="wd-alert-meta">
             <div class="wd-alert-label">${label}</div>
-            <div class="wd-alert-expires${expiringSoon?' wd-alert-expiring':''}">
-              Until ${expStr}
-            </div>
+            <div class="wd-alert-expires${expiringSoon?' wd-alert-expiring':''}">Until ${expStr}</div>
           </div>
-          <span class="material-symbols-rounded wd-alert-chevron" style="${chevronStyle}">expand_more</span>
+          <span class="material-symbols-rounded wd-alert-chevron">expand_more</span>
         </div>
         ${desc ? `<div class="wd-alert-body">${desc}</div>` : ''}
       </div>`;
@@ -3238,7 +3237,7 @@ function renderWatchesOnMap(features) {
             const idx = watchesList.findIndex(f => f === clicked[0]);
             document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
             if (idx >= 0) { const card = document.querySelectorAll('.watch-card')[idx]; if (card) card.classList.add('selected'); }
-            showWatchDetail(clicked);
+            showWatchDetail(clicked, e.latlng);
           });
         }
       }
