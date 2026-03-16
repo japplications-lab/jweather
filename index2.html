@@ -425,7 +425,7 @@
     .watch-panel{display:none !important;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;top:16px;right:16px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;overflow:hidden;max-height:calc(100% - 32px);flex-direction:column;}
+    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;overflow:hidden;max-height:calc(100% - 32px);flex-direction:column;}
     .watch-detail.open{display:flex;}
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
     .watch-detail-bar.tor{background:var(--tor-watch);}
@@ -457,10 +457,12 @@
     .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
     .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
     /* Two-section legend */
-    .watches-map-legend{position:absolute;bottom:20px;left:14px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 12px;z-index:400;min-width:160px;}
+    .watches-map-legend{position:absolute;bottom:34px;left:14px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 12px;z-index:400;min-width:160px;}
     .watches-legend-section{margin-bottom:8px;}
     .watches-legend-section:last-child{margin-bottom:0;}
     .watches-legend-heading{font-size:0.57rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+    @media(max-width:768px){.watches-map-legend{bottom:120px;left:10px;}}
+    @media(max-width:640px){.watches-map-legend{bottom:108px;left:10px;}}
     .watches-mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-watches.active .watches-mob-controls{display:block;}
     .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;flex-wrap:wrap;}
@@ -472,12 +474,26 @@
     .wf-btn.active-all{background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.35);color:var(--red);}
     .wf-btn.active-observed{background:rgba(255,20,147,0.15);border-color:rgba(255,20,147,0.5);color:#ff69b4;}
     .wf-count{background:rgba(255,255,255,0.15);border-radius:10px;padding:1px 6px;font-size:0.62rem;font-weight:700;min-width:16px;text-align:center;}
-    @media(max-width:768px){
-      .watches-map-legend{bottom:130px;}
-    }
-    @media(max-width:640px){
-      .watches-map-legend{bottom:140px;}
-    }
+    /* County detail panel */
+    .wd-county{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;}
+    .wd-county-icon{font-size:14px;color:var(--text-4);}
+    .wd-county-name{font-size:0.82rem;font-weight:700;color:var(--text);flex:1;line-height:1.2;}
+    .wd-county-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;flex-shrink:0;}
+    .wd-county-close:hover{color:var(--text);}
+    .wd-county-close .material-symbols-rounded{font-size:17px;}
+    .wd-alert-item{border-bottom:1px solid var(--border);overflow:hidden;}
+    .wd-alert-item:last-child{border-bottom:none;}
+    .wd-alert-header{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;transition:background .1s;}
+    .wd-alert-header:hover{background:rgba(255,255,255,0.04);}
+    .wd-alert-bar{width:4px;height:32px;border-radius:2px;flex-shrink:0;}
+    .wd-alert-meta{flex:1;min-width:0;}
+    .wd-alert-label{font-size:0.73rem;font-weight:700;color:var(--text);line-height:1.2;}
+    .wd-alert-expires{font-size:0.63rem;color:var(--text-4);margin-top:2px;}
+    .wd-alert-chevron{font-size:14px;color:var(--text-4);transition:transform .2s;flex-shrink:0;}
+    .wd-alert-item.open .wd-alert-chevron{transform:rotate(180deg);}
+    .wd-alert-body{display:none;padding:0 14px 12px 26px;font-size:0.73rem;color:var(--text-2);line-height:1.65;}
+    .wd-alert-item.open .wd-alert-body{display:block;}
+    .wd-alert-expiring{color:var(--amber);}
     /* Live status pill */
     .watches-live-pill{position:absolute;top:14px;left:14px;z-index:420;display:flex;align-items:center;gap:8px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none;}
     .watches-live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:watches-pulse 1.5s infinite;}
@@ -961,11 +977,10 @@
         <div class="watches-timer-bar"><div class="watches-timer-fill" id="watches-timer-fill"></div></div>
       </div>
       <div class="watch-detail" id="watch-detail">
-        <div class="watch-detail-bar" id="wd-bar"></div>
-        <div class="watch-detail-head">
-          <span class="watch-detail-type" id="wd-type"></span>
-          <span class="watch-detail-num" id="wd-num"></span>
-          <button class="watch-detail-close" onclick="closeWatchDetail()"><span class="material-symbols-rounded">close</span></button>
+        <div class="wd-county" id="wd-county-head">
+          <span class="material-symbols-rounded wd-county-icon">location_on</span>
+          <span class="wd-county-name" id="wd-county-name">—</span>
+          <button class="wd-county-close" onclick="closeWatchDetail()"><span class="material-symbols-rounded">close</span></button>
         </div>
         <div class="watch-detail-body" id="wd-body"></div>
       </div>
@@ -2956,44 +2971,73 @@ function featureContainsPoint(feat, latlng) {
 function isTorWarnType(f) { return (f.properties?.event||'').toLowerCase().includes('tornado warning'); }
 
 function showWatchDetail(feats) {
-  const primary = feats[0];
-  const a = primary.properties;
-  const { cls, label } = getWatchType(a.event, primary);
-  const num = a.parameters?.watchNumber?.[0] || '';
-  const numStr = num ? ` #${num}` : '';
-  const expires = a.expires ? new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-  document.getElementById('wd-bar').className = `watch-detail-bar ${cls}`;
-  document.getElementById('wd-type').className = `watch-detail-type ${cls}`;
-  document.getElementById('wd-type').textContent = label;
-  document.getElementById('wd-num').textContent = numStr;
+  // Extract best county/area name from the clicked features
+  const allAreas = feats.flatMap(f => 
+    (f.properties?.areaDesc || '').split(';').map(s => s.trim()).filter(Boolean)
+  );
+  const uniqueAreas = [...new Set(allAreas)];
+  const countyName = uniqueAreas.slice(0, 3).join(', ') + (uniqueAreas.length > 3 ? ` +${uniqueAreas.length - 3} more` : '');
+  document.getElementById('wd-county-name').textContent = countyName || 'Selected Area';
 
-  const summaryHtml = (desc) => {
-    if (!desc) return '';
-    // Trim to ~250 chars at a sentence boundary
-    let s = desc.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-    if (s.length > 250) { const cut = s.lastIndexOf('.', 250); s = s.slice(0, cut > 80 ? cut + 1 : 250) + '…'; }
-    return `<div class="wd-row" style="align-items:flex-start"><div class="wd-label">Summary</div><div class="wd-value" style="font-size:0.72rem;line-height:1.55">${s}</div></div>`;
+  // Sort by threat level: Emergency → Observed → PDS → Tor Warning → Svr Warning → Flood → Watches
+  const threatRank = f => {
+    if (isTorWarnType(f) && isEmergency(f)) return 0;
+    if (isTorWarnType(f) && isObserved(f))  return 1;
+    if (isTorWarnType(f) && isPDS(f))       return 2;
+    if (isTorWarnType(f))                   return 3;
+    const ev = (f.properties?.event||'').toLowerCase();
+    if (ev.includes('severe thunderstorm warning')) return 4;
+    if (ev.includes('flash flood warning'))         return 5;
+    return 6; // watches
   };
+  const sorted = [...feats].sort((a, b) => threatRank(a) - threatRank(b));
 
-  let html = `
-    <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${a.areaDesc||'—'}</div></div>
-    <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${expires}</div></div>
-    <div class="wd-row"><div class="wd-label">Source</div><div class="wd-value">${a.senderName||'NWS'}</div></div>
-    ${summaryHtml(a.description || a.headline)}`;
+  const isWarningF = f => (f.properties?.event||'').toLowerCase().includes('warning');
 
-  feats.slice(1).forEach(f => {
-    const b = f.properties;
-    const { cls: cls2, label: label2 } = getWatchType(b.event, f);
-    const exp2 = b.expires ? new Date(b.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-    html += `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
-      <span class="watch-type-badge ${cls2}" style="display:inline-block;margin-bottom:6px">${label2.toUpperCase()}</span>
-      <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${b.areaDesc||'—'}</div></div>
-      <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${exp2}</div></div>
-      ${summaryHtml(b.description || b.headline)}
-    </div>`;
+  let html = '';
+  sorted.forEach((feat, idx) => {
+    const p = feat.properties;
+    const { cls, label, color } = getWatchType(p.event, feat);
+    const isWarn = isWarningF(feat);
+    const expires = p.expires ? new Date(p.expires) : null;
+    const expStr = expires
+      ? expires.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
+      : '—';
+    const expiringSoon = expires && (expires - Date.now()) < 3600000;
+
+    // Build description snippet — trim to ~300 chars at sentence boundary
+    let desc = (p.description || p.headline || '').replace(/\n+/g,' ').replace(/\s+/g,' ').trim();
+    if (desc.length > 300) {
+      const cut = desc.lastIndexOf('.', 300);
+      desc = desc.slice(0, cut > 80 ? cut + 1 : 300) + '…';
+    }
+
+    const openClass = isWarn ? ' open' : ''; // warnings auto-expanded
+    const chevronStyle = isWarn ? 'transform:rotate(180deg)' : '';
+
+    html += `
+      <div class="wd-alert-item${openClass}" id="wd-item-${idx}">
+        <div class="wd-alert-header" onclick="toggleWdItem('wd-item-${idx}')">
+          <div class="wd-alert-bar" style="background:${color}"></div>
+          <div class="wd-alert-meta">
+            <div class="wd-alert-label">${label}</div>
+            <div class="wd-alert-expires${expiringSoon?' wd-alert-expiring':''}">
+              Until ${expStr}
+            </div>
+          </div>
+          <span class="material-symbols-rounded wd-alert-chevron" style="${chevronStyle}">expand_more</span>
+        </div>
+        ${desc ? `<div class="wd-alert-body">${desc}</div>` : ''}
+      </div>`;
   });
+
   document.getElementById('wd-body').innerHTML = html;
   document.getElementById('watch-detail').classList.add('open');
+}
+
+function toggleWdItem(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
 }
 
 function closeWatchDetail() { document.getElementById('watch-detail').classList.remove('open'); }
