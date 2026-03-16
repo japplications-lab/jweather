@@ -2957,21 +2957,27 @@ async function loadWatches(silent = false) {
 
 function _alertText(feat) {
   const p = feat.properties || {};
-  // Checks all possible text fields from both NOAA eventdriven and NWS alerts API
-  return (p.description || p.headline || p.prod_type || p.prod_str || p.details || p.summary || p.event || '').toLowerCase();
+  // Only use description/headline text — NOT prod_str (full product text has too many false positives)
+  return (p.description || p.headline || '').toLowerCase();
 }
 
 function isEmergency(feat) {
+  // Must be a tornado warning with specific emergency phrase
+  if (!isTorWarnType(feat)) return false;
   return _alertText(feat).includes('tornado emergency');
 }
 
 function isObserved(feat) {
-  return _alertText(feat).includes('observed');
+  // Must be a tornado warning; NWS uses "TORNADO...OBSERVED" or "tornado observed"
+  if (!isTorWarnType(feat)) return false;
+  const t = _alertText(feat);
+  return t.includes('tornado...observed') || t.includes('tornado observed') || t.includes('observed tornado');
 }
 
 function isPDS(feat) {
+  if (!isTorWarnType(feat)) return false;
   const t = _alertText(feat);
-  return t.includes('particularly dangerous') || t.includes('pds');
+  return t.includes('particularly dangerous situation');
 }
 
 function getWatchType(event, feat) {
@@ -3123,6 +3129,7 @@ function closeWatchDetail() { document.getElementById('watch-detail').classList.
 
 // Event delegation — handles dynamically rendered alert items
 document.getElementById('wd-body').addEventListener('click', e => {
+  console.log('[wd-body click]', e.target, e.target.closest('.wd-alert-header'));
   const header = e.target.closest('.wd-alert-header');
   if (!header) return;
   const item = header.parentElement;
