@@ -1340,6 +1340,7 @@ function navigate(page) {
     else { loadWatches(); if (curLoc?.lat) placeWatchesPin(curLoc); }
   }
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
+  else if (page === 'meso' && curLoc?.lat) placeMesoPin(curLoc);
   if (page === 'hourly') loadHourly();
 }
 
@@ -1564,6 +1565,7 @@ async function useGPS() {
         updateRadar(lat, lng);
         placeOutlookPin(loc);
         placeWatchesPin(loc);
+        placeMesoPin(loc);
       } catch(e) {
         setGpsState('error');
         showToast('Could not determine your location');
@@ -1687,9 +1689,10 @@ function pick(loc, activeBar, activeSug) {
     bar.value = loc.label;
   });
 
-  // Always place pins on both map overlays
+  // Always place pins on all map overlays
   placeOutlookPin(loc);
   placeWatchesPin(loc);
+  placeMesoPin(loc);
 
   if (isOutlookSearch || isWatchesSearch) {
     saveRecent(loc);
@@ -2267,38 +2270,41 @@ function initOutlookMap() {
   if (curLoc?.lat) placeOutlookPin(curLoc);
 }
 
+function _centerMap(map, lat, lng) {
+  // If at or near the default national view (zoom ≤ 5), fly in to a useful zoom level.
+  // Otherwise just pan to the location, preserving the user's current zoom.
+  const currentZoom = map.getZoom();
+  if (currentZoom <= 5) {
+    map.flyTo([lat, lng], 7, { duration: 0.8 });
+  } else {
+    map.panTo([lat, lng], { animate: true, duration: 0.5 });
+  }
+}
+
 function placeOutlookPin(loc) {
   if (!outlookMap) return;
   if (outlookLocationMarker) { outlookMap.removeLayer(outlookLocationMarker); outlookLocationMarker = null; }
   if (!loc?.lat) return;
 
-  // Custom pulsing pin icon
   const pinIcon = L.divIcon({
     className: '',
-    html: `<div style="
-      position:relative;width:28px;height:36px;
-      filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));
-    ">
+    html: `<div style="position:relative;width:28px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
       <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
         <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
           fill="#f97316" stroke="#fff" stroke-width="2"/>
         <circle cx="14" cy="12" r="4" fill="#fff"/>
       </svg>
     </div>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -38],
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -38],
   });
 
   outlookLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
     .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
-      closeButton: false,
-      className: 'outlook-pin-popup',
-      maxWidth: 180,
+      closeButton: false, className: 'outlook-pin-popup', maxWidth: 180,
     })
     .addTo(outlookMap);
 
-  // Show popup briefly, then leave pin
+  _centerMap(outlookMap, loc.lat, loc.lng);
   outlookLocationMarker.openPopup();
   setTimeout(() => { if (outlookLocationMarker) outlookLocationMarker.closePopup(); }, 2500);
 }
@@ -2319,21 +2325,48 @@ function placeWatchesPin(loc) {
         <circle cx="14" cy="12" r="4" fill="#fff"/>
       </svg>
     </div>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -38],
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -38],
   });
 
   watchesLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
     .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
-      closeButton: false,
-      className: 'outlook-pin-popup',
-      maxWidth: 180,
+      closeButton: false, className: 'outlook-pin-popup', maxWidth: 180,
     })
     .addTo(watchesMap);
 
+  _centerMap(watchesMap, loc.lat, loc.lng);
   watchesLocationMarker.openPopup();
   setTimeout(() => { if (watchesLocationMarker) watchesLocationMarker.closePopup(); }, 2500);
+}
+
+let mesoLocationMarker = null;
+
+function placeMesoPin(loc) {
+  if (!mesoMap) return;
+  if (mesoLocationMarker) { mesoMap.removeLayer(mesoLocationMarker); mesoLocationMarker = null; }
+  if (!loc?.lat) return;
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
+      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
+          fill="#f97316" stroke="#fff" stroke-width="2"/>
+        <circle cx="14" cy="12" r="4" fill="#fff"/>
+      </svg>
+    </div>`,
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -38],
+  });
+
+  mesoLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
+    .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
+      closeButton: false, className: 'outlook-pin-popup', maxWidth: 180,
+    })
+    .addTo(mesoMap);
+
+  _centerMap(mesoMap, loc.lat, loc.lng);
+  mesoLocationMarker.openPopup();
+  setTimeout(() => { if (mesoLocationMarker) mesoLocationMarker.closePopup(); }, 2500);
 }
 
 async function fetchDayMaxThreat(day) {
@@ -3243,6 +3276,8 @@ function initMesoMap() {
   // Poll every 2 minutes for new MCDs
   if (window._mesoInterval) clearInterval(window._mesoInterval);
   window._mesoInterval = setInterval(loadMesoDiscussions, 120000);
+  // Place pin for current location if one is set
+  if (curLoc?.lat) placeMesoPin(curLoc);
 }
 
 async function loadMesoDiscussions() {
