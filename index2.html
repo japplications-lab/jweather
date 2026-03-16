@@ -457,7 +457,7 @@
     .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
     .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
     /* Two-section legend */
-    .watches-map-legend{position:absolute;bottom:34px;left:14px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 12px;z-index:400;min-width:160px;}
+    .watches-map-legend{position:absolute;bottom:62px;left:14px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 12px;z-index:400;min-width:160px;}
     .watches-legend-section{margin-bottom:8px;}
     .watches-legend-section:last-child{margin-bottom:0;}
     .watches-legend-heading{font-size:0.57rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border);}
@@ -1332,6 +1332,7 @@ function navigate(page) {
   // Lazy init maps
   if (page === 'outlook' && !outlookMapInit) { initOutlookMap(); outlookMapInit = true; }
   if (page === 'watches' && !watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
+  else if (page === 'watches') { loadWatches(); } // always refresh on re-visit
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
   if (page === 'hourly') loadHourly();
 }
