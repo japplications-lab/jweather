@@ -373,6 +373,12 @@
     .outlook-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
     .outlook-map-search #suggestions-outlook-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
     @media(max-width:640px){.outlook-map-search{display:none;}}
+    .watches-map-search{position:absolute;top:14px;right:52px;z-index:420;width:220px;pointer-events:auto;}
+    .watches-map-search .search-wrap{max-width:none;width:100%;}
+    .watches-map-search .search-row{background:rgba(26,29,36,0.94);backdrop-filter:blur(8px);border-color:var(--border-2);}
+    .watches-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
+    .watches-map-search #suggestions-watches-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
+    @media(max-width:640px){.watches-map-search{display:none;}}
     /* Mobile outlook controls */
     .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-outlook.active .mob-controls{display:block;}
@@ -976,6 +982,18 @@
         <span class="watches-live-text" id="watches-live-text">Live</span>
         <div class="watches-timer-bar"><div class="watches-timer-fill" id="watches-timer-fill"></div></div>
       </div>
+      <!-- Desktop map search overlay -->
+      <div class="watches-map-search" id="watches-map-search">
+        <div class="search-wrap">
+          <div class="search-row">
+            <span class="material-symbols-rounded">search</span>
+            <input id="search-bar-watches-desk" type="search" autocomplete="off" placeholder="Pin a location…"/>
+            <button id="search-clear-watches-desk" class="search-clear-btn" onclick="clearSearch('search-bar-watches-desk','suggestions-watches-desk')" style="display:none"><span class="material-symbols-rounded">close</span></button>
+            <button class="gps-btn" id="gps-btn-watches-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
+          </div>
+          <ul id="suggestions-watches-desk"></ul>
+        </div>
+      </div>
       <div class="watch-detail" id="watch-detail">
         <div class="wd-county" id="wd-county-head">
           <span class="material-symbols-rounded wd-county-icon">location_on</span>
@@ -1332,7 +1350,7 @@ function navigate(page) {
   // Lazy init maps
   if (page === 'outlook' && !outlookMapInit) { initOutlookMap(); outlookMapInit = true; }
   if (page === 'watches' && !watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
-  else if (page === 'watches') { loadWatches(); } // always refresh on re-visit
+  else if (page === 'watches') { loadWatches(); if (curLoc?.lat) placeWatchesPin(curLoc); }
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
   if (page === 'hourly') loadHourly();
 }
@@ -1506,12 +1524,14 @@ const _searchInputs = [
   { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
   { bar: document.getElementById('search-bar-outlook-desk'), sug: document.getElementById('suggestions-outlook-desk'), outlookOnly: true },
+  { bar: document.getElementById('search-bar-watches-desk'), sug: document.getElementById('suggestions-watches-desk'), watchesOnly: true },
 ].filter(x => x.bar && x.sug);
 
 const _gpsBtns = [
   document.getElementById('gps-btn-desk'),
   document.getElementById('gps-btn-mob'),
   document.getElementById('gps-btn-outlook-desk'),
+  document.getElementById('gps-btn-watches-desk'),
 ].filter(Boolean);
 
 function setGpsState(state) {
@@ -1557,6 +1577,7 @@ async function useGPS() {
         loadWeather(loc);
         updateRadar(lat, lng);
         placeOutlookPin(loc);
+        placeWatchesPin(loc);
       } catch(e) {
         setGpsState('error');
         showToast('Could not determine your location');
@@ -1670,28 +1691,25 @@ document.addEventListener('click', e => {
 
 function pick(loc, activeBar, activeSug) {
   selIdx = -1;
-  // Determine if this came from an outlook-only search bar
   const activeInput = _searchInputs.find(x => x.bar === activeBar);
   const isOutlookSearch = activeInput?.outlookOnly === true;
+  const isWatchesSearch = activeInput?.watchesOnly === true;
 
-  // Always close all suggestion dropdowns and update the active bar
-  _searchInputs.forEach(({bar, sug, outlookOnly}) => {
+  _searchInputs.forEach(({bar, sug}) => {
     sug.style.display = 'none';
     bar.blur();
-    // Sync label to all non-outlook bars always; sync outlook bars always too
     bar.value = loc.label;
   });
 
-  // Always place a pin on the outlook map
+  // Always place pins on both map overlays
   placeOutlookPin(loc);
+  placeWatchesPin(loc);
 
-  if (isOutlookSearch) {
-    // Outlook-only: just pin the map, save recent, don't reload weather
+  if (isOutlookSearch || isWatchesSearch) {
     saveRecent(loc);
     return;
   }
 
-  // Full weather search (from main search bars)
   curLoc = loc;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
   saveRecent(loc);
@@ -2299,6 +2317,39 @@ function placeOutlookPin(loc) {
   setTimeout(() => { if (outlookLocationMarker) outlookLocationMarker.closePopup(); }, 2500);
 }
 
+let watchesLocationMarker = null;
+
+function placeWatchesPin(loc) {
+  if (!watchesMap) return;
+  if (watchesLocationMarker) { watchesMap.removeLayer(watchesLocationMarker); watchesLocationMarker = null; }
+  if (!loc?.lat) return;
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
+      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
+          fill="#f97316" stroke="#fff" stroke-width="2"/>
+        <circle cx="14" cy="12" r="4" fill="#fff"/>
+      </svg>
+    </div>`,
+    iconSize: [28, 36],
+    iconAnchor: [14, 36],
+    popupAnchor: [0, -38],
+  });
+
+  watchesLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
+    .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
+      closeButton: false,
+      className: 'outlook-pin-popup',
+      maxWidth: 180,
+    })
+    .addTo(watchesMap);
+
+  watchesLocationMarker.openPopup();
+  setTimeout(() => { if (watchesLocationMarker) watchesLocationMarker.closePopup(); }, 2500);
+}
+
 async function fetchDayMaxThreat(day) {
   // Fetch cat layer for the day, return the highest threat color
   const layerId = OUTLOOK_LAYER_IDS[`${day}-cat`];
@@ -2772,7 +2823,8 @@ function initWatchesMap() {
 
   loadWatches();
 
-  // Auto-poll every 30s with countdown timer bar
+  // Place pin for current location if one is set
+  if (curLoc?.lat) placeWatchesPin(curLoc);
   if (_watchesPollInterval) clearInterval(_watchesPollInterval);
   if (_watchesTimerInterval) clearInterval(_watchesTimerInterval);
   _watchesTimeLeft = WATCHES_POLL_MS / 1000;
