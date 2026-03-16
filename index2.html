@@ -83,8 +83,9 @@
     .nav-dropdown-btn{display:flex;align-items:center;gap:3px;}
     .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
     .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
-    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:230px;z-index:600;transform-origin:top right;}
+    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:230px;z-index:600;transform-origin:top right;pointer-events:none;}
     .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
+    .nav-dropdown:hover .nav-dropdown-menu{pointer-events:auto;}
     .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
     .nav-dropdown-menu a,.nav-dropdown-menu button{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;width:100%;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;font-family:var(--font);}
     .nav-dropdown-menu a:last-child,.nav-dropdown-menu button:last-child{border-bottom:none;}
@@ -373,12 +374,6 @@
     .outlook-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
     .outlook-map-search #suggestions-outlook-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
     @media(max-width:640px){.outlook-map-search{display:none;}}
-    .watches-map-search{position:absolute;top:14px;right:52px;z-index:420;width:220px;pointer-events:auto;}
-    .watches-map-search .search-wrap{max-width:none;width:100%;}
-    .watches-map-search .search-row{background:rgba(26,29,36,0.94);backdrop-filter:blur(8px);border-color:var(--border-2);}
-    .watches-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
-    .watches-map-search #suggestions-watches-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
-    @media(max-width:640px){.watches-map-search{display:none;}}
     /* Mobile outlook controls */
     .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-outlook.active .mob-controls{display:block;}
@@ -431,8 +426,9 @@
     .watch-panel{display:none !important;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;overflow:hidden;max-height:calc(100% - 32px);flex-direction:column;}
+    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;max-height:calc(100% - 32px);flex-direction:column;overflow:hidden;}
     .watch-detail.open{display:flex;}
+    .watch-detail-body{overflow-y:auto;flex:1;padding:0;}
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
     .watch-detail-bar.tor{background:var(--tor-watch);}
     .watch-detail-bar.svr{background:var(--svr-watch);}
@@ -983,17 +979,7 @@
         <div class="watches-timer-bar"><div class="watches-timer-fill" id="watches-timer-fill"></div></div>
       </div>
       <!-- Desktop map search overlay -->
-      <div class="watches-map-search" id="watches-map-search">
-        <div class="search-wrap">
-          <div class="search-row">
-            <span class="material-symbols-rounded">search</span>
-            <input id="search-bar-watches-desk" type="search" autocomplete="off" placeholder="Pin a location…"/>
-            <button id="search-clear-watches-desk" class="search-clear-btn" onclick="clearSearch('search-bar-watches-desk','suggestions-watches-desk')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-            <button class="gps-btn" id="gps-btn-watches-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-          </div>
-          <ul id="suggestions-watches-desk"></ul>
-        </div>
-      </div>
+      <!-- (search handled by main header search bar) -->
       <div class="watch-detail" id="watch-detail">
         <div class="wd-county" id="wd-county-head">
           <span class="material-symbols-rounded wd-county-icon">location_on</span>
@@ -1349,8 +1335,10 @@ function navigate(page) {
 
   // Lazy init maps
   if (page === 'outlook' && !outlookMapInit) { initOutlookMap(); outlookMapInit = true; }
-  if (page === 'watches' && !watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
-  else if (page === 'watches') { loadWatches(); if (curLoc?.lat) placeWatchesPin(curLoc); }
+  if (page === 'watches') {
+    if (!watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
+    else { loadWatches(); if (curLoc?.lat) placeWatchesPin(curLoc); }
+  }
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
   if (page === 'hourly') loadHourly();
 }
@@ -1524,14 +1512,12 @@ const _searchInputs = [
   { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
   { bar: document.getElementById('search-bar-outlook-desk'), sug: document.getElementById('suggestions-outlook-desk'), outlookOnly: true },
-  { bar: document.getElementById('search-bar-watches-desk'), sug: document.getElementById('suggestions-watches-desk'), watchesOnly: true },
 ].filter(x => x.bar && x.sug);
 
 const _gpsBtns = [
   document.getElementById('gps-btn-desk'),
   document.getElementById('gps-btn-mob'),
   document.getElementById('gps-btn-outlook-desk'),
-  document.getElementById('gps-btn-watches-desk'),
 ].filter(Boolean);
 
 function setGpsState(state) {
@@ -2925,22 +2911,23 @@ async function loadWatches(silent = false) {
   }
 }
 
-function isEmergency(feat) {
+function _alertText(feat) {
   const p = feat.properties || {};
-  const desc = (p.description || p.headline || p.prod_type || '').toLowerCase();
-  return desc.includes('tornado emergency');
+  // Checks all possible text fields from both NOAA eventdriven and NWS alerts API
+  return (p.description || p.headline || p.prod_type || p.prod_str || p.details || p.summary || p.event || '').toLowerCase();
+}
+
+function isEmergency(feat) {
+  return _alertText(feat).includes('tornado emergency');
 }
 
 function isObserved(feat) {
-  const p = feat.properties || {};
-  const desc = (p.description || p.headline || p.prod_type || '').toLowerCase();
-  return desc.includes('observed');
+  return _alertText(feat).includes('observed');
 }
 
 function isPDS(feat) {
-  const p = feat.properties || {};
-  const desc = (p.description || p.headline || p.prod_type || '').toLowerCase();
-  return desc.includes('particularly dangerous') || desc.includes('pds');
+  const t = _alertText(feat);
+  return t.includes('particularly dangerous') || t.includes('pds');
 }
 
 function getWatchType(event, feat) {
