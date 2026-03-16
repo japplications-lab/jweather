@@ -431,7 +431,7 @@
     .watch-detail-bar.tor{background:var(--tor-watch);}
     .watch-detail-bar.svr{background:var(--svr-watch);}
     .watch-detail-bar.tor-warn{background:var(--tor-warn);}
-    .watch-detail-bar.tor-obs{background:#ff0000;}
+    .watch-detail-bar.tor-obs{background:var(--tor-pds);}
     .watch-detail-bar.tor-pds{background:var(--tor-pds);}
     .watch-detail-bar.tor-eme{background:var(--tor-eme);}
     .watch-detail-bar.tor-obs{background:var(--tor-obs);}
@@ -442,7 +442,7 @@
     .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
     .watch-detail-type.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
     .watch-detail-type.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
-    .watch-detail-type.tor-obs{background:rgba(255,0,0,0.2);color:#ff4444;border:2px solid rgba(255,0,0,0.7);}
+    .watch-detail-type.tor-obs{background:var(--tor-pds-dim);color:#ff69b4;border:2px solid var(--tor-pds-border);}
     .watch-detail-type.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
     .watch-detail-type.tor-eme{background:var(--tor-eme-dim);color:#ff80ff;border:1px solid var(--tor-eme-border);}
     .watch-detail-type.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
@@ -463,15 +463,21 @@
     .watches-legend-heading{font-size:0.57rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border);}
     .watches-mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-watches.active .watches-mob-controls{display:block;}
-    .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;}
+    .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;flex-wrap:wrap;}
     .wf-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
     .wf-btn .wf-swatch{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
     .wf-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .wf-btn.active-watches{background:rgba(255,230,0,0.1);border-color:rgba(255,230,0,0.4);color:#ffe600;}
     .wf-btn.active-warnings{background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.35);color:#ff6b6b;}
     .wf-btn.active-all{background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.35);color:var(--red);}
-    .wf-btn.active-observed{background:rgba(255,0,0,0.15);border-color:rgba(255,0,0,0.6);color:#ff4444;}
+    .wf-btn.active-observed{background:rgba(255,20,147,0.15);border-color:rgba(255,20,147,0.5);color:#ff69b4;}
     .wf-count{background:rgba(255,255,255,0.15);border-radius:10px;padding:1px 6px;font-size:0.62rem;font-weight:700;min-width:16px;text-align:center;}
+    @media(max-width:768px){
+      .watches-map-legend{bottom:130px;}
+    }
+    @media(max-width:640px){
+      .watches-map-legend{bottom:140px;}
+    }
     /* Live status pill */
     .watches-live-pill{position:absolute;top:14px;left:14px;z-index:420;display:flex;align-items:center;gap:8px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none;}
     .watches-live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:watches-pulse 1.5s infinite;}
@@ -492,7 +498,7 @@
     .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
     .watch-type-badge.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
     .watch-type-badge.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
-    .watch-type-badge.tor-obs{background:rgba(255,0,0,0.2);color:#ff4444;border:2px solid rgba(255,0,0,0.7);}
+    .watch-type-badge.tor-obs{background:var(--tor-pds-dim);color:#ff69b4;border:2px solid var(--tor-pds-border);}
     .watch-type-badge.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
     .watch-type-badge.tor-eme{background:var(--tor-eme-dim);color:#ff80ff;border:1px solid var(--tor-eme-border);}
     .watch-type-badge.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
@@ -2873,7 +2879,7 @@ function getWatchType(event, feat) {
   const ev = (event||'');
   if (ev === 'Tornado Warning' || ev.toLowerCase().includes('tornado warning')) {
     if (feat && isEmergency(feat)) return { cls:'tor-eme',  label:'Tornado Emergency',    color:'#ff00ff', pane:'emePane'  };
-    if (feat && isObserved(feat))  return { cls:'tor-obs',  label:'Observed Tornado',     color:'#ff0000', pane:'torPane'  };
+    if (feat && isObserved(feat))  return { cls:'tor-obs',  label:'Observed Tornado',     color:'#ff1493', pane:'pdsPane'  };
     if (feat && isPDS(feat))       return { cls:'tor-pds',  label:'PDS Tornado Warning',  color:'#ff1493', pane:'pdsPane'  };
     return                                { cls:'tor-warn', label:'Tornado Warning',       color:'#ff0000', pane:'torPane'  };
   }
@@ -2995,73 +3001,69 @@ function closeWatchDetail() { document.getElementById('watch-detail').classList.
 let watchFilter = 'all';
 
 function setWatchFilter(filter) {
+  const isWarningF = f => (f.properties?.event||'').toLowerCase().includes('warning');
+  const warnCount  = watchesList.filter(f =>  isWarningF(f)).length;
+  const watchCount = watchesList.filter(f => !isWarningF(f)).length;
+  const obsCount   = watchesList.filter(f => isTorWarnType(f) && isObserved(f)).length;
+
+  // If chosen filter has no items, fall back to 'all'
+  if (filter === 'watches'  && watchCount === 0) filter = 'all';
+  if (filter === 'warnings' && warnCount  === 0) filter = 'all';
+  if (filter === 'observed' && obsCount   === 0) filter = 'all';
   watchFilter = filter;
-  ['all','watches','warnings','observed'].forEach(f => {
-    const btn = document.getElementById(`wf-${f}`);
+
+  // Show/hide + activate buttons
+  const btnDefs = [
+    { id: 'all',      count: watchesList.length, activeClass: 'active-all'      },
+    { id: 'watches',  count: watchCount,          activeClass: 'active-watches'  },
+    { id: 'warnings', count: warnCount,           activeClass: 'active-warnings' },
+    { id: 'observed', count: obsCount,            activeClass: 'active-observed' },
+  ];
+  btnDefs.forEach(({ id, count, activeClass }) => {
+    const btn = document.getElementById(`wf-${id}`);
     if (!btn) return;
+    btn.style.display = (id === 'all' || count > 0) ? '' : 'none';
     btn.classList.remove('active','active-all','active-watches','active-warnings','active-observed');
-    if (f === filter) {
-      btn.classList.add('active');
-      if (f === 'all')      btn.classList.add('active-all');
-      if (f === 'watches')  btn.classList.add('active-watches');
-      if (f === 'warnings') btn.classList.add('active-warnings');
-      if (f === 'observed') btn.classList.add('active-observed');
-    }
+    if (id === filter) btn.classList.add('active', activeClass);
   });
 
-  // Build two-section legend: Watches | Warnings
+  // Build two-section legend — only active types, hide when empty
   const legendEl = document.querySelector('.watches-map-legend');
   if (legendEl) {
-    const hasEme    = watchesList.some(f => isTorWarnType(f) && isEmergency(f));
-    const hasObs    = watchesList.some(f => isTorWarnType(f) && isObserved(f));
-    const hasPDS    = watchesList.some(f => isTorWarnType(f) && isPDS(f));
-    const hasTor    = watchesList.some(f => isTorWarnType(f));
-    const hasSvr    = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning'));
-    const hasFlood  = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('flash flood'));
-    const hasTorWatch  = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('tornado watch'));
-    const hasSvrWatch  = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm watch'));
+    const hasEme     = watchesList.some(f => isTorWarnType(f) && isEmergency(f));
+    const hasObs     = watchesList.some(f => isTorWarnType(f) && isObserved(f));
+    const hasPDS     = watchesList.some(f => isTorWarnType(f) && isPDS(f) && !isObserved(f));
+    const hasTor     = watchesList.some(f => isTorWarnType(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f));
+    const hasSvr     = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning'));
+    const hasFlood   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('flash flood'));
+    const hasTorWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('tornado watch'));
+    const hasSvrWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm watch'));
 
-    const swatch = (color, border) =>
-      `<div class="legend-swatch" style="background:${color};${border ? `border:${border};` : ''}"></div>`;
+    const sw = (color, border) =>
+      `<div class="legend-swatch" style="background:${color};${border?`border:${border};`:''}"></div>`;
 
-    let html = '';
     const showWatches  = filter === 'all' || filter === 'watches';
     const showWarnings = filter === 'all' || filter === 'warnings' || filter === 'observed';
+    let html = '';
 
     if (showWatches && (hasTorWatch || hasSvrWatch)) {
-      html += `<div class="watches-legend-section">
-        <div class="watches-legend-heading">Watches</div>
-        ${hasTorWatch ? `<div class="legend-item">${swatch('var(--tor-watch)')}<span class="legend-label">Tornado Watch</span></div>` : ''}
-        ${hasSvrWatch ? `<div class="legend-item">${swatch('var(--svr-watch)')}<span class="legend-label">Svr T-Storm Watch</span></div>` : ''}
+      html += `<div class="watches-legend-section"><div class="watches-legend-heading">Watches</div>
+        ${hasTorWatch ? `<div class="legend-item">${sw('var(--tor-watch)')}<span class="legend-label">Tornado Watch</span></div>` : ''}
+        ${hasSvrWatch ? `<div class="legend-item">${sw('var(--svr-watch)')}<span class="legend-label">Svr T-Storm Watch</span></div>` : ''}
       </div>`;
     }
-
-    if (showWarnings && (hasTor || hasSvr || hasFlood)) {
-      html += `<div class="watches-legend-section">
-        <div class="watches-legend-heading">Warnings</div>
-        ${hasEme  ? `<div class="legend-item">${swatch('var(--tor-eme)')}<span class="legend-label">Tornado Emergency</span></div>` : ''}
-        ${hasObs  ? `<div class="legend-item">${swatch('#ff0000','2px solid rgba(255,255,255,0.6)')}<span class="legend-label">Observed Tornado</span></div>` : ''}
-        ${hasPDS  ? `<div class="legend-item">${swatch('var(--tor-pds)')}<span class="legend-label">PDS Tornado Warning</span></div>` : ''}
-        ${hasTor  ? `<div class="legend-item">${swatch('var(--tor-warn)')}<span class="legend-label">Tornado Warning</span></div>` : ''}
-        ${hasSvr  ? `<div class="legend-item">${swatch('var(--svr-warn)')}<span class="legend-label">Svr T-Storm Warning</span></div>` : ''}
-        ${hasFlood? `<div class="legend-item">${swatch('var(--flood-warn)')}<span class="legend-label">Flash Flood Warning</span></div>` : ''}
-      </div>`;
-    }
-
-    if (!html) {
-      html = `<div class="watches-legend-section">
-        <div class="watches-legend-heading">Watches</div>
-        <div class="legend-item">${swatch('var(--tor-watch)')}<span class="legend-label">Tornado Watch</span></div>
-        <div class="legend-item">${swatch('var(--svr-watch)')}<span class="legend-label">Svr T-Storm Watch</span></div>
-      </div>
-      <div class="watches-legend-section">
-        <div class="watches-legend-heading">Warnings</div>
-        <div class="legend-item">${swatch('var(--tor-warn)')}<span class="legend-label">Tornado Warning</span></div>
-        <div class="legend-item">${swatch('var(--svr-warn)')}<span class="legend-label">Svr T-Storm Warning</span></div>
-        <div class="legend-item">${swatch('var(--flood-warn)')}<span class="legend-label">Flash Flood Warning</span></div>
+    if (showWarnings && (hasEme || hasObs || hasPDS || hasTor || hasSvr || hasFlood)) {
+      html += `<div class="watches-legend-section"><div class="watches-legend-heading">Warnings</div>
+        ${hasEme   ? `<div class="legend-item">${sw('var(--tor-eme)')}<span class="legend-label">Tornado Emergency</span></div>` : ''}
+        ${hasObs   ? `<div class="legend-item">${sw('var(--tor-pds)','2px solid rgba(255,255,255,0.5)')}<span class="legend-label">Observed Tornado</span></div>` : ''}
+        ${hasPDS   ? `<div class="legend-item">${sw('var(--tor-pds)')}<span class="legend-label">PDS Tornado Warning</span></div>` : ''}
+        ${hasTor   ? `<div class="legend-item">${sw('var(--tor-warn)')}<span class="legend-label">Tornado Warning</span></div>` : ''}
+        ${hasSvr   ? `<div class="legend-item">${sw('var(--svr-warn)')}<span class="legend-label">Svr T-Storm Warning</span></div>` : ''}
+        ${hasFlood ? `<div class="legend-item">${sw('var(--flood-warn)')}<span class="legend-label">Flash Flood Warning</span></div>` : ''}
       </div>`;
     }
     legendEl.innerHTML = html;
+    legendEl.style.display = html.trim() ? '' : 'none';
   }
 
   if (watchesList.length && watchesMap) renderWatchesOnMap(watchesList);
