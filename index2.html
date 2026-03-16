@@ -483,7 +483,7 @@
     .wd-county-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;flex-shrink:0;}
     .wd-county-close:hover{color:var(--text);}
     .wd-county-close .material-symbols-rounded{font-size:17px;}
-    .wd-alert-item{border-bottom:1px solid var(--border);overflow:hidden;}
+    .wd-alert-item{border-bottom:1px solid var(--border);}
     .wd-alert-item:last-child{border-bottom:none;}
     .wd-alert-header{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;transition:background .1s;}
     .wd-alert-header:hover{background:rgba(255,255,255,0.04);}
@@ -2271,13 +2271,20 @@ function initOutlookMap() {
 }
 
 function _centerMap(map, lat, lng) {
-  // If at or near the default national view (zoom ≤ 5), fly in to a useful zoom level.
-  // Otherwise just pan to the location, preserving the user's current zoom.
-  const currentZoom = map.getZoom();
-  if (currentZoom <= 5) {
-    map.flyTo([lat, lng], 7, { duration: 0.8 });
+  if (!map) return;
+  const doCenter = () => {
+    const currentZoom = map.getZoom();
+    if (currentZoom <= 5) {
+      map.setView([lat, lng], 7, { animate: true });
+    } else {
+      map.setView([lat, lng], currentZoom, { animate: true });
+    }
+  };
+  // If map is already initialized, center immediately; otherwise wait for it
+  if (map._loaded) {
+    doCenter();
   } else {
-    map.panTo([lat, lng], { animate: true, duration: 0.5 });
+    map.once('load', doCenter);
   }
 }
 
@@ -2862,9 +2869,8 @@ function initWatchesMap() {
 
 async function loadWatches(silent = false) {
   const refreshBtn = document.getElementById('watches-refresh-btn');
-  if (!silent) {
+  if (!silent && refreshBtn) {
     refreshBtn.classList.add('spinning');
-    document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
   }
   const liveText = document.getElementById('watches-live-text');
   if (liveText) liveText.textContent = 'Updating…';
@@ -2940,7 +2946,7 @@ async function loadWatches(silent = false) {
     if (!silent) document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
     if (liveText) liveText.textContent = 'Update failed';
   } finally {
-    refreshBtn.classList.remove('spinning');
+    if (refreshBtn) refreshBtn.classList.remove('spinning');
   }
 }
 
