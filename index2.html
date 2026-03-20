@@ -41,26 +41,33 @@
     .fi{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 48;}
 
     /* ── HEADER ── */
-    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);overflow:visible;}
-    .header-inner{height:100%;max-width:100%;padding:0 20px;display:flex;align-items:center;gap:16px;}
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:auto;overflow:visible;}
+    .header-inner{max-width:100%;display:flex;flex-direction:column;}
+    .header-row1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
     .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;cursor:pointer;}
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:#ffffff;letter-spacing:-0.02em;}
     .logo-name span{color:#ffffff;}
+    .header-row2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+    body.page-watches .header-row2,body.page-meso .header-row2,body.page-severe101 .header-row2{display:none;}
+    body.page-outlook .header-row2{display:flex;}
+    .mob-bar-meso{display:none;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
+    .mob-bar-meso-title{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;}
+    body.page-meso .mob-bar-meso{display:flex;}
 
     /* Search */
-    .search-wrap{flex:1;max-width:440px;position:relative;}
+    .search-wrap{flex:1;max-width:none;width:100%;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
     .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
-    #search-bar,#search-bar-mob{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
-    #search-bar::placeholder,#search-bar-mob::placeholder{color:var(--text-4);}
-    #suggestions,#suggestions-mob{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
-    #suggestions li,#suggestions-mob li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
-    #suggestions li:last-child,#suggestions-mob li:last-child{border-bottom:none;}
-    #suggestions li:hover,#suggestions li.active,#suggestions-mob li:hover,#suggestions-mob li.active{background:var(--red-dim);}
-    #suggestions li .material-symbols-rounded,#suggestions-mob li .material-symbols-rounded{font-size:13px;color:var(--red);}
+    #search-bar-mob{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-bar-mob::placeholder{color:var(--text-4);}
+    #suggestions-mob{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+    #suggestions-mob li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
+    #suggestions-mob li:last-child{border-bottom:none;}
+    #suggestions-mob li:hover,#suggestions-mob li.active{background:var(--red-dim);}
+    #suggestions-mob li .material-symbols-rounded{font-size:13px;color:var(--red);}
     .sug-section-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-4);padding:8px 14px 4px;}
     .sug-remove{font-size:11px;color:var(--text-4);background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;font-family:var(--font);line-height:1;flex-shrink:0;}
     .sug-remove:hover{color:var(--red);background:var(--red-dim);}
@@ -73,46 +80,7 @@
     .gps-btn .material-symbols-rounded{font-size:17px;}
     .gps-btn.loading .material-symbols-rounded{animation:spin .8s linear infinite;color:var(--red);}
     .gps-btn.located .material-symbols-rounded{color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-
-    /* Nav */
-    .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
-    .header-nav button,.header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);background:none;border:none;text-decoration:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
-    .header-nav button:hover,.header-nav a:hover{color:var(--text);background:var(--bg);}
-    .header-nav button.active,.header-nav a.active{color:var(--red);}
-    .nav-dropdown{position:relative;}
-    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;}
-    .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
-    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
-    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:230px;z-index:600;transform-origin:top right;pointer-events:none;}
-    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
-    .nav-dropdown:hover .nav-dropdown-menu{pointer-events:auto;}
-    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
-    .nav-dropdown-menu a,.nav-dropdown-menu button{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;width:100%;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;font-family:var(--font);}
-    .nav-dropdown-menu a:last-child,.nav-dropdown-menu button:last-child{border-bottom:none;}
-    .nav-dropdown-menu a:hover,.nav-dropdown-menu button:hover,.nav-dropdown-menu a.active,.nav-dropdown-menu button.active{background:var(--red-dim);color:var(--red);}
-    .nav-dropdown-menu a .material-symbols-rounded,.nav-dropdown-menu button .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .nav-dropdown-menu a:hover .material-symbols-rounded,.nav-dropdown-menu button:hover .material-symbols-rounded,.nav-dropdown-menu a.active .material-symbols-rounded{color:var(--red);}
     [data-coming-soon]{opacity:0.45;cursor:not-allowed !important;pointer-events:none;}
-
-    /* Mobile header */
-    .mob-bar-1{display:contents;}
-    .mob-bar-2{display:none;}
-    .mob-bar-meso{display:none;}
-    @media(max-width:640px){
-      header{height:auto !important;}
-      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
-      .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
-      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      body.page-watches .mob-bar-2, body.page-meso .mob-bar-2, body.page-severe101 .mob-bar-2{display:none;}
-      .mob-bar-meso{display:none;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
-      .mob-bar-meso-title{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;}
-      body.page-meso .mob-bar-meso{display:flex;}
-      body.page-outlook .mob-bar-2{display:flex;}
-      .header-nav{display:none !important;}
-      .logo-name{display:block !important;}
-    }
 
     /* ── PAGES ── */
     .page{display:none;flex:1;min-height:0;overflow:hidden;}
@@ -122,9 +90,7 @@
        PAGE: FORECAST (index)
     ══════════════════════════════════ */
     #page-forecast{overflow-y:auto;}
-    #page-forecast .page-inner{max-width:1280px;margin:0 auto;padding:20px 24px 80px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
-    @media(max-width:768px){#page-forecast .page-inner{grid-template-columns:1fr;padding:14px 14px 80px;}}
-    .left-col,.right-col{display:flex;flex-direction:column;gap:16px;}
+    #page-forecast .page-inner{padding:14px 14px 80px;display:flex;flex-direction:column;gap:16px;}
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
     .card-top{padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between;}
     .card-top-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
@@ -134,9 +100,6 @@
     .current-loc{font-size:1.25rem;font-weight:700;color:var(--text);letter-spacing:-0.025em;line-height:1.25;}
     .current-time{font-size:0.73rem;color:var(--text-3);margin-top:3px;}
     .current-hero{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:18px 20px;background:var(--red);border-radius:var(--r-sm);position:relative;overflow:hidden;}
-    .current-hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0;transition:opacity 1s ease;}
-    .current-hero-video.loaded{opacity:1;}
-    .current-hero-overlay{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,0.32);border-radius:var(--r-sm);pointer-events:none;}
     .current-hero::after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(255,255,255,0.07);border-radius:50%;pointer-events:none;z-index:1;}
     .current-hero::before{content:'';position:absolute;right:30px;bottom:-50px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%;pointer-events:none;z-index:1;}
     .current-temp-big{font-size:5rem;font-weight:800;color:#fff;letter-spacing:-0.04em;line-height:1;position:relative;z-index:1;}
@@ -321,62 +284,28 @@
     ══════════════════════════════════ */
     #page-outlook{flex:1;flex-direction:column;min-height:0;}
     #page-outlook .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
-    #page-outlook .map-panel{padding-bottom:38px;}
-    /* Sidebar */
-    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
-    .sidebar-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .sidebar-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.11em;color:var(--text-4);}
-    .day-section{border-bottom:1px solid var(--border);}
-    .day-section-head{padding:8px 14px 6px;display:flex;align-items:center;justify-content:space-between;}
-    .day-section-label{display:flex;flex-direction:column;gap:1px;}
-    .day-eyebrow{font-size:0.57rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
-    .day-name{font-size:0.83rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
-    .day-badge{font-size:0.57rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:1px 5px;white-space:nowrap;}
-    .cat-list{padding:2px 8px 4px;}
-    .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
-    .cat-btn:hover{background:var(--bg);color:var(--text-2);}
-    .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
-    .cat-icon{font-size:15px;flex-shrink:0;color:var(--text-3);font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
-    .cat-btn.active .cat-icon{color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    .disc-sidebar-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 10px;padding:7px 9px;border:none;background:var(--red);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:700;color:#fff;letter-spacing:0.02em;transition:opacity .15s,transform .1s;}
-    .disc-sidebar-btn:hover{opacity:0.88;transform:translateY(-1px);}
-    .disc-sidebar-btn .material-symbols-rounded{font-size:14px;}
     /* Map panel */
     .map-panel{flex:1;position:relative;background:var(--bg);min-width:0;}
     #outlook-map{position:absolute;inset:0;width:100%;height:100%;}
-    .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
+    .map-topbar{position:absolute;top:8px;left:8px;right:8px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
     .map-context-pill{background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
-    .outlook-legend-bar{display:flex;align-items:center;justify-content:center;padding:4px 12px;overflow-x:auto;scrollbar-width:none;gap:0;background:#2a2d36;width:100%;}
-    .outlook-legend-bar::-webkit-scrollbar{display:none;}
-    .outlook-legend-items{display:flex;flex-direction:row;gap:2px;flex-wrap:nowrap;justify-content:center;}
-    .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
-    .legend-items{display:flex;flex-direction:column;gap:5px;}
     .legend-item{display:flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:500;color:var(--text-2);padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
     .legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,0.15);}
-    .legend-num{font-size:0.65rem;font-weight:700;color:var(--text-4);min-width:26px;font-variant-numeric:tabular-nums;}
     .legend-label{color:var(--text-3);font-size:0.68rem;}
-    .legend-active{background:rgba(255,255,255,0.06);}
-    .legend-active .legend-label{color:var(--text);font-weight:600;}
-    .legend-dim{opacity:0.3;}
     .map-loading-ov{position:absolute;inset:0;z-index:410;background:rgba(15,17,21,0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading-ov.hidden{opacity:0;pointer-events:none;}
     /* On-map outlook legend */
-    .outlook-map-legend{position:absolute;bottom:20px;left:14px;z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 10px;pointer-events:none;}
+    .outlook-map-legend{position:absolute;bottom:200px;left:10px;z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 10px;pointer-events:none;}
     .outlook-map-legend-items{display:flex;flex-direction:column;gap:4px;}
     .outlook-map-legend-items .legend-item{padding:0;font-size:0.68rem;}
     .outlook-map-legend-items .legend-swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);}
     .outlook-map-legend-items .legend-label{color:var(--text-2);font-size:0.68rem;font-weight:500;}
-    /* Outlook map search overlay (desktop + always visible on map) */
-    .outlook-map-search{position:absolute;top:14px;right:14px;z-index:420;width:220px;pointer-events:auto;}
-    .outlook-map-search .search-wrap{max-width:none;width:100%;}
-    .outlook-map-search .search-row{background:rgba(26,29,36,0.94);backdrop-filter:blur(8px);border-color:var(--border-2);}
-    .outlook-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
-    .outlook-map-search #suggestions-outlook-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
-    @media(max-width:640px){.outlook-map-search{display:none;}}
-    /* Mobile outlook controls */
-    .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
+    /* Mobile outlook controls — always visible */
+    .mob-controls{display:none;position:fixed;bottom:62px;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-outlook.active .mob-controls{display:block;}
+    #page-outlook .app-body{padding-bottom:0;}
+    #page-outlook .map-panel{padding-bottom:188px;}
     .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
     .mob-day-tab{flex:1;padding:9px 4px 0;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;flex-direction:column;align-items:center;gap:4px;}
     .mob-day-tab-label{padding-bottom:5px;}
@@ -390,21 +319,6 @@
     .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
     .mob-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .mob-mode-btn .material-symbols-rounded{font-size:13px;}
-    @media(max-width:768px){
-      .mob-controls{bottom:62px;}
-    }
-    @media(min-width:769px){
-      #page-outlook.active .mob-controls{bottom:0;}
-      #page-outlook .mob-day-tabs,#page-outlook .mob-mode-row,#page-outlook .mob-disc-row{display:none;}
-    }
-    @media(max-width:640px){
-      .sidebar{display:none !important;}
-      .mob-controls{display:block;}
-      #page-outlook .app-body{padding-bottom:0;}
-      #page-outlook .map-panel{padding-bottom:188px;}
-      .map-topbar{top:8px;left:8px;}
-      .outlook-map-legend{bottom:200px;left:10px;}
-    }
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
     .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:500px;width:100%;max-height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
@@ -522,21 +436,11 @@
     .watch-type-badge.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
     .watch-type-badge.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
     .watch-type-badge.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
-    @media(max-width:768px){
-      .watches-mob-controls{bottom:62px;}
-      #page-watches .watch-map-panel{padding-bottom:52px;}
-    }
-    @media(min-width:769px){
-      #page-watches.active .watches-mob-controls{bottom:0;}
-      #page-watches .watches-filter-row{display:none;}
-      .watches-mob-controls{display:block !important;}
-      .watches-filter-row{display:flex !important;}
-    }
-    @media(max-width:768px){
-      .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
-      .watch-panel.mob-open{display:flex;}
-      .watch-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
-    }
+    .watches-mob-controls{bottom:62px;}
+    #page-watches .watch-map-panel{padding-bottom:52px;}
+    .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
+    .watch-panel.mob-open{display:flex;}
+    .watch-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
 
     /* ══════════════════════════════════
        PAGE: MESO
@@ -599,17 +503,14 @@
     .md-detail-close{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--text-4);}
     .md-detail-close:hover{color:var(--text);}
     .md-detail-close .material-symbols-rounded{font-size:16px;}
-    @media(max-width:768px){
-      .md-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
-      .md-panel.mob-open{display:flex;}
-      .status-pill{left:12px;}
-      .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
-      :root{--md-panel:0px;}
-    }
+    .md-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
+    .md-panel.mob-open{display:flex;}
+    .status-pill{left:12px;}
+    .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
+    :root{--md-panel:0px;}
     .mob-md-toggle{display:none !important;}
     .mob-md-toggle .material-symbols-rounded{font-size:17px;}
     .mob-md-count{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:0.68rem;}
-    @media(max-width:768px){.mob-md-toggle{display:none !important;}}
 
     /* ══════════════════════════════════
        PAGE: SEVERE 101
@@ -724,10 +625,8 @@
     .severe-list-chevron .material-symbols-rounded{font-size:17px;color:var(--text-4);}
     .severe-list-soon{font-size:0.6rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-4);background:rgba(255,255,255,0.07);padding:2px 7px;border-radius:20px;}
     .severe-list-divider{height:1px;background:var(--border);margin:4px 0;}
-    @media(max-width:768px){
-      .mob-bottom-nav{display:block;}
-      body{padding-bottom:62px;}
-    }
+    .mob-bottom-nav{display:block;}
+    body{padding-bottom:62px;}
 
     /* Coming soon toast */
     #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
@@ -763,41 +662,13 @@
 <!-- HEADER -->
 <header>
   <div class="header-inner">
-    <div class="mob-bar-1">
+    <div class="header-row1">
       <a class="logo" onclick="navigate('forecast')">
         <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
         <span class="logo-name">j<span>Weather</span></span>
       </a>
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-          <button id="search-clear" class="search-clear-btn" onclick="clearSearch('search-bar','suggestions')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-          <button class="gps-btn" id="gps-btn-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-        </div>
-        <ul id="suggestions"></ul>
-      </div>
-      <nav class="header-nav">
-        <button id="nav-forecast" class="active" onclick="navigate('forecast')">Forecast</button>
-        <button id="nav-hourly" onclick="navigate('hourly')">Hourly</button>
-        <button id="nav-radar" onclick="navigate('radar')">Radar</button>
-        <div class="nav-dropdown">
-          <button class="nav-dropdown-btn">
-            Severe Weather <span class="material-symbols-rounded">expand_more</span>
-          </button>
-          <div class="nav-dropdown-menu">
-            <div class="nav-dropdown-menu-inner">
-              <button onclick="navigate('outlook')"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</button>
-              <button onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Watches/Warnings</button>
-              <button onclick="navigate('meso')"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</button>
-              <button data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</button>
-              <button onclick="navigate('severe101')"><span class="material-symbols-rounded">school</span>Severe Weather 101</button>
-            </div>
-          </div>
-        </div>
-      </nav>
     </div>
-    <div class="mob-bar-2" id="mob-bar-2">
+    <div class="header-row2" id="mob-bar-2">
       <div class="search-wrap" id="mob-search-wrap">
         <div class="search-row">
           <span class="material-symbols-rounded">search</span>
@@ -820,7 +691,6 @@
 <!-- ══ PAGE: FORECAST ══ -->
 <div id="page-forecast" class="page active">
   <div class="page-inner">
-    <div class="left-col">
       <!-- Current Conditions -->
       <div class="card">
         <div class="card-top">
@@ -831,8 +701,6 @@
           <div id="current-loc" class="current-loc">—</div>
           <div id="current-time" class="current-time">—</div>
           <div class="current-hero" id="current-hero">
-            <video id="current-hero-video" class="current-hero-video" autoplay muted loop playsinline preload="none"></video>
-            <div class="current-hero-overlay"></div>
             <div class="current-temp-big"><span id="current-temp-val">—</span><span class="current-temp-unit">°F</span></div>
             <img id="current-hero-icon" class="current-hero-icon" src="" alt="" width="72" height="72" style="opacity:0;transition:opacity .3s;">
           </div>
@@ -870,9 +738,7 @@
           Open Full Radar
         </button>
       </div>
-    </div>
 
-    <div class="right-col">
       <!-- Forecast -->
       <div class="card">
         <div class="card-top">
@@ -887,7 +753,6 @@
           <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar"></div><div class="skel skel-temp"></div></div>
         </div>
       </div>
-    </div>
   </div>
 </div>
 
@@ -916,26 +781,10 @@
 <!-- ══ PAGE: OUTLOOK ══ -->
 <div id="page-outlook" class="page">
   <div class="app-body">
-    <div class="sidebar">
-      <div class="sidebar-head"><div class="sidebar-title">SPC Outlooks</div></div>
-      <div id="outlook-sidebar-content"></div>
-    </div>
     <div class="map-panel">
       <div id="outlook-map"></div>
       <div class="map-topbar">
         <div class="map-context-pill" id="outlook-context-pill">Day 1 — <span>Categorical</span></div>
-      </div>
-      <!-- Desktop map search overlay -->
-      <div class="outlook-map-search" id="outlook-map-search">
-        <div class="search-wrap">
-          <div class="search-row">
-            <span class="material-symbols-rounded">search</span>
-            <input id="search-bar-outlook-desk" type="search" autocomplete="off" placeholder="Pin a location…"/>
-            <button id="search-clear-outlook-desk" class="search-clear-btn" onclick="clearSearch('search-bar-outlook-desk','suggestions-outlook-desk')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-            <button class="gps-btn" id="gps-btn-outlook-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-          </div>
-          <ul id="suggestions-outlook-desk"></ul>
-        </div>
       </div>
       <div class="map-loading-ov" id="outlook-map-loading">
         <div class="spin-ring"></div>
@@ -1315,9 +1164,6 @@ function navigate(page) {
     document.getElementById('page-'+p).classList.toggle('active', p === page);
   });
   // Update desktop nav
-  document.querySelectorAll('.header-nav button[id^="nav-"]').forEach(b => b.classList.remove('active'));
-  const navBtn = document.getElementById('nav-'+page);
-  if (navBtn) navBtn.classList.add('active');
   // Update mobile tabs — highlight Severe tab for all severe pages
   document.querySelectorAll('.mob-tab[id^="mobtab-"]').forEach(b => b.classList.remove('active'));
   const severePages = ['outlook','watches','meso','severe101'];
@@ -1510,15 +1356,11 @@ function clearSearch(barId, sugId) {
 
 // ── Search ──
 const _searchInputs = [
-  { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
-  { bar: document.getElementById('search-bar-outlook-desk'), sug: document.getElementById('suggestions-outlook-desk'), outlookOnly: true },
 ].filter(x => x.bar && x.sug);
 
 const _gpsBtns = [
-  document.getElementById('gps-btn-desk'),
   document.getElementById('gps-btn-mob'),
-  document.getElementById('gps-btn-outlook-desk'),
 ].filter(Boolean);
 
 function setGpsState(state) {
@@ -1840,51 +1682,6 @@ async function loadWeather(loc) {
 }
 
 // ── Weather background videos (Pixabay free CDN) ──
-function getWeatherVideoUrl(desc, isDaytime) {
-  const d = (desc || '').toLowerCase();
-  // Tornado / severe
-  if (d.includes('tornado'))
-    return 'https://cdn.pixabay.com/video/2020/05/06/38596-416887948_large.mp4';
-  // Thunderstorm
-  if (d.includes('thunder') || d.includes('tstm') || d.includes('lightning'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2023/07/20/172267-847784283_large.mp4'
-      : 'https://cdn.pixabay.com/video/2022/10/14/134893-762269219_large.mp4';
-  // Snow / blizzard
-  if (d.includes('snow') || d.includes('blizzard') || d.includes('flurr'))
-    return 'https://cdn.pixabay.com/video/2016/12/30/7060-197634418_large.mp4';
-  // Sleet / freezing rain / ice
-  if (d.includes('sleet') || d.includes('ice') || d.includes('wintry') || d.includes('freezing'))
-    return 'https://cdn.pixabay.com/video/2021/01/08/60186-499845231_large.mp4';
-  // Rain / showers / drizzle
-  if (d.includes('rain') || d.includes('shower') || d.includes('drizzle'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2019/09/08/26964-358536530_large.mp4'
-      : 'https://cdn.pixabay.com/video/2016/09/14/5008-183010148_large.mp4';
-  // Fog / mist / haze
-  if (d.includes('fog') || d.includes('mist') || d.includes('haze'))
-    return 'https://cdn.pixabay.com/video/2020/03/23/34156-401080170_large.mp4';
-  // Windy / breezy
-  if (d.includes('wind') || d.includes('breezy') || d.includes('blustery'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2019/10/08/27973-365050790_large.mp4'
-      : null;
-  // Overcast / mostly cloudy
-  if (d.includes('overcast') || d.includes('mostly cloudy'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2020/07/28/46082-447087950_large.mp4'
-      : 'https://cdn.pixabay.com/video/2016/09/01/4846-181385502_large.mp4';
-  // Partly cloudy
-  if (d.includes('partly') || d.includes('cloud') || d.includes('increasing'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2023/06/05/165884-835471823_large.mp4'
-      : 'https://cdn.pixabay.com/video/2022/11/04/137820-769423569_large.mp4';
-  // Clear / sunny
-  return isDaytime
-    ? 'https://cdn.pixabay.com/video/2020/07/30/46176-447670469_large.mp4'
-    : 'https://cdn.pixabay.com/video/2021/08/11/83526-585302890_large.mp4';
-}
-
 function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   document.getElementById('current-loc').textContent = loc.label || 'Your Location';
   document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
@@ -1899,23 +1696,6 @@ function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   icon.onload = () => { icon.style.opacity = '1'; };
   icon.onerror = () => { icon.style.opacity = '0'; };
   icon.src = newSrc;
-
-  // Background video
-  const videoEl = document.getElementById('current-hero-video');
-  const videoUrl = getWeatherVideoUrl(desc, isDaytime);
-  if (videoEl) {
-    const prev = videoEl.src;
-    if (videoUrl && videoUrl !== prev) {
-      videoEl.classList.remove('loaded');
-      videoEl.src = videoUrl;
-      videoEl.load();
-      videoEl.oncanplay = () => videoEl.classList.add('loaded');
-      videoEl.onerror = () => { videoEl.classList.remove('loaded'); videoEl.src = ''; };
-    } else if (!videoUrl) {
-      videoEl.classList.remove('loaded');
-      videoEl.src = '';
-    }
-  }
 }
 
 const DA = { Monday:'Mon', Tuesday:'Tue', Wednesday:'Wed', Thursday:'Thu', Friday:'Fri', Saturday:'Sat', Sunday:'Sun' };
@@ -2396,48 +2176,13 @@ async function fetchDayMaxThreat(day) {
 }
 
 function buildOutlookSidebar() {
-  const cont = document.getElementById('outlook-sidebar-content');
-  cont.innerHTML = '';
   const mobDayTabs = document.getElementById('mob-day-tabs');
   const mobModeRow = document.getElementById('mob-mode-row');
   mobDayTabs.innerHTML = ''; mobModeRow.innerHTML = '';
 
-  const modeList = [
-    {key:'cat',  label:'Overall',  icon:'thunderstorm'},
-    {key:'torn', label:'Tornado',  icon:'tornado'     },
-    {key:'wind', label:'Wind',     icon:'air'         },
-    {key:'hail', label:'Hail',     icon:'weather_hail'},
-  ];
-
   [1,2,3].forEach(day => {
     const d = new Date(); d.setDate(d.getDate() + day - 1);
     const dayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
-    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const modes = day < 3 ? modeList : [modeList[0]];
-
-    const sec = document.createElement('div'); sec.className = 'day-section';
-    sec.innerHTML = `<div class="day-section-head"><div class="day-section-label"><div class="day-eyebrow">Day ${day}</div><div class="day-name">${dayName}</div></div><div class="day-badge">${dateStr}</div></div>`;
-    const catList = document.createElement('div'); catList.className = 'cat-list';
-    modes.forEach(m => {
-      const btn = document.createElement('button'); btn.className = 'cat-btn'; btn.dataset.day = day; btn.dataset.mode = m.key;
-      btn.innerHTML = `<span class="material-symbols-rounded cat-icon">${m.icon}</span>${m.label}`;
-      if (day === 1 && m.key === 'cat') btn.classList.add('active');
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loadOutlookHazard(day, m.key);
-        buildOutlookMobModeRow(day);
-      });
-      catList.appendChild(btn);
-    });
-    sec.appendChild(catList);
-
-    const discBtn = document.createElement('button'); discBtn.className = 'disc-sidebar-btn';
-    discBtn.innerHTML = `<span class="material-symbols-rounded">article</span>View Discussion`;
-    discBtn.addEventListener('click', () => openDiscModal(day));
-    sec.appendChild(discBtn);
-
-    cont.appendChild(sec);
 
     // Mobile day tab
     const tab = document.createElement('button'); tab.className = 'mob-day-tab'; tab.dataset.day = day;
@@ -2451,7 +2196,6 @@ function buildOutlookSidebar() {
       buildOutlookMobModeRow(day);
     });
     mobDayTabs.appendChild(tab);
-    // Async color bar
     fetchDayMaxThreat(day).then(color => {
       const bar = document.getElementById(`threat-bar-${day}`);
       if (bar && color) bar.style.background = color;
@@ -3622,6 +3366,36 @@ window.addEventListener('DOMContentLoaded', () => {
   loadWeather(loc);
   updateRadar(loc.lat, loc.lng);
 });
+// ── Desktop overlay ──
+(function() {
+  if (window.innerWidth <= 1024) return;
+  if (sessionStorage.getItem('jw_desktop_dismissed')) return;
+  if (localStorage.getItem('jw_desktop_never')) return;
+  const ov = document.createElement('div');
+  ov.id = 'desktop-overlay';
+  ov.innerHTML = `
+    <div id="desktop-overlay-box">
+      <div id="desktop-overlay-icon"><span class="material-symbols-rounded">smartphone</span></div>
+      <div id="desktop-overlay-title">Built for Mobile</div>
+      <div id="desktop-overlay-body">jWeather is optimized for phones and tablets. For the best experience, open it on your mobile device or resize your browser window.</div>
+      <button id="desktop-overlay-btn" onclick="document.getElementById('desktop-overlay').style.display='none';sessionStorage.setItem('jw_desktop_dismissed','1')">Got it, continue anyway</button>
+      <button id="desktop-overlay-never" onclick="document.getElementById('desktop-overlay').style.display='none';localStorage.setItem('jw_desktop_never','1')">Don't remind me again</button>
+    </div>`;
+  document.body.appendChild(ov);
+  const s = document.createElement('style');
+  s.textContent = `
+    #desktop-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:24px;}
+    #desktop-overlay-box{background:#1e2028;border:1px solid rgba(255,255,255,0.11);border-radius:16px;padding:32px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);}
+    #desktop-overlay-icon{width:56px;height:56px;background:rgba(249,115,22,0.12);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+    #desktop-overlay-icon .material-symbols-rounded{font-size:28px;color:#f97316;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #desktop-overlay-title{font-family:'Geist',system-ui,sans-serif;font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:-0.025em;margin-bottom:10px;}
+    #desktop-overlay-body{font-family:'Geist',system-ui,sans-serif;font-size:0.85rem;color:#9ba0aa;line-height:1.65;margin-bottom:24px;}
+    #desktop-overlay-btn{font-family:'Geist',system-ui,sans-serif;font-size:0.83rem;font-weight:600;color:#fff;background:#f97316;border:none;border-radius:10px;padding:12px 24px;cursor:pointer;width:100%;transition:opacity .15s;margin-bottom:10px;}
+    #desktop-overlay-btn:hover{opacity:0.88;}
+    #desktop-overlay-never{font-family:'Geist',system-ui,sans-serif;font-size:0.78rem;font-weight:500;color:#9ba0aa;background:none;border:none;cursor:pointer;width:100%;padding:4px;transition:color .15s;}
+    #desktop-overlay-never:hover{color:#fff;}`;
+  document.head.appendChild(s);
+})();
 </script>
 </body>
 </html>

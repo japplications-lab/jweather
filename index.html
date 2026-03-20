@@ -25,6 +25,8 @@
       --svr-watch:#c2185b; --svr-watch-dim:rgba(194,24,91,0.18); --svr-watch-border:rgba(194,24,91,0.4);
       --tor-warn:#ff0000;  --tor-warn-dim:rgba(255,0,0,0.18);    --tor-warn-border:rgba(255,0,0,0.4);
       --tor-pds:#ff1493;   --tor-pds-dim:rgba(255,20,147,0.18);  --tor-pds-border:rgba(255,20,147,0.4);
+      --tor-eme:#ff00ff;   --tor-eme-dim:rgba(255,0,255,0.22);   --tor-eme-border:rgba(255,0,255,0.5);
+      --tor-obs:#ff0000;   --tor-obs-dim:rgba(255,0,0,0.22);     --tor-obs-border:rgba(255,0,0,0.6);
       --svr-warn:#ff6600;  --svr-warn-dim:rgba(255,102,0,0.18);  --svr-warn-border:rgba(255,102,0,0.4);
       --flood-warn:#00c851;--flood-warn-dim:rgba(0,200,81,0.18); --flood-warn-border:rgba(0,200,81,0.4);
       --r:12px; --r-sm:8px; --r-xs:6px;
@@ -39,26 +41,33 @@
     .fi{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 48;}
 
     /* ── HEADER ── */
-    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:var(--header);overflow:visible;}
-    .header-inner{height:100%;max-width:100%;padding:0 20px;display:flex;align-items:center;gap:16px;}
+    header{background:var(--surface);border-bottom:1px solid var(--border);z-index:500;flex-shrink:0;height:auto;overflow:visible;}
+    .header-inner{max-width:100%;display:flex;flex-direction:column;}
+    .header-row1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
     .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;cursor:pointer;}
     .logo-mark{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .logo-mark .material-symbols-rounded{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     .logo-name{font-size:0.95rem;font-weight:700;color:#ffffff;letter-spacing:-0.02em;}
     .logo-name span{color:#ffffff;}
+    .header-row2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
+    body.page-watches .header-row2,body.page-meso .header-row2,body.page-severe101 .header-row2{display:none;}
+    body.page-outlook .header-row2{display:flex;}
+    .mob-bar-meso{display:none;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
+    .mob-bar-meso-title{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;}
+    body.page-meso .mob-bar-meso{display:flex;}
 
     /* Search */
-    .search-wrap{flex:1;max-width:440px;position:relative;}
+    .search-wrap{flex:1;max-width:none;width:100%;position:relative;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border-2);border-radius:8px;padding:0 6px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);background:var(--surface);}
     .search-row .material-symbols-rounded{color:var(--text-4);font-size:16px;flex-shrink:0;}
-    #search-bar,#search-bar-mob{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
-    #search-bar::placeholder,#search-bar-mob::placeholder{color:var(--text-4);}
-    #suggestions,#suggestions-mob{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
-    #suggestions li,#suggestions-mob li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
-    #suggestions li:last-child,#suggestions-mob li:last-child{border-bottom:none;}
-    #suggestions li:hover,#suggestions li.active,#suggestions-mob li:hover,#suggestions-mob li.active{background:var(--red-dim);}
-    #suggestions li .material-symbols-rounded,#suggestions-mob li .material-symbols-rounded{font-size:13px;color:var(--red);}
+    #search-bar-mob{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-bar-mob::placeholder{color:var(--text-4);}
+    #suggestions-mob{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);overflow:hidden;z-index:600;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+    #suggestions-mob li{list-style:none;padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);transition:background .1s;}
+    #suggestions-mob li:last-child{border-bottom:none;}
+    #suggestions-mob li:hover,#suggestions-mob li.active{background:var(--red-dim);}
+    #suggestions-mob li .material-symbols-rounded{font-size:13px;color:var(--red);}
     .sug-section-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-4);padding:8px 14px 4px;}
     .sug-remove{font-size:11px;color:var(--text-4);background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;font-family:var(--font);line-height:1;flex-shrink:0;}
     .sug-remove:hover{color:var(--red);background:var(--red-dim);}
@@ -71,44 +80,7 @@
     .gps-btn .material-symbols-rounded{font-size:17px;}
     .gps-btn.loading .material-symbols-rounded{animation:spin .8s linear infinite;color:var(--red);}
     .gps-btn.located .material-symbols-rounded{color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-
-    /* Nav */
-    .header-nav{display:flex;align-items:center;gap:2px;margin-left:auto;}
-    .header-nav button,.header-nav a{font-size:0.8rem;font-weight:500;color:var(--text-3);background:none;border:none;text-decoration:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:var(--font);transition:color .15s,background .15s;white-space:nowrap;}
-    .header-nav button:hover,.header-nav a:hover{color:var(--text);background:var(--bg);}
-    .header-nav button.active,.header-nav a.active{color:var(--red);}
-    .nav-dropdown{position:relative;}
-    .nav-dropdown-btn{display:flex;align-items:center;gap:3px;}
-    .nav-dropdown-btn .material-symbols-rounded{font-size:14px;transition:transform .2s;}
-    .nav-dropdown:hover .nav-dropdown-btn .material-symbols-rounded{transform:rotate(180deg);}
-    .nav-dropdown-menu{position:absolute;top:100%;right:0;padding-top:8px;min-width:230px;z-index:600;transform-origin:top right;}
-    .nav-dropdown-menu-inner{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r-sm);box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;}
-    .nav-dropdown:hover .nav-dropdown-menu-inner{opacity:1;pointer-events:auto;transform:translateY(0);}
-    .nav-dropdown-menu a,.nav-dropdown-menu button{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:0.8rem;font-weight:500;color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border);transition:background .1s,color .1s;white-space:nowrap;width:100%;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;font-family:var(--font);}
-    .nav-dropdown-menu a:last-child,.nav-dropdown-menu button:last-child{border-bottom:none;}
-    .nav-dropdown-menu a:hover,.nav-dropdown-menu button:hover,.nav-dropdown-menu a.active,.nav-dropdown-menu button.active{background:var(--red-dim);color:var(--red);}
-    .nav-dropdown-menu a .material-symbols-rounded,.nav-dropdown-menu button .material-symbols-rounded{font-size:15px;color:var(--text-4);}
-    .nav-dropdown-menu a:hover .material-symbols-rounded,.nav-dropdown-menu button:hover .material-symbols-rounded,.nav-dropdown-menu a.active .material-symbols-rounded{color:var(--red);}
     [data-coming-soon]{opacity:0.45;cursor:not-allowed !important;pointer-events:none;}
-
-    /* Mobile header */
-    .mob-bar-1{display:contents;}
-    .mob-bar-2{display:none;}
-    @media(max-width:640px){
-      header{height:auto !important;}
-      .header-inner{flex-wrap:wrap;padding:0 !important;gap:0 !important;height:auto !important;}
-      .mob-bar-1{display:flex;align-items:center;width:100%;padding:0 12px;height:50px;gap:0;}
-      .mob-bar-1 .search-wrap{display:none;}
-      .mob-bar-2{display:flex;align-items:center;width:100%;padding:5px 12px 7px;border-top:1px solid var(--border);}
-      .mob-bar-2 .search-wrap{max-width:none;width:100%;flex:1;}
-      body.page-watches .mob-bar-2, body.page-meso .mob-bar-2, body.page-severe101 .mob-bar-2{display:none;}
-      .mob-bar-meso{display:none;align-items:center;justify-content:center;width:100%;height:34px;border-top:1px solid var(--border);background:var(--surface);}
-      .mob-bar-meso-title{font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;}
-      body.page-meso .mob-bar-meso{display:flex;}
-      body.page-outlook .mob-bar-2{display:flex;}
-      .header-nav{display:none !important;}
-      .logo-name{display:block !important;}
-    }
 
     /* ── PAGES ── */
     .page{display:none;flex:1;min-height:0;overflow:hidden;}
@@ -118,9 +90,7 @@
        PAGE: FORECAST (index)
     ══════════════════════════════════ */
     #page-forecast{overflow-y:auto;}
-    #page-forecast .page-inner{max-width:1280px;margin:0 auto;padding:20px 24px 80px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
-    @media(max-width:768px){#page-forecast .page-inner{grid-template-columns:1fr;padding:14px 14px 80px;}}
-    .left-col,.right-col{display:flex;flex-direction:column;gap:16px;}
+    #page-forecast .page-inner{padding:14px 14px 80px;display:flex;flex-direction:column;gap:16px;}
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
     .card-top{padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between;}
     .card-top-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
@@ -130,9 +100,6 @@
     .current-loc{font-size:1.25rem;font-weight:700;color:var(--text);letter-spacing:-0.025em;line-height:1.25;}
     .current-time{font-size:0.73rem;color:var(--text-3);margin-top:3px;}
     .current-hero{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:18px 20px;background:var(--red);border-radius:var(--r-sm);position:relative;overflow:hidden;}
-    .current-hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0;transition:opacity 1s ease;}
-    .current-hero-video.loaded{opacity:1;}
-    .current-hero-overlay{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,0.32);border-radius:var(--r-sm);pointer-events:none;}
     .current-hero::after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:rgba(255,255,255,0.07);border-radius:50%;pointer-events:none;z-index:1;}
     .current-hero::before{content:'';position:absolute;right:30px;bottom:-50px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%;pointer-events:none;z-index:1;}
     .current-temp-big{font-size:5rem;font-weight:800;color:#fff;letter-spacing:-0.04em;line-height:1;position:relative;z-index:1;}
@@ -317,62 +284,28 @@
     ══════════════════════════════════ */
     #page-outlook{flex:1;flex-direction:column;min-height:0;}
     #page-outlook .app-body{flex:1;display:flex;overflow:hidden;min-height:0;}
-    #page-outlook .map-panel{padding-bottom:38px;}
-    /* Sidebar */
-    .sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
-    .sidebar-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .sidebar-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.11em;color:var(--text-4);}
-    .day-section{border-bottom:1px solid var(--border);}
-    .day-section-head{padding:8px 14px 6px;display:flex;align-items:center;justify-content:space-between;}
-    .day-section-label{display:flex;flex-direction:column;gap:1px;}
-    .day-eyebrow{font-size:0.57rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
-    .day-name{font-size:0.83rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
-    .day-badge{font-size:0.57rem;font-weight:600;color:var(--text-4);background:var(--bg);border:1px solid var(--border-2);border-radius:4px;padding:1px 5px;white-space:nowrap;}
-    .cat-list{padding:2px 8px 4px;}
-    .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;border:none;background:none;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:500;color:var(--text-3);text-align:left;transition:background .1s,color .1s;}
-    .cat-btn:hover{background:var(--bg);color:var(--text-2);}
-    .cat-btn.active{background:var(--red-dim);color:var(--red);font-weight:600;}
-    .cat-icon{font-size:15px;flex-shrink:0;color:var(--text-3);font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
-    .cat-btn.active .cat-icon{color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    .disc-sidebar-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:calc(100% - 16px);margin:2px 8px 10px;padding:7px 9px;border:none;background:var(--red);border-radius:7px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:700;color:#fff;letter-spacing:0.02em;transition:opacity .15s,transform .1s;}
-    .disc-sidebar-btn:hover{opacity:0.88;transform:translateY(-1px);}
-    .disc-sidebar-btn .material-symbols-rounded{font-size:14px;}
     /* Map panel */
     .map-panel{flex:1;position:relative;background:var(--bg);min-width:0;}
     #outlook-map{position:absolute;inset:0;width:100%;height:100%;}
-    .map-topbar{position:absolute;top:14px;left:14px;right:64px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
+    .map-topbar{position:absolute;top:8px;left:8px;right:8px;z-index:400;display:flex;align-items:center;gap:10px;pointer-events:none;}
     .map-context-pill{background:rgba(26,29,36,0.94);border:1px solid var(--border-2);border-radius:20px;padding:6px 14px;font-size:0.75rem;font-weight:600;color:var(--text-2);backdrop-filter:blur(8px);box-shadow:var(--shadow);white-space:nowrap;pointer-events:none;}
     .map-context-pill span{color:var(--red);}
-    .outlook-legend-bar{display:flex;align-items:center;justify-content:center;padding:4px 12px;overflow-x:auto;scrollbar-width:none;gap:0;background:#2a2d36;width:100%;}
-    .outlook-legend-bar::-webkit-scrollbar{display:none;}
-    .outlook-legend-items{display:flex;flex-direction:row;gap:2px;flex-wrap:nowrap;justify-content:center;}
-    .legend-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:8px;}
-    .legend-items{display:flex;flex-direction:column;gap:5px;}
     .legend-item{display:flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:500;color:var(--text-2);padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
     .legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;border:1px solid rgba(0,0,0,0.15);}
-    .legend-num{font-size:0.65rem;font-weight:700;color:var(--text-4);min-width:26px;font-variant-numeric:tabular-nums;}
     .legend-label{color:var(--text-3);font-size:0.68rem;}
-    .legend-active{background:rgba(255,255,255,0.06);}
-    .legend-active .legend-label{color:var(--text);font-weight:600;}
-    .legend-dim{opacity:0.3;}
     .map-loading-ov{position:absolute;inset:0;z-index:410;background:rgba(15,17,21,0.75);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading-ov.hidden{opacity:0;pointer-events:none;}
     /* On-map outlook legend */
-    .outlook-map-legend{position:absolute;bottom:20px;left:14px;z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 10px;pointer-events:none;}
+    .outlook-map-legend{position:absolute;bottom:200px;left:10px;z-index:400;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:7px 10px;pointer-events:none;}
     .outlook-map-legend-items{display:flex;flex-direction:column;gap:4px;}
     .outlook-map-legend-items .legend-item{padding:0;font-size:0.68rem;}
     .outlook-map-legend-items .legend-swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);}
     .outlook-map-legend-items .legend-label{color:var(--text-2);font-size:0.68rem;font-weight:500;}
-    /* Outlook map search overlay (desktop + always visible on map) */
-    .outlook-map-search{position:absolute;top:14px;right:14px;z-index:420;width:220px;pointer-events:auto;}
-    .outlook-map-search .search-wrap{max-width:none;width:100%;}
-    .outlook-map-search .search-row{background:rgba(26,29,36,0.94);backdrop-filter:blur(8px);border-color:var(--border-2);}
-    .outlook-map-search .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
-    .outlook-map-search #suggestions-outlook-desk{box-shadow:0 8px 30px rgba(0,0,0,.7);}
-    @media(max-width:640px){.outlook-map-search{display:none;}}
-    /* Mobile outlook controls */
-    .mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
+    /* Mobile outlook controls — always visible */
+    .mob-controls{display:none;position:fixed;bottom:62px;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-outlook.active .mob-controls{display:block;}
+    #page-outlook .app-body{padding-bottom:0;}
+    #page-outlook .map-panel{padding-bottom:188px;}
     .mob-day-tabs{display:flex;border-bottom:1px solid var(--border);}
     .mob-day-tab{flex:1;padding:9px 4px 0;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.66rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.05em;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;flex-direction:column;align-items:center;gap:4px;}
     .mob-day-tab-label{padding-bottom:5px;}
@@ -386,21 +319,6 @@
     .mob-mode-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
     .mob-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .mob-mode-btn .material-symbols-rounded{font-size:13px;}
-    @media(max-width:768px){
-      .mob-controls{bottom:62px;}
-    }
-    @media(min-width:769px){
-      #page-outlook.active .mob-controls{bottom:0;}
-      #page-outlook .mob-day-tabs,#page-outlook .mob-mode-row,#page-outlook .mob-disc-row{display:none;}
-    }
-    @media(max-width:640px){
-      .sidebar{display:none !important;}
-      .mob-controls{display:block;}
-      #page-outlook .app-body{padding-bottom:0;}
-      #page-outlook .map-panel{padding-bottom:188px;}
-      .map-topbar{top:8px;left:8px;}
-      .outlook-map-legend{bottom:200px;left:10px;}
-    }
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
     .disc-box{background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);max-width:500px;width:100%;max-height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3);}
@@ -419,53 +337,20 @@
     ══════════════════════════════════ */
     #page-watches{flex:1;}
     #page-watches .app-body{flex:1;display:flex;min-height:0;overflow:hidden;}
-    .watch-panel{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
-    .watch-panel-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .watch-panel-title{font-size:0.78rem;font-weight:700;color:var(--text);letter-spacing:0.02em;text-transform:uppercase;}
-    .watch-panel-sub{font-size:0.68rem;color:var(--text-4);margin-top:2px;}
-    .watch-list{flex:1;overflow-y:auto;padding:8px;}
-    .watch-card{border-radius:var(--r-sm);border:1px solid var(--border-2);margin-bottom:6px;cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;}
-    .watch-card:hover{background:rgba(255,255,255,0.03);}
-    .watch-card.selected{border-color:var(--red-border);background:var(--red-dim);}
-    .watch-card-bar{height:4px;width:100%);}
-    .watch-card-bar.tor{background:var(--tor-watch);}
-    .watch-card-bar.svr{background:var(--svr-watch);}
-    .watch-card-bar.tor-warn{background:var(--tor-warn);}
-    .watch-card-bar.tor-pds{background:var(--tor-pds);}
-    .watch-card-bar.svr-warn{background:var(--svr-warn);}
-    .watch-card-bar.flood-warn{background:var(--flood-warn);}
-    .watch-card-inner{padding:10px 12px;}
-    .watch-card-header{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-    .watch-type-badge{font-size:0.58rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
-    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
-    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
-    .watch-type-badge.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
-    .watch-type-badge.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
-    .watch-type-badge.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
-    .watch-type-badge.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
-    .watch-num{font-size:0.72rem;font-weight:700;color:var(--text-3);}
-    .watch-card-states{font-size:0.72rem;color:var(--text-2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .watch-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);margin-top:5px;}
-    .watch-card-expire .material-symbols-rounded{font-size:12px;}
-    .watch-card-expire.expiring-soon{color:var(--amber);}
-    .watch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
-    .watch-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
-    .watch-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
-    .watch-empty-sub{font-size:0.72rem;line-height:1.5;}
-    .watch-panel-actions{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;}
-    .watch-refresh-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;background:none;border:1px solid var(--border-2);border-radius:var(--r-xs);cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:all .15s;}
-    .watch-refresh-btn:hover{background:var(--bg);color:var(--text);}
-    .watch-refresh-btn .material-symbols-rounded{font-size:14px;}
-    .watch-refresh-btn.spinning .material-symbols-rounded{animation:spin .7s linear infinite;}
+    .watch-panel{display:none !important;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;top:16px;right:16px;width:280px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;overflow:hidden;max-height:calc(100% - 32px);flex-direction:column;}
+    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;max-height:calc(100% - 32px);flex-direction:column;}
     .watch-detail.open{display:flex;}
+    .watch-detail-body{overflow-y:auto;flex:1;padding:0;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);}
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
     .watch-detail-bar.tor{background:var(--tor-watch);}
     .watch-detail-bar.svr{background:var(--svr-watch);}
     .watch-detail-bar.tor-warn{background:var(--tor-warn);}
+    .watch-detail-bar.tor-obs{background:var(--tor-pds);}
     .watch-detail-bar.tor-pds{background:var(--tor-pds);}
+    .watch-detail-bar.tor-eme{background:var(--tor-eme);}
+    .watch-detail-bar.tor-obs{background:var(--tor-obs);}
     .watch-detail-bar.svr-warn{background:var(--svr-warn);}
     .watch-detail-bar.flood-warn{background:var(--flood-warn);}
     .watch-detail-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -473,7 +358,10 @@
     .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
     .watch-detail-type.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
     .watch-detail-type.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
+    .watch-detail-type.tor-obs{background:var(--tor-pds-dim);color:#ff69b4;border:2px solid var(--tor-pds-border);}
     .watch-detail-type.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
+    .watch-detail-type.tor-eme{background:var(--tor-eme-dim);color:#ff80ff;border:1px solid var(--tor-eme-border);}
+    .watch-detail-type.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
     .watch-detail-type.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
     .watch-detail-type.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
     .watch-detail-num{font-size:0.83rem;font-weight:700;color:var(--text);flex:1;}
@@ -484,30 +372,75 @@
     .wd-row{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
     .wd-label{font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-4);flex-shrink:0;width:68px;}
     .wd-value{font-size:0.74rem;color:var(--text-2);line-height:1.45;}
-    .watches-map-legend{position:absolute;bottom:20px;left:20px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 14px;z-index:400;}
+    /* Two-section legend */
+    .watches-map-legend{position:absolute;bottom:62px;left:14px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:var(--r-sm);padding:10px 12px;z-index:400;min-width:160px;}
+    .watches-legend-section{margin-bottom:8px;}
+    .watches-legend-section:last-child{margin-bottom:0;}
+    .watches-legend-heading{font-size:0.57rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+    @media(max-width:768px){.watches-map-legend{bottom:120px;left:10px;}}
+    @media(max-width:640px){.watches-map-legend{bottom:108px;left:10px;}}
     .watches-mob-controls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:480;background:var(--surface);border-top:1px solid var(--border-2);}
     #page-watches.active .watches-mob-controls{display:block;}
-    .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;}
+    .watches-filter-row{display:flex;gap:6px;padding:8px 10px 10px;justify-content:center;flex-wrap:wrap;}
     .wf-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg);border:1px solid var(--border-2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.71rem;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0;transition:all .15s;}
     .wf-btn .wf-swatch{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
     .wf-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .wf-btn.active-watches{background:rgba(255,230,0,0.1);border-color:rgba(255,230,0,0.4);color:#ffe600;}
     .wf-btn.active-warnings{background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.35);color:#ff6b6b;}
-    @media(max-width:768px){
-      .watches-mob-controls{bottom:62px;}
-      #page-watches .watch-map-panel{padding-bottom:52px;}
-    }
-    @media(min-width:769px){
-      #page-watches.active .watches-mob-controls{bottom:0;}
-      #page-watches .watches-filter-row{display:none;}
-      .watches-mob-controls{display:block !important;}
-      .watches-filter-row{display:flex !important;}
-    }
-    @media(max-width:768px){
-      .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
-      .watch-panel.mob-open{display:flex;}
-      .watch-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
-    }
+    .wf-btn.active-all{background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.35);color:var(--red);}
+    .wf-btn.active-observed{background:rgba(255,20,147,0.15);border-color:rgba(255,20,147,0.5);color:#ff69b4;}
+    .wf-count{background:rgba(255,255,255,0.15);border-radius:10px;padding:1px 6px;font-size:0.62rem;font-weight:700;min-width:16px;text-align:center;}
+    /* County detail panel */
+    .wd-county{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;}
+    .wd-county-icon{font-size:14px;color:var(--text-4);}
+    .wd-county-name{font-size:0.82rem;font-weight:700;color:var(--text);flex:1;line-height:1.2;}
+    .wd-county-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;flex-shrink:0;}
+    .wd-county-close:hover{color:var(--text);}
+    .wd-county-close .material-symbols-rounded{font-size:17px;}
+    .wd-alert-item{border-bottom:1px solid var(--border);}
+    .wd-alert-item:last-child{border-bottom:none;}
+    .wd-alert-header{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;transition:background .1s;}
+    .wd-alert-header:hover{background:rgba(255,255,255,0.04);}
+    .wd-alert-bar{width:4px;height:32px;border-radius:2px;flex-shrink:0;}
+    .wd-alert-meta{flex:1;min-width:0;}
+    .wd-alert-label{font-size:0.73rem;font-weight:700;color:var(--text);line-height:1.2;}
+    .wd-alert-expires{font-size:0.63rem;color:var(--text-4);margin-top:2px;}
+    .wd-alert-chevron{font-size:14px;color:var(--text-4);transition:transform .2s;flex-shrink:0;}
+    .wd-alert-item.open .wd-alert-chevron{transform:rotate(180deg);}
+    .wd-alert-body{display:none;padding:0 14px 12px 26px;font-size:0.73rem;color:var(--text-2);line-height:1.65;}
+    .wd-alert-item.open .wd-alert-body{display:block;}
+    .wd-alert-expiring{color:var(--amber);}
+    /* Live status pill */
+    .watches-live-pill{position:absolute;top:14px;left:14px;z-index:420;display:flex;align-items:center;gap:8px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none;}
+    .watches-live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:watches-pulse 1.5s infinite;}
+    @keyframes watches-pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.7);}70%{box-shadow:0 0 0 6px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
+    .watches-live-text{font-size:0.68rem;font-weight:600;color:var(--text-3);}
+    .watches-timer-bar{width:60px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+    .watches-timer-fill{height:100%;background:#3b82f6;border-radius:2px;transition:width 1s linear;}
+    /* Refresh btn (used in panel actions, keep for JS ref) */
+    .watch-refresh-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;background:none;border:1px solid var(--border-2);border-radius:var(--r-xs);cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text-3);transition:all .15s;}
+    .watch-refresh-btn:hover{background:var(--bg);color:var(--text);}
+    .watch-refresh-btn .material-symbols-rounded{font-size:14px;}
+    .watch-refresh-btn.spinning .material-symbols-rounded{animation:spin .7s linear infinite;}
+    .watch-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
+    .watch-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
+    .watch-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
+    .watch-empty-sub{font-size:0.72rem;line-height:1.5;}
+    .watch-type-badge{font-size:0.58rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;}
+    .watch-type-badge.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
+    .watch-type-badge.svr{background:var(--svr-watch-dim);color:#f48fb1;border:1px solid var(--svr-watch-border);}
+    .watch-type-badge.tor-warn{background:var(--tor-warn-dim);color:#ff6b6b;border:1px solid var(--tor-warn-border);}
+    .watch-type-badge.tor-obs{background:var(--tor-pds-dim);color:#ff69b4;border:2px solid var(--tor-pds-border);}
+    .watch-type-badge.tor-pds{background:var(--tor-pds-dim);color:#ff69b4;border:1px solid var(--tor-pds-border);}
+    .watch-type-badge.tor-eme{background:var(--tor-eme-dim);color:#ff80ff;border:1px solid var(--tor-eme-border);}
+    .watch-type-badge.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
+    .watch-type-badge.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
+    .watch-type-badge.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
+    .watches-mob-controls{bottom:62px;}
+    #page-watches .watch-map-panel{padding-bottom:52px;}
+    .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
+    .watch-panel.mob-open{display:flex;}
+    .watch-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
 
     /* ══════════════════════════════════
        PAGE: MESO
@@ -532,6 +465,14 @@
     .md-card-expire{display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--text-4);}
     .md-card-expire .material-symbols-rounded{font-size:12px;}
     .md-card-expire.expiring-soon{color:var(--amber);}
+    .md-expired-divider{display:flex;align-items:center;gap:8px;padding:8px 4px 4px;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-4);}
+    .md-expired-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+    .md-card-expired{opacity:0.6;}
+    .md-card-expired:hover{opacity:0.85;border-color:rgba(156,163,175,0.3);background:rgba(156,163,175,0.06);}
+    .md-card-expired.selected{opacity:0.9;border-color:rgba(156,163,175,0.4);background:rgba(156,163,175,0.08);}
+    .md-card-bar-expired{background:rgba(156,163,175,0.4);}
+    .md-num-expired{color:var(--text-4);}
+    .md-concern-badge-expired{background:rgba(156,163,175,0.12);color:var(--text-4);border-color:rgba(156,163,175,0.2);}
     .md-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;text-align:center;color:var(--text-4);}
     .md-empty .material-symbols-rounded{font-size:36px;color:var(--border-2);}
     .md-empty-title{font-size:0.82rem;font-weight:600;color:var(--text-3);}
@@ -562,17 +503,14 @@
     .md-detail-close{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:var(--text-4);}
     .md-detail-close:hover{color:var(--text);}
     .md-detail-close .material-symbols-rounded{font-size:16px;}
-    @media(max-width:768px){
-      .md-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
-      .md-panel.mob-open{display:flex;}
-      .status-pill{left:12px;}
-      .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
-      :root{--md-panel:0px;}
-    }
+    .md-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:55vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
+    .md-panel.mob-open{display:flex;}
+    .status-pill{left:12px;}
+    .md-detail{max-width:calc(100vw - 32px);right:16px;left:16px;}
+    :root{--md-panel:0px;}
     .mob-md-toggle{display:none !important;}
     .mob-md-toggle .material-symbols-rounded{font-size:17px;}
     .mob-md-count{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 7px;font-size:0.68rem;}
-    @media(max-width:768px){.mob-md-toggle{display:none !important;}}
 
     /* ══════════════════════════════════
        PAGE: SEVERE 101
@@ -687,10 +625,8 @@
     .severe-list-chevron .material-symbols-rounded{font-size:17px;color:var(--text-4);}
     .severe-list-soon{font-size:0.6rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-4);background:rgba(255,255,255,0.07);padding:2px 7px;border-radius:20px;}
     .severe-list-divider{height:1px;background:var(--border);margin:4px 0;}
-    @media(max-width:768px){
-      .mob-bottom-nav{display:block;}
-      body{padding-bottom:62px;}
-    }
+    .mob-bottom-nav{display:block;}
+    body{padding-bottom:62px;}
 
     /* Coming soon toast */
     #coming-soon-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1d24;color:#f0f1f3;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:11px 22px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
@@ -726,41 +662,13 @@
 <!-- HEADER -->
 <header>
   <div class="header-inner">
-    <div class="mob-bar-1">
+    <div class="header-row1">
       <a class="logo" onclick="navigate('forecast')">
         <div class="logo-mark"><span class="material-symbols-rounded">wb_sunny</span></div>
         <span class="logo-name">j<span>Weather</span></span>
       </a>
-      <div class="search-wrap">
-        <div class="search-row">
-          <span class="material-symbols-rounded">search</span>
-          <input id="search-bar" type="search" autocomplete="off" placeholder="Search city, state or ZIP…"/>
-          <button id="search-clear" class="search-clear-btn" onclick="clearSearch('search-bar','suggestions')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-          <button class="gps-btn" id="gps-btn-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-        </div>
-        <ul id="suggestions"></ul>
-      </div>
-      <nav class="header-nav">
-        <button id="nav-forecast" class="active" onclick="navigate('forecast')">Forecast</button>
-        <button id="nav-hourly" onclick="navigate('hourly')">Hourly</button>
-        <button id="nav-radar" onclick="navigate('radar')">Radar</button>
-        <div class="nav-dropdown">
-          <button class="nav-dropdown-btn">
-            Severe Weather <span class="material-symbols-rounded">expand_more</span>
-          </button>
-          <div class="nav-dropdown-menu">
-            <div class="nav-dropdown-menu-inner">
-              <button onclick="navigate('outlook')"><span class="material-symbols-rounded">thunderstorm</span>Severe Outlook</button>
-              <button onclick="navigate('watches')"><span class="material-symbols-rounded">emergency_home</span>Watches/Warnings</button>
-              <button onclick="navigate('meso')"><span class="material-symbols-rounded">crisis_alert</span>Mesoscale Discussions</button>
-              <button data-coming-soon><span class="material-symbols-rounded">tune</span>Storm Parameters</button>
-              <button onclick="navigate('severe101')"><span class="material-symbols-rounded">school</span>Severe Weather 101</button>
-            </div>
-          </div>
-        </div>
-      </nav>
     </div>
-    <div class="mob-bar-2" id="mob-bar-2">
+    <div class="header-row2" id="mob-bar-2">
       <div class="search-wrap" id="mob-search-wrap">
         <div class="search-row">
           <span class="material-symbols-rounded">search</span>
@@ -783,7 +691,6 @@
 <!-- ══ PAGE: FORECAST ══ -->
 <div id="page-forecast" class="page active">
   <div class="page-inner">
-    <div class="left-col">
       <!-- Current Conditions -->
       <div class="card">
         <div class="card-top">
@@ -794,8 +701,6 @@
           <div id="current-loc" class="current-loc">—</div>
           <div id="current-time" class="current-time">—</div>
           <div class="current-hero" id="current-hero">
-            <video id="current-hero-video" class="current-hero-video" autoplay muted loop playsinline preload="none"></video>
-            <div class="current-hero-overlay"></div>
             <div class="current-temp-big"><span id="current-temp-val">—</span><span class="current-temp-unit">°F</span></div>
             <img id="current-hero-icon" class="current-hero-icon" src="" alt="" width="72" height="72" style="opacity:0;transition:opacity .3s;">
           </div>
@@ -833,9 +738,7 @@
           Open Full Radar
         </button>
       </div>
-    </div>
 
-    <div class="right-col">
       <!-- Forecast -->
       <div class="card">
         <div class="card-top">
@@ -850,7 +753,6 @@
           <div class="skel-forecast-row"><div class="skel skel-circle"></div><div class="skel skel-bar"></div><div class="skel skel-temp"></div></div>
         </div>
       </div>
-    </div>
   </div>
 </div>
 
@@ -879,26 +781,10 @@
 <!-- ══ PAGE: OUTLOOK ══ -->
 <div id="page-outlook" class="page">
   <div class="app-body">
-    <div class="sidebar">
-      <div class="sidebar-head"><div class="sidebar-title">SPC Outlooks</div></div>
-      <div id="outlook-sidebar-content"></div>
-    </div>
     <div class="map-panel">
       <div id="outlook-map"></div>
       <div class="map-topbar">
         <div class="map-context-pill" id="outlook-context-pill">Day 1 — <span>Categorical</span></div>
-      </div>
-      <!-- Desktop map search overlay -->
-      <div class="outlook-map-search" id="outlook-map-search">
-        <div class="search-wrap">
-          <div class="search-row">
-            <span class="material-symbols-rounded">search</span>
-            <input id="search-bar-outlook-desk" type="search" autocomplete="off" placeholder="Pin a location…"/>
-            <button id="search-clear-outlook-desk" class="search-clear-btn" onclick="clearSearch('search-bar-outlook-desk','suggestions-outlook-desk')" style="display:none"><span class="material-symbols-rounded">close</span></button>
-            <button class="gps-btn" id="gps-btn-outlook-desk" onclick="useGPS()" title="Use my location"><span class="material-symbols-rounded">my_location</span></button>
-          </div>
-          <ul id="suggestions-outlook-desk"></ul>
-        </div>
       </div>
       <div class="map-loading-ov" id="outlook-map-loading">
         <div class="spin-ring"></div>
@@ -933,47 +819,45 @@
 <!-- ══ PAGE: WATCHES ══ -->
 <div id="page-watches" class="page">
   <div class="app-body">
-    <div class="watch-panel" id="watches-panel">
-      <div class="watch-panel-head">
-        <div class="watch-panel-title">Watches &amp; Warnings</div>
-        <div class="watch-panel-sub" id="watches-sub">Loading…</div>
-      </div>
-      <div class="watch-list" id="watch-list"></div>
-      <div class="watch-panel-actions">
-        <button class="watch-refresh-btn" id="watches-refresh-btn" onclick="loadWatches()">
-          <span class="material-symbols-rounded">refresh</span>Refresh
-        </button>
-      </div>
-    </div>
     <div class="watch-map-panel">
       <div id="watches-map"></div>
+      <!-- Live status pill -->
+      <div class="watches-live-pill" id="watches-live-pill">
+        <div class="watches-live-dot"></div>
+        <span class="watches-live-text" id="watches-live-text">Live</span>
+        <div class="watches-timer-bar"><div class="watches-timer-fill" id="watches-timer-fill"></div></div>
+      </div>
+      <!-- Desktop map search overlay -->
+      <!-- (search handled by main header search bar) -->
       <div class="watch-detail" id="watch-detail">
-        <div class="watch-detail-bar" id="wd-bar"></div>
-        <div class="watch-detail-head">
-          <span class="watch-detail-type" id="wd-type"></span>
-          <span class="watch-detail-num" id="wd-num"></span>
-          <button class="watch-detail-close" onclick="closeWatchDetail()"><span class="material-symbols-rounded">close</span></button>
+        <div class="wd-county" id="wd-county-head">
+          <span class="material-symbols-rounded wd-county-icon">location_on</span>
+          <span class="wd-county-name" id="wd-county-name">—</span>
+          <button class="wd-county-close" onclick="closeWatchDetail()"><span class="material-symbols-rounded">close</span></button>
         </div>
         <div class="watch-detail-body" id="wd-body"></div>
       </div>
-      <div class="watches-map-legend">
-        <div class="legend-title" id="ww-legend-title">Watches</div>
-        <div class="legend-items" id="ww-legend-items">
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>
-          <div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>
-        </div>
-      </div>
+      <div class="watches-map-legend" id="watches-map-legend"></div>
+      <!-- Hidden stubs so JS refs don't break -->
+      <div id="watches-sub" style="display:none"></div>
+      <div id="watch-list" style="display:none"></div>
+      <button id="watches-refresh-btn" class="watch-refresh-btn" style="display:none" onclick="loadWatches()"><span class="material-symbols-rounded">refresh</span></button>
     </div>
   </div>
   <div class="watches-mob-controls" id="watches-mob-controls">
     <div class="watches-filter-row">
-      <button class="wf-btn active-watches active" id="wf-watches" onclick="setWatchFilter('watches')">
-        <span class="wf-swatch" style="background:#ffe600;"></span>Watches
+      <button class="wf-btn active-all active" id="wf-all" onclick="setWatchFilter('all')">
+        <span class="wf-swatch" style="background:var(--red);"></span>All <span class="wf-count" id="wf-count-all">0</span>
+      </button>
+      <button class="wf-btn" id="wf-watches" onclick="setWatchFilter('watches')">
+        <span class="wf-swatch" style="background:#ffe600;"></span>Watches <span class="wf-count" id="wf-count-watches">0</span>
       </button>
       <button class="wf-btn" id="wf-warnings" onclick="setWatchFilter('warnings')">
-        <span class="wf-swatch" style="background:#ff0000;"></span>Warnings
+        <span class="wf-swatch" style="background:#ff0000;"></span>Warnings <span class="wf-count" id="wf-count-warnings">0</span>
       </button>
-
+      <button class="wf-btn" id="wf-observed" onclick="setWatchFilter('observed')">
+        <span class="wf-swatch" style="background:#ff0000;border:2px solid #fff;"></span>Observed <span class="wf-count" id="wf-count-observed">0</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1146,6 +1030,14 @@
     <button class="severe-sheet-header-close" onclick="closeSevereSheet()"><span class="material-symbols-rounded">close</span></button>
   </div>
   <div class="severe-sheet-list">
+    <button class="severe-list-item primary" id="ssi-watches" onclick="navigate('watches');closeSevereSheet()">
+      <div class="severe-list-icon"><span class="material-symbols-rounded">emergency_home</span></div>
+      <div class="severe-list-body">
+        <div class="severe-list-label">Watches &amp; Warnings</div>
+        <div class="severe-list-sub">Live NWS watches &amp; warnings</div>
+      </div>
+      <div class="severe-list-right"><div class="severe-list-chevron"><span class="material-symbols-rounded">chevron_right</span></div></div>
+    </button>
     <button class="severe-list-item primary" id="ssi-outlook" onclick="navigate('outlook');closeSevereSheet()">
       <div class="severe-list-icon"><span class="material-symbols-rounded">thunderstorm</span></div>
       <div class="severe-list-body">
@@ -1163,14 +1055,6 @@
       <div class="severe-list-right"><div class="severe-list-chevron"><span class="material-symbols-rounded">chevron_right</span></div></div>
     </button>
     <div class="severe-list-divider"></div>
-    <button class="severe-list-item" id="ssi-watches" disabled>
-      <div class="severe-list-icon"><span class="material-symbols-rounded">emergency_home</span></div>
-      <div class="severe-list-body">
-        <div class="severe-list-label">Watches/Warnings</div>
-        <div class="severe-list-sub">Coming soon</div>
-      </div>
-      <div class="severe-list-chevron"><span class="material-symbols-rounded">lock</span></div>
-    </button>
     <button class="severe-list-item" disabled>
       <div class="severe-list-icon"><span class="material-symbols-rounded">storm</span></div>
       <div class="severe-list-body">
@@ -1280,13 +1164,16 @@ function navigate(page) {
     document.getElementById('page-'+p).classList.toggle('active', p === page);
   });
   // Update desktop nav
-  document.querySelectorAll('.header-nav button[id^="nav-"]').forEach(b => b.classList.remove('active'));
-  const navBtn = document.getElementById('nav-'+page);
-  if (navBtn) navBtn.classList.add('active');
-  // Update mobile tabs
+  // Update mobile tabs — highlight Severe tab for all severe pages
   document.querySelectorAll('.mob-tab[id^="mobtab-"]').forEach(b => b.classList.remove('active'));
-  const mobTab = document.getElementById('mobtab-'+page);
-  if (mobTab) mobTab.classList.add('active');
+  const severePages = ['outlook','watches','meso','severe101'];
+  if (severePages.includes(page)) {
+    document.getElementById('mob-severe-tab')?.classList.add('active');
+  } else {
+    document.getElementById('mob-severe-tab')?.classList.remove('active');
+    const mobTab = document.getElementById('mobtab-'+page);
+    if (mobTab) mobTab.classList.add('active');
+  }
 
   currentPage = page;
   document.body.className = 'page-' + page;
@@ -1294,8 +1181,12 @@ function navigate(page) {
 
   // Lazy init maps
   if (page === 'outlook' && !outlookMapInit) { initOutlookMap(); outlookMapInit = true; }
-  if (page === 'watches' && !watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
+  if (page === 'watches') {
+    if (!watchesMapInit) { initWatchesMap(); watchesMapInit = true; }
+    else { loadWatches(); if (curLoc?.lat) placeWatchesPin(curLoc); }
+  }
   if (page === 'meso' && !mesoMapInit) { initMesoMap(); mesoMapInit = true; }
+  else if (page === 'meso' && curLoc?.lat) placeMesoPin(curLoc);
   if (page === 'hourly') loadHourly();
 }
 
@@ -1465,15 +1356,11 @@ function clearSearch(barId, sugId) {
 
 // ── Search ──
 const _searchInputs = [
-  { bar: document.getElementById('search-bar'), sug: document.getElementById('suggestions') },
   { bar: document.getElementById('search-bar-mob'), sug: document.getElementById('suggestions-mob') },
-  { bar: document.getElementById('search-bar-outlook-desk'), sug: document.getElementById('suggestions-outlook-desk'), outlookOnly: true },
 ].filter(x => x.bar && x.sug);
 
 const _gpsBtns = [
-  document.getElementById('gps-btn-desk'),
   document.getElementById('gps-btn-mob'),
-  document.getElementById('gps-btn-outlook-desk'),
 ].filter(Boolean);
 
 function setGpsState(state) {
@@ -1519,6 +1406,8 @@ async function useGPS() {
         loadWeather(loc);
         updateRadar(lat, lng);
         placeOutlookPin(loc);
+        placeWatchesPin(loc);
+        placeMesoPin(loc);
       } catch(e) {
         setGpsState('error');
         showToast('Could not determine your location');
@@ -1632,28 +1521,26 @@ document.addEventListener('click', e => {
 
 function pick(loc, activeBar, activeSug) {
   selIdx = -1;
-  // Determine if this came from an outlook-only search bar
   const activeInput = _searchInputs.find(x => x.bar === activeBar);
   const isOutlookSearch = activeInput?.outlookOnly === true;
+  const isWatchesSearch = activeInput?.watchesOnly === true;
 
-  // Always close all suggestion dropdowns and update the active bar
-  _searchInputs.forEach(({bar, sug, outlookOnly}) => {
+  _searchInputs.forEach(({bar, sug}) => {
     sug.style.display = 'none';
     bar.blur();
-    // Sync label to all non-outlook bars always; sync outlook bars always too
     bar.value = loc.label;
   });
 
-  // Always place a pin on the outlook map
+  // Always place pins on all map overlays
   placeOutlookPin(loc);
+  placeWatchesPin(loc);
+  placeMesoPin(loc);
 
-  if (isOutlookSearch) {
-    // Outlook-only: just pin the map, save recent, don't reload weather
+  if (isOutlookSearch || isWatchesSearch) {
     saveRecent(loc);
     return;
   }
 
-  // Full weather search (from main search bars)
   curLoc = loc;
   localStorage.setItem('jweather_last_location', JSON.stringify(loc));
   saveRecent(loc);
@@ -1795,51 +1682,6 @@ async function loadWeather(loc) {
 }
 
 // ── Weather background videos (Pixabay free CDN) ──
-function getWeatherVideoUrl(desc, isDaytime) {
-  const d = (desc || '').toLowerCase();
-  // Tornado / severe
-  if (d.includes('tornado'))
-    return 'https://cdn.pixabay.com/video/2020/05/06/38596-416887948_large.mp4';
-  // Thunderstorm
-  if (d.includes('thunder') || d.includes('tstm') || d.includes('lightning'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2023/07/20/172267-847784283_large.mp4'
-      : 'https://cdn.pixabay.com/video/2022/10/14/134893-762269219_large.mp4';
-  // Snow / blizzard
-  if (d.includes('snow') || d.includes('blizzard') || d.includes('flurr'))
-    return 'https://cdn.pixabay.com/video/2016/12/30/7060-197634418_large.mp4';
-  // Sleet / freezing rain / ice
-  if (d.includes('sleet') || d.includes('ice') || d.includes('wintry') || d.includes('freezing'))
-    return 'https://cdn.pixabay.com/video/2021/01/08/60186-499845231_large.mp4';
-  // Rain / showers / drizzle
-  if (d.includes('rain') || d.includes('shower') || d.includes('drizzle'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2019/09/08/26964-358536530_large.mp4'
-      : 'https://cdn.pixabay.com/video/2016/09/14/5008-183010148_large.mp4';
-  // Fog / mist / haze
-  if (d.includes('fog') || d.includes('mist') || d.includes('haze'))
-    return 'https://cdn.pixabay.com/video/2020/03/23/34156-401080170_large.mp4';
-  // Windy / breezy
-  if (d.includes('wind') || d.includes('breezy') || d.includes('blustery'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2019/10/08/27973-365050790_large.mp4'
-      : null;
-  // Overcast / mostly cloudy
-  if (d.includes('overcast') || d.includes('mostly cloudy'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2020/07/28/46082-447087950_large.mp4'
-      : 'https://cdn.pixabay.com/video/2016/09/01/4846-181385502_large.mp4';
-  // Partly cloudy
-  if (d.includes('partly') || d.includes('cloud') || d.includes('increasing'))
-    return isDaytime
-      ? 'https://cdn.pixabay.com/video/2023/06/05/165884-835471823_large.mp4'
-      : 'https://cdn.pixabay.com/video/2022/11/04/137820-769423569_large.mp4';
-  // Clear / sunny
-  return isDaytime
-    ? 'https://cdn.pixabay.com/video/2020/07/30/46176-447670469_large.mp4'
-    : 'https://cdn.pixabay.com/video/2021/08/11/83526-585302890_large.mp4';
-}
-
 function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   document.getElementById('current-loc').textContent = loc.label || 'Your Location';
   document.getElementById('current-time').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
@@ -1854,23 +1696,6 @@ function renderCurrent(loc, temp, desc, feels, humid, wind, isDaytime) {
   icon.onload = () => { icon.style.opacity = '1'; };
   icon.onerror = () => { icon.style.opacity = '0'; };
   icon.src = newSrc;
-
-  // Background video
-  const videoEl = document.getElementById('current-hero-video');
-  const videoUrl = getWeatherVideoUrl(desc, isDaytime);
-  if (videoEl) {
-    const prev = videoEl.src;
-    if (videoUrl && videoUrl !== prev) {
-      videoEl.classList.remove('loaded');
-      videoEl.src = videoUrl;
-      videoEl.load();
-      videoEl.oncanplay = () => videoEl.classList.add('loaded');
-      videoEl.onerror = () => { videoEl.classList.remove('loaded'); videoEl.src = ''; };
-    } else if (!videoUrl) {
-      videoEl.classList.remove('loaded');
-      videoEl.src = '';
-    }
-  }
 }
 
 const DA = { Monday:'Mon', Tuesday:'Tue', Wednesday:'Wed', Thursday:'Thu', Friday:'Fri', Saturday:'Sat', Sunday:'Sun' };
@@ -2225,40 +2050,107 @@ function initOutlookMap() {
   if (curLoc?.lat) placeOutlookPin(curLoc);
 }
 
+function _centerMap(map, lat, lng) {
+  if (!map) return;
+  // setView only works correctly when the map container is visible.
+  // Use invalidateSize + setView after a brief tick to let the browser render.
+  const doCenter = () => {
+    try {
+      map.invalidateSize();
+      const currentZoom = map.getZoom() || 4;
+      map.setView([lat, lng], Math.max(currentZoom, 7));
+    } catch(e) {}
+  };
+  // Small timeout ensures the map container is painted before we try to center
+  setTimeout(doCenter, 50);
+}
+
 function placeOutlookPin(loc) {
   if (!outlookMap) return;
   if (outlookLocationMarker) { outlookMap.removeLayer(outlookLocationMarker); outlookLocationMarker = null; }
   if (!loc?.lat) return;
 
-  // Custom pulsing pin icon
   const pinIcon = L.divIcon({
     className: '',
-    html: `<div style="
-      position:relative;width:28px;height:36px;
-      filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));
-    ">
+    html: `<div style="position:relative;width:28px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
       <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
         <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
           fill="#f97316" stroke="#fff" stroke-width="2"/>
         <circle cx="14" cy="12" r="4" fill="#fff"/>
       </svg>
     </div>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -38],
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -38],
   });
 
   outlookLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
     .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
-      closeButton: false,
-      className: 'outlook-pin-popup',
-      maxWidth: 180,
+      closeButton: false, className: 'outlook-pin-popup', maxWidth: 180,
     })
     .addTo(outlookMap);
 
-  // Show popup briefly, then leave pin
+  _centerMap(outlookMap, loc.lat, loc.lng);
   outlookLocationMarker.openPopup();
   setTimeout(() => { if (outlookLocationMarker) outlookLocationMarker.closePopup(); }, 2500);
+}
+
+let watchesLocationMarker = null;
+
+function placeWatchesPin(loc) {
+  if (!watchesMap) return;
+  if (watchesLocationMarker) { watchesMap.removeLayer(watchesLocationMarker); watchesLocationMarker = null; }
+  if (!loc?.lat) return;
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
+      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
+          fill="#f97316" stroke="#fff" stroke-width="2"/>
+        <circle cx="14" cy="12" r="4" fill="#fff"/>
+      </svg>
+    </div>`,
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -38],
+  });
+
+  watchesLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
+    .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
+      closeButton: false, className: 'outlook-pin-popup', maxWidth: 180,
+    })
+    .addTo(watchesMap);
+
+  _centerMap(watchesMap, loc.lat, loc.lng);
+  watchesLocationMarker.openPopup();
+  setTimeout(() => { if (watchesLocationMarker) watchesLocationMarker.closePopup(); }, 2500);
+}
+
+let mesoLocationMarker = null;
+
+function placeMesoPin(loc) {
+  if (!mesoMap) return;
+  if (mesoLocationMarker) { mesoMap.removeLayer(mesoLocationMarker); mesoLocationMarker = null; }
+  if (!loc?.lat) return;
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
+      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 1C7.925 1 3 5.925 3 12c0 8.25 11 23 11 23S25 20.25 25 12C25 5.925 20.075 1 14 1z"
+          fill="#f97316" stroke="#fff" stroke-width="2"/>
+        <circle cx="14" cy="12" r="4" fill="#fff"/>
+      </svg>
+    </div>`,
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -38],
+  });
+
+  mesoLocationMarker = L.marker([loc.lat, loc.lng], { icon: pinIcon, zIndexOffset: 1000 })
+    .bindPopup(`<div style="font-family:system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:#fff;line-height:1.3;">${loc.label || 'Your Location'}</div>`, {
+      closeButton: false, className: 'outlook-pin-popup', maxWidth: 180,
+    })
+    .addTo(mesoMap);
+
+  _centerMap(mesoMap, loc.lat, loc.lng);
+  mesoLocationMarker.openPopup();
+  setTimeout(() => { if (mesoLocationMarker) mesoLocationMarker.closePopup(); }, 2500);
 }
 
 async function fetchDayMaxThreat(day) {
@@ -2284,48 +2176,13 @@ async function fetchDayMaxThreat(day) {
 }
 
 function buildOutlookSidebar() {
-  const cont = document.getElementById('outlook-sidebar-content');
-  cont.innerHTML = '';
   const mobDayTabs = document.getElementById('mob-day-tabs');
   const mobModeRow = document.getElementById('mob-mode-row');
   mobDayTabs.innerHTML = ''; mobModeRow.innerHTML = '';
 
-  const modeList = [
-    {key:'cat',  label:'Overall',  icon:'thunderstorm'},
-    {key:'torn', label:'Tornado',  icon:'tornado'     },
-    {key:'wind', label:'Wind',     icon:'air'         },
-    {key:'hail', label:'Hail',     icon:'weather_hail'},
-  ];
-
   [1,2,3].forEach(day => {
     const d = new Date(); d.setDate(d.getDate() + day - 1);
     const dayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
-    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const modes = day < 3 ? modeList : [modeList[0]];
-
-    const sec = document.createElement('div'); sec.className = 'day-section';
-    sec.innerHTML = `<div class="day-section-head"><div class="day-section-label"><div class="day-eyebrow">Day ${day}</div><div class="day-name">${dayName}</div></div><div class="day-badge">${dateStr}</div></div>`;
-    const catList = document.createElement('div'); catList.className = 'cat-list';
-    modes.forEach(m => {
-      const btn = document.createElement('button'); btn.className = 'cat-btn'; btn.dataset.day = day; btn.dataset.mode = m.key;
-      btn.innerHTML = `<span class="material-symbols-rounded cat-icon">${m.icon}</span>${m.label}`;
-      if (day === 1 && m.key === 'cat') btn.classList.add('active');
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loadOutlookHazard(day, m.key);
-        buildOutlookMobModeRow(day);
-      });
-      catList.appendChild(btn);
-    });
-    sec.appendChild(catList);
-
-    const discBtn = document.createElement('button'); discBtn.className = 'disc-sidebar-btn';
-    discBtn.innerHTML = `<span class="material-symbols-rounded">article</span>View Discussion`;
-    discBtn.addEventListener('click', () => openDiscModal(day));
-    sec.appendChild(discBtn);
-
-    cont.appendChild(sec);
 
     // Mobile day tab
     const tab = document.createElement('button'); tab.className = 'mob-day-tab'; tab.dataset.day = day;
@@ -2339,7 +2196,6 @@ function buildOutlookSidebar() {
       buildOutlookMobModeRow(day);
     });
     mobDayTabs.appendChild(tab);
-    // Async color bar
     fetchDayMaxThreat(day).then(color => {
       const bar = document.getElementById(`threat-bar-${day}`);
       if (bar && color) bar.style.background = color;
@@ -2705,10 +2561,21 @@ document.getElementById('disc-modal').addEventListener('click', e => { if (e.tar
 // WATCHES MAP
 // ══════════════════════════════════
 let watchesMap, watchesLayer = null, watchesList = [];
+let _watchesPollInterval = null, _watchesTimerInterval = null, _watchesTimeLeft = 30;
+const WATCHES_POLL_MS = 30000;
 
 function initWatchesMap() {
   watchesMap = L.map('watches-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
   L.control.zoom({ position: 'topright' }).addTo(watchesMap);
+
+  // Custom panes for proper z-order: emergency on top
+  watchesMap.createPane('watchPane').style.zIndex    = 310;
+  watchesMap.createPane('floodPane').style.zIndex    = 320;
+  watchesMap.createPane('svrPane').style.zIndex      = 330;
+  watchesMap.createPane('torPane').style.zIndex      = 340;
+  watchesMap.createPane('pdsPane').style.zIndex      = 350;
+  watchesMap.createPane('emePane').style.zIndex      = 360;
+
   const ret = window.devicePixelRatio > 1 ? '@2x' : '';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
     attribution: '', subdomains: 'abcd', maxZoom: 19, updateWhenZooming: false,
@@ -2720,16 +2587,35 @@ function initWatchesMap() {
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
     attribution: '', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', updateWhenZooming: false,
   }).addTo(watchesMap);
+
   loadWatches();
+
+  // Place pin for current location if one is set
+  if (curLoc?.lat) setTimeout(() => placeWatchesPin(curLoc), 100);
+  if (_watchesPollInterval) clearInterval(_watchesPollInterval);
+  if (_watchesTimerInterval) clearInterval(_watchesTimerInterval);
+  _watchesTimeLeft = WATCHES_POLL_MS / 1000;
+
+  _watchesTimerInterval = setInterval(() => {
+    _watchesTimeLeft--;
+    const fill = document.getElementById('watches-timer-fill');
+    if (fill) fill.style.width = (_watchesTimeLeft / (WATCHES_POLL_MS / 1000) * 100) + '%';
+    if (_watchesTimeLeft <= 0) _watchesTimeLeft = WATCHES_POLL_MS / 1000;
+  }, 1000);
+
+  _watchesPollInterval = setInterval(() => {
+    loadWatches(true); // silent = true, no spinner
+  }, WATCHES_POLL_MS);
 }
 
-async function loadWatches() {
+async function loadWatches(silent = false) {
   const refreshBtn = document.getElementById('watches-refresh-btn');
-  refreshBtn.classList.add('spinning');
-  document.getElementById('watch-list').innerHTML = '<div class="watch-loading" style="display:flex;align-items:center;gap:10px;padding:32px 20px;color:var(--text-4);font-size:0.78rem"><div class="spin-ring"></div>Loading watches &amp; warnings…</div>';
+  if (!silent && refreshBtn) {
+    refreshBtn.classList.add('spinning');
+  }
+  const liveText = document.getElementById('watches-live-text');
+  if (liveText) liveText.textContent = 'Updating…';
   try {
-    // Correct NOAA endpoint: eventdriven WWA service
-    // Layer 0 = storm-based warnings, Layer 1 = county-based watches
     const ts = Date.now();
     const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
     const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&_=${ts}`;
@@ -2743,14 +2629,21 @@ async function loadWatches() {
     const normalizeWatch = (f) => {
       const p = f.properties || {};
       const type = p.prod_type || '';
-      const isTor = type.includes('Tornado');
+      // Log first feature to see available fields
+      if (!normalizeWatch._logged) { normalizeWatch._logged = true; console.log('[WWA fields]', Object.keys(p), p); }
+      // County/area name: try multiple possible field names from NOAA eventdriven
+      const areaDesc = p.area_desc || p.cap_area_desc || p.ugcname || p.countyname || p.location || p.states || p.warnarea || '';
+      // Alert text: NOAA eventdriven may use prod_str, cap_headline, or similar
+      const description = p.prod_str || p.cap_desc || p.description || p.cap_headline || p.headline || '';
       return {
         ...f,
         properties: {
           ...p,
           event: type,
-          expires: p.expiration || null,
-          areaDesc: p.area_desc || p.states || '',
+          expires: p.expiration || p.expires || null,
+          areaDesc,
+          description,
+          headline: p.headline || p.cap_headline || '',
           senderName: 'NWS',
           parameters: { watchNumber: [p.watch_num || p.phenom || ''] }
         }
@@ -2759,12 +2652,8 @@ async function loadWatches() {
 
     let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
     let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
-    // Flash flood warnings from NWS alerts (have geometry)
     const floodFeatures = floodRes.ok ? ((await floodRes.json()).features || []).filter(f => f.geometry) : [];
 
-    console.log('Watches:', watchFeatures.length, 'Warnings:', warnFeatures.length, 'Flood:', floodFeatures.length);
-
-    // Priority sort: tor warnings first, then svr warnings, flood, tor watches, svr watches
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
       if (ev.includes('tornado warning'))             return 0;
@@ -2774,33 +2663,82 @@ async function loadWatches() {
       return 4;
     };
     watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
-    const total = watchesList.length;
-    document.getElementById('watches-sub').textContent = `${total} active watch${total !== 1 ? 'es' : ''}/warning${total !== 1 ? 's' : ''}`;
+
+    const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
+    const warnCount   = watchesList.filter(f =>  isWarning(f)).length;
+    const watchCount  = watchesList.filter(f => !isWarning(f)).length;
+    const totalCount  = watchesList.length;
+    const obsCount    = watchesList.filter(f => isTorWarnType(f) && isObserved(f)).length;
+
+    // Update count badges
+    const cAll  = document.getElementById('wf-count-all');
+    const cWat  = document.getElementById('wf-count-watches');
+    const cWar  = document.getElementById('wf-count-warnings');
+    const cObs  = document.getElementById('wf-count-observed');
+    if (cAll)  cAll.textContent  = totalCount;
+    if (cWat)  cWat.textContent  = watchCount;
+    if (cWar)  cWar.textContent  = warnCount;
+    if (cObs)  cObs.textContent  = obsCount;
+
+    // Update panel sub-header
+    document.getElementById('watches-sub').textContent = `${totalCount} active watch${totalCount !== 1 ? 'es' : ''}/warning${totalCount !== 1 ? 's' : ''}`;
+
+    // Update live pill
+    if (liveText) liveText.textContent = `Updated ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+    _watchesTimeLeft = WATCHES_POLL_MS / 1000;
+    const fill = document.getElementById('watches-timer-fill');
+    if (fill) fill.style.width = '100%';
+
     setWatchFilter(watchFilter);
   } catch(e) {
     console.error('loadWatches error:', e);
-    document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
+    if (!silent) document.getElementById('watch-list').innerHTML = '<div class="watch-empty"><span class="material-symbols-rounded">cloud_off</span><div class="watch-empty-title">Error loading data</div><div class="watch-empty-sub">Check your connection and try again.</div></div>';
+    if (liveText) liveText.textContent = 'Update failed';
   } finally {
-    refreshBtn.classList.remove('spinning');
+    if (refreshBtn) refreshBtn.classList.remove('spinning');
   }
 }
 
-function isPDS(feat) {
+function _alertText(feat) {
   const p = feat.properties || {};
-  const desc = (p.description || p.headline || p.prod_type || '').toLowerCase();
-  return desc.includes('particularly dangerous') || desc.includes('emergency') || desc.includes('observed');
+  // Only use description/headline text — NOT prod_str (full product text has too many false positives)
+  return (p.description || p.headline || '').toLowerCase();
+}
+
+function isEmergency(feat) {
+  // Must be a tornado warning with specific emergency phrase
+  if (!isTorWarnType(feat)) return false;
+  return _alertText(feat).includes('tornado emergency');
+}
+
+function isObserved(feat) {
+  // Must be a tornado warning; NWS uses "TORNADO...OBSERVED" or "tornado observed"
+  if (!isTorWarnType(feat)) return false;
+  const t = _alertText(feat);
+  return t.includes('tornado...observed') || t.includes('tornado observed') || t.includes('observed tornado');
+}
+
+function isPDS(feat) {
+  if (!isTorWarnType(feat)) return false;
+  const t = _alertText(feat);
+  return t.includes('particularly dangerous situation');
 }
 
 function getWatchType(event, feat) {
   const ev = (event||'');
   if (ev === 'Tornado Warning' || ev.toLowerCase().includes('tornado warning')) {
-    if (feat && isPDS(feat)) return { cls:'tor-pds',   label:'PDS Tornado Warning',  color:'#ff1493' };
-    return                          { cls:'tor-warn',   label:'Tornado Warning',      color:'#ff0000' };
+    if (feat && isEmergency(feat)) return { cls:'tor-eme',  label:'Tornado Emergency',    color:'#ff00ff', pane:'emePane'  };
+    if (feat && isObserved(feat))  return { cls:'tor-obs',  label:'Observed Tornado',     color:'#ff1493', pane:'pdsPane'  };
+    if (feat && isPDS(feat))       return { cls:'tor-pds',  label:'PDS Tornado Warning',  color:'#ff1493', pane:'pdsPane'  };
+    return                                { cls:'tor-warn', label:'Tornado Warning',       color:'#ff0000', pane:'torPane'  };
   }
-  if (ev === 'Severe Thunderstorm Warning' || ev.toLowerCase().includes('severe thunderstorm warning')) return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600' };
-  if (ev === 'Flash Flood Warning'         || ev.toLowerCase().includes('flash flood warning'))         return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851' };
-  if (ev === 'Tornado Watch'               || ev.toLowerCase().includes('tornado watch'))               return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600' };
-  return                                                                                                       { cls:'svr',        label:'Svr T-Storm Watch',   color:'#c2185b' };
+  if (ev === 'Severe Thunderstorm Warning' || ev.toLowerCase().includes('severe thunderstorm warning'))
+    return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600', pane:'svrPane'   };
+  if (ev === 'Flash Flood Warning' || ev.toLowerCase().includes('flash flood warning'))
+    return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851', pane:'floodPane' };
+  if (ev === 'Tornado Watch' || ev.toLowerCase().includes('tornado watch'))
+    return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600', pane:'watchPane' };
+  return       { cls:'svr',   label:'Svr T-Storm Watch',   color:'#c2185b', pane:'watchPane' };
 }
 
 function renderWatchList(features) {
@@ -2866,136 +2804,217 @@ function featureContainsPoint(feat, latlng) {
 
 function isTorWarnType(f) { return (f.properties?.event||'').toLowerCase().includes('tornado warning'); }
 
-function showWatchDetail(feats) {
-  const primary = feats[0];
-  const a = primary.properties;
-  const { cls, label } = getWatchType(a.event, primary);
-  const num = a.parameters?.watchNumber?.[0] || '';
-  const numStr = num ? ` #${num}` : '';
-  const expires = a.expires ? new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-  document.getElementById('wd-bar').className = `watch-detail-bar ${cls}`;
-  document.getElementById('wd-type').className = `watch-detail-type ${cls}`;
-  document.getElementById('wd-type').textContent = label;
-  document.getElementById('wd-num').textContent = numStr;
+function showWatchDetail(feats, clickLatlng) {
+  // Log raw properties so we can see actual field names
+  if (feats[0]) console.log('[WWA click properties]', feats[0].properties);
 
-  const summaryHtml = (desc) => {
-    if (!desc) return '';
-    // Trim to ~250 chars at a sentence boundary
-    let s = desc.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-    if (s.length > 250) { const cut = s.lastIndexOf('.', 250); s = s.slice(0, cut > 80 ? cut + 1 : 250) + '…'; }
-    return `<div class="wd-row" style="align-items:flex-start"><div class="wd-label">Summary</div><div class="wd-value" style="font-size:0.72rem;line-height:1.55">${s}</div></div>`;
+  // Extract county/area name — try all known field names
+  const p0 = feats[0]?.properties || {};
+  const rawArea = p0.areaDesc || p0.area_desc || p0.cap_area_desc || p0.ugcname ||
+                  p0.countyname || p0.location || p0.states || p0.warnarea || '';
+  // Parse first county from semicolon-separated list
+  const firstArea = rawArea.split(';')[0].split(',')[0].trim();
+  document.getElementById('wd-county-name').textContent = firstArea || 'Selected Area';
+
+  // Sort by threat level: Emergency → Observed → PDS → Tor Warning → Svr Warning → Flood → Watches
+  const threatRank = f => {
+    if (isTorWarnType(f) && isEmergency(f)) return 0;
+    if (isTorWarnType(f) && isObserved(f))  return 1;
+    if (isTorWarnType(f) && isPDS(f))       return 2;
+    if (isTorWarnType(f))                   return 3;
+    const ev = (f.properties?.event||'').toLowerCase();
+    if (ev.includes('severe thunderstorm warning')) return 4;
+    if (ev.includes('flash flood warning'))         return 5;
+    return 6; // watches
   };
+  const sorted = [...feats].sort((a, b) => threatRank(a) - threatRank(b));
 
-  let html = `
-    <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${a.areaDesc||'—'}</div></div>
-    <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${expires}</div></div>
-    <div class="wd-row"><div class="wd-label">Source</div><div class="wd-value">${a.senderName||'NWS'}</div></div>
-    ${summaryHtml(a.description || a.headline)}`;
+  const isWarningF = f => (f.properties?.event||'').toLowerCase().includes('warning');
 
-  feats.slice(1).forEach(f => {
-    const b = f.properties;
-    const { cls: cls2, label: label2 } = getWatchType(b.event, f);
-    const exp2 = b.expires ? new Date(b.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}) : '—';
-    html += `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
-      <span class="watch-type-badge ${cls2}" style="display:inline-block;margin-bottom:6px">${label2.toUpperCase()}</span>
-      <div class="wd-row"><div class="wd-label">Area</div><div class="wd-value">${b.areaDesc||'—'}</div></div>
-      <div class="wd-row"><div class="wd-label">Until</div><div class="wd-value">${exp2}</div></div>
-      ${summaryHtml(b.description || b.headline)}
-    </div>`;
+  let html = '';
+  sorted.forEach((feat, idx) => {
+    const p = feat.properties;
+    const { cls, label, color } = getWatchType(p.event, feat);
+    const isWarn = isWarningF(feat);
+    const expires = p.expires ? new Date(p.expires) : null;
+    const expStr = expires
+      ? expires.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
+      : '—';
+    const expiringSoon = expires && (expires - Date.now()) < 3600000;
+
+    // Build description snippet — trim to ~300 chars at sentence boundary
+    let desc = (p.description || p.headline || '').replace(/\n+/g,' ').replace(/\s+/g,' ').trim();
+    if (desc.length > 300) {
+      const cut = desc.lastIndexOf('.', 300);
+      desc = desc.slice(0, cut > 80 ? cut + 1 : 300) + '…';
+    }
+
+    const openClass = isWarn ? ' open' : '';
+
+    html += `
+      <div class="wd-alert-item${openClass}" id="wd-item-${idx}">
+        <div class="wd-alert-header">
+          <div class="wd-alert-bar" style="background:${color}"></div>
+          <div class="wd-alert-meta">
+            <div class="wd-alert-label">${label}</div>
+            <div class="wd-alert-expires${expiringSoon?' wd-alert-expiring':''}">Until ${expStr}</div>
+          </div>
+          <span class="material-symbols-rounded wd-alert-chevron">expand_more</span>
+        </div>
+        ${desc ? `<div class="wd-alert-body">${desc}</div>` : ''}
+      </div>`;
   });
+
   document.getElementById('wd-body').innerHTML = html;
   document.getElementById('watch-detail').classList.add('open');
 }
 
 function closeWatchDetail() { document.getElementById('watch-detail').classList.remove('open'); }
 
-let watchFilter = 'watches';
+// Event delegation — handles dynamically rendered alert items
+document.getElementById('wd-body').addEventListener('click', e => {
+  console.log('[wd-body click]', e.target, e.target.closest('.wd-alert-header'));
+  const header = e.target.closest('.wd-alert-header');
+  if (!header) return;
+  const item = header.parentElement;
+  item.classList.toggle('open');
+  if (item.classList.contains('open')) {
+    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+});
+
+let watchFilter = 'all';
 
 function setWatchFilter(filter) {
+  const isWarningF = f => (f.properties?.event||'').toLowerCase().includes('warning');
+  const warnCount  = watchesList.filter(f =>  isWarningF(f)).length;
+  const watchCount = watchesList.filter(f => !isWarningF(f)).length;
+  const obsCount   = watchesList.filter(f => isTorWarnType(f) && isObserved(f)).length;
+
+  // If chosen filter has no items, fall back to 'all'
+  if (filter === 'watches'  && watchCount === 0) filter = 'all';
+  if (filter === 'warnings' && warnCount  === 0) filter = 'all';
+  if (filter === 'observed' && obsCount   === 0) filter = 'all';
   watchFilter = filter;
-  // Update button states
-  ['watches','warnings'].forEach(f => {
-    const btn = document.getElementById(`wf-${f}`);
+
+  // Show/hide + activate buttons
+  const btnDefs = [
+    { id: 'all',      count: watchesList.length, activeClass: 'active-all'      },
+    { id: 'watches',  count: watchCount,          activeClass: 'active-watches'  },
+    { id: 'warnings', count: warnCount,           activeClass: 'active-warnings' },
+    { id: 'observed', count: obsCount,            activeClass: 'active-observed' },
+  ];
+  btnDefs.forEach(({ id, count, activeClass }) => {
+    const btn = document.getElementById(`wf-${id}`);
     if (!btn) return;
-    btn.classList.remove('active', 'active-watches', 'active-warnings');
-    if (f === filter) {
-      btn.classList.add('active');
-      if (f === 'watches')  btn.classList.add('active-watches');
-      if (f === 'warnings') btn.classList.add('active-warnings');
-    }
+    btn.style.display = (id === 'all' || count > 0) ? '' : 'none';
+    btn.classList.remove('active','active-all','active-watches','active-warnings','active-observed');
+    if (id === filter) btn.classList.add('active', activeClass);
   });
-  // Update legend
-  const title = document.getElementById('ww-legend-title');
-  const items = document.getElementById('ww-legend-items');
-  if (filter === 'watches') {
-    if (title) title.textContent = 'Watches';
-    if (items) items.innerHTML =
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-watch);opacity:0.7;"></div><span class="legend-label">Tornado Watch</span></div>' +
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--svr-watch);opacity:0.7;"></div><span class="legend-label">Severe T-Storm Watch</span></div>';
-  } else {
-    if (title) title.textContent = 'Warnings';
-    const hasPDS = watchesList.some(f => isTorWarnType(f) && isPDS(f));
-    let legendHtml = hasPDS
-      ? '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-pds);opacity:0.9;"></div><span class="legend-label">PDS Tornado Warning</span></div>'
-      : '';
-    legendHtml +=
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--tor-warn);opacity:0.9;"></div><span class="legend-label">Tornado Warning</span></div>' +
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--svr-warn);opacity:0.9;"></div><span class="legend-label">Severe T-Storm Warning</span></div>' +
-      '<div class="legend-item"><div class="legend-swatch" style="background:var(--flood-warn);opacity:0.9;"></div><span class="legend-label">Flash Flood Warning</span></div>';
-    if (items) items.innerHTML = legendHtml;
+
+  // Build two-section legend — only active types, hide when empty
+  const legendEl = document.querySelector('.watches-map-legend');
+  if (legendEl) {
+    const hasEme     = watchesList.some(f => isTorWarnType(f) && isEmergency(f));
+    const hasObs     = watchesList.some(f => isTorWarnType(f) && isObserved(f));
+    const hasPDS     = watchesList.some(f => isTorWarnType(f) && isPDS(f) && !isObserved(f));
+    const hasTor     = watchesList.some(f => isTorWarnType(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f));
+    const hasSvr     = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning'));
+    const hasFlood   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('flash flood'));
+    const hasTorWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('tornado watch'));
+    const hasSvrWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm watch'));
+
+    const sw = (color, border) =>
+      `<div class="legend-swatch" style="background:${color};${border?`border:${border};`:''}"></div>`;
+
+    const showWatches  = filter === 'all' || filter === 'watches';
+    const showWarnings = filter === 'all' || filter === 'warnings' || filter === 'observed';
+    let html = '';
+
+    if (showWatches && (hasTorWatch || hasSvrWatch)) {
+      html += `<div class="watches-legend-section"><div class="watches-legend-heading">Watches</div>
+        ${hasTorWatch ? `<div class="legend-item">${sw('var(--tor-watch)')}<span class="legend-label">Tornado Watch</span></div>` : ''}
+        ${hasSvrWatch ? `<div class="legend-item">${sw('var(--svr-watch)')}<span class="legend-label">Svr T-Storm Watch</span></div>` : ''}
+      </div>`;
+    }
+    if (showWarnings && (hasEme || hasObs || hasPDS || hasTor || hasSvr || hasFlood)) {
+      html += `<div class="watches-legend-section"><div class="watches-legend-heading">Warnings</div>
+        ${hasEme   ? `<div class="legend-item">${sw('var(--tor-eme)')}<span class="legend-label">Tornado Emergency</span></div>` : ''}
+        ${hasObs   ? `<div class="legend-item">${sw('var(--tor-pds)','2px solid rgba(255,255,255,0.5)')}<span class="legend-label">Observed Tornado</span></div>` : ''}
+        ${hasPDS   ? `<div class="legend-item">${sw('var(--tor-pds)')}<span class="legend-label">PDS Tornado Warning</span></div>` : ''}
+        ${hasTor   ? `<div class="legend-item">${sw('var(--tor-warn)')}<span class="legend-label">Tornado Warning</span></div>` : ''}
+        ${hasSvr   ? `<div class="legend-item">${sw('var(--svr-warn)')}<span class="legend-label">Svr T-Storm Warning</span></div>` : ''}
+        ${hasFlood ? `<div class="legend-item">${sw('var(--flood-warn)')}<span class="legend-label">Flash Flood Warning</span></div>` : ''}
+      </div>`;
+    }
+    legendEl.innerHTML = html;
+    legendEl.style.display = html.trim() ? '' : 'none';
   }
-  // Re-render map and list with filter applied
+
   if (watchesList.length && watchesMap) renderWatchesOnMap(watchesList);
   renderWatchList(watchesList);
 }
 
 function renderWatchesOnMap(features) {
   if (watchesLayer) { watchesMap.removeLayer(watchesLayer); watchesLayer = null; }
-  const isWarning  = f => (f.properties?.event||'').toLowerCase().includes('warning');
-  const isTorWarn  = f => { const ev = (f.properties?.event||'').toLowerCase(); return ev.includes('tornado warning'); };
+  const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
+  const isTorWarn = f => (f.properties?.event||'').toLowerCase().includes('tornado warning');
 
-  // Apply filter
   let filtered = features;
   if (watchFilter === 'watches')  filtered = features.filter(f => !isWarning(f));
   if (watchFilter === 'warnings') filtered = features.filter(f =>  isWarning(f));
-
-  const watches    = filtered.filter(f => !isWarning(f));
-  const nonTorWarn = filtered.filter(f =>  isWarning(f) && !isTorWarn(f));
-  const torWarns   = filtered.filter(f =>  isTorWarn(f));  // drawn last = on top
+  if (watchFilter === 'observed') filtered = features.filter(f => isTorWarn(f) && isObserved(f));
 
   watchesLayer = L.layerGroup().addTo(watchesMap);
 
-  const makeLayer = (feats, fillOpacity, weight, strokeColor) => L.geoJSON(
-    { type:'FeatureCollection', features: feats },
-    {
-      style: feat => {
-        const { color } = getWatchType(feat.properties?.event, feat);
-        return { fillColor: color, fillOpacity, color: strokeColor || color, weight, opacity: 0.9 };
-      },
-      onEachFeature: (feat, lyr) => {
-        lyr.on('click', e => {
-          L.DomEvent.stopPropagation(e);
-          const clicked = features
-            .filter(f => featureContainsPoint(f, e.latlng))
-            .sort((a, b) => {
-              // Sort: tor warnings first, then other warnings, then watches
-              const rank = f => isTorWarn(f) ? 0 : isWarning(f) ? 1 : 2;
-              return rank(a) - rank(b);
-            });
-          if (!clicked.length) return;
-          const idx = watchesList.findIndex(f => f === clicked[0]);
-          document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
-          if (idx >= 0) { const card = document.querySelectorAll('.watch-card')[idx]; if (card) card.classList.add('selected'); }
-          showWatchDetail(clicked);
-        });
-      }
-    }
-  );
+  // Group by pane for proper z-ordering
+  const byType = {
+    watch:   filtered.filter(f => !isWarning(f)),
+    flood:   filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('flood')),
+    svr:     filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning')),
+    tor:     filtered.filter(f => isTorWarn(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f)),
+    obs:     filtered.filter(f => isTorWarn(f) && isObserved(f) && !isEmergency(f)),
+    pds:     filtered.filter(f => isTorWarn(f) && isPDS(f) && !isObserved(f) && !isEmergency(f)),
+    eme:     filtered.filter(f => isTorWarn(f) && isEmergency(f)),
+  };
 
-  // Draw order: watches (bottom) → non-tornado warnings → tornado warnings (top)
-  makeLayer(watches,    0.2,  1.5, null).addTo(watchesLayer);
-  makeLayer(nonTorWarn, 0.75, 1,   'rgba(0,0,0,0.45)').addTo(watchesLayer);
-  makeLayer(torWarns,   0.75, 1.5, 'rgba(0,0,0,0.55)').addTo(watchesLayer);
+  const addLayer = (feats, fillOpacity, weight, strokeColor) => {
+    if (!feats.length) return;
+    L.geoJSON(
+      { type:'FeatureCollection', features: feats },
+      {
+        style: feat => {
+          const { color, pane } = getWatchType(feat.properties?.event, feat);
+          return { fillColor: color, fillOpacity, color: strokeColor || 'rgba(0,0,0,0.5)', weight, opacity: 0.9, pane: pane || 'overlayPane' };
+        },
+        onEachFeature: (feat, lyr) => {
+          lyr.on('click', e => {
+            L.DomEvent.stopPropagation(e);
+            const clicked = features
+              .filter(f => featureContainsPoint(f, e.latlng))
+              .sort((a, b) => {
+                const rank = f => isEmergency(f) ? 0 : isObserved(f) ? 1 : isPDS(f) ? 2 : isTorWarn(f) ? 3 : isWarning(f) ? 4 : 5;
+                return rank(a) - rank(b);
+              });
+            if (!clicked.length) return;
+            const idx = watchesList.findIndex(f => f === clicked[0]);
+            document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('selected'));
+            if (idx >= 0) { const card = document.querySelectorAll('.watch-card')[idx]; if (card) card.classList.add('selected'); }
+            showWatchDetail(clicked, e.latlng);
+          });
+        }
+      }
+    ).addTo(watchesLayer);
+  };
+
+  // Draw lowest priority first (bottom) → highest priority on top
+  addLayer(byType.watch, 0.35, 1.5, null);
+  addLayer(byType.flood, 1.0,  1,   null);
+  addLayer(byType.svr,   1.0,  1,   null);
+  addLayer(byType.tor,   1.0,  1.5, null);
+  addLayer(byType.pds,   1.0,  2,   null);
+  addLayer(byType.obs,   1.0,  2,   'rgba(255,255,255,0.5)');
+  addLayer(byType.eme,   1.0,  2.5, '#000');
 }
 
 // Mobile watches panel toggle
@@ -3025,6 +3044,8 @@ function initMesoMap() {
   // Poll every 2 minutes for new MCDs
   if (window._mesoInterval) clearInterval(window._mesoInterval);
   window._mesoInterval = setInterval(loadMesoDiscussions, 120000);
+  // Place pin for current location if one is set
+  if (curLoc?.lat) placeMesoPin(curLoc);
 }
 
 async function loadMesoDiscussions() {
@@ -3042,8 +3063,35 @@ async function loadMesoDiscussions() {
     mesoData = data.features || [];
     document.getElementById('md-sub').textContent = `${mesoData.length} active discussion${mesoData.length !== 1 ? 's' : ''}`;
     document.getElementById('mob-md-count').textContent = mesoData.length;
-    renderMesoList(mesoData);
+
+    // Fetch last ~8 MCD numbers from SPC archive to find recently expired ones
+    let expiredFeatures = [];
+    try {
+      const year = new Date().getFullYear();
+      const archiveRes = await fetch(`${WORKER_URL}/proxy/products/md/${year}/`, { cache: 'no-store' });
+      if (archiveRes.ok) {
+        const html = await archiveRes.text();
+        // Parse MCD numbers from links like md1234.html
+        const matches = [...html.matchAll(/md(\d{4})\.html/gi)];
+        const allNums = [...new Set(matches.map(m => parseInt(m[1], 10)))].sort((a,b) => b-a);
+        // Active MCD numbers already shown
+        const activeNums = new Set(mesoData.map(f => {
+          const n = f.properties?.name || f.properties?.num || '';
+          return parseInt(String(n).replace(/[^0-9]/g,''), 10);
+        }).filter(Boolean));
+        // Take up to 4 most recent that aren't active
+        const expiredNums = allNums.filter(n => !activeNums.has(n)).slice(0, 4);
+        expiredFeatures = expiredNums.map(num => ({
+          type: 'Feature',
+          geometry: null,
+          properties: { name: num, _expired: true },
+        }));
+      }
+    } catch(e) { /* expired fetch optional */ }
+
+    renderMesoList(mesoData, expiredFeatures);
     renderMesoOnMap(mesoData);
+
     const dot = document.getElementById('md-status-dot');
     const txt = document.getElementById('md-status-text');
     if (mesoData.length) {
@@ -3079,12 +3127,14 @@ function classifyConcern(raw) {
   return                                               { label: raw || 'Discussion',                 icon: 'crisis_alert', color: '#f97316', dim: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)' };
 }
 
-function renderMesoList(features) {
+function renderMesoList(features, expiredFeatures = []) {
   const list = document.getElementById('md-list'); list.innerHTML = '';
-  if (!features.length) {
+  if (!features.length && !expiredFeatures.length) {
     list.innerHTML = '<div class="md-empty"><span class="material-symbols-rounded">check_circle</span><div class="md-empty-title">No Active Discussions</div><div class="md-empty-sub">No mesoscale discussions in effect.</div></div>';
     return;
   }
+
+  // Active cards
   features.forEach((feat, i) => {
     const p = feat.properties;
     const num = p.name || p.num || i+1;
@@ -3098,6 +3148,23 @@ function renderMesoList(features) {
     card.addEventListener('click', () => { selectMeso(i, card); });
     list.appendChild(card);
   });
+
+  // Divider + expired section
+  if (expiredFeatures.length) {
+    const divider = document.createElement('div');
+    divider.className = 'md-expired-divider';
+    divider.innerHTML = '<span>Recently Expired</span>';
+    list.appendChild(divider);
+
+    expiredFeatures.forEach((feat, i) => {
+      const num = feat.properties.name;
+      const card = document.createElement('div');
+      card.className = 'md-card md-card-expired';
+      card.innerHTML = `<div class="md-card-bar md-card-bar-expired"></div><div class="md-card-inner"><div class="md-card-header"><span class="md-num">MCD #${num}</span><span class="md-concern-badge md-concern-badge-expired">Expired</span></div><div class="md-card-footer"><div class="md-card-expire"><span class="material-symbols-rounded">history</span>No longer in effect</div></div></div>`;
+      card.addEventListener('click', () => { selectExpiredMeso(num, card); });
+      list.appendChild(card);
+    });
+  }
 }
 
 function selectMeso(i, card) {
@@ -3108,18 +3175,83 @@ function selectMeso(i, card) {
     const coords = mesoData[i].geometry.coordinates[0];
     const latlngs = coords.map(c => [c[1], c[0]]);
     try {
-      // Fit bounds first, then pan up so polygon sits above the detail panel
       const bounds = L.latLngBounds(latlngs);
       const detailEl = document.getElementById('md-detail');
       const detailH = detailEl ? detailEl.offsetHeight + 24 : 260;
-      const mapH = mesoMap.getContainer().offsetHeight;
-      // Pad bottom by detail panel height so polygon is visible above it
       mesoMap.fitBounds(bounds, {
         paddingTopLeft: [16, 16],
         paddingBottomRight: [16, detailH]
       });
     } catch(e) {}
   }
+}
+
+function selectExpiredMeso(num, card) {
+  document.querySelectorAll('.md-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  // Build a synthetic expired feature and show detail panel
+  const year = new Date().getFullYear();
+  const numStr = String(num).padStart(4, '0');
+  const expiredFeat = {
+    properties: {
+      name: num,
+      _expired: true,
+      concerning: '',
+      affected: '',
+    },
+    geometry: null,
+  };
+  // Use the existing detail panel but with grey theme for expired
+  const detail = document.getElementById('md-detail');
+  detail.style.setProperty('--md-color', '#9ca3af');
+  detail.style.setProperty('--md-dim', 'rgba(156,163,175,0.1)');
+  detail.style.setProperty('--md-border', 'rgba(156,163,175,0.25)');
+  document.getElementById('mdd-num').textContent = `MCD #${num}`;
+  document.getElementById('mdd-concern').textContent = 'Expired';
+  document.getElementById('mdd-area').style.display = 'none';
+  document.getElementById('mdd-expire-row').style.display = 'none';
+  const textEl = document.getElementById('mdd-text');
+  const loadEl = document.getElementById('mdd-text-loading');
+  textEl.style.display = 'none';
+  loadEl.textContent = 'Loading discussion…';
+  loadEl.style.display = 'block';
+  textEl.textContent = '';
+  detail.classList.add('show');
+  document.getElementById('md-detail-backdrop').classList.add('show');
+
+  // Still fetch and summarize the expired discussion text
+  (async () => {
+    try {
+      const res = await fetch(`${WORKER_URL}/proxy/products/md/${year}/md${numStr}.html`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      const doc = document.createElement('div'); doc.innerHTML = html;
+      const pre = doc.querySelector('pre');
+      let rawText = (pre ? pre.textContent : doc.textContent).trim().slice(0, 3000);
+      loadEl.textContent = 'Summarizing with AI…';
+      const aiRes = await fetch(`${WORKER_URL}/ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 300,
+          system: 'You are a friendly weather assistant. Summarize the SPC mesoscale discussion below in 3-4 plain-English sentences a non-meteorologist can understand. Focus on: what the threat was, where it affected, and when. Note this discussion has expired. No bullet points, no headers, no jargon.',
+          messages: [{ role: 'user', content: rawText }]
+        })
+      });
+      if (!aiRes.ok) throw new Error(`AI ${aiRes.status}`);
+      const aiData = await aiRes.json();
+      const summary = aiData?.content?.[0]?.text?.trim() || '';
+      if (!summary) throw new Error('empty');
+      loadEl.style.display = 'none';
+      textEl.textContent = summary;
+      textEl.style.display = 'block';
+    } catch(e) {
+      loadEl.style.display = 'none';
+      textEl.textContent = 'Could not load discussion summary.';
+      textEl.style.display = 'block';
+    }
+  })();
 }
 
 async function showMesoDetail(feat, i) {
@@ -3234,6 +3366,36 @@ window.addEventListener('DOMContentLoaded', () => {
   loadWeather(loc);
   updateRadar(loc.lat, loc.lng);
 });
+// ── Desktop overlay ──
+(function() {
+  if (window.innerWidth <= 1024) return;
+  if (sessionStorage.getItem('jw_desktop_dismissed')) return;
+  if (localStorage.getItem('jw_desktop_never')) return;
+  const ov = document.createElement('div');
+  ov.id = 'desktop-overlay';
+  ov.innerHTML = `
+    <div id="desktop-overlay-box">
+      <div id="desktop-overlay-icon"><span class="material-symbols-rounded">smartphone</span></div>
+      <div id="desktop-overlay-title">Built for Mobile</div>
+      <div id="desktop-overlay-body">jWeather is optimized for phones and tablets. For the best experience, open it on your mobile device or resize your browser window.</div>
+      <button id="desktop-overlay-btn" onclick="document.getElementById('desktop-overlay').style.display='none';sessionStorage.setItem('jw_desktop_dismissed','1')">Got it, continue anyway</button>
+      <button id="desktop-overlay-never" onclick="document.getElementById('desktop-overlay').style.display='none';localStorage.setItem('jw_desktop_never','1')">Don't remind me again</button>
+    </div>`;
+  document.body.appendChild(ov);
+  const s = document.createElement('style');
+  s.textContent = `
+    #desktop-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:24px;}
+    #desktop-overlay-box{background:#1e2028;border:1px solid rgba(255,255,255,0.11);border-radius:16px;padding:32px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);}
+    #desktop-overlay-icon{width:56px;height:56px;background:rgba(249,115,22,0.12);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+    #desktop-overlay-icon .material-symbols-rounded{font-size:28px;color:#f97316;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #desktop-overlay-title{font-family:'Geist',system-ui,sans-serif;font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:-0.025em;margin-bottom:10px;}
+    #desktop-overlay-body{font-family:'Geist',system-ui,sans-serif;font-size:0.85rem;color:#9ba0aa;line-height:1.65;margin-bottom:24px;}
+    #desktop-overlay-btn{font-family:'Geist',system-ui,sans-serif;font-size:0.83rem;font-weight:600;color:#fff;background:#f97316;border:none;border-radius:10px;padding:12px 24px;cursor:pointer;width:100%;transition:opacity .15s;margin-bottom:10px;}
+    #desktop-overlay-btn:hover{opacity:0.88;}
+    #desktop-overlay-never{font-family:'Geist',system-ui,sans-serif;font-size:0.78rem;font-weight:500;color:#9ba0aa;background:none;border:none;cursor:pointer;width:100%;padding:4px;transition:color .15s;}
+    #desktop-overlay-never:hover{color:#fff;}`;
+  document.head.appendChild(s);
+})();
 </script>
 </body>
 </html>
