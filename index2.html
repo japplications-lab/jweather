@@ -2617,12 +2617,14 @@ async function loadWatches(silent = false) {
   if (liveText) liveText.textContent = 'Updating…';
   try {
     const ts = Date.now();
-    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
+    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning')&outFields=*&f=geojson&_=${ts}`;
     const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch','Flash+Flood+Watch')&outFields=*&f=geojson&_=${ts}`;
+    const FLOOD_URL = `${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning,Flood%20Warning&status=actual&message_type=alert`;
 
-    const [watchGeoRes, warnGeoRes] = await Promise.all([
+    const [watchGeoRes, warnGeoRes, floodRes] = await Promise.all([
       fetch(WATCH_URL, { cache: 'no-store' }),
       fetch(WARN_URL,  { cache: 'no-store' }),
+      fetch(FLOOD_URL, { cache: 'no-store' }),
     ]);
 
     const normalizeWatch = (f) => {
@@ -2652,6 +2654,24 @@ async function loadWatches(silent = false) {
     let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
     let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
 
+    // NWS alerts API for flood warnings — has correct event name and geometry
+    let floodFeatures = [];
+    if (floodRes.ok) {
+      const floodData = await floodRes.json();
+      floodFeatures = (floodData.features || []).filter(f => f.geometry).map(f => ({
+        ...f,
+        properties: {
+          ...f.properties,
+          event: f.properties.event || 'Flash Flood Warning',
+          areaDesc: f.properties.areaDesc || '',
+          description: f.properties.description || f.properties.headline || '',
+          headline: f.properties.headline || '',
+          expires: f.properties.expires || null,
+          senderName: f.properties.senderName || 'NWS',
+        }
+      }));
+    }
+
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
       if (ev.includes('tornado warning'))             return 0;
@@ -2660,7 +2680,7 @@ async function loadWatches(silent = false) {
       if (ev.includes('tornado watch'))               return 3;
       return 4;
     };
-    watchesList = [...warnFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
+    watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
 
     const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
     const warnCount   = watchesList.filter(f =>  isWarning(f)).length;
@@ -2734,8 +2754,10 @@ function getWatchType(event, feat) {
     return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600', pane:'svrPane'   };
   if (ev === 'Flash Flood Warning' || ev.toLowerCase().includes('flash flood warning'))
     return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851', pane:'floodPane' };
+  if (ev === 'Flood Warning' || ev.toLowerCase().includes('flood warning'))
+    return { cls:'flood-warn', label:'Flood Warning',       color:'#2e8b57', pane:'floodPane' };
   if (ev === 'Flash Flood Watch' || ev.toLowerCase().includes('flash flood watch'))
-    return { cls:'flood-warn', label:'Flash Flood Watch',   color:'#2e8b57', pane:'watchPane' };
+    return { cls:'flood-warn', label:'Flash Flood Watch',   color:'#1a6b3a', pane:'watchPane' };
   if (ev === 'Tornado Watch' || ev.toLowerCase().includes('tornado watch'))
     return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600', pane:'watchPane' };
   return       { cls:'svr',   label:'Svr T-Storm Watch',   color:'#c2185b', pane:'watchPane' };
@@ -2920,7 +2942,7 @@ function setWatchFilter(filter) {
     const hasPDS     = watchesList.some(f => isTorWarnType(f) && isPDS(f) && !isObserved(f));
     const hasTor     = watchesList.some(f => isTorWarnType(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f));
     const hasSvr     = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning'));
-    const hasFlood   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('flash flood'));
+    const hasFlood   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('flood') && (f.properties?.event||'').toLowerCase().includes('warning'));
     const hasTorWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('tornado watch'));
     const hasSvrWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm watch'));
 
@@ -2970,7 +2992,7 @@ function renderWatchesOnMap(features) {
   // Group by pane for proper z-ordering
   const byType = {
     watch:   filtered.filter(f => !isWarning(f)),
-    flood:   filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('flood')),
+    flood:   filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('flood') && (f.properties?.event||'').toLowerCase().includes('warning')),
     svr:     filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning')),
     tor:     filtered.filter(f => isTorWarn(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f)),
     obs:     filtered.filter(f => isTorWarn(f) && isObserved(f) && !isEmergency(f)),
