@@ -29,6 +29,21 @@
       --tor-obs:#ff0000;   --tor-obs-dim:rgba(255,0,0,0.22);     --tor-obs-border:rgba(255,0,0,0.6);
       --svr-warn:#ff6600;  --svr-warn-dim:rgba(255,102,0,0.18);  --svr-warn-border:rgba(255,102,0,0.4);
       --flood-warn:#00c851;--flood-warn-dim:rgba(0,200,81,0.18); --flood-warn-border:rgba(0,200,81,0.4);
+      --tsunami-warn:#fd6347; --tsunami-warn-dim:rgba(253,99,71,0.18); --tsunami-warn-border:rgba(253,99,71,0.4);
+      --tsunami-watch:#ff99cc; --tsunami-watch-dim:rgba(255,153,204,0.18); --tsunami-watch-border:rgba(255,153,204,0.4);
+      --exwind-warn:#ff8c00; --exwind-warn-dim:rgba(255,140,0,0.18); --exwind-warn-border:rgba(255,140,0,0.4);
+      --hur-warn:#dc143c; --hur-warn-dim:rgba(220,20,60,0.18); --hur-warn-border:rgba(220,20,60,0.4);
+      --hur-watch:#ff69b4; --hur-watch-dim:rgba(255,105,180,0.18); --hur-watch-border:rgba(255,105,180,0.4);
+      --surge-warn:#b524f7; --surge-warn-dim:rgba(181,36,247,0.18); --surge-warn-border:rgba(181,36,247,0.4);
+      --surge-watch:#db7ff7; --surge-watch-dim:rgba(219,127,247,0.18); --surge-watch-border:rgba(219,127,247,0.4);
+      --bliz-warn:#ff4500; --bliz-warn-dim:rgba(255,69,0,0.18); --bliz-warn-border:rgba(255,69,0,0.4);
+      --xcold-warn:#0000ff; --xcold-warn-dim:rgba(0,0,255,0.18); --xcold-warn-border:rgba(0,0,255,0.4);
+      --xcold-watch:#5f9ea0; --xcold-watch-dim:rgba(95,158,160,0.18); --xcold-watch-border:rgba(95,158,160,0.4);
+      --heat-warn:#c228e0; --heat-warn-dim:rgba(194,40,224,0.18); --heat-warn-border:rgba(194,40,224,0.4);
+      --heat-watch:#e88400; --heat-watch-dim:rgba(232,132,0,0.18); --heat-watch-border:rgba(232,132,0,0.4);
+      --ffwatch:#2e8b57; --ffwatch-dim:rgba(46,139,87,0.18); --ffwatch-border:rgba(46,139,87,0.4);
+      --wstorm-watch:#4682b4; --wstorm-watch-dim:rgba(70,130,180,0.18); --wstorm-watch-border:rgba(70,130,180,0.4);
+      --tor-pds-watch:#ff0000; --tor-pds-watch-dim:rgba(255,0,0,0.18); --tor-pds-watch-border:rgba(255,0,0,0.4);
       --r:12px; --r-sm:8px; --r-xs:6px;
       --font:'Geist',system-ui,sans-serif;
       --shadow:0 1px 3px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.2);
@@ -353,6 +368,21 @@
     .watch-detail-bar.tor-obs{background:var(--tor-obs);}
     .watch-detail-bar.svr-warn{background:var(--svr-warn);}
     .watch-detail-bar.flood-warn{background:var(--flood-warn);}
+    .watch-detail-bar.tsunami-warn{background:var(--tsunami-warn);}
+    .watch-detail-bar.tsunami-watch{background:var(--tsunami-watch);}
+    .watch-detail-bar.exwind-warn{background:var(--exwind-warn);}
+    .watch-detail-bar.hur-warn{background:var(--hur-warn);}
+    .watch-detail-bar.hur-watch{background:var(--hur-watch);}
+    .watch-detail-bar.surge-warn{background:var(--surge-warn);}
+    .watch-detail-bar.surge-watch{background:var(--surge-watch);}
+    .watch-detail-bar.bliz-warn{background:var(--bliz-warn);}
+    .watch-detail-bar.xcold-warn{background:var(--xcold-warn);}
+    .watch-detail-bar.xcold-watch{background:var(--xcold-watch);}
+    .watch-detail-bar.heat-warn{background:var(--heat-warn);}
+    .watch-detail-bar.heat-watch{background:var(--heat-watch);}
+    .watch-detail-bar.ffwatch{background:var(--ffwatch);}
+    .watch-detail-bar.wstorm-watch{background:var(--wstorm-watch);}
+    .watch-detail-bar.tor-pds-watch{background:var(--tor-pds-watch);}
     .watch-detail-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .watch-detail-type{font-size:0.65rem;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
     .watch-detail-type.tor{background:var(--tor-watch-dim);color:#ffe600;border:1px solid var(--tor-watch-border);}
@@ -364,6 +394,21 @@
     .watch-detail-type.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
     .watch-detail-type.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
     .watch-detail-type.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
+    .watch-detail-type.tsunami-warn{background:var(--tsunami-warn-dim);color:#fd6347;border:1px solid var(--tsunami-warn-border);}
+    .watch-detail-type.tsunami-watch{background:var(--tsunami-watch-dim);color:#ff99cc;border:1px solid var(--tsunami-watch-border);}
+    .watch-detail-type.exwind-warn{background:var(--exwind-warn-dim);color:#ff8c00;border:1px solid var(--exwind-warn-border);}
+    .watch-detail-type.hur-warn{background:var(--hur-warn-dim);color:#dc143c;border:1px solid var(--hur-warn-border);}
+    .watch-detail-type.hur-watch{background:var(--hur-watch-dim);color:#ff69b4;border:1px solid var(--hur-watch-border);}
+    .watch-detail-type.surge-warn{background:var(--surge-warn-dim);color:#b524f7;border:1px solid var(--surge-warn-border);}
+    .watch-detail-type.surge-watch{background:var(--surge-watch-dim);color:#db7ff7;border:1px solid var(--surge-watch-border);}
+    .watch-detail-type.bliz-warn{background:var(--bliz-warn-dim);color:#ff4500;border:1px solid var(--bliz-warn-border);}
+    .watch-detail-type.xcold-warn{background:var(--xcold-warn-dim);color:#6060ff;border:1px solid var(--xcold-warn-border);}
+    .watch-detail-type.xcold-watch{background:var(--xcold-watch-dim);color:#5f9ea0;border:1px solid var(--xcold-watch-border);}
+    .watch-detail-type.heat-warn{background:var(--heat-warn-dim);color:#c228e0;border:1px solid var(--heat-warn-border);}
+    .watch-detail-type.heat-watch{background:var(--heat-watch-dim);color:#e88400;border:1px solid var(--heat-watch-border);}
+    .watch-detail-type.ffwatch{background:var(--ffwatch-dim);color:#2e8b57;border:1px solid var(--ffwatch-border);}
+    .watch-detail-type.wstorm-watch{background:var(--wstorm-watch-dim);color:#4682b4;border:1px solid var(--wstorm-watch-border);}
+    .watch-detail-type.tor-pds-watch{background:var(--tor-pds-watch-dim);color:#ff4444;border:2px solid var(--tor-pds-watch-border);}
     .watch-detail-num{font-size:0.83rem;font-weight:700;color:var(--text);flex:1;}
     .watch-detail-close{background:none;border:none;color:var(--text-4);cursor:pointer;padding:2px;}
     .watch-detail-close:hover{color:var(--text);}
@@ -436,6 +481,21 @@
     .watch-type-badge.tor-obs{background:var(--tor-obs-dim);color:#ff4444;border:2px solid var(--tor-obs-border);}
     .watch-type-badge.svr-warn{background:var(--svr-warn-dim);color:#ffb347;border:1px solid var(--svr-warn-border);}
     .watch-type-badge.flood-warn{background:var(--flood-warn-dim);color:#00e676;border:1px solid var(--flood-warn-border);}
+    .watch-type-badge.tsunami-warn{background:var(--tsunami-warn-dim);color:#fd6347;border:1px solid var(--tsunami-warn-border);}
+    .watch-type-badge.tsunami-watch{background:var(--tsunami-watch-dim);color:#ff99cc;border:1px solid var(--tsunami-watch-border);}
+    .watch-type-badge.exwind-warn{background:var(--exwind-warn-dim);color:#ff8c00;border:1px solid var(--exwind-warn-border);}
+    .watch-type-badge.hur-warn{background:var(--hur-warn-dim);color:#dc143c;border:1px solid var(--hur-warn-border);}
+    .watch-type-badge.hur-watch{background:var(--hur-watch-dim);color:#ff69b4;border:1px solid var(--hur-watch-border);}
+    .watch-type-badge.surge-warn{background:var(--surge-warn-dim);color:#b524f7;border:1px solid var(--surge-warn-border);}
+    .watch-type-badge.surge-watch{background:var(--surge-watch-dim);color:#db7ff7;border:1px solid var(--surge-watch-border);}
+    .watch-type-badge.bliz-warn{background:var(--bliz-warn-dim);color:#ff4500;border:1px solid var(--bliz-warn-border);}
+    .watch-type-badge.xcold-warn{background:var(--xcold-warn-dim);color:#6060ff;border:1px solid var(--xcold-warn-border);}
+    .watch-type-badge.xcold-watch{background:var(--xcold-watch-dim);color:#5f9ea0;border:1px solid var(--xcold-watch-border);}
+    .watch-type-badge.heat-warn{background:var(--heat-warn-dim);color:#c228e0;border:1px solid var(--heat-warn-border);}
+    .watch-type-badge.heat-watch{background:var(--heat-watch-dim);color:#e88400;border:1px solid var(--heat-watch-border);}
+    .watch-type-badge.ffwatch{background:var(--ffwatch-dim);color:#2e8b57;border:1px solid var(--ffwatch-border);}
+    .watch-type-badge.wstorm-watch{background:var(--wstorm-watch-dim);color:#4682b4;border:1px solid var(--wstorm-watch-border);}
+    .watch-type-badge.tor-pds-watch{background:var(--tor-pds-watch-dim);color:#ff4444;border:2px solid var(--tor-pds-watch-border);}
     .watches-mob-controls{bottom:62px;}
     #page-watches .watch-map-panel{padding-bottom:52px;}
     .watch-panel{display:none;position:fixed;bottom:62px;left:0;right:0;width:100%;max-height:50vh;border-right:none;border-top:1px solid var(--border-2);border-radius:16px 16px 0 0;z-index:450;}
@@ -2617,13 +2677,15 @@ async function loadWatches(silent = false) {
   if (liveText) liveText.textContent = 'Updating…';
   try {
     const ts = Date.now();
-    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning')&outFields=*&f=geojson&_=${ts}`;
-    const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&_=${ts}`;
+    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning','Tsunami+Warning','Extreme+Wind+Warning','Hurricane+Warning','Storm+Surge+Warning','Blizzard+Warning','Extreme+Cold+Warning','Excessive+Heat+Warning')&outFields=*&f=geojson&_=${ts}`;
+    const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch','Tsunami+Watch','Hurricane+Watch','Storm+Surge+Watch','Flash+Flood+Watch','Winter+Storm+Watch','Extreme+Cold+Watch','Excessive+Heat+Watch')&outFields=*&f=geojson&_=${ts}`;
+    const NWS_EXTRAS = ['Tsunami Warning','Tsunami Watch','Extreme Wind Warning','Hurricane Warning','Hurricane Watch','Storm Surge Warning','Storm Surge Watch','Blizzard Warning','Extreme Cold Warning','Extreme Cold Watch','Excessive Heat Warning','Excessive Heat Watch','Flash Flood Watch','Winter Storm Watch','Particularly Dangerous Situation Tornado Watch'].map(encodeURIComponent).join('%2C');
 
-    const [watchGeoRes, warnGeoRes, floodRes] = await Promise.all([
+    const [watchGeoRes, warnGeoRes, floodRes, nwsExtrasRes] = await Promise.all([
       fetch(WATCH_URL, { cache: 'no-store' }),
       fetch(WARN_URL,  { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`)
+      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`),
+      fetch(`${WORKER_URL}/nws/alerts/active?event=${NWS_EXTRAS}&status=actual`)
     ]);
 
     const normalizeWatch = (f) => {
@@ -2652,17 +2714,36 @@ async function loadWatches(silent = false) {
 
     let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
     let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
-    const floodFeatures = floodRes.ok ? ((await floodRes.json()).features || []).filter(f => f.geometry) : [];
+    const floodFeatures    = floodRes.ok     ? ((await floodRes.json()).features     || []).filter(f => f.geometry) : [];
+    const nwsExtrasFeatures = nwsExtrasRes.ok ? ((await nwsExtrasRes.json()).features || []).filter(f => f.geometry) : [];
 
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
       if (ev.includes('tornado warning'))             return 0;
       if (ev.includes('severe thunderstorm warning')) return 1;
       if (ev.includes('flash flood warning'))         return 2;
-      if (ev.includes('tornado watch'))               return 3;
-      return 4;
+      if (ev.includes('tsunami warning'))             return 3;
+      if (ev.includes('extreme wind warning'))        return 4;
+      if (ev.includes('hurricane warning'))           return 5;
+      if (ev.includes('storm surge warning'))         return 6;
+      if (ev.includes('blizzard warning'))            return 7;
+      if (ev.includes('extreme cold warning'))        return 8;
+      if (ev.includes('excessive heat warning'))      return 9;
+      if (ev.includes('tornado watch'))               return 10;
+      if (ev.includes('tsunami watch'))               return 11;
+      if (ev.includes('hurricane watch'))             return 12;
+      if (ev.includes('storm surge watch'))           return 13;
+      if (ev.includes('flash flood watch'))           return 14;
+      if (ev.includes('winter storm watch'))          return 15;
+      if (ev.includes('extreme cold watch'))          return 16;
+      if (ev.includes('excessive heat watch'))        return 17;
+      if (ev.includes('severe thunderstorm watch'))   return 18;
+      return 19;
     };
-    watchesList = [...warnFeatures, ...floodFeatures, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
+    // Deduplicate nwsExtras against already-fetched features by event+areaDesc
+    const existingKeys = new Set([...warnFeatures, ...floodFeatures, ...watchFeatures].map(f => `${(f.properties?.event||'').toLowerCase()}|${f.properties?.areaDesc||''}`));
+    const dedupedExtras = nwsExtrasFeatures.filter(f => !existingKeys.has(`${(f.properties?.event||'').toLowerCase()}|${f.properties?.areaDesc||''}`));
+    watchesList = [...warnFeatures, ...floodFeatures, ...dedupedExtras, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
 
     const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
     const warnCount   = watchesList.filter(f =>  isWarning(f)).length;
@@ -2724,21 +2805,57 @@ function isPDS(feat) {
   return t.includes('particularly dangerous situation');
 }
 
+function isPDSTorWatch(feat) {
+  const ev = (feat.properties?.event||'').toLowerCase();
+  if (!ev.includes('tornado watch')) return false;
+  return _alertText(feat).includes('particularly dangerous situation');
+}
+
 function getWatchType(event, feat) {
-  const ev = (event||'');
-  if (ev === 'Tornado Warning' || ev.toLowerCase().includes('tornado warning')) {
-    if (feat && isEmergency(feat)) return { cls:'tor-eme',  label:'Tornado Emergency',    color:'#ff00ff', pane:'emePane'  };
-    if (feat && isObserved(feat))  return { cls:'tor-obs',  label:'Observed Tornado',     color:'#ff1493', pane:'pdsPane'  };
-    if (feat && isPDS(feat))       return { cls:'tor-pds',  label:'PDS Tornado Warning',  color:'#ff1493', pane:'pdsPane'  };
-    return                                { cls:'tor-warn', label:'Tornado Warning',       color:'#ff0000', pane:'torPane'  };
+  const evl = (event||'').toLowerCase();
+  if (evl.includes('tornado warning')) {
+    if (feat && isEmergency(feat)) return { cls:'tor-eme',      label:'Tornado Emergency',      color:'#ff00ff', pane:'emePane'    };
+    if (feat && isObserved(feat))  return { cls:'tor-obs',      label:'Observed Tornado',        color:'#ff1493', pane:'pdsPane'    };
+    if (feat && isPDS(feat))       return { cls:'tor-pds',      label:'PDS Tornado Warning',     color:'#ff1493', pane:'pdsPane'    };
+    return                                { cls:'tor-warn',     label:'Tornado Warning',         color:'#ff0000', pane:'torPane'    };
   }
-  if (ev === 'Severe Thunderstorm Warning' || ev.toLowerCase().includes('severe thunderstorm warning'))
-    return { cls:'svr-warn',   label:'Svr T-Storm Warning', color:'#ff6600', pane:'svrPane'   };
-  if (ev === 'Flash Flood Warning' || ev.toLowerCase().includes('flash flood warning'))
-    return { cls:'flood-warn', label:'Flash Flood Warning', color:'#00c851', pane:'floodPane' };
-  if (ev === 'Tornado Watch' || ev.toLowerCase().includes('tornado watch'))
-    return { cls:'tor',        label:'Tornado Watch',       color:'#ffe600', pane:'watchPane' };
-  return       { cls:'svr',   label:'Svr T-Storm Watch',   color:'#c2185b', pane:'watchPane' };
+  if (evl.includes('severe thunderstorm warning'))
+    return { cls:'svr-warn',     label:'Svr T-Storm Warning',   color:'#ff6600', pane:'svrPane'    };
+  if (evl.includes('flash flood warning'))
+    return { cls:'flood-warn',   label:'Flash Flood Warning',   color:'#00c851', pane:'floodPane'  };
+  if (evl.includes('tsunami warning'))
+    return { cls:'tsunami-warn', label:'Tsunami Warning',       color:'#fd6347', pane:'overlayPane' };
+  if (evl.includes('extreme wind warning'))
+    return { cls:'exwind-warn',  label:'Extreme Wind Warning',  color:'#ff8c00', pane:'overlayPane' };
+  if (evl.includes('hurricane warning'))
+    return { cls:'hur-warn',     label:'Hurricane Warning',     color:'#dc143c', pane:'overlayPane' };
+  if (evl.includes('storm surge warning'))
+    return { cls:'surge-warn',   label:'Storm Surge Warning',   color:'#b524f7', pane:'overlayPane' };
+  if (evl.includes('blizzard warning'))
+    return { cls:'bliz-warn',    label:'Blizzard Warning',      color:'#ff4500', pane:'overlayPane' };
+  if (evl.includes('extreme cold warning'))
+    return { cls:'xcold-warn',   label:'Extreme Cold Warning',  color:'#0000ff', pane:'overlayPane' };
+  if (evl.includes('excessive heat warning'))
+    return { cls:'heat-warn',    label:'Excessive Heat Warning',color:'#c228e0', pane:'overlayPane' };
+  if (evl.includes('tornado watch')) {
+    if (feat && isPDSTorWatch(feat)) return { cls:'tor-pds-watch', label:'PDS Tornado Watch',    color:'#ff0000', pane:'watchPane' };
+    return                                  { cls:'tor',           label:'Tornado Watch',         color:'#ffe600', pane:'watchPane' };
+  }
+  if (evl.includes('tsunami watch'))
+    return { cls:'tsunami-watch', label:'Tsunami Watch',         color:'#ff99cc', pane:'watchPane' };
+  if (evl.includes('hurricane watch'))
+    return { cls:'hur-watch',    label:'Hurricane Watch',        color:'#ff69b4', pane:'watchPane' };
+  if (evl.includes('storm surge watch'))
+    return { cls:'surge-watch',  label:'Storm Surge Watch',      color:'#db7ff7', pane:'watchPane' };
+  if (evl.includes('flash flood watch'))
+    return { cls:'ffwatch',      label:'Flash Flood Watch',      color:'#2e8b57', pane:'watchPane' };
+  if (evl.includes('winter storm watch'))
+    return { cls:'wstorm-watch', label:'Winter Storm Watch',     color:'#4682b4', pane:'watchPane' };
+  if (evl.includes('extreme cold watch'))
+    return { cls:'xcold-watch',  label:'Extreme Cold Watch',     color:'#5f9ea0', pane:'watchPane' };
+  if (evl.includes('excessive heat watch'))
+    return { cls:'heat-watch',   label:'Excessive Heat Watch',   color:'#e88400', pane:'watchPane' };
+  return { cls:'svr', label:'Svr T-Storm Watch', color:'#c2185b', pane:'watchPane' };
 }
 
 function renderWatchList(features) {
@@ -2816,7 +2933,7 @@ function showWatchDetail(feats, clickLatlng) {
   const firstArea = rawArea.split(';')[0].split(',')[0].trim();
   document.getElementById('wd-county-name').textContent = firstArea || 'Selected Area';
 
-  // Sort by threat level: Emergency → Observed → PDS → Tor Warning → Svr Warning → Flood → Watches
+  // Sort by threat level: Emergency → Observed → PDS → Tor Warning → Svr Warning → Flood → others → Watches
   const threatRank = f => {
     if (isTorWarnType(f) && isEmergency(f)) return 0;
     if (isTorWarnType(f) && isObserved(f))  return 1;
@@ -2825,7 +2942,14 @@ function showWatchDetail(feats, clickLatlng) {
     const ev = (f.properties?.event||'').toLowerCase();
     if (ev.includes('severe thunderstorm warning')) return 4;
     if (ev.includes('flash flood warning'))         return 5;
-    return 6; // watches
+    if (ev.includes('tsunami warning'))             return 6;
+    if (ev.includes('extreme wind warning'))        return 7;
+    if (ev.includes('hurricane warning'))           return 8;
+    if (ev.includes('storm surge warning'))         return 9;
+    if (ev.includes('blizzard warning'))            return 10;
+    if (ev.includes('extreme cold warning'))        return 11;
+    if (ev.includes('excessive heat warning'))      return 12;
+    return 13; // watches
   };
   const sorted = [...feats].sort((a, b) => threatRank(a) - threatRank(b));
 
@@ -2915,14 +3039,30 @@ function setWatchFilter(filter) {
   // Build two-section legend — only active types, hide when empty
   const legendEl = document.querySelector('.watches-map-legend');
   if (legendEl) {
-    const hasEme     = watchesList.some(f => isTorWarnType(f) && isEmergency(f));
-    const hasObs     = watchesList.some(f => isTorWarnType(f) && isObserved(f));
-    const hasPDS     = watchesList.some(f => isTorWarnType(f) && isPDS(f) && !isObserved(f));
-    const hasTor     = watchesList.some(f => isTorWarnType(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f));
-    const hasSvr     = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning'));
-    const hasFlood   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('flash flood'));
-    const hasTorWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('tornado watch'));
-    const hasSvrWatch   = watchesList.some(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm watch'));
+    const ev_ = f => (f.properties?.event||'').toLowerCase();
+    const hasEme       = watchesList.some(f => isTorWarnType(f) && isEmergency(f));
+    const hasObs       = watchesList.some(f => isTorWarnType(f) && isObserved(f));
+    const hasPDS       = watchesList.some(f => isTorWarnType(f) && isPDS(f) && !isObserved(f));
+    const hasTor       = watchesList.some(f => isTorWarnType(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f));
+    const hasSvr       = watchesList.some(f => ev_(f).includes('severe thunderstorm warning'));
+    const hasFlood     = watchesList.some(f => ev_(f).includes('flash flood warning'));
+    const hasTsunami   = watchesList.some(f => ev_(f).includes('tsunami warning'));
+    const hasExWind    = watchesList.some(f => ev_(f).includes('extreme wind warning'));
+    const hasHurWarn   = watchesList.some(f => ev_(f).includes('hurricane warning'));
+    const hasSurgeWarn = watchesList.some(f => ev_(f).includes('storm surge warning'));
+    const hasBliz      = watchesList.some(f => ev_(f).includes('blizzard warning'));
+    const hasXColdWarn = watchesList.some(f => ev_(f).includes('extreme cold warning'));
+    const hasHeatWarn  = watchesList.some(f => ev_(f).includes('excessive heat warning'));
+    const hasTorWatch     = watchesList.some(f => ev_(f).includes('tornado watch') && !isPDSTorWatch(f));
+    const hasPDSTorWatch  = watchesList.some(f => isPDSTorWatch(f));
+    const hasSvrWatch     = watchesList.some(f => ev_(f).includes('severe thunderstorm watch'));
+    const hasTsunamiWatch = watchesList.some(f => ev_(f).includes('tsunami watch'));
+    const hasHurWatch     = watchesList.some(f => ev_(f).includes('hurricane watch'));
+    const hasSurgeWatch   = watchesList.some(f => ev_(f).includes('storm surge watch'));
+    const hasFFWatch      = watchesList.some(f => ev_(f).includes('flash flood watch'));
+    const hasWStorm       = watchesList.some(f => ev_(f).includes('winter storm watch'));
+    const hasXColdWatch   = watchesList.some(f => ev_(f).includes('extreme cold watch'));
+    const hasHeatWatch    = watchesList.some(f => ev_(f).includes('excessive heat watch'));
 
     const sw = (color, border) =>
       `<div class="legend-swatch" style="background:${color};${border?`border:${border};`:''}"></div>`;
@@ -2931,20 +3071,45 @@ function setWatchFilter(filter) {
     const showWarnings = filter === 'all' || filter === 'warnings' || filter === 'observed';
     let html = '';
 
-    if (showWatches && (hasTorWatch || hasSvrWatch)) {
+    const watchTypes = [
+      [hasPDSTorWatch,  'var(--tor-pds-watch)', null,                              'PDS Tornado Watch'],
+      [hasTorWatch,     'var(--tor-watch)',      null,                              'Tornado Watch'],
+      [hasTsunamiWatch, 'var(--tsunami-watch)',  null,                              'Tsunami Watch'],
+      [hasHurWatch,     'var(--hur-watch)',       null,                              'Hurricane Watch'],
+      [hasSurgeWatch,   'var(--surge-watch)',     null,                              'Storm Surge Watch'],
+      [hasFFWatch,      'var(--ffwatch)',          null,                              'Flash Flood Watch'],
+      [hasWStorm,       'var(--wstorm-watch)',     null,                              'Winter Storm Watch'],
+      [hasXColdWatch,   'var(--xcold-watch)',      null,                              'Extreme Cold Watch'],
+      [hasHeatWatch,    'var(--heat-watch)',        null,                              'Excessive Heat Watch'],
+      [hasSvrWatch,     'var(--svr-watch)',         null,                              'Svr T-Storm Watch'],
+    ];
+    const warnTypes = [
+      [hasEme,       'var(--tor-eme)',       null,                              'Tornado Emergency'],
+      [hasObs,       'var(--tor-pds)',       '2px solid rgba(255,255,255,0.5)', 'Observed Tornado'],
+      [hasPDS,       'var(--tor-pds)',       null,                              'PDS Tornado Warning'],
+      [hasTor,       'var(--tor-warn)',      null,                              'Tornado Warning'],
+      [hasSvr,       'var(--svr-warn)',      null,                              'Svr T-Storm Warning'],
+      [hasFlood,     'var(--flood-warn)',    null,                              'Flash Flood Warning'],
+      [hasTsunami,   'var(--tsunami-warn)',  null,                              'Tsunami Warning'],
+      [hasExWind,    'var(--exwind-warn)',   null,                              'Extreme Wind Warning'],
+      [hasHurWarn,   'var(--hur-warn)',      null,                              'Hurricane Warning'],
+      [hasSurgeWarn, 'var(--surge-warn)',    null,                              'Storm Surge Warning'],
+      [hasBliz,      'var(--bliz-warn)',     null,                              'Blizzard Warning'],
+      [hasXColdWarn, 'var(--xcold-warn)',    null,                              'Extreme Cold Warning'],
+      [hasHeatWarn,  'var(--heat-warn)',     null,                              'Excessive Heat Warning'],
+    ];
+
+    const activeWatches  = watchTypes.filter(([has]) => has);
+    const activeWarnings = warnTypes.filter(([has]) => has);
+
+    if (showWatches && activeWatches.length) {
       html += `<div class="watches-legend-section"><div class="watches-legend-heading">Watches</div>
-        ${hasTorWatch ? `<div class="legend-item">${sw('var(--tor-watch)')}<span class="legend-label">Tornado Watch</span></div>` : ''}
-        ${hasSvrWatch ? `<div class="legend-item">${sw('var(--svr-watch)')}<span class="legend-label">Svr T-Storm Watch</span></div>` : ''}
+        ${activeWatches.map(([,color,border,label]) => `<div class="legend-item">${sw(color,border)}<span class="legend-label">${label}</span></div>`).join('')}
       </div>`;
     }
-    if (showWarnings && (hasEme || hasObs || hasPDS || hasTor || hasSvr || hasFlood)) {
+    if (showWarnings && activeWarnings.length) {
       html += `<div class="watches-legend-section"><div class="watches-legend-heading">Warnings</div>
-        ${hasEme   ? `<div class="legend-item">${sw('var(--tor-eme)')}<span class="legend-label">Tornado Emergency</span></div>` : ''}
-        ${hasObs   ? `<div class="legend-item">${sw('var(--tor-pds)','2px solid rgba(255,255,255,0.5)')}<span class="legend-label">Observed Tornado</span></div>` : ''}
-        ${hasPDS   ? `<div class="legend-item">${sw('var(--tor-pds)')}<span class="legend-label">PDS Tornado Warning</span></div>` : ''}
-        ${hasTor   ? `<div class="legend-item">${sw('var(--tor-warn)')}<span class="legend-label">Tornado Warning</span></div>` : ''}
-        ${hasSvr   ? `<div class="legend-item">${sw('var(--svr-warn)')}<span class="legend-label">Svr T-Storm Warning</span></div>` : ''}
-        ${hasFlood ? `<div class="legend-item">${sw('var(--flood-warn)')}<span class="legend-label">Flash Flood Warning</span></div>` : ''}
+        ${activeWarnings.map(([,color,border,label]) => `<div class="legend-item">${sw(color,border)}<span class="legend-label">${label}</span></div>`).join('')}
       </div>`;
     }
     legendEl.innerHTML = html;
@@ -2967,15 +3132,26 @@ function renderWatchesOnMap(features) {
 
   watchesLayer = L.layerGroup().addTo(watchesMap);
 
-  // Group by pane for proper z-ordering
+  const ev_ = f => (f.properties?.event||'').toLowerCase();
+  // Group by pane for proper z-ordering (lowest threat first = drawn first = bottom layer)
   const byType = {
-    watch:   filtered.filter(f => !isWarning(f)),
-    flood:   filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('flood')),
-    svr:     filtered.filter(f => (f.properties?.event||'').toLowerCase().includes('severe thunderstorm warning')),
-    tor:     filtered.filter(f => isTorWarn(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f)),
-    obs:     filtered.filter(f => isTorWarn(f) && isObserved(f) && !isEmergency(f)),
-    pds:     filtered.filter(f => isTorWarn(f) && isPDS(f) && !isObserved(f) && !isEmergency(f)),
-    eme:     filtered.filter(f => isTorWarn(f) && isEmergency(f)),
+    watch:     filtered.filter(f => !isWarning(f)),
+    wstorm:    filtered.filter(f => ev_(f).includes('winter storm watch')),
+    xcoldW:    filtered.filter(f => ev_(f).includes('extreme cold watch')),
+    heatW:     filtered.filter(f => ev_(f).includes('excessive heat watch')),
+    bliz:      filtered.filter(f => ev_(f).includes('blizzard warning')),
+    xcoldWarn: filtered.filter(f => ev_(f).includes('extreme cold warning')),
+    heatWarn:  filtered.filter(f => ev_(f).includes('excessive heat warning')),
+    exwind:    filtered.filter(f => ev_(f).includes('extreme wind warning')),
+    surge:     filtered.filter(f => ev_(f).includes('storm surge')),
+    hur:       filtered.filter(f => ev_(f).includes('hurricane')),
+    tsunami:   filtered.filter(f => ev_(f).includes('tsunami')),
+    flood:     filtered.filter(f => ev_(f).includes('flash flood warning')),
+    svr:       filtered.filter(f => ev_(f).includes('severe thunderstorm warning')),
+    tor:       filtered.filter(f => isTorWarn(f) && !isObserved(f) && !isPDS(f) && !isEmergency(f)),
+    obs:       filtered.filter(f => isTorWarn(f) && isObserved(f) && !isEmergency(f)),
+    pds:       filtered.filter(f => isTorWarn(f) && isPDS(f) && !isObserved(f) && !isEmergency(f)),
+    eme:       filtered.filter(f => isTorWarn(f) && isEmergency(f)),
   };
 
   const addLayer = (feats, fillOpacity, weight, strokeColor) => {
@@ -3008,13 +3184,23 @@ function renderWatchesOnMap(features) {
   };
 
   // Draw lowest priority first (bottom) → highest priority on top
-  addLayer(byType.watch, 0.35, 1.5, null);
-  addLayer(byType.flood, 1.0,  1,   null);
-  addLayer(byType.svr,   1.0,  1,   null);
-  addLayer(byType.tor,   1.0,  1.5, null);
-  addLayer(byType.pds,   1.0,  2,   null);
-  addLayer(byType.obs,   1.0,  2,   'rgba(255,255,255,0.5)');
-  addLayer(byType.eme,   1.0,  2.5, '#000');
+  addLayer(byType.watch,     0.35, 1.5, null);
+  addLayer(byType.wstorm,    0.55, 1.5, null);
+  addLayer(byType.xcoldW,    0.55, 1.5, null);
+  addLayer(byType.heatW,     0.55, 1.5, null);
+  addLayer(byType.bliz,      0.75, 1.5, null);
+  addLayer(byType.xcoldWarn, 0.75, 1.5, null);
+  addLayer(byType.heatWarn,  0.75, 1.5, null);
+  addLayer(byType.exwind,    0.85, 1.5, null);
+  addLayer(byType.surge,     0.85, 1.5, null);
+  addLayer(byType.hur,       0.85, 1.5, null);
+  addLayer(byType.tsunami,   0.9,  2,   null);
+  addLayer(byType.flood,     1.0,  1,   null);
+  addLayer(byType.svr,       1.0,  1,   null);
+  addLayer(byType.tor,       1.0,  1.5, null);
+  addLayer(byType.pds,       1.0,  2,   null);
+  addLayer(byType.obs,       1.0,  2,   'rgba(255,255,255,0.5)');
+  addLayer(byType.eme,       1.0,  2.5, '#000');
 }
 
 // Mobile watches panel toggle
