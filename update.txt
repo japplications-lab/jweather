@@ -1,0 +1,50 @@
+# JWEATHER UPDATE: FIX WATCHES/WARNINGS MAP DATA
+
+## 1. Cloudflare Worker Update (workercode.txt)
+The worker needs permission to proxy SPC watch data, which provides the reliable polygons needed for the map.
+
+REPLACE THE ALLOWED_PREFIXES ARRAY:
+const ALLOWED_PREFIXES = [
+  '/products/outlook/day1otlk',
+  '/products/outlook/day2otlk',
+  '/products/outlook/day3otlk',
+  '/products/outlook/day1probotlk',
+  '/products/outlook/day2probotlk',
+  '/products/outlook/imgs_v2/',
+  '/products/watch/' // <-- Added to support SPC watch polygons
+];
+
+## 2. Frontend Update (index.html)
+The direct fetch to api.weather.gov is failing because it lacks mandatory User-Agent and Accept headers. Redirecting this through your worker solves the header issue.
+
+LOCATE THE loadWatches() FUNCTION (approx line 2820):
+Change the fetch call from direct to proxied:
+
+OLD CODE:
+const res = await fetch('https://api.weather.gov/alerts/active?status=actual&message_type=alert', { cache: 'no-store' });
+
+NEW CODE:
+const res = await fetch(`${WORKER_URL}/nws/alerts/active?status=actual&message_type=alert`, { cache: 'no-store' });
+
+## 3. Map Geometry Fix (index.html)
+The NWS API often returns "null" for geometry on Watch-level alerts (like Tornado Watches). To ensure these show on the map, we should use the SPC's dedicated watch JSON via the worker.
+
+REPLACE THE START OF loadWatches() WITH THIS LOGIC:
+async function loadWatches(silent = false) {
+  // ... existing UI code ...
+  try {
+    // 1. Fetch NWS Alerts (for Warnings/Polygons) via Worker
+    const nwsRes = await fetch(`${WORKER_URL}/nws/alerts/active?status=actual&message_type=alert`, { cache: 'no-store' });
+    const nwsData = await nwsRes.json();
+    
+    // 2. Fetch SPC Watches (for reliable Watch Polygons) via Worker
+    const spcRes = await fetch(`${WORKER_URL}/proxy/products/watch/activeww.json`, { cache: 'no-store' });
+    const spcData = spcRes.ok ? await spcRes.json() : { features: [] };
+
+    // Combine features, prioritizing SPC geometries for watches
+    const nwsFeatures = (nwsData.features || []).map(normalizeNWS);
+    const spcFeatures = (spcData.features || []).filter(f => f.properties.type === 'WATCH');
+    
+    // Merge: Use NWS for warnings, SPC for watch polygons
+    watchesList = [...nwsFeatures, ...spcFeatures].sort((a, b) => priority(a) - priority(b));
+    // ... rest of existing loadWatches logic ...

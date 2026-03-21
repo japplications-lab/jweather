@@ -10,6 +10,7 @@ const ALLOWED_PREFIXES = [
   '/products/outlook/day1probotlk',
   '/products/outlook/day2probotlk',
   '/products/outlook/imgs_v2/',
+  '/products/watch/',
 ];
 
 const CORS_HEADERS = {

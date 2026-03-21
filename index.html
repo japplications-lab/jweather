@@ -2683,12 +2683,17 @@ async function loadWatches(silent = false) {
       'Tsunami Watch','Tornado Watch','Severe Thunderstorm Watch','Storm Surge Watch',
       'Hurricane Watch','Flash Flood Watch','Winter Storm Watch','Extreme Cold Watch','Excessive Heat Watch'
     ]);
-    // NWS API supports CORS directly — bypass proxy to avoid URL-length issues with many event types
-    const res = await fetch('https://api.weather.gov/alerts/active?status=actual&message_type=alert', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`NWS API error ${res.status}`);
-    const data = await res.json();
 
-    // Normalise NWS GeoJSON features to the shape the rest of the code expects
+    // Fetch NWS alerts via proxy (requires User-Agent/Accept headers) + SPC watch polygons in parallel
+    const [nwsRes, spcRes] = await Promise.all([
+      fetch(`${WORKER_URL}/nws/alerts/active?status=actual&message_type=alert`, { cache: 'no-store' }),
+      fetch(`${WORKER_URL}/proxy/products/watch/activeww.json`, { cache: 'no-store' })
+    ]);
+    if (!nwsRes.ok) throw new Error(`NWS API error ${nwsRes.status}`);
+    const nwsData = await nwsRes.json();
+    const spcData = spcRes.ok ? await spcRes.json() : { features: [] };
+
+    // Normalise NWS GeoJSON features
     const normalizeNWS = (f) => {
       const p = f.properties || {};
       return {
@@ -2706,9 +2711,43 @@ async function loadWatches(silent = false) {
       };
     };
 
-    const allFeatures = (data.features || [])
-      .filter(f => MONITORED.has(f.properties?.event))
-      .map(normalizeNWS);
+    // Normalise SPC watch features — map TYPE to NWS event names, provide geometry for map
+    const normalizeSPC = (f) => {
+      const p = f.properties || {};
+      const type = (p.TYPE || p.type || '').toUpperCase();
+      const isPDS = (p.ISSUE || p.issue || p.discussion || '').toLowerCase().includes('particularly dangerous situation');
+      const event = type === 'TOR' ? 'Tornado Watch' : 'Severe Thunderstorm Watch';
+      const num   = p.WATCH_NUM || p.watch_num || p.WFO || '';
+      return {
+        ...f,
+        properties: {
+          ...p,
+          event,
+          expires:    p.EXPIRATION || p.expiration || p.EXPIRE || null,
+          areaDesc:   p.STATES || p.states || p.AFFECTED_AREAS || '',
+          description:isPDS ? 'Particularly Dangerous Situation' : '',
+          headline:   `${event}${num ? ' #' + num : ''}`,
+          senderName: 'SPC',
+          parameters: { watchNumber: [num] }
+        }
+      };
+    };
+
+    const nwsFeatures = (nwsData.features || []).filter(f => MONITORED.has(f.properties?.event)).map(normalizeNWS);
+    // Use SPC features for watches — they have reliable polygon geometry unlike NWS zone-based watches
+    const spcWatchEvents = new Set(['Tornado Watch', 'Severe Thunderstorm Watch']);
+    const spcFeatures   = (spcData.features || []).map(normalizeSPC).filter(f => spcWatchEvents.has(f.properties.event) && f.geometry);
+    // For NWS features that are watches with no geometry, use SPC polygon if available (match by watch number)
+    const spcByNum = new Map(spcFeatures.map(f => [String(f.properties.parameters?.watchNumber?.[0] || ''), f]));
+    const nwsWithGeo = nwsFeatures.map(f => {
+      if (f.geometry) return f;
+      const num = String(f.properties.parameters?.watchNumber?.[0] || '');
+      return (num && spcByNum.has(num)) ? { ...f, geometry: spcByNum.get(num).geometry } : f;
+    });
+    // Merge: NWS (enriched with SPC geometry where possible) + any SPC watches not already in NWS
+    const nwsWatchNums = new Set(nwsFeatures.filter(f => !isWarningEvt(f.properties.event)).map(f => String(f.properties.parameters?.watchNumber?.[0] || '')));
+    const extraSpc = spcFeatures.filter(f => { const n = String(f.properties.parameters?.watchNumber?.[0] || ''); return n && !nwsWatchNums.has(n); });
+    const allFeatures = [...nwsWithGeo, ...extraSpc];
 
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
@@ -2911,6 +2950,7 @@ function featureContainsPoint(feat, latlng) {
 }
 
 function isTorWarnType(f) { return (f.properties?.event||'').toLowerCase().includes('tornado warning'); }
+function isWarningEvt(event) { return (event||'').toLowerCase().includes('warning'); }
 
 function showWatchDetail(feats, clickLatlng) {
   // Log raw properties so we can see actual field names
