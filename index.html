@@ -2683,8 +2683,8 @@ async function loadWatches(silent = false) {
       'Tsunami Watch','Tornado Watch','Severe Thunderstorm Watch','Storm Surge Watch',
       'Hurricane Watch','Flash Flood Watch','Winter Storm Watch','Extreme Cold Watch','Excessive Heat Watch'
     ]);
-    const eventParam = Array.from(MONITORED).map(e => encodeURIComponent(e)).join('%2C');
-    const res = await fetch(`${WORKER_URL}/nws/alerts/active?event=${eventParam}&status=actual`, { cache: 'no-store' });
+    // NWS API supports CORS directly — bypass proxy to avoid URL-length issues with many event types
+    const res = await fetch('https://api.weather.gov/alerts/active?status=actual&message_type=alert', { cache: 'no-store' });
     if (!res.ok) throw new Error(`NWS API error ${res.status}`);
     const data = await res.json();
 
