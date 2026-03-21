@@ -257,10 +257,9 @@
             cursor: pointer; display: flex; padding: 4px; font-weight: bold;
         }
         
-        /* 2-Column Layout for Modal Body */
         .modal-body { 
             display: grid; grid-template-columns: 180px 1fr; gap: 24px; 
-            overflow-y: hidden; /* Hide main overflow, let right column scroll */
+            overflow-y: hidden; 
         }
         
         @media (max-width: 600px) {
@@ -657,33 +656,54 @@
             bodyRightEl.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 8px;">
                     <div class="loader" style="border-top-color: var(--accent-j); width: 14px; height: 14px; border-width: 2px;"></div> 
-                    Analyzing NOAA data...
+                    Connecting to AI securely...
                 </div>
             `;
             
             overlay.classList.add('active');
 
+            // Failsafe Timeout: Aborts the request if it takes longer than 8 seconds
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             try {
-                // Using your requested custom domain
                 const WORKER_URL = 'https://api.jweather.app'; 
 
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
+                    body: JSON.stringify({ text: text }),
+                    signal: controller.signal // Attaching the abort signal
                 });
                 
-                if (!response.ok) throw new Error("Worker API Error");
+                clearTimeout(timeoutId); // Success, clear the timeout
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Worker Error: ${response.status} - ${errText}`);
+                }
+                
                 const data = await response.json();
                 
                 if(data.choices && data.choices[0]) {
                     const summary = data.choices[0].message.content.replace(/\n/g, '<br><br>');
                     bodyRightEl.innerHTML = summary;
+                } else {
+                    throw new Error("Invalid format received from API.");
                 }
+
             } catch (err) {
+                clearTimeout(timeoutId);
                 console.error("AI Generation Failed:", err);
+                
                 fallbackEl.classList.add('visible'); 
-                bodyRightEl.innerHTML = text.replace(/\n/g, '<br><br>'); 
+                
+                let errorPrefix = "";
+                if (err.name === 'AbortError') {
+                    errorPrefix = "<strong style='color:var(--accent-j);'>Request Timed Out.</strong> The connection to api.jweather.app took too long.<br><br>";
+                }
+
+                bodyRightEl.innerHTML = errorPrefix + text.replace(/\n/g, '<br><br>'); 
             }
         }
 
