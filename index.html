@@ -2676,46 +2676,39 @@ async function loadWatches(silent = false) {
   const liveText = document.getElementById('watches-live-text');
   if (liveText) liveText.textContent = 'Updating…';
   try {
-    const ts = Date.now();
-    const WARN_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/0/query?where=prod_type+IN+('Tornado+Warning','Severe+Thunderstorm+Warning','Flash+Flood+Warning','Tsunami+Warning','Extreme+Wind+Warning','Hurricane+Warning','Storm+Surge+Warning','Blizzard+Warning','Extreme+Cold+Warning','Excessive+Heat+Warning')&outFields=*&f=geojson&_=${ts}`;
-    const WATCH_URL = `${WORKER_URL}/noaa/eventdriven/rest/services/WWA/watch_warn_adv/MapServer/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch','Tsunami+Watch','Hurricane+Watch','Storm+Surge+Watch','Flash+Flood+Watch','Winter+Storm+Watch','Extreme+Cold+Watch','Excessive+Heat+Watch')&outFields=*&f=geojson&_=${ts}`;
-    const NWS_EXTRAS = ['Tsunami Warning','Tsunami Watch','Extreme Wind Warning','Hurricane Warning','Hurricane Watch','Storm Surge Warning','Storm Surge Watch','Blizzard Warning','Extreme Cold Warning','Extreme Cold Watch','Excessive Heat Warning','Excessive Heat Watch','Flash Flood Watch','Winter Storm Watch','Particularly Dangerous Situation Tornado Watch'].map(encodeURIComponent).join('%2C');
-
-    const [watchGeoRes, warnGeoRes, floodRes, nwsExtrasRes] = await Promise.all([
-      fetch(WATCH_URL, { cache: 'no-store' }),
-      fetch(WARN_URL,  { cache: 'no-store' }),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`),
-      fetch(`${WORKER_URL}/nws/alerts/active?event=${NWS_EXTRAS}&status=actual`)
+    const MONITORED = new Set([
+      'Tsunami Warning','Tornado Warning','Extreme Wind Warning','Severe Thunderstorm Warning',
+      'Flash Flood Warning','Hurricane Warning','Storm Surge Warning','Blizzard Warning',
+      'Extreme Cold Warning','Excessive Heat Warning',
+      'Tsunami Watch','Tornado Watch','Severe Thunderstorm Watch','Storm Surge Watch',
+      'Hurricane Watch','Flash Flood Watch','Winter Storm Watch','Extreme Cold Watch','Excessive Heat Watch'
     ]);
+    const eventParam = Array.from(MONITORED).map(e => encodeURIComponent(e)).join('%2C');
+    const res = await fetch(`${WORKER_URL}/nws/alerts/active?event=${eventParam}&status=actual`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`NWS API error ${res.status}`);
+    const data = await res.json();
 
-    const normalizeWatch = (f) => {
+    // Normalise NWS GeoJSON features to the shape the rest of the code expects
+    const normalizeNWS = (f) => {
       const p = f.properties || {};
-      const type = p.prod_type || '';
-      // Log first feature to see available fields
-      if (!normalizeWatch._logged) { normalizeWatch._logged = true; console.log('[WWA fields]', Object.keys(p), p); }
-      // County/area name: try multiple possible field names from NOAA eventdriven
-      const areaDesc = p.area_desc || p.cap_area_desc || p.ugcname || p.countyname || p.location || p.states || p.warnarea || '';
-      // Alert text: NOAA eventdriven may use prod_str, cap_headline, or similar
-      const description = p.prod_str || p.cap_desc || p.description || p.cap_headline || p.headline || '';
       return {
         ...f,
         properties: {
           ...p,
-          event: type,
-          expires: p.expiration || p.expires || null,
-          areaDesc,
-          description,
-          headline: p.headline || p.cap_headline || '',
-          senderName: 'NWS',
-          parameters: { watchNumber: [p.watch_num || p.phenom || ''] }
+          event:      p.event      || '',
+          expires:    p.expires    || p.expiration || null,
+          areaDesc:   p.areaDesc   || p.area_desc  || '',
+          description:p.description|| p.headline   || '',
+          headline:   p.headline   || '',
+          senderName: p.senderName || 'NWS',
+          parameters: p.parameters || {}
         }
       };
     };
 
-    let watchFeatures = watchGeoRes.ok ? ((await watchGeoRes.json()).features || []).map(normalizeWatch) : [];
-    let warnFeatures  = warnGeoRes.ok  ? ((await warnGeoRes.json()).features  || []).map(normalizeWatch) : [];
-    const floodFeatures    = floodRes.ok     ? ((await floodRes.json()).features     || []).filter(f => f.geometry) : [];
-    const nwsExtrasFeatures = nwsExtrasRes.ok ? ((await nwsExtrasRes.json()).features || []).filter(f => f.geometry) : [];
+    const allFeatures = (data.features || [])
+      .filter(f => MONITORED.has(f.properties?.event))
+      .map(normalizeNWS);
 
     const priority = f => {
       const ev = (f.properties?.event||'').toLowerCase();
@@ -2740,10 +2733,8 @@ async function loadWatches(silent = false) {
       if (ev.includes('severe thunderstorm watch'))   return 18;
       return 19;
     };
-    // Deduplicate nwsExtras against already-fetched features by event+areaDesc
-    const existingKeys = new Set([...warnFeatures, ...floodFeatures, ...watchFeatures].map(f => `${(f.properties?.event||'').toLowerCase()}|${f.properties?.areaDesc||''}`));
-    const dedupedExtras = nwsExtrasFeatures.filter(f => !existingKeys.has(`${(f.properties?.event||'').toLowerCase()}|${f.properties?.areaDesc||''}`));
-    watchesList = [...warnFeatures, ...floodFeatures, ...dedupedExtras, ...watchFeatures].sort((a,b) => priority(a) - priority(b));
+
+    watchesList = allFeatures.sort((a, b) => priority(a) - priority(b));
 
     const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
     const warnCount   = watchesList.filter(f =>  isWarning(f)).length;
@@ -3125,10 +3116,11 @@ function renderWatchesOnMap(features) {
   const isWarning = f => (f.properties?.event||'').toLowerCase().includes('warning');
   const isTorWarn = f => (f.properties?.event||'').toLowerCase().includes('tornado warning');
 
-  let filtered = features;
-  if (watchFilter === 'watches')  filtered = features.filter(f => !isWarning(f));
-  if (watchFilter === 'warnings') filtered = features.filter(f =>  isWarning(f));
-  if (watchFilter === 'observed') filtered = features.filter(f => isTorWarn(f) && isObserved(f));
+  // Only render features that have polygon geometry (NWS API may return null for zone-based alerts)
+  let filtered = features.filter(f => f.geometry);
+  if (watchFilter === 'watches')  filtered = filtered.filter(f => !isWarning(f));
+  if (watchFilter === 'warnings') filtered = filtered.filter(f =>  isWarning(f));
+  if (watchFilter === 'observed') filtered = filtered.filter(f => isTorWarn(f) && isObserved(f));
 
   watchesLayer = L.layerGroup().addTo(watchesMap);
 
