@@ -340,7 +340,7 @@
     .watch-panel{display:none !important;}
     .watch-map-panel{flex:1;position:relative;background:#1a2030;}
     #watches-map{position:absolute;inset:0;width:100%;height:100%;}
-    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:450;display:none;max-height:calc(100% - 32px);flex-direction:column;}
+    .watch-detail{position:absolute;top:16px;right:16px;width:300px;background:var(--surface);border:1px solid var(--border-2);border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:410;display:none;max-height:calc(100% - 32px);flex-direction:column;}
     .watch-detail.open{display:flex;}
     .watch-detail-body{overflow-y:auto;flex:1;padding:0;border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r);}
     .watch-detail-bar{height:5px;width:100%;flex-shrink:0;}
@@ -407,11 +407,12 @@
     .wd-alert-expires{font-size:0.63rem;color:var(--text-4);margin-top:2px;}
     .wd-alert-chevron{font-size:14px;color:var(--text-4);transition:transform .2s;flex-shrink:0;}
     .wd-alert-item.open .wd-alert-chevron{transform:rotate(180deg);}
-    .wd-alert-body{display:none;padding:0 14px 12px 26px;font-size:0.73rem;color:var(--text-2);line-height:1.65;}
+    .wd-alert-body{display:none;padding:10px 14px 12px 26px;font-size:0.73rem;color:var(--text-2);line-height:1.65;}
     .wd-alert-item.open .wd-alert-body{display:block;}
+    .wd-summary-loading{display:flex;align-items:center;gap:8px;color:var(--text-4);font-size:0.7rem;}
     .wd-alert-expiring{color:var(--amber);}
     /* Live status pill */
-    .watches-live-pill{position:absolute;top:14px;left:14px;z-index:420;display:flex;align-items:center;gap:8px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none;}
+    .watches-live-pill{position:absolute;top:14px;left:14px;z-index:430;display:flex;align-items:center;gap:8px;background:rgba(26,29,36,0.92);backdrop-filter:blur(8px);border:1px solid var(--border-2);border-radius:20px;padding:5px 12px 5px 8px;box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none;}
     .watches-live-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;}
     .watches-live-text{font-size:0.68rem;font-weight:600;color:var(--text-3);}
     @keyframes watches-slide{0%{transform:translateX(0);}25%{transform:translateX(6px);}75%{transform:translateX(-6px);}100%{transform:translateX(0);}}
@@ -2855,10 +2856,6 @@ function showWatchDetail(feats, clickLatlng) {
       ? expires.toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
       : '—';
     const expiringSoon = expires && (expires - Date.now()) < 3600000;
-
-    // Full description text — clean up whitespace and newlines
-    let desc = (p.description || p.headline || '').replace(/\n+/g,' ').replace(/\s+/g,' ').trim();
-
     const openClass = isWarn ? ' open' : '';
 
     html += `
@@ -2871,19 +2868,51 @@ function showWatchDetail(feats, clickLatlng) {
           </div>
           <span class="material-symbols-rounded wd-alert-chevron">expand_more</span>
         </div>
-        ${desc ? `<div class="wd-alert-body">${desc}</div>` : ''}
+        <div class="wd-alert-body" id="wd-summary-${idx}">
+          <div class="wd-summary-loading"><div class="spin-ring" style="width:12px;height:12px;border-width:2px;"></div> Summarizing…</div>
+        </div>
       </div>`;
   });
 
   document.getElementById('wd-body').innerHTML = html;
   document.getElementById('watch-detail').classList.add('open');
+
+  // Fetch AI summary for each alert asynchronously
+  sorted.forEach((feat, idx) => {
+    const p = feat.properties;
+    const rawText = (p.description || p.headline || '').trim();
+    const summaryEl = document.getElementById(`wd-summary-${idx}`);
+    if (!summaryEl) return;
+
+    if (!rawText) {
+      summaryEl.textContent = 'No details available.';
+      return;
+    }
+
+    fetch(`${WORKER_URL}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: `You are a concise weather alert summarizer for a mobile app. Given a NWS warning or watch text, write a 2-3 sentence plain-language summary. Cover: what the hazard is, where it affects, and when it expires or the key timing. No bullet points, no headers, no jargon codes. Be direct and brief.`,
+        messages: [{ role: 'user', content: rawText }],
+        max_tokens: 120,
+      })
+    })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const text = data?.content?.[0]?.text?.trim();
+      if (summaryEl) summaryEl.textContent = text || rawText.slice(0, 200);
+    })
+    .catch(() => {
+      if (summaryEl) summaryEl.textContent = rawText.slice(0, 200);
+    });
+  });
 }
 
 function closeWatchDetail() { document.getElementById('watch-detail').classList.remove('open'); }
 
 // Event delegation — handles dynamically rendered alert items
 document.getElementById('wd-body').addEventListener('click', e => {
-  console.log('[wd-body click]', e.target, e.target.closest('.wd-alert-header'));
   const header = e.target.closest('.wd-alert-header');
   if (!header) return;
   const item = header.parentElement;
