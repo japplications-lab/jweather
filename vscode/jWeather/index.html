@@ -44,6 +44,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { overflow-x: hidden; }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -185,7 +186,9 @@
             inset: 0;
             display: none;
             overflow-y: auto;
-            padding: 20px;
+            overflow-x: hidden;
+            padding: 16px;
+            box-sizing: border-box;
         }
         .view.active { display: block; }
         .view.map-view { padding: 0; overflow: hidden; }
@@ -200,8 +203,8 @@
             height: 100%;
             min-height: 100%;
         }
-        .col-left { display: flex; flex-direction: column; gap: 12px; }
-        .col-right { display: flex; flex-direction: column; min-height: 0; }
+        .col-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .col-right { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 
         @media (max-width: 1024px) {
             .dashboard-layout { grid-template-columns: 1fr; height: auto; }
@@ -427,7 +430,7 @@
         .fc-temp { font-weight: 700; font-size: 15px; flex-shrink: 0; }
 
         /* ── 7-DAY FORECAST ── */
-        #view-severe { padding: 20px; }
+        #view-severe { padding: 16px; }
         .severe-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
