@@ -938,7 +938,7 @@ let searchCtrl = null, searchSugs = [], selIdx = -1;
 let currentPage = 'home';
 let outlookMapInit=false, watchesMapInit=false, mesoMapInit=false;
 let outlookMap=null;
-let watchesMap, watchLayer=null, watchesList=[], watchFilter='watches';
+let watchesMap, watchLayer=null, watchesList=[], watchFilter='all';
 let mesoMap, mesoLayers={}, mesoData=[];
 
 // ══════════════════════════════════════════════════════
@@ -1707,7 +1707,7 @@ async function loadOutlookHazard(day, mode) {
       onEachFeature: (f, lyr) => {        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const lbl = (f.properties?.LABEL || f.properties?.label || '').toString();
         if (lbl.startsWith('CIG')) {
-          const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : mode === 'hail' ? '2\u221e+ Hail' : 'Significant Severe';
+          const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : mode === 'hail' ? '2"+ Hail' : 'Significant Severe';
           lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(45deg,#fff 0,#fff 3px,#000 3px,#000 5px);border:1.5px solid #000;"></div><div><div class="popup-risk" style="font-size:0.82rem;">\u26a0 Significant Threat</div><div class="popup-sub">${hazardName} particularly possible</div></div></div></div>`, { closeButton:false, maxWidth:260 });
           return;
         }
@@ -1720,10 +1720,10 @@ async function loadOutlookHazard(day, mode) {
     }).addTo(outlookMap);
     updateOutlookLegend(gj, mode);
     function appendHatchLegend(mode) {
-      const hazardLabel = mode === 'torn' ? 'EF2+ Possible'
-        : mode === 'wind' ? '65+ MPH Possible'
-        : mode === 'hail' ? '2\u221e+ Hail Possible'
-        : 'Sig. Severe';
+      const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible'
+        : mode === 'wind' ? '65+ mph Wind Possible'
+        : mode === 'hail' ? '2"+ Hail Possible'
+        : 'Sig. Severe Possible';
       const div = document.createElement('div');
       div.className = 'ol-legend-item';
       div.innerHTML = `<div style="width:10px;height:10px;flex-shrink:0;border-radius:2px;border:1px solid #555;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 5px);box-sizing:border-box;"></div><span>${hazardLabel}</span>`;
@@ -1750,7 +1750,7 @@ async function loadOutlookHazard(day, mode) {
         if (sigRes.ok) {
           const sigGj = await sigRes.json();
           if (sigGj.features?.length) {
-            const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2\u221e+ Hail';
+            const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : '2"+ Hail';
             const sigSvgEl = outlookMap.getPane('outlookPane')?.querySelector('svg');
             const sigDefsEl = sigSvgEl?.querySelector('defs');
             if (sigSvgEl && sigDefsEl && !sigSvgEl.querySelector('#cig-hatch')) {
@@ -1838,28 +1838,40 @@ function initWatchesMap(){
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(watchesMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
   loadWatches();
+  if(window._watchesInterval) clearInterval(window._watchesInterval);
+  window._watchesInterval = setInterval(loadWatches, 60000);
 }
 
 async function loadWatches(){
   try{
     const ts=Date.now();
-    // Watches from NOAA WWA MapServer (county-based polygons)
+    // Watches from NOAA WWA MapServer
     const watchR=await fetch(`${NOAA_WWA}/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${ts}`,{cache:'no-store'});
-    // Warnings from NWS alerts API (has geometry, more reliable)
-    const warnR=await fetch(`${WORKER}/nws/alerts/active?status=actual&message_type=alert&category=Met&urgency=Immediate,Expected&severity=Extreme,Severe`,{cache:'no-store'});
+
+    // Warnings: query each type separately — the NWS API handles single event= params most reliably
+    const [torWarnR, svrWarnR, floodWarnR] = await Promise.all([
+      fetch(`${WORKER}/nws/alerts/active?event=Tornado%20Warning&status=actual`,{cache:'no-store'}),
+      fetch(`${WORKER}/nws/alerts/active?event=Severe%20Thunderstorm%20Warning&status=actual`,{cache:'no-store'}),
+      fetch(`${WORKER}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`,{cache:'no-store'}),
+    ]);
 
     const norm=f=>({...f,properties:{...f.properties,event:f.properties.prod_type||'',expires:f.properties.expiration||null,areaDesc:f.properties.area_desc||f.properties.states||'',senderName:'NWS',parameters:{watchNumber:[f.properties.watch_num||'']}}});
     const watches=watchR.ok?((await watchR.json()).features||[]).map(norm):[];
 
-    // Filter NWS alerts to just the warning types we care about
-    const WARN_EVENTS=['Tornado Warning','Severe Thunderstorm Warning','Flash Flood Warning'];
-    let warns=[];
-    if(warnR.ok){
-      const warnData=await warnR.json();
-      warns=(warnData.features||[]).filter(f=>
-        f.geometry && WARN_EVENTS.some(ev=>(f.properties?.event||'').includes(ev))
-      );
-    }
+    const extractWarns = async (r) => {
+      if (!r.ok) return [];
+      const data = await r.json();
+      return (data.features||[]).filter(f => f.geometry);
+    };
+
+    const [torWarns, svrWarns, floodWarns] = await Promise.all([
+      extractWarns(torWarnR),
+      extractWarns(svrWarnR),
+      extractWarns(floodWarnR),
+    ]);
+
+    const warns = [...torWarns, ...svrWarns, ...floodWarns];
+    console.log('Watches:', watches.length, 'Tor warns:', torWarns.length, 'Svr warns:', svrWarns.length, 'Flood warns:', floodWarns.length);
 
     const pri=f=>{const ev=(f.properties?.event||'').toLowerCase();if(ev.includes('tornado warning'))return 0;if(ev.includes('severe thunderstorm warning'))return 1;if(ev.includes('flash flood'))return 2;if(ev.includes('tornado watch'))return 3;return 4;};
     watchesList=[...warns,...watches].sort((a,b)=>pri(a)-pri(b));
