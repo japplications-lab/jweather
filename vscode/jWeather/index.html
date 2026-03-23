@@ -330,19 +330,6 @@
     .watches-legend{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;}
     .wl-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;color:var(--text2);padding:2px 0;}
     .wl-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-    /* Watch detail popup */
-    .watch-detail{position:absolute;top:12px;left:12px;right:12px;z-index:500;background:rgba(19,21,26,0.97);backdrop-filter:blur(12px);border-radius:var(--r);overflow:hidden;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6);}
-    .watch-detail.open{display:block;}
-    .wd-bar{height:4px;width:100%;}
-    .wd-head{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);}
-    .wd-type{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border-radius:4px;}
-    .wd-num{font-size:0.8rem;font-weight:700;color:var(--text);flex:1;}
-    .wd-close{background:none;border:none;color:var(--text4);cursor:pointer;}
-    .wd-close .msr{font-size:16px;}
-    .wd-body{padding:10px 12px 12px;max-height:180px;overflow-y:auto;}
-    .wd-row{display:flex;gap:8px;margin-bottom:7px;}
-    .wd-lbl{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text4);flex-shrink:0;width:60px;padding-top:1px;}
-    .wd-val{font-size:0.73rem;color:var(--text2);line-height:1.5;}
 
     /* ══════════════════════════
        PAGE: MESO
@@ -641,15 +628,6 @@
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="watches-map"></div>
       <div class="watches-legend" id="ww-legend"></div>
-      <div class="watch-detail" id="watch-detail">
-        <div class="wd-bar" id="wd-bar"></div>
-        <div class="wd-head">
-          <span class="wd-type" id="wd-type"></span>
-          <span class="wd-num" id="wd-num"></span>
-          <button class="wd-close" onclick="closeWatchDetail()"><span class="msr">close</span></button>
-        </div>
-        <div class="wd-body" id="wd-body"></div>
-      </div>
     </div>
     <div class="watches-controls" style="display:none;"></div>
   </div>
@@ -845,6 +823,32 @@
     <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;" id="meso-modal-body">
       <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
         <div class="spin-ring"></div>Loading summary…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WATCH MODAL -->
+<div id="watch-modal-backdrop" onclick="closeWatchModal()" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);"></div>
+<div id="watch-modal" style="display:none;position:fixed;inset:0;z-index:701;align-items:center;justify-content:center;padding:20px;pointer-events:none;">
+  <div id="watch-modal-box" style="background:var(--surface);border-radius:var(--r);width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:fadeIn .15s ease;">
+    <div id="watch-modal-bar" style="height:4px;flex-shrink:0;"></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div id="watch-modal-icon" style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span class="msr" id="watch-modal-icon-sym" style="font-size:16px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">emergency_home</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.9rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;" id="watch-modal-title">—</div>
+        <div style="font-size:0.7rem;color:var(--text4);margin-top:1px;" id="watch-modal-meta">—</div>
+      </div>
+      <button onclick="closeWatchModal()" style="background:rgba(255,255,255,0.06);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;">
+        <span class="msr" style="font-size:15px;">close</span>
+      </button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;" id="watch-modal-badges"></div>
+    <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;" id="watch-modal-body">
+      <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
+        <div class="spin-ring"></div>Loading…
       </div>
     </div>
   </div>
@@ -1921,21 +1925,101 @@ function renderWatchesMap(features){
   mkLayer(torWarns,.8,2).addTo(watchLayer);
 }
 
-function showWatchDetail(feat){
+async function showWatchDetail(feat){
   const a=feat.properties;
-  const{cls,label,color}=getWatchStyle(a.event,feat);
-  const num=a.parameters?.watchNumber?.[0]||'';
-  const exp=a.expires?new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-  document.getElementById('wd-bar').style.background=color;
-  document.getElementById('wd-type').textContent=label;
-  document.getElementById('wd-type').style.cssText=`background:${color}22;color:${color};border:1px solid ${color}66;`;
-  document.getElementById('wd-num').textContent=num?`#${num}`:'';
-  let summary=(a.description||a.headline||'').replace(/\n+/g,' ').trim();
-  if(summary.length>200) summary=summary.slice(0,summary.lastIndexOf('.',200)+1)||summary.slice(0,200)+'…';
-  document.getElementById('wd-body').innerHTML=`<div class="wd-row"><div class="wd-lbl">Area</div><div class="wd-val">${a.areaDesc||'—'}</div></div><div class="wd-row"><div class="wd-lbl">Until</div><div class="wd-val">${exp}</div></div>${summary?`<div class="wd-row" style="align-items:flex-start"><div class="wd-lbl">Summary</div><div class="wd-val">${summary}</div></div>`:''}`;
-  document.getElementById('watch-detail').classList.add('open');
+  const{label,color}=getWatchStyle(a.event,feat);
+  const isWarn=(a.event||'').toLowerCase().includes('warning');
+  const iconSym=isWarn?'warning':'emergency_home';
+
+  // Expiration — NWS alerts use 'expires', NOAA WWA uses 'expiration'
+  const expRaw=a.expires||a.expiration||a.expireTime||null;
+  const exp=expRaw?new Date(expRaw).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
+
+  // Area — NWS alerts use 'areaDesc', NOAA WWA uses 'area_desc' / 'states' / 'attn'
+  const area=a.areaDesc||a.area_desc||a.states||a.attn||a.affected||'';
+
+  // Watch number
+  const num=a.parameters?.watchNumber?.[0]||a.watch_num||'';
+
+  // Style modal
+  const bar=document.getElementById('watch-modal-bar');
+  bar.style.background=color;
+  const iconEl=document.getElementById('watch-modal-icon');
+  iconEl.style.cssText=`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${color}22;`;
+  const iconSym2=document.getElementById('watch-modal-icon-sym');
+  iconSym2.style.color=color;
+  iconSym2.textContent=iconSym;
+  document.getElementById('watch-modal-title').textContent=label+(num?` #${num}`:'');
+  document.getElementById('watch-modal-meta').textContent=exp!=='—'?`Until ${exp}`:'';
+
+  // Badges
+  let badges=`<span class="meso-badge" style="background:${color}22;color:${color};border:1px solid ${color}44;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;">${label.toUpperCase()}</span>`;
+  if(area) badges+=`<span class="meso-badge meso-badge-area"><span class="msr" style="font-size:12px">location_on</span>${area.split(';').slice(0,3).map(s=>s.trim()).join(', ')}</span>`;
+  document.getElementById('watch-modal-badges').innerHTML=badges;
+
+  // Show modal with loading state
+  document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:16px 0;"><div class="spin-ring"></div>Summarizing with AI…</div>`;
+  document.getElementById('watch-modal-backdrop').style.display='block';
+  document.getElementById('watch-modal').style.display='flex';
+
+  // Fit map to polygon
+  if(watchesMap&&feat.geometry){
+    try{
+      const coords=feat.geometry.type==='MultiPolygon'?feat.geometry.coordinates[0][0]:feat.geometry.coordinates[0];
+      watchesMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[40,60]});
+    }catch{}
+  }
+
+  // Build raw text for AI — use description or headline, fall back to basic info
+  const rawDesc=(a.description||a.headline||'').trim();
+
+  if(!rawDesc){
+    // No text to summarize — show basic info only
+    document.getElementById('watch-modal-body').innerHTML=`
+      <div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">info</span>DETAILS</div>
+      <div class="meso-sum-text">${area||'Area not specified'}. In effect until ${exp}.</div></div>`;
+    return;
+  }
+
+  try{
+    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'llama-3.3-70b-versatile',
+      max_tokens:350,
+      system:`You are a weather alert writer for a mobile weather app. Summarize this NWS weather alert in plain English for the general public. Structure your response in exactly these 3 sections:\n\nTHREAT:\n[One sentence describing what the hazard is and how severe]\n\nAFFECTED AREA:\n[One sentence on where — counties, cities, or regions]\n\nWHAT TO DO:\n[One sentence of specific safety action]\n\nNo jargon. No codes. No bullet points. No extra text.`,
+      messages:[{role:'user',content:rawDesc.slice(0,3000)}]
+    })});
+    if(!aiRes.ok) throw new Error('AI unavailable');
+    const aiData=await aiRes.json();
+    const summary=(aiData.content?.[0]?.text||'').trim();
+    if(!summary) throw new Error('Empty response');
+
+    const sectionIcons={'THREAT':'warning','AFFECTED AREA':'location_on','WHAT TO DO':'shield'};
+    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
+    let html=''; let i=0;
+    while(i<lines.length){
+      const line=lines[i];
+      const match=line.match(/^([A-Z][A-Z\s]+):$/);
+      if(match){
+        const lbl=match[1];
+        const body=lines[i+1]||'';
+        const icon=sectionIcons[lbl]||'info';
+        html+=`<div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">${icon}</span>${lbl}</div><div class="meso-sum-text">${body}</div></div>`;
+        i+=2;
+      } else { html+=`<div class="meso-sum-text" style="margin-bottom:10px">${line}</div>`; i++; }
+    }
+    document.getElementById('watch-modal-body').innerHTML=html;
+  }catch(e){
+    // Fall back to truncated raw text
+    const fallback=rawDesc.slice(0,400)+(rawDesc.length>400?'…':'');
+    document.getElementById('watch-modal-body').innerHTML=`<div class="meso-sum-text">${fallback}</div>`;
+  }
 }
-function closeWatchDetail(){ document.getElementById('watch-detail').classList.remove('open'); }
+
+function closeWatchModal(){
+  document.getElementById('watch-modal-backdrop').style.display='none';
+  document.getElementById('watch-modal').style.display='none';
+}
+function closeWatchDetail(){ closeWatchModal(); }
 
 function updateWatchLegend(features){
   const leg=document.getElementById('ww-legend'); leg.innerHTML='';
