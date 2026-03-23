@@ -286,16 +286,16 @@
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
     /* Discussion modal */
-    #disc-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;}
+    #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:20px;cursor:pointer;}
     #disc-modal.open{display:flex;}
-    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:22px 22px 0 0;width:100%;max-height:80vh;display:flex;flex-direction:column;padding-bottom:calc(env(safe-area-inset-bottom) + 16px);}
-    .disc-handle{width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,0.12);margin:10px auto 0;}
-    .disc-head{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
+    .disc-handle{display:none;}
+    .disc-head{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .disc-pip{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
     .disc-title{font-size:0.88rem;font-weight:700;color:var(--text);flex:1;}
-    .disc-close{background:none;border:none;color:var(--text4);cursor:pointer;padding:4px;}
-    .disc-close .msr{font-size:18px;}
-    .disc-body{padding:16px 18px;overflow-y:auto;flex:1;}
+    .disc-close{background:rgba(255,255,255,0.06);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);}
+    .disc-close .msr{font-size:15px;}
+    .disc-body{padding:14px 16px 16px;overflow-y:auto;flex:1;}
     .disc-section{margin-bottom:14px;}
     .disc-section-label{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:4px;}
     .disc-section-text{font-size:0.82rem;line-height:1.65;color:var(--text2);}
@@ -315,6 +315,8 @@
       padding-bottom:env(safe-area-inset-bottom);
       flex-shrink:0;
     }
+    .watches-poll-bar{height:2px;width:100%;background:var(--border);position:relative;overflow:hidden;}
+    .watches-poll-fill{height:100%;background:var(--red);width:100%;transform-origin:left;transition:none;}
     .watches-filter-row{display:flex;gap:6px;padding:8px 10px;justify-content:center;}
     .wf-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text3);flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:all .15s;}
     .wf-btn .wf-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
@@ -629,7 +631,9 @@
       <div id="watches-map"></div>
       <div class="watches-legend" id="ww-legend"></div>
     </div>
-    <div class="watches-controls" style="display:none;"></div>
+    <div class="watches-controls">
+      <div class="watches-poll-bar"><div class="watches-poll-fill" id="watches-poll-fill"></div></div>
+    </div>
   </div>
 
   <!-- ══ MESO ══ -->
@@ -1518,8 +1522,10 @@ function buildOutlookSidebar() {
     const dayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
     const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const modes = day < 3 ? modeList : [modeList[0]];
+    const dayDate = new Date(); dayDate.setDate(dayDate.getDate() + day - 1);
+    const tabLabel = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : dayDate.toLocaleDateString('en-US',{weekday:'long'});
     const tab = document.createElement('button'); tab.className = 'ol-day-tab' + (day === 1 ? ' active' : ''); tab.dataset.day = day;
-    tab.innerHTML = `<span class="label">Day ${day}</span><span class="threat-bar" id="tb-${day}"></span>`;
+    tab.innerHTML = `<span class="label">${tabLabel}</span><span class="threat-bar" id="tb-${day}"></span>`;
     tab.addEventListener('click', () => {
       document.querySelectorAll('.ol-day-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
@@ -1781,8 +1787,9 @@ async function loadOutlookHazard(day, mode) {
 }
 
 async function openDiscModal(day) {
-  document.getElementById('disc-title').textContent = `Day ${day} — ${day===1?'Today':day===2?'Tomorrow':'Day 3'} — SPC Outlook`;
-  document.getElementById('disc-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Analyzing forecast…</div>';
+  const dayLabel = day===1?'Today':day===2?'Tomorrow':'Day 3';
+  document.getElementById('disc-title').textContent = `Day ${day} — ${dayLabel} — SPC Outlook`;
+  document.getElementById('disc-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading discussion…</div>';
   document.getElementById('disc-modal').classList.add('open');
   try {
     const spcRes = await fetch(`${WORKER}/proxy/products/outlook/day${day}otlk.html`);
@@ -1795,36 +1802,50 @@ async function openDiscModal(day) {
     if (discStart > 50) rawText = rawText.slice(discStart);
     rawText = rawText.slice(0, 4000);
     if (!rawText || rawText.length < 50) throw new Error('Discussion text unavailable');
+
     const aiRes = await fetch(`${WORKER}/ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system: `You are a weather alert writer for a mobile app. Summarize the SPC outlook in exactly 3 sections. Be brief and direct — one sentence each. Lead with the most dangerous threat.\n\nFormat (use exactly these labels):\nSITUATION:\n[one sentence — what's happening and where]\n\nBIGGEST THREAT:\n[one sentence — the most dangerous hazard]\n\nTIMING:\n[one sentence — when to expect it]\n\nNo jargon. No codes. No extra text outside these 3 sections.`,
+        system: `You are summarizing an SPC severe weather outlook for a weather app. Write a clear, specific summary in plain English — no meteorological jargon, no codes, no abbreviations like CAPE or SRH.
+
+Reply with ONLY these 4 labeled sections, nothing else:
+
+WHERE:
+[Specific states and regions affected]
+
+MAIN THREATS:
+[The 2-3 specific hazards in order of concern, with specific details like hail size or wind speeds if mentioned]
+
+TIMING:
+[When storms are expected — morning, afternoon, evening, overnight]
+
+HOW SERIOUS:
+[One honest plain-English sentence on overall severity]`,
         messages: [{ role: 'user', content: rawText }],
-        max_tokens: 250,
+        max_tokens: 320,
       })
     });
     if (!aiRes.ok) throw new Error('AI unavailable');
     const aiData = await aiRes.json();
     const summary = aiData.content?.[0]?.text || '';
     if (!summary) throw new Error('Empty AI response');
+
+    const icons = { 'WHERE':'location_on', 'MAIN THREATS':'warning', 'TIMING':'schedule', 'HOW SERIOUS':'assessment' };
     const lines = summary.trim().split('\n').map(l => l.trim()).filter(Boolean);
-    let discHtml = '';
-    let i = 0;
+    let discOut = ''; let i = 0;
     while (i < lines.length) {
       const line = lines[i];
-      if (/^[A-Z][A-Z\s'?]+:$/.test(line)) {
-        const label = line.replace(/:$/, '');
+      const match = line.match(/^([A-Z][A-Z\s]+):$/);
+      if (match) {
+        const lbl = match[1];
         const body = lines[i+1] || '';
-        discHtml += `<div class="disc-section"><div class="disc-section-label">${label}</div><div class="disc-section-text">${body}</div></div>`;
+        const icon = icons[lbl] || 'info';
+        discOut += `<div class="disc-section"><div class="disc-section-label"><span class="msr" style="font-size:12px;vertical-align:middle;margin-right:4px;">${icon}</span>${lbl}</div><div class="disc-section-text">${body}</div></div>`;
         i += 2;
-      } else {
-        discHtml += `<div class="disc-section-text" style="margin-bottom:10px">${line}</div>`;
-        i++;
-      }
+      } else { discOut += `<div class="disc-section-text" style="margin-bottom:10px">${line}</div>`; i++; }
     }
-    discHtml += `<button onclick="closeDiscModal()" style="width:100%;margin-top:6px;padding:10px;background:#f97316;border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:0.8rem;font-weight:700;cursor:pointer;">Dismiss</button>`;
-    document.getElementById('disc-body').innerHTML = discHtml;
+    document.getElementById('disc-body').innerHTML = discOut;
   } catch(e) {
     document.getElementById('disc-body').innerHTML = `<div class="disc-err">Could not load discussion (${e.message}).</div>`;
   }
@@ -1843,7 +1864,26 @@ function initWatchesMap(){
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
   loadWatches();
   if(window._watchesInterval) clearInterval(window._watchesInterval);
-  window._watchesInterval = setInterval(loadWatches, 60000);
+  if(window._watchesPollTimer) clearInterval(window._watchesPollTimer);
+
+  function startWatchPollBar(){
+    const fill=document.getElementById('watches-poll-fill');
+    if(!fill) return;
+    fill.style.transition='none';
+    fill.style.width='0%';
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        fill.style.transition='width 20s linear';
+        fill.style.width='100%';
+      });
+    });
+  }
+
+  startWatchPollBar();
+  window._watchesInterval=setInterval(()=>{
+    loadWatches();
+    startWatchPollBar();
+  },20000);
 }
 
 async function loadWatches(){
@@ -1929,36 +1969,35 @@ async function showWatchDetail(feat){
   const a=feat.properties;
   const{label,color}=getWatchStyle(a.event,feat);
   const isWarn=(a.event||'').toLowerCase().includes('warning');
+  const isWatch=(a.event||'').toLowerCase().includes('watch');
   const iconSym=isWarn?'warning':'emergency_home';
 
-  // Expiration — NWS alerts use 'expires', NOAA WWA uses 'expiration'
+  // Expiration
   const expRaw=a.expires||a.expiration||a.expireTime||null;
   const exp=expRaw?new Date(expRaw).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
 
-  // Area — NWS alerts use 'areaDesc', NOAA WWA uses 'area_desc' / 'states' / 'attn'
+  // Issued
+  const issuedRaw=a.effective||a.onset||a.sent||a.issueTime||null;
+  const issued=issuedRaw?new Date(issuedRaw).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
+
+  // Area
   const area=a.areaDesc||a.area_desc||a.states||a.attn||a.affected||'';
+  const areaShort=area.split(';').slice(0,4).map(s=>s.trim()).filter(Boolean).join(', ');
 
   // Watch number
   const num=a.parameters?.watchNumber?.[0]||a.watch_num||'';
 
   // Style modal
-  const bar=document.getElementById('watch-modal-bar');
-  bar.style.background=color;
+  document.getElementById('watch-modal-bar').style.background=color;
   const iconEl=document.getElementById('watch-modal-icon');
   iconEl.style.cssText=`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${color}22;`;
   const iconSym2=document.getElementById('watch-modal-icon-sym');
-  iconSym2.style.color=color;
-  iconSym2.textContent=iconSym;
+  iconSym2.style.color=color; iconSym2.textContent=iconSym;
   document.getElementById('watch-modal-title').textContent=label+(num?` #${num}`:'');
-  document.getElementById('watch-modal-meta').textContent=exp!=='—'?`Until ${exp}`:'';
+  document.getElementById('watch-modal-meta').textContent='';
+  document.getElementById('watch-modal-badges').innerHTML='';
 
-  // Badges
-  let badges=`<span class="meso-badge" style="background:${color}22;color:${color};border:1px solid ${color}44;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;">${label.toUpperCase()}</span>`;
-  if(area) badges+=`<span class="meso-badge meso-badge-area"><span class="msr" style="font-size:12px">location_on</span>${area.split(';').slice(0,3).map(s=>s.trim()).join(', ')}</span>`;
-  document.getElementById('watch-modal-badges').innerHTML=badges;
-
-  // Show modal with loading state
-  document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:16px 0;"><div class="spin-ring"></div>Summarizing with AI…</div>`;
+  // Show modal
   document.getElementById('watch-modal-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
 
@@ -1970,14 +2009,32 @@ async function showWatchDetail(feat){
     }catch{}
   }
 
-  // Build raw text for AI — use description or headline, fall back to basic info
-  const rawDesc=(a.description||a.headline||'').trim();
-
-  if(!rawDesc){
-    // No text to summarize — show basic info only
+  // ── WATCHES: brief factual display, no AI ──────────────────
+  if(isWatch){
     document.getElementById('watch-modal-body').innerHTML=`
-      <div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">info</span>DETAILS</div>
-      <div class="meso-sum-text">${area||'Area not specified'}. In effect until ${exp}.</div></div>`;
+      <div class="meso-sum-section">
+        <div class="meso-sum-label"><span class="msr">location_on</span>AREA</div>
+        <div class="meso-sum-text">${areaShort||'—'}</div>
+      </div>
+      <div class="meso-sum-section">
+        <div class="meso-sum-label"><span class="msr">schedule</span>ISSUED</div>
+        <div class="meso-sum-text">${issued}</div>
+      </div>
+      <div class="meso-sum-section">
+        <div class="meso-sum-label"><span class="msr">timer_off</span>EXPIRES</div>
+        <div class="meso-sum-text">${exp}</div>
+      </div>`;
+    return;
+  }
+
+  // ── WARNINGS: AI summary ───────────────────────────────────
+  document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:16px 0;"><div class="spin-ring"></div>Summarizing with AI…</div>`;
+
+  const rawDesc=(a.description||a.headline||'').trim();
+  if(!rawDesc){
+    document.getElementById('watch-modal-body').innerHTML=`
+      <div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">location_on</span>AREA</div><div class="meso-sum-text">${areaShort||'—'}</div></div>
+      <div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">timer_off</span>EXPIRES</div><div class="meso-sum-text">${exp}</div></div>`;
     return;
   }
 
@@ -1985,14 +2042,13 @@ async function showWatchDetail(feat){
     const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       model:'llama-3.3-70b-versatile',
       max_tokens:350,
-      system:`You are a weather alert writer for a mobile weather app. Summarize this NWS weather alert in plain English for the general public. Structure your response in exactly these 3 sections:\n\nTHREAT:\n[One sentence describing what the hazard is and how severe]\n\nAFFECTED AREA:\n[One sentence on where — counties, cities, or regions]\n\nWHAT TO DO:\n[One sentence of specific safety action]\n\nNo jargon. No codes. No bullet points. No extra text.`,
+      system:`You are a weather alert writer for a mobile weather app. Summarize this NWS weather warning in plain English. Structure your response in exactly these 3 sections:\n\nTHREAT:\n[One sentence describing what the hazard is and how severe]\n\nAFFECTED AREA:\n[One sentence on where — counties, cities, or regions]\n\nWHAT TO DO:\n[One sentence of specific safety action]\n\nNo jargon. No codes. No bullet points. No extra text.`,
       messages:[{role:'user',content:rawDesc.slice(0,3000)}]
     })});
     if(!aiRes.ok) throw new Error('AI unavailable');
     const aiData=await aiRes.json();
     const summary=(aiData.content?.[0]?.text||'').trim();
     if(!summary) throw new Error('Empty response');
-
     const sectionIcons={'THREAT':'warning','AFFECTED AREA':'location_on','WHAT TO DO':'shield'};
     const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
     let html=''; let i=0;
@@ -2009,7 +2065,6 @@ async function showWatchDetail(feat){
     }
     document.getElementById('watch-modal-body').innerHTML=html;
   }catch(e){
-    // Fall back to truncated raw text
     const fallback=rawDesc.slice(0,400)+(rawDesc.length>400?'…':'');
     document.getElementById('watch-modal-body').innerHTML=`<div class="meso-sum-text">${fallback}</div>`;
   }
