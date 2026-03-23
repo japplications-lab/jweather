@@ -201,7 +201,7 @@
 
     /* Local radar */
     .radar-card-body{height:220px;overflow:hidden;}
-    .radar-card-body iframe{width:100%;height:100%;border:none;display:block;pointer-events:none;}
+    .radar-card-body iframe{width:100%;height:100%;border:none;display:block;}
     .radar-card-link{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:0.76rem;font-weight:600;color:var(--text3);background:none;border:none;border-top:1px solid var(--border);width:100%;cursor:pointer;font-family:var(--font);-webkit-tap-highlight-color:transparent;transition:color .15s;}
     .radar-card-link:active{color:var(--red);}
     .radar-card-link .msr{font-size:14px;}
@@ -855,6 +855,29 @@
     <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;" id="watch-modal-body">
       <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
         <div class="spin-ring"></div>Loading…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DESKTOP WARNING -->
+<div id="desktop-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);max-width:380px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;">
+    <div style="height:3px;background:var(--red);"></div>
+    <div style="padding:24px 24px 20px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span class="msr" style="font-size:20px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">smartphone</span>
+        </div>
+        <div>
+          <div style="font-size:1rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;">Built for Mobile</div>
+          <div style="font-size:0.72rem;color:var(--text4);margin-top:2px;">jWeather is optimized for phones</div>
+        </div>
+      </div>
+      <p style="font-size:0.83rem;color:var(--text3);line-height:1.65;margin-bottom:20px;">This app is designed for mobile devices. You can still use it on desktop, but some layouts and interactions may not look their best.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="dismissDesktopWarning(false)" style="width:100%;padding:11px;background:var(--red);border:none;border-radius:var(--r-sm);color:#fff;font-family:var(--font);font-size:0.83rem;font-weight:700;cursor:pointer;">Continue Anyway</button>
+        <button onclick="dismissDesktopWarning(true)" style="width:100%;padding:11px;background:none;border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text3);font-family:var(--font);font-size:0.8rem;font-weight:500;cursor:pointer;">Don't remind me again</button>
       </div>
     </div>
   </div>
@@ -2296,7 +2319,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   clearBtn.style.display='flex';
   loadWeather(loc);
   updateRadar(loc.lat,loc.lng);
+
+  // Desktop warning
+  if(window.innerWidth>=768 && !localStorage.getItem('jw_no_desktop_warn')){
+    document.getElementById('desktop-overlay').style.display='flex';
+  }
 });
+
+function dismissDesktopWarning(permanent){
+  document.getElementById('desktop-overlay').style.display='none';
+  if(permanent) localStorage.setItem('jw_no_desktop_warn','1');
+}
 </script>
 </body>
 </html>
