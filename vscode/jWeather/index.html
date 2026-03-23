@@ -42,7 +42,7 @@
       background:var(--surface);
       border-bottom:1px solid var(--border);
       display:flex;align-items:center;
-      padding:0 16px;gap:12px;
+      padding:0 12px;gap:10px;
       position:relative;z-index:100;
     }
     .logo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -51,12 +51,14 @@
     .logo-name{font-size:0.9rem;font-weight:800;letter-spacing:-0.03em;}
 
     /* Search */
-    .search-wrap{flex:1;position:relative;}
+    .search-wrap{flex:1;position:relative;min-width:0;}
     .search-row{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);padding:0 8px 0 12px;transition:border-color .15s,box-shadow .15s;}
     .search-row:focus-within{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
     .search-row .msr{font-size:16px;color:var(--text4);}
-    #search-input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;}
+    #search-input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.83rem;color:var(--text);padding:9px 8px;min-width:0;}
     #search-input::placeholder{color:var(--text4);}
+    #search-input::-webkit-search-cancel-button{-webkit-appearance:none;display:none;}
+    #search-input::-webkit-search-decoration{-webkit-appearance:none;}
     .search-clear{background:none;border:none;cursor:pointer;color:var(--text4);padding:4px;display:none;align-items:center;justify-content:center;}
     .search-clear .msr{font-size:18px;}
     .gps-btn{background:none;border:none;cursor:pointer;padding:5px;display:flex;align-items:center;color:var(--text4);transition:color .15s;}
