@@ -199,7 +199,7 @@
 
     /* Local radar */
     .radar-card-body{height:220px;overflow:hidden;}
-    .radar-card-body iframe{width:100%;height:100%;border:none;display:block;}
+    .radar-card-body iframe{width:100%;height:100%;border:none;display:block;pointer-events:none;}
     .radar-card-link{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:0.76rem;font-weight:600;color:var(--text3);background:none;border:none;border-top:1px solid var(--border);width:100%;cursor:pointer;font-family:var(--font);-webkit-tap-highlight-color:transparent;transition:color .15s;}
     .radar-card-link:active{color:var(--red);}
     .radar-card-link .msr{font-size:14px;}
@@ -281,7 +281,7 @@
     .spin-ring{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
 
     /* Outlook legend */
-    .ol-legend{position:absolute;bottom:12px;right:12px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;max-width:120px;}
+    .ol-legend{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;max-width:130px;}
     .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;}
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
@@ -863,12 +863,12 @@ const WORKER = 'https://proxy.jweather.app';
 //  SPC / OUTLOOK CONSTANTS
 // ══════════════════════════════════════════════════════
 const SPC_CAT = {
-  'TSTM':{ color:'#c8eec8', label:'General Storms'  },
-  'MRGL':{ color:'#6abf6a', label:'Marginal Risk'    },
-  'SLGT':{ color:'#f0e040', label:'Slight Risk'      },
-  'ENH': { color:'#e88020', label:'Enhanced Risk'    },
-  'MDT': { color:'#e04040', label:'Moderate Risk'    },
-  'HIGH':{ color:'#ee30a0', label:'High Risk'        },
+  'TSTM':{ color:'#c8eec8', label:'General Storms' },
+  'MRGL':{ color:'#6abf6a', label:'Marginal'       },
+  'SLGT':{ color:'#f0e040', label:'Slight'         },
+  'ENH': { color:'#e88020', label:'Enhanced'       },
+  'MDT': { color:'#e04040', label:'Moderate'       },
+  'HIGH':{ color:'#ee30a0', label:'High'           },
 };
 const DN_TO_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const NOAA_BASE = `${WORKER}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer`;
@@ -885,11 +885,11 @@ const OUTLOOK_SIG_IDS = {
 };
 const OUTLOOK_CAT = {
   'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
-  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Low Risk'       },
-  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Some Risk'       },
-  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Elevated Risk'   },
-  'MDT': { fill:'#e04040', stroke:'#a81818', label:'High Risk'       },
-  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'Extreme Risk'    },
+  'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'       },
+  'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'         },
+  'ENH': { fill:'#e88020', stroke:'#b05000', label:'Enhanced'       },
+  'MDT': { fill:'#e04040', stroke:'#a81818', label:'Moderate'       },
+  'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'High'           },
 };
 const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const OUTLOOK_CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
@@ -1661,7 +1661,11 @@ async function loadOutlookHazard(day, mode) {
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
   if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
-  if (!layerId) { loading.classList.add('hidden'); return; }
+  if (!layerId) {
+    loading.classList.add('hidden');
+    document.getElementById('ol-legend').innerHTML = `<div style="display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text3);"><span class="msr" style="font-size:13px;color:var(--green);">check_circle</span>No ${OUTLOOK_MODE_LABELS[mode]} outlook issued</div>`;
+    return;
+  }
   try {
     const url = `${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
     const res = await fetch(url);
@@ -1680,11 +1684,27 @@ async function loadOutlookHazard(day, mode) {
         return dnA - dnB;
       })};
     }
+    // Check if there are any meaningful (non-TSTM) features to show
+    const hasData = (gj.features || []).some(f => {
+      const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+      const lbl = (f.properties?.LABEL || f.properties?.label || '').toString();
+      if (lbl.startsWith('CIG')) return false;
+      if (mode === 'cat') {
+        const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+        return key && key !== 'TSTM' && OUTLOOK_CAT[key];
+      } else {
+        const dn = Math.round(parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) * (parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) <= 1 ? 100 : 1));
+        return dn > 0;
+      }
+    });
+    if (!hasData) {
+      document.getElementById('ol-legend').innerHTML = `<div style="display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text3);"><span class="msr" style="font-size:13px;color:var(--green);">check_circle</span>No ${OUTLOOK_MODE_LABELS[mode]} threat forecast</div>`;
+      return;
+    }
     activeOutlookLayer = L.geoJSON(gj, {
       renderer: outlookMap._outlookRenderer,
       style: f => outlookStyleFeature(f, mode),
-      onEachFeature: (f, lyr) => {
-        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+      onEachFeature: (f, lyr) => {        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const lbl = (f.properties?.LABEL || f.properties?.label || '').toString();
         if (lbl.startsWith('CIG')) {
           const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : mode === 'hail' ? '2\u221e+ Hail' : 'Significant Severe';
