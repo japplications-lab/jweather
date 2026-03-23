@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>404 — jWeather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #f97316;
+      --orange-glow: rgba(249, 115, 22, 0.35);
+      --bg: #0d0f14;
+      --text: #ffffff;
+      --text-dim: rgba(255,255,255,0.45);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Geist', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Subtle radial glow behind the card */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 600px 500px at 50% 45%, rgba(249,115,22,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Orange card ── */
+    .card {
+      width: 240px;
+      height: 240px;
+      background: var(--orange);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(249,115,22,0.4),
+        0 20px 60px rgba(249,115,22,0.3),
+        0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    /* Soft inner vignette */
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 28px;
+      background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── SVG Animations ── */
+
+    /* Tornado sways side to side */
+    @keyframes tornadoSway {
+      0%   { transform: rotate(-2.5deg); }
+      50%  { transform: rotate(2.5deg) translateX(3px); }
+      100% { transform: rotate(-2.5deg); }
+    }
+
+    /* Swirl lines scroll */
+    @keyframes swirlScroll {
+      from { stroke-dashoffset: 0; }
+      to   { stroke-dashoffset: -40; }
+    }
+
+    /* Tree falls to the right */
+    @keyframes treeFall {
+      0%   { transform: rotate(0deg); }
+      60%  { transform: rotate(0deg); }
+      100% { transform: rotate(52deg); }
+    }
+
+    /* Leaves scatter */
+    @keyframes leafA {
+      0%   { transform: translate(0,0) rotate(0deg); opacity: 0.9; }
+      100% { transform: translate(32px, -44px) rotate(200deg); opacity: 0; }
+    }
+    @keyframes leafB {
+      0%   { transform: translate(0,0) rotate(0deg); opacity: 0.85; }
+      100% { transform: translate(-20px, -52px) rotate(-160deg); opacity: 0; }
+    }
+    @keyframes leafC {
+      0%   { transform: translate(0,0) rotate(0deg); opacity: 0.8; }
+      100% { transform: translate(18px, -38px) rotate(120deg); opacity: 0; }
+    }
+
+    /* Debris orbiting near tornado base */
+    @keyframes debrisOrbit {
+      from { transform: rotate(0deg) translateX(24px) rotate(0deg); }
+      to   { transform: rotate(360deg) translateX(24px) rotate(-360deg); }
+    }
+    @keyframes debrisOrbit2 {
+      from { transform: rotate(120deg) translateX(18px) rotate(-120deg); }
+      to   { transform: rotate(480deg) translateX(18px) rotate(-480deg); }
+    }
+    @keyframes debrisOrbit3 {
+      from { transform: rotate(240deg) translateX(14px) rotate(-240deg); }
+      to   { transform: rotate(600deg) translateX(14px) rotate(-600deg); }
+    }
+
+    /* Ground rumble */
+    @keyframes groundShake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-1.5px); }
+      75%       { transform: translateX(1.5px); }
+    }
+
+    .tornado-g {
+      transform-origin: 80px 28px;
+      animation: tornadoSway 2s ease-in-out infinite;
+    }
+
+    .swirl-line {
+      stroke-dasharray: 12 6;
+      animation: swirlScroll 0.6s linear infinite;
+    }
+
+    .tree-g {
+      transform-origin: 152px 162px;
+      animation: treeFall 1.4s cubic-bezier(0.55, 0, 1, 0.45) 0.5s forwards;
+    }
+
+    .leaf-a { animation: leafA 1.8s ease-out 0.9s infinite; }
+    .leaf-b { animation: leafB 2.2s ease-out 1.3s infinite; }
+    .leaf-c { animation: leafC 1.5s ease-out 0.6s infinite; }
+
+    .debris-1 {
+      transform-origin: 80px 128px;
+      animation: debrisOrbit 1.1s linear infinite;
+    }
+    .debris-2 {
+      transform-origin: 80px 128px;
+      animation: debrisOrbit2 0.9s linear infinite;
+    }
+    .debris-3 {
+      transform-origin: 80px 128px;
+      animation: debrisOrbit3 1.3s linear infinite;
+    }
+
+    .ground-g { animation: groundShake 0.12s ease-in-out infinite; }
+
+    /* ── Text block ── */
+    .text-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      animation: fadeUp 0.6s 0.15s ease both;
+    }
+
+    .code {
+      font-size: 5.5rem;
+      font-weight: 900;
+      letter-spacing: -0.06em;
+      line-height: 1;
+      color: #fff;
+    }
+
+    .headline {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.65;
+      max-width: 260px;
+      text-align: center;
+    }
+
+    /* ── Button ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      background: var(--orange);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Geist', system-ui, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: filter 0.15s, transform 0.1s;
+      animation: fadeUp 0.6s 0.25s ease both;
+      letter-spacing: -0.01em;
+    }
+    .btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Orange illustration card -->
+    <div class="card">
+      <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Ground -->
+        <g class="ground-g">
+          <rect x="16" y="162" width="168" height="5" rx="2.5" fill="rgba(0,0,0,0.18)"/>
+          <!-- grass tufts -->
+          <line x1="28"  y1="162" x2="25"  y2="155" stroke="rgba(255,255,255,0.3)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="34"  y1="162" x2="37"  y2="155" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="46"  y1="162" x2="44"  y2="156" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="168" y1="162" x2="165" y2="155" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="174" y1="162" x2="177" y2="155" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- Tree (falls right, pivot at base) -->
+        <g class="tree-g">
+          <!-- trunk -->
+          <rect x="147" y="112" width="11" height="52" rx="4" fill="rgba(255,255,255,0.92)"/>
+          <!-- root flare -->
+          <ellipse cx="152" cy="162" rx="9" ry="3.5" fill="rgba(255,255,255,0.5)"/>
+          <!-- foliage - layered ovals for depth -->
+          <ellipse cx="152" cy="104" rx="24" ry="17" fill="rgba(255,255,255,0.85)"/>
+          <ellipse cx="152" cy="93"  rx="19" ry="14" fill="rgba(255,255,255,0.9)"/>
+          <ellipse cx="152" cy="83"  rx="14" ry="11" fill="rgba(255,255,255,0.95)"/>
+          <ellipse cx="152" cy="75"  rx="9"  rx="9"  ry="8"  fill="rgba(255,255,255,1)"/>
+        </g>
+
+        <!-- Flying leaves from tree -->
+        <g class="leaf-a">
+          <ellipse cx="162" cy="98" rx="5.5" ry="3" fill="rgba(255,255,255,0.85)" transform="rotate(-25 162 98)"/>
+        </g>
+        <g class="leaf-b">
+          <ellipse cx="140" cy="90" rx="4.5" ry="2.5" fill="rgba(255,255,255,0.75)" transform="rotate(18 140 90)"/>
+        </g>
+        <g class="leaf-c">
+          <ellipse cx="168" cy="108" rx="4"  ry="2.2" fill="rgba(255,255,255,0.7)"  transform="rotate(-40 168 108)"/>
+        </g>
+
+        <!-- ─── Tornado ─── -->
+        <g class="tornado-g">
+
+          <!-- Wide top opening -->
+          <ellipse cx="80" cy="28" rx="40" ry="9" fill="rgba(255,255,255,0.2)"/>
+          <ellipse cx="80" cy="28" rx="40" ry="9" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" fill="none" stroke-dasharray="8 5"/>
+
+          <!-- Outer funnel shape — tapered wedge -->
+          <path d="M40 28 Q30 58 46 80 Q60 98 80 162 Q100 98 114 80 Q130 58 120 28 Z"
+                fill="rgba(255,255,255,0.16)"/>
+          <!-- Mid funnel -->
+          <path d="M52 33 Q46 60 58 78 Q68 92 80 162 Q92 92 102 78 Q114 60 108 33 Z"
+                fill="rgba(255,255,255,0.13)"/>
+          <!-- Inner core -->
+          <path d="M62 38 Q58 62 66 76 Q73 87 80 162 Q87 87 94 76 Q102 62 98 38 Z"
+                fill="rgba(255,255,255,0.11)"/>
+
+          <!-- Horizontal swirl lines — animated scroll -->
+          <path class="swirl-line" d="M44 38 Q62 33 82 39 Q98 44 114 40"
+                stroke="rgba(255,255,255,0.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <path class="swirl-line" d="M47 50 Q64 45 82 51 Q96 56 112 52"
+                stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round" style="animation-delay:-0.1s"/>
+          <path class="swirl-line" d="M50 62 Q66 57 82 63 Q94 68 108 64"
+                stroke="rgba(255,255,255,0.45)" stroke-width="1.4" fill="none" stroke-linecap="round" style="animation-delay:-0.2s"/>
+          <path class="swirl-line" d="M53 74 Q67 70 82 75 Q93 79 105 76"
+                stroke="rgba(255,255,255,0.4)" stroke-width="1.3" fill="none" stroke-linecap="round" style="animation-delay:-0.3s"/>
+          <path class="swirl-line" d="M56 86 Q68 82 82 87 Q92 91 102 88"
+                stroke="rgba(255,255,255,0.35)" stroke-width="1.2" fill="none" stroke-linecap="round" style="animation-delay:-0.4s"/>
+          <path class="swirl-line" d="M60 98 Q70 95 82 99 Q90 103 99 100"
+                stroke="rgba(255,255,255,0.28)" stroke-width="1.1" fill="none" stroke-linecap="round" style="animation-delay:-0.5s"/>
+          <path class="swirl-line" d="M63 110 Q71 107 82 111 Q89 114 96 112"
+                stroke="rgba(255,255,255,0.22)" stroke-width="1" fill="none" stroke-linecap="round" style="animation-delay:-0.15s"/>
+          <path class="swirl-line" d="M66 122 Q73 119 82 122 Q87 125 93 123"
+                stroke="rgba(255,255,255,0.16)" stroke-width="0.9" fill="none" stroke-linecap="round" style="animation-delay:-0.35s"/>
+          <path class="swirl-line" d="M69 134 Q74 132 82 134 Q86 136 90 135"
+                stroke="rgba(255,255,255,0.11)" stroke-width="0.8" fill="none" stroke-linecap="round" style="animation-delay:-0.05s"/>
+
+          <!-- Tip -->
+          <line x1="80" y1="152" x2="80" y2="162" stroke="rgba(255,255,255,0.45)" stroke-width="2.2" stroke-linecap="round"/>
+
+          <!-- Orbiting debris near mid-funnel -->
+          <g class="debris-1">
+            <rect x="78" y="124" width="4" height="4" rx="1" fill="rgba(255,255,255,0.7)" transform="rotate(30 80 126)"/>
+          </g>
+          <g class="debris-2">
+            <circle cx="80" cy="122" r="2" fill="rgba(255,255,255,0.6)"/>
+          </g>
+          <g class="debris-3">
+            <rect x="78" y="120" width="3" height="3" rx="0.5" fill="rgba(255,255,255,0.5)" transform="rotate(-20 79.5 121.5)"/>
+          </g>
+
+        </g>
+
+        <!-- Ground dust at tornado tip -->
+        <ellipse cx="80" cy="163" rx="26" ry="6" fill="rgba(255,255,255,0.1)"/>
+        <ellipse cx="80" cy="162" rx="14" ry="3.5" fill="rgba(255,255,255,0.08)"/>
+
+      </svg>
+    </div>
+
+    <!-- Text -->
+    <div class="text-block">
+      <div class="code">404</div>
+      <div class="headline">Page swept away</div>
+      <div class="sub">Looks like a tornado got here first. This page doesn't exist anymore — or maybe it never did.</div>
+    </div>
+
+    <a class="btn" href="/">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to jWeather
+    </a>
+
+  </div>
+</body>
+</html>
