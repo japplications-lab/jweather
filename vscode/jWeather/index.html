@@ -925,7 +925,7 @@ const OUTLOOK_CAT = {
   'HIGH':{ fill:'#ee30a0', stroke:'#aa1070', label:'High'           },
 };
 const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
-const OUTLOOK_CAT_ORDER = ['MRGL','SLGT','ENH','MDT','HIGH'];
+const OUTLOOK_CAT_ORDER = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
 const PROB_TORN = [
   {dn:2,  fill:'#008b00',stroke:'#005f00',label:'Low Risk'     },
   {dn:5,  fill:'#8b4726',stroke:'#5f3019',label:'Elevated Risk'},
@@ -956,6 +956,7 @@ function getOutlookProbScale(mode){
 }
 const OUTLOOK_MODE_LABELS = {cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic'};
 const OUTLOOK_CAT_DESC = {
+  TSTM:"Scattered thunderstorms are possible in this area, though most won't be severe. Keep an eye on the forecast if you have outdoor plans.",
   MRGL:"An isolated storm or two could turn severe, but most of the area will see nothing significant. A quick check of your forecast before heading out is all you need.",
   SLGT:"Some storms today will produce damaging winds, large hail, or a brief tornado. Not every storm will be severe, but it's worth having a plan.",
   ENH: "Multiple severe storms are likely. Damaging winds, large hail, and tornadoes are all possible — some locations will see significant impacts.",
@@ -1593,7 +1594,7 @@ function outlookStyleFeature(f, mode) {
   if (mode === 'cat') {
     const raw = (p.LABEL || p.label || p.DN || '').toString().toUpperCase().trim();
     const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
-    if (key === 'TSTM') return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
+    if (key === 'TSTM') return { fillColor:'#c8eec8', color:'#90c890', weight:1, fillOpacity:0.45, opacity:0.7 };
     if (!key || !OUTLOOK_CAT[key]) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0, interactive:false };
     const c = OUTLOOK_CAT[key];
     return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
@@ -1660,7 +1661,7 @@ function updateOutlookLegend(gj, mode) {
     (gj.features || []).forEach(f => {
       const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
       const key = OUTLOOK_CAT[raw] ? raw : OUTLOOK_DN_CAT[raw];
-      if (key && key !== 'TSTM' && !raw.startsWith('CIG')) present.add(key);
+      if (key && !raw.startsWith('CIG')) present.add(key);
     });
     OUTLOOK_CAT_ORDER.filter(k => present.has(k)).forEach(k => {
       const c = OUTLOOK_CAT[k];
@@ -1726,7 +1727,7 @@ async function loadOutlookHazard(day, mode) {
       if (lbl.startsWith('CIG')) return false;
       if (mode === 'cat') {
         const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
-        return key && key !== 'TSTM' && OUTLOOK_CAT[key];
+        return key && OUTLOOK_CAT[key];
       } else {
         const dn = Math.round(parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) * (parseFloat(f.properties?.DN ?? f.properties?.dn ?? 0) <= 1 ? 100 : 1));
         return dn > 0;
@@ -1747,7 +1748,7 @@ async function loadOutlookHazard(day, mode) {
           return;
         }
         const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
-        if (mode === 'cat' && (key === 'TSTM' || !OUTLOOK_CAT[key])) return;
+        if (mode === 'cat' && !OUTLOOK_CAT[key]) return;
         lyr.bindPopup(outlookPopupContent(f, mode, day), { closeButton:false, maxWidth:290 });
         lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.95, weight:2.5 }); });
         lyr.on('mouseout',  function(){ activeOutlookLayer.resetStyle(this); });
