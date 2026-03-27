@@ -278,10 +278,10 @@
     .ol-disc-btn .msr{font-size:14px;}
     .map-context-pill{position:absolute;top:12px;left:12px;right:50px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .map-context-pill span{color:var(--red);}
-    .ol-no-severe{position:absolute;inset:0;z-index:480;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-    .ol-no-severe-pill{display:flex;align-items:center;gap:8px;background:rgba(19,21,26,0.92);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:20px;padding:9px 18px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-    .ol-no-severe-pill .msr{font-size:16px;color:var(--green);}
-    .ol-no-severe-pill span{font-size:0.76rem;font-weight:600;color:var(--text2);}
+    .ol-no-severe{display:flex;align-items:center;gap:6px;padding:2px 0;}
+    .ol-no-severe.has-items{padding-top:6px;border-top:1px solid var(--border);margin-top:4px;}
+    .ol-no-severe .msr{font-size:13px;color:var(--green);flex-shrink:0;}
+    .ol-no-severe span{font-size:0.65rem;font-weight:500;color:var(--text2);line-height:1.3;}
     .ol-no-severe.hidden{display:none;}
     .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
@@ -620,9 +620,8 @@
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="outlook-map"></div>
       <div class="map-context-pill" id="ol-pill">Day 1 — <span>Categorical</span></div>
-      <div class="ol-legend" id="ol-legend"></div>
-      <div class="ol-no-severe hidden" id="ol-no-severe">
-        <div class="ol-no-severe-pill">
+      <div class="ol-legend" id="ol-legend">
+        <div class="ol-no-severe hidden" id="ol-no-severe">
           <span class="msr">check_circle</span>
           <span id="ol-no-severe-msg">No organized severe weather anticipated</span>
         </div>
@@ -1666,7 +1665,9 @@ function outlookPopupContent(f, mode, day) {
 
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('ol-legend');
+  const noSevere = document.getElementById('ol-no-severe');
   items.innerHTML = '';
+  items.appendChild(noSevere);
   if (mode === 'cat') {
     const present = new Set();
     (gj.features || []).forEach(f => {
@@ -1707,6 +1708,7 @@ async function loadOutlookHazard(day, mode) {
   const noSevereEl = document.getElementById('ol-no-severe');
   const noSevereMsg = document.getElementById('ol-no-severe-msg');
   noSevereEl.classList.add('hidden');
+  noSevereEl.classList.remove('has-items');
   loading.classList.remove('hidden');
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
@@ -1714,7 +1716,9 @@ async function loadOutlookHazard(day, mode) {
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
   if (!layerId) {
     loading.classList.add('hidden');
-    document.getElementById('ol-legend').innerHTML = '';
+    const legendEl = document.getElementById('ol-legend');
+    legendEl.innerHTML = '';
+    legendEl.appendChild(noSevereEl);
     noSevereMsg.textContent = mode === 'cat' ? 'No severe weather outlook issued' : `No ${OUTLOOK_MODE_LABELS[mode]} threat forecast`;
     noSevereEl.classList.remove('hidden');
     return;
@@ -1751,7 +1755,9 @@ async function loadOutlookHazard(day, mode) {
       }
     });
     if (!hasData) {
-      document.getElementById('ol-legend').innerHTML = '';
+      const legendEl = document.getElementById('ol-legend');
+      legendEl.innerHTML = '';
+      legendEl.appendChild(noSevereEl);
       // Determine if there's only thunderstorms (TSTM) or truly nothing
       const hasTstmOnly = mode === 'cat' && (gj.features || []).some(f => {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
@@ -1790,6 +1796,7 @@ async function loadOutlookHazard(day, mode) {
         return key && key !== 'TSTM' && OUTLOOK_CAT[key];
       });
       if (!hasRiskCat) {
+        noSevereEl.classList.add('has-items'); // TSTM legend item is above it
         noSevereMsg.textContent = 'No organized severe weather anticipated';
         noSevereEl.classList.remove('hidden');
       }
