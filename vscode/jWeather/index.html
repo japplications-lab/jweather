@@ -278,6 +278,11 @@
     .ol-disc-btn .msr{font-size:14px;}
     .map-context-pill{position:absolute;top:12px;left:12px;right:50px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .map-context-pill span{color:var(--red);}
+    .ol-no-severe{position:absolute;inset:0;z-index:480;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+    .ol-no-severe-pill{display:flex;align-items:center;gap:8px;background:rgba(19,21,26,0.92);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:20px;padding:9px 18px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+    .ol-no-severe-pill .msr{font-size:16px;color:var(--green);}
+    .ol-no-severe-pill span{font-size:0.76rem;font-weight:600;color:var(--text2);}
+    .ol-no-severe.hidden{display:none;}
     .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
     .spin-ring{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
@@ -616,6 +621,12 @@
       <div id="outlook-map"></div>
       <div class="map-context-pill" id="ol-pill">Day 1 — <span>Categorical</span></div>
       <div class="ol-legend" id="ol-legend"></div>
+      <div class="ol-no-severe hidden" id="ol-no-severe">
+        <div class="ol-no-severe-pill">
+          <span class="msr">check_circle</span>
+          <span id="ol-no-severe-msg">No organized severe weather anticipated</span>
+        </div>
+      </div>
       <div class="map-loading" id="ol-loading"><div class="spin-ring"></div></div>
     </div>
     <div class="outlook-controls">
@@ -896,7 +907,7 @@ const WORKER = 'https://proxy.jweather.app';
 //  SPC / OUTLOOK CONSTANTS
 // ══════════════════════════════════════════════════════
 const SPC_CAT = {
-  'TSTM':{ color:'#c8eec8', label:'General Storms' },
+  'TSTM':{ color:'#c8eec8', label:'Thunderstorms' },
   'MRGL':{ color:'#6abf6a', label:'Marginal'       },
   'SLGT':{ color:'#f0e040', label:'Slight'         },
   'ENH': { color:'#e88020', label:'Enhanced'       },
@@ -917,7 +928,7 @@ const OUTLOOK_SIG_IDS = {
   '2-torn':10,'2-hail':12,'2-wind':14,
 };
 const OUTLOOK_CAT = {
-  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'General Storms' },
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'Thunderstorms' },
   'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'       },
   'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'         },
   'ENH': { fill:'#e88020', stroke:'#b05000', label:'Enhanced'       },
@@ -1692,6 +1703,10 @@ async function loadOutlookHazard(day, mode) {
   const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : 'Day 3';
   document.getElementById('ol-pill').innerHTML = `${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
   const loading = document.getElementById('ol-loading');
+  // Hide the no-severe overlay at the start of every load
+  const noSevereEl = document.getElementById('ol-no-severe');
+  const noSevereMsg = document.getElementById('ol-no-severe-msg');
+  noSevereEl.classList.add('hidden');
   loading.classList.remove('hidden');
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
@@ -1699,7 +1714,9 @@ async function loadOutlookHazard(day, mode) {
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
   if (!layerId) {
     loading.classList.add('hidden');
-    document.getElementById('ol-legend').innerHTML = `<div style="display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text3);"><span class="msr" style="font-size:13px;color:var(--green);">check_circle</span>No ${OUTLOOK_MODE_LABELS[mode]} outlook issued</div>`;
+    document.getElementById('ol-legend').innerHTML = '';
+    noSevereMsg.textContent = mode === 'cat' ? 'No severe weather outlook issued' : `No ${OUTLOOK_MODE_LABELS[mode]} threat forecast`;
+    noSevereEl.classList.remove('hidden');
     return;
   }
   try {
@@ -1734,7 +1751,17 @@ async function loadOutlookHazard(day, mode) {
       }
     });
     if (!hasData) {
-      document.getElementById('ol-legend').innerHTML = `<div style="display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--text3);"><span class="msr" style="font-size:13px;color:var(--green);">check_circle</span>No ${OUTLOOK_MODE_LABELS[mode]} threat forecast</div>`;
+      document.getElementById('ol-legend').innerHTML = '';
+      // Determine if there's only thunderstorms (TSTM) or truly nothing
+      const hasTstmOnly = mode === 'cat' && (gj.features || []).some(f => {
+        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+        const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+        return key === 'TSTM';
+      });
+      noSevereMsg.textContent = hasTstmOnly
+        ? 'No organized severe weather anticipated'
+        : mode === 'cat' ? 'No severe weather outlook for this day' : `No ${OUTLOOK_MODE_LABELS[mode]} threat forecast`;
+      noSevereEl.classList.remove('hidden');
       return;
     }
     activeOutlookLayer = L.geoJSON(gj, {
@@ -1755,6 +1782,18 @@ async function loadOutlookHazard(day, mode) {
       }
     }).addTo(outlookMap);
     updateOutlookLegend(gj, mode);
+    // If cat mode and only TSTM (no risk categories), show the no-severe overlay
+    if (mode === 'cat') {
+      const hasRiskCat = (gj.features || []).some(f => {
+        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+        const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
+        return key && key !== 'TSTM' && OUTLOOK_CAT[key];
+      });
+      if (!hasRiskCat) {
+        noSevereMsg.textContent = 'No organized severe weather anticipated';
+        noSevereEl.classList.remove('hidden');
+      }
+    }
     function appendHatchLegend(mode) {
       const hazardLabel = mode === 'torn' ? 'EF2+ Tornado Possible'
         : mode === 'wind' ? '65+ mph Wind Possible'
