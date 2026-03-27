@@ -278,16 +278,18 @@
     .ol-disc-btn .msr{font-size:14px;}
     .map-context-pill{position:absolute;top:12px;left:12px;right:50px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .map-context-pill span{color:var(--red);}
-    .ol-no-severe{display:flex;align-items:center;gap:8px;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;max-width:130px;}
+    .ol-no-severe{display:flex;align-items:center;gap:8px;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;white-space:nowrap;}
     .ol-no-severe .msr{font-size:13px;color:var(--green);flex-shrink:0;}
-    .ol-no-severe span{font-size:0.65rem;font-weight:500;color:var(--text2);line-height:1.3;}
+    .ol-no-severe span{font-size:0.65rem;font-weight:500;color:var(--text2);}
     .ol-no-severe.hidden{display:none;}
+
     .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
     .spin-ring{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
 
     /* Outlook legend */
     .ol-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;max-width:130px;}
+    .ol-legend:empty{display:none;}
     .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;}
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
@@ -1714,7 +1716,7 @@ async function loadOutlookHazard(day, mode) {
   if (!layerId) {
     loading.classList.add('hidden');
     document.getElementById('ol-legend').innerHTML = '';
-    noSevereMsg.textContent = mode === 'cat' ? 'No severe weather outlook issued' : `No ${OUTLOOK_MODE_LABELS[mode]} threat forecast`;
+    noSevereMsg.textContent = mode === 'cat' ? 'No severe weather outlook issued' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat`;
     noSevereEl.classList.remove('hidden');
     return;
   }
@@ -1759,7 +1761,7 @@ async function loadOutlookHazard(day, mode) {
       });
       noSevereMsg.textContent = hasTstmOnly
         ? 'No organized severe weather anticipated'
-        : mode === 'cat' ? 'No severe weather outlook for this day' : `No ${OUTLOOK_MODE_LABELS[mode]} threat forecast`;
+        : mode === 'cat' ? 'No severe weather outlook for this day' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat`;
       noSevereEl.classList.remove('hidden');
       return;
     }
