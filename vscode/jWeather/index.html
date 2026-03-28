@@ -293,6 +293,12 @@
     .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;}
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
+    /* Day 4-8 loop sub-tabs */
+    .ol-loop-row{display:flex;gap:4px;padding:6px 10px 2px;justify-content:center;}
+    .ol-loop-btn{flex:1;max-width:52px;padding:5px 2px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:var(--font);font-size:0.65rem;font-weight:700;color:var(--text4);text-align:center;-webkit-tap-highlight-color:transparent;transition:all .15s;}
+    .ol-loop-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
+    .ol-loop-row.hidden{display:none;}
+
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:20px;cursor:pointer;}
     #disc-modal.open{display:flex;}
@@ -923,6 +929,7 @@ const OUTLOOK_LAYER_IDS = {
   '1-cat':1, '1-torn':3, '1-wind':7, '1-hail':5,
   '2-cat':9, '2-torn':11,'2-wind':15,'2-hail':13,
   '3-cat':17,'3-prob':18,
+  '4-prob':19, '5-prob':20, '6-prob':21, '7-prob':22, '8-prob':23,
 };
 const OUTLOOK_SIG_IDS = {
   '1-torn':2,'1-hail':4,'1-wind':6,
@@ -1480,6 +1487,11 @@ let activeOutlookSigLayer = null;
 let activeCigLayer = null;
 let activeOutlookDay = 1;
 let activeOutlookMode = 'cat';
+let activeDay48 = 4;
+let day48GeoJSON = {}; // per-day cache: { 4: geojson, 5: geojson, ... }
+let day48LoopTimer = null;
+let day48LoopActive = false;
+let currentOutlookReqId = 0; // prevents stale async responses from drawing
 
 function initOutlookMap() {
   outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:false, minZoom:4 })
@@ -1555,48 +1567,94 @@ function buildOutlookSidebar() {
     {key:'wind',label:'Wind',     icon:'air'         },
     {key:'hail',label:'Hail',     icon:'weather_hail'},
   ];
-  [1,2,3].forEach(day => {
-    const d = new Date(); d.setDate(d.getDate() + day - 1);
-    const dayName = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
-    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const modes = day < 3 ? modeList : [modeList[0]];
-    const dayDate = new Date(); dayDate.setDate(dayDate.getDate() + day - 1);
-    const tabLabel = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : dayDate.toLocaleDateString('en-US',{weekday:'long'});
+  [1,2,3,'4-8'].forEach(day => {
+    const isRange = day === '4-8';
+    const dayNum = isRange ? 4 : day;
+    const d = new Date(); d.setDate(d.getDate() + dayNum - 1);
+    const tabLabel = isRange ? 'Day 4–8' : (day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'}));
     const tab = document.createElement('button'); tab.className = 'ol-day-tab' + (day === 1 ? ' active' : ''); tab.dataset.day = day;
     tab.innerHTML = `<span class="label">${tabLabel}</span><span class="threat-bar" id="tb-${day}"></span>`;
     tab.addEventListener('click', () => {
       document.querySelectorAll('.ol-day-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      const mode = day < 3 ? activeOutlookMode : 'cat';
-      loadOutlookHazard(day, mode);
-      buildOutlookMobModeRow(day);
+      if (isRange) {
+        buildOutlookMobModeRow('4-8');
+        if (activeOutlookDay !== '4-8') {
+          preloadAndStartDay48Loop();
+        }
+      } else {
+        stopDay48Loop();
+        const mode = day < 3 ? activeOutlookMode : 'cat';
+        loadOutlookHazard(day, mode);
+        buildOutlookMobModeRow(day);
+      }
     });
     mobDayTabs.appendChild(tab);
-    fetchDayMaxThreat(day).then(color => {
-      const bar = document.getElementById(`tb-${day}`);
-      if (bar && color) bar.style.background = color;
-    });
+    if (!isRange) {
+      fetchDayMaxThreat(day).then(color => {
+        const bar = document.getElementById(`tb-${day}`);
+        if (bar && color) bar.style.background = color;
+      });
+    }
   });
   buildOutlookMobModeRow(1);
-  document.getElementById('ol-disc-btn').onclick = () => openDiscModal(activeOutlookDay);
+  document.getElementById('ol-disc-btn').onclick = () => openDiscModal(activeOutlookDay === '4-8' ? activeDay48 : activeOutlookDay);
 }
 
 function buildOutlookMobModeRow(day) {
   const row = document.getElementById('ol-mode-row'); row.innerHTML = '';
   const discRow = document.getElementById('ol-disc-btn');
-  if (discRow) discRow.onclick = () => openDiscModal(day);
-  const modes = day < 3
-    ? [{key:'cat',label:'Overall',icon:'thunderstorm'},{key:'torn',label:'Tornado',icon:'tornado'},{key:'wind',label:'Wind',icon:'air'},{key:'hail',label:'Hail',icon:'weather_hail'}]
-    : [{key:'cat',label:'Overall',icon:'thunderstorm'}];
-  modes.forEach(m => {
-    const btn = document.createElement('button'); btn.className = 'ol-mode-btn' + (m.key === activeOutlookMode ? ' active' : '');
-    btn.innerHTML = `<span class="msr">${m.icon}</span>${m.label}`;
-    btn.addEventListener('click', () => {
-      loadOutlookHazard(day, m.key);
-      row.querySelectorAll('.ol-mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+  if (discRow) discRow.onclick = () => openDiscModal(day === '4-8' ? activeDay48 : day);
+
+  // Day 4-8: show loop sub-tabs instead of mode buttons
+  const loopRowEl = document.getElementById('ol-loop-row') || (() => {
+    const el = document.createElement('div'); el.id = 'ol-loop-row'; el.className = 'ol-loop-row hidden';
+    row.parentNode.insertBefore(el, row);
+    return el;
+  })();
+
+  if (day === '4-8') {
+    row.style.display = 'none';
+    loopRowEl.classList.remove('hidden');
+    loopRowEl.innerHTML = '';
+    for (let d = 4; d <= 8; d++) {
+      const dt = new Date(); dt.setDate(dt.getDate() + d - 1);
+      const lbl = dt.toLocaleDateString('en-US',{weekday:'short'});
+      const btn = document.createElement('button');
+      btn.className = 'ol-loop-btn' + (d === activeDay48 ? ' active' : '');
+      btn.textContent = lbl;
+      btn.dataset.day48 = d;
+      btn.addEventListener('click', () => {
+        stopDay48Loop();
+        activeDay48 = d;
+        loopRowEl.querySelectorAll('.ol-loop-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.day48) === d));
+        loadOutlookDay48(d);
+        // Restart loop from this day after a short pause
+        clearTimeout(btn._restartT);
+        btn._restartT = setTimeout(() => startDay48Loop(), 2200);
+      });
+      loopRowEl.appendChild(btn);
+    }
+    // Remove any stale play row
+    const oldPlay = document.getElementById('ol-loop-play');
+    if (oldPlay) oldPlay.remove();
+  } else {
+    row.style.display = '';
+    loopRowEl.classList.add('hidden');
+    stopDay48Loop();
+    const modes = day < 3
+      ? [{key:'cat',label:'Overall',icon:'thunderstorm'},{key:'torn',label:'Tornado',icon:'tornado'},{key:'wind',label:'Wind',icon:'air'},{key:'hail',label:'Hail',icon:'weather_hail'}]
+      : [{key:'cat',label:'Overall',icon:'thunderstorm'}];
+    modes.forEach(m => {
+      const btn = document.createElement('button'); btn.className = 'ol-mode-btn' + (m.key === activeOutlookMode ? ' active' : '');
+      btn.innerHTML = `<span class="msr">${m.icon}</span>${m.label}`;
+      btn.addEventListener('click', () => {
+        loadOutlookHazard(day, m.key);
+        row.querySelectorAll('.ol-mode-btn').forEach(b => b.classList.toggle('active', b === btn));
+      });
+      row.appendChild(btn);
     });
-    row.appendChild(btn);
-  });
+  }
 }
 
 function outlookStyleFeature(f, mode) {
@@ -1700,8 +1758,10 @@ function updateOutlookLegend(gj, mode) {
 }
 
 async function loadOutlookHazard(day, mode) {
+  stopDay48Loop();
   activeOutlookDay = day; activeOutlookMode = mode;
-  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : 'Day 3';
+  const reqId = ++currentOutlookReqId;
+  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : day === 3 ? 'Day 3' : `Day ${day}`;
   document.getElementById('ol-pill').innerHTML = `${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
   const loading = document.getElementById('ol-loading');
   // Hide the no-severe overlay at the start of every load
@@ -1725,6 +1785,7 @@ async function loadOutlookHazard(day, mode) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gjRaw = await res.json();
+    if (reqId !== currentOutlookReqId) return; // another tab was clicked while fetching
     let gj;
     if (mode === 'cat') {
       gj = { ...gjRaw, features: [...(gjRaw.features||[])].sort((a,b) => {
@@ -1845,35 +1906,272 @@ async function loadOutlookHazard(day, mode) {
       } catch(e) { /* sig layer optional */ }
     }
   } catch(e) {
-    console.error('Outlook load error:', e);
-    document.getElementById('ol-legend').innerHTML = `<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load. Check connection.</div>`;
+    if (reqId === currentOutlookReqId) {
+      console.error('Outlook load error:', e);
+      document.getElementById('ol-legend').innerHTML = `<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load. Check connection.</div>`;
+    }
   } finally {
-    loading.classList.add('hidden');
+    if (reqId === currentOutlookReqId) loading.classList.add('hidden');
   }
 }
 
+// ── Day 4–8 Outlook ──
+const DAY48_PROB_SCALE = [
+  { dn:15, fill:'#c8eec8', stroke:'#90c890', label:'15% — Some Risk' },
+  { dn:30, fill:'#f0e040', stroke:'#b8a800', label:'30% — Enhanced Risk' },
+  { dn:45, fill:'#e88020', stroke:'#b05000', label:'45% — Elevated Risk' },
+  { dn:60, fill:'#e04040', stroke:'#a81818', label:'60%+ — High Risk'  },
+];
+function getDay48Color(dn) {
+  let c = DAY48_PROB_SCALE[0];
+  for (const x of DAY48_PROB_SCALE) { if (dn >= x.dn) c = x; }
+  return c;
+}
+
+async function loadOutlookDay48(dayNum) {
+  activeDay48 = dayNum;
+  activeOutlookDay = '4-8';
+  const reqId = ++currentOutlookReqId;
+  console.log(`[Day4-8] loadOutlookDay48(${dayNum}) reqId=${reqId}`);
+
+  const loading = document.getElementById('ol-loading');
+  const noSevereEl = document.getElementById('ol-no-severe');
+  const noSevereMsg = document.getElementById('ol-no-severe-msg');
+  noSevereEl.classList.add('hidden');
+  // Only show spinner if we don't have cached data
+  const isCached = !!day48GeoJSON[dayNum];
+  if (!isCached) loading.classList.remove('hidden');
+  document.getElementById('ol-pill').innerHTML = `Day ${dayNum} — <span>Extended Outlook</span>`;
+
+  // Clear old layers immediately before fetching
+  if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
+  if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
+  if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
+
+  try {
+    let gj;
+
+    if (day48GeoJSON[dayNum]) {
+      console.log(`[Day4-8] cache hit for day ${dayNum}, features:`, day48GeoJSON[dayNum].features?.length);
+      gj = day48GeoJSON[dayNum];
+    } else {
+      const layerId = OUTLOOK_LAYER_IDS[`${dayNum}-prob`];
+      const fallbackId = layerId + 1; // ESRI group layers sometimes push data to layerId+1
+      console.log(`[Day4-8] fetching layer ${layerId} for day ${dayNum}`);
+
+      let res = await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+      gj = await res.json();
+
+      // ESRI can return 200 OK with an error payload instead of real features
+      if (gj.error) {
+        console.warn(`[Day4-8] layer ${layerId} ESRI error: "${gj.error.message}" — trying fallback ${fallbackId}`);
+        res = await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+        gj = await res.json();
+        if (gj.error) throw new Error(gj.error.message);
+      }
+
+      console.log(`[Day4-8] fetched day ${dayNum} from layer ${gj.error ? fallbackId : layerId}, features:`, gj.features?.length);
+      day48GeoJSON[dayNum] = gj;
+    }
+
+    // Abort if the user moved to another day while we were fetching
+    if (reqId !== currentOutlookReqId) {
+      console.log(`[Day4-8] ABORTED day ${dayNum} — reqId ${reqId} !== currentReqId ${currentOutlookReqId}`);
+      return;
+    }
+
+    const dayFeatures = gj.features || [];
+
+    function getDay48DN(f) {
+      const p = f.properties || {};
+      const raw = p.DN ?? p.dn;
+      if (raw != null) {
+        const n = parseFloat(raw);
+        return n <= 1 ? Math.round(n * 100) : Math.round(n);
+      }
+      const lbl = (p.LABEL || p.label || '').toString().replace('%','').trim();
+      const n = parseFloat(lbl);
+      return isNaN(n) ? 0 : Math.round(n);
+    }
+
+    const sorted = [...dayFeatures].sort((a, b) => getDay48DN(a) - getDay48DN(b));
+
+    const legendEl = document.getElementById('ol-legend');
+    legendEl.innerHTML = '';
+    const presentDns = new Set();
+    sorted.forEach(f => { const dn = getDay48DN(f); if (dn > 0) presentDns.add(dn); });
+    DAY48_PROB_SCALE.filter(p => [...presentDns].some(d => d >= p.dn)).forEach(p => {
+      const item = document.createElement('div'); item.className = 'ol-legend-item';
+      item.innerHTML = `<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>`;
+      legendEl.appendChild(item);
+    });
+
+    const hasData = sorted.some(f => getDay48DN(f) >= 15);
+    if (!hasData) {
+      legendEl.innerHTML = '';
+      noSevereMsg.textContent = `No organized severe weather forecast for Day ${dayNum}`;
+      noSevereEl.classList.remove('hidden');
+      loading.classList.add('hidden');
+      return;
+    }
+
+    const dt = new Date(); dt.setDate(dt.getDate() + dayNum - 1);
+    const dayLabel = dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+
+    activeOutlookLayer = L.geoJSON({ type:'FeatureCollection', features: sorted }, {
+      renderer: outlookMap._outlookRenderer,
+      style: f => {
+        const dn = getDay48DN(f);
+        if (dn < 15) return { fillColor:'transparent', color:'transparent', weight:0, fillOpacity:0, opacity:0 };
+        const c = getDay48Color(dn);
+        return { fillColor:c.fill, color:c.stroke, weight:1.2, fillOpacity:0.82, opacity:1 };
+      },
+      onEachFeature: (f, lyr) => {
+        const dn = getDay48DN(f);
+        if (dn < 15) return;
+        const c = getDay48Color(dn);
+        lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><div><div class="popup-risk">${c.label}</div><div class="popup-sub">Day ${dayNum} · ${dayLabel}</div></div></div><div class="popup-desc" style="padding-top:8px;border-top:1px solid var(--border);margin-top:6px;">Extended probabilistic outlook. Specifics uncertain at this range — monitor forecasts as the event approaches.</div></div>`, { closeButton:false, maxWidth:290 });
+        lyr.on('mouseover', function(){ this.setStyle({ fillOpacity:0.95, weight:2.5 }); });
+        lyr.on('mouseout',  function(){ activeOutlookLayer.resetStyle(this); });
+      }
+    }).addTo(outlookMap);
+
+  } catch(e) {
+    if (reqId === currentOutlookReqId) {
+      console.error(`[Day4-8] error for day ${dayNum}:`, e.message);
+      document.getElementById('ol-legend').innerHTML = `<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load. Check connection.</div>`;
+    }
+  } finally {
+    if (reqId === currentOutlookReqId && !isCached) loading.classList.add('hidden');
+  }
+}
+
+async function preloadAndStartDay48Loop() {
+  stopDay48Loop();
+  activeOutlookDay = '4-8';
+  activeDay48 = 4;
+
+  // Clear any existing layers
+  if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
+  if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
+  if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
+
+  // Show spinner, hide legend/pill while preloading
+  const loading = document.getElementById('ol-loading');
+  const legendEl = document.getElementById('ol-legend');
+  const noSevereEl = document.getElementById('ol-no-severe');
+  loading.classList.remove('hidden');
+  legendEl.innerHTML = '';
+  noSevereEl.classList.add('hidden');
+  document.getElementById('ol-pill').innerHTML = `Day 4–8 — <span>Loading…</span>`;
+
+  // Fetch all 5 days in parallel, silently caching each
+  await Promise.allSettled([4,5,6,7,8].map(async d => {
+    if (day48GeoJSON[d]) return; // already cached
+    try {
+      const layerId = OUTLOOK_LAYER_IDS[`${d}-prob`];
+      const fallbackId = layerId + 1;
+      let res = await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+      let gj = await res.json();
+      if (gj.error) {
+        console.warn(`[Day4-8] preload layer ${layerId} ESRI error, trying ${fallbackId}`);
+        res = await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+        gj = await res.json();
+      }
+      if (!gj.error) day48GeoJSON[d] = gj;
+      console.log(`[Day4-8] preloaded day ${d}, features:`, gj.features?.length);
+    } catch(e) {
+      console.warn(`[Day4-8] preload failed for day ${d}:`, e.message);
+    }
+  }));
+
+  loading.classList.add('hidden');
+
+  // Now draw day 4 immediately and start the loop — no more per-frame loading flicker
+  await loadOutlookDay48(4);
+  startDay48Loop();
+}
+
+function stopDay48Loop() {
+  if (day48LoopTimer) { clearInterval(day48LoopTimer); day48LoopTimer = null; }
+  day48LoopActive = false;
+}
+
+function startDay48Loop() {
+  stopDay48Loop();
+  day48LoopActive = true;
+  const advance = () => {
+    const next = activeDay48 >= 8 ? 4 : activeDay48 + 1;
+    activeDay48 = next;
+    const loopRowEl = document.getElementById('ol-loop-row');
+    if (loopRowEl) loopRowEl.querySelectorAll('.ol-loop-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.day48) === next));
+    loadOutlookDay48(next);
+  };
+  day48LoopTimer = setInterval(advance, 2200);
+}
+
 async function openDiscModal(day) {
-  const dayLabel = day===1?'Today':day===2?'Tomorrow':'Day 3';
-  document.getElementById('disc-title').textContent = `Day ${day} — ${dayLabel} — SPC Outlook`;
+  const isExtended = day >= 4;
+  const dt = new Date(); dt.setDate(dt.getDate() + day - 1);
+  const dayLabel = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : day === 3 ? 'Day 3'
+    : dt.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'});
+  document.getElementById('disc-title').textContent = isExtended
+    ? 'Days 4–8 Extended Outlook — SPC Discussion'
+    : `Day ${day} — ${dayLabel} — SPC Outlook`;
   document.getElementById('disc-body').innerHTML = '<div class="disc-loading"><div class="spin-ring"></div>Loading discussion…</div>';
   document.getElementById('disc-modal').classList.add('open');
+
   try {
-    const spcRes = await fetch(`${WORKER}/proxy/products/outlook/day${day}otlk.html`);
+    let spcUrl;
+    if (isExtended) {
+      // SPC Day 4-8 discussion — try the index page (current outlook)
+      // Falls back to the dated archive format using today's date
+      const today = new Date();
+      const dateStr = today.getFullYear().toString()
+        + String(today.getMonth()+1).padStart(2,'0')
+        + String(today.getDate()).padStart(2,'0');
+      spcUrl = `${WORKER}/proxy/products/exper/day4-8/`;
+      // We'll try index first, fall back to dated file if needed
+    } else {
+      spcUrl = `${WORKER}/proxy/products/outlook/day${day}otlk.html`;
+    }
+
+    let spcRes = await fetch(spcUrl);
+    // If the index 404s, try the dated filename
+    if (!spcRes.ok && isExtended) {
+      const today = new Date();
+      const dateStr = today.getFullYear().toString()
+        + String(today.getMonth()+1).padStart(2,'0')
+        + String(today.getDate()).padStart(2,'0');
+      spcRes = await fetch(`${WORKER}/proxy/products/exper/day4-8/day4-8_${dateStr}.html`);
+    }
     if (!spcRes.ok) throw new Error(`SPC fetch failed: ${spcRes.status}`);
     const html = await spcRes.text();
     const div = document.createElement('div'); div.innerHTML = html;
     const pre = div.querySelector('pre') || div.querySelector('.discussion') || div.querySelector('body');
     let rawText = (pre ? pre.textContent : div.textContent).trim();
-    const discStart = rawText.search(/\.\.\.|(Day [123])|(ACUS0[123])|SPC|CONVECTIVE/i);
+    const discStart = rawText.search(/\.\.\.|(Day [1-8])|(ACUS0[1-8])|SPC|CONVECTIVE|EXTENDED/i);
     if (discStart > 50) rawText = rawText.slice(discStart);
     rawText = rawText.slice(0, 4000);
     if (!rawText || rawText.length < 50) throw new Error('Discussion text unavailable');
 
-    const aiRes = await fetch(`${WORKER}/ai`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: `You are summarizing an SPC severe weather outlook for a weather app. Write a clear, specific summary in plain English — no meteorological jargon, no codes, no abbreviations like CAPE or SRH.
+    const system = isExtended
+      ? `You are summarizing the SPC Day 4-8 extended outlook discussion for a weather app. This is a single forecast covering the entire 5-day period. Write a plain-English summary with no jargon or codes.
+
+Reply with ONLY these 4 labeled sections, nothing else:
+
+WHERE:
+[Which regions have elevated severe weather probability across the period]
+
+MAIN THREATS:
+[Primary hazards mentioned across Days 4-8 — note if confidence is low]
+
+TIMING:
+[Which days in the period look most active, e.g. "Day 5 and Day 6 appear most threatening"]
+
+HOW SERIOUS:
+[One honest sentence on overall confidence and severity for the extended period]`
+      : `You are summarizing an SPC severe weather outlook for a weather app. Write a clear, specific summary in plain English — no meteorological jargon, no codes, no abbreviations like CAPE or SRH.
 
 Reply with ONLY these 4 labeled sections, nothing else:
 
@@ -1887,10 +2185,12 @@ TIMING:
 [When storms are expected — morning, afternoon, evening, overnight]
 
 HOW SERIOUS:
-[One honest plain-English sentence on overall severity]`,
-        messages: [{ role: 'user', content: rawText }],
-        max_tokens: 320,
-      })
+[One honest plain-English sentence on overall severity]`;
+
+    const aiRes = await fetch(`${WORKER}/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: rawText }], max_tokens: 320 })
     });
     if (!aiRes.ok) throw new Error('AI unavailable');
     const aiData = await aiRes.json();
