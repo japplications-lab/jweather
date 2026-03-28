@@ -300,9 +300,9 @@
     .ol-loop-row.hidden{display:none;}
 
     /* Discussion modal */
-    #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:20px;cursor:pointer;}
+    #disc-modal{display:none;position:fixed;inset:0;bottom:var(--nav-h);z-index:800;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:20px;cursor:pointer;}
     #disc-modal.open{display:flex;}
-    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:420px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
+    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:420px;max-height:100%;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
     .disc-handle{display:none;}
     .disc-head{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .disc-pip{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
