@@ -273,7 +273,7 @@
     .ol-mode-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);white-space:nowrap;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:all .15s;}
     .ol-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .ol-mode-btn .msr{font-size:13px;}
-    .ol-disc-row{padding:0 10px 8px;}
+    .ol-disc-row{padding:4px 10px 10px;}
     .ol-disc-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--red);border:none;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:700;color:#fff;-webkit-tap-highlight-color:transparent;}
     .ol-disc-btn .msr{font-size:14px;}
     .map-context-pill{position:absolute;top:12px;left:12px;right:50px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -302,14 +302,14 @@
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:20px;cursor:pointer;}
     #disc-modal.open{display:flex;}
-    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
+    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:420px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
     .disc-handle{display:none;}
     .disc-head{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .disc-pip{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
     .disc-title{font-size:0.88rem;font-weight:700;color:var(--text);flex:1;}
     .disc-close{background:rgba(255,255,255,0.06);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);}
     .disc-close .msr{font-size:15px;}
-    .disc-body{padding:14px 16px 16px;overflow-y:auto;flex:1;}
+    .disc-body{padding:14px 16px 16px;overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;}
     .disc-section{margin-bottom:14px;}
     .disc-section-label{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:4px;}
     .disc-section-text{font-size:0.82rem;line-height:1.65;color:var(--text2);}
@@ -2152,7 +2152,7 @@ async function openDiscModal(day) {
     let rawText = (pre ? pre.textContent : div.textContent).trim();
     const discStart = rawText.search(/\.\.\.|(Day [1-8])|(ACUS0[1-8])|SPC|CONVECTIVE|EXTENDED/i);
     if (discStart > 50) rawText = rawText.slice(discStart);
-    rawText = rawText.slice(0, 4000);
+    rawText = rawText.slice(0, 6000);
     if (!rawText || rawText.length < 50) throw new Error('Discussion text unavailable');
 
     const system = isExtended
@@ -2190,7 +2190,7 @@ HOW SERIOUS:
     const aiRes = await fetch(`${WORKER}/ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system, messages: [{ role: 'user', content: rawText }], max_tokens: 320 })
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: rawText }], max_tokens: 800 })
     });
     if (!aiRes.ok) throw new Error('AI unavailable');
     const aiData = await aiRes.json();
