@@ -279,16 +279,16 @@
     .ol-disc-btn .msr{font-size:14px;}
     .map-context-pill{position:absolute;top:12px;left:12px;right:50px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .map-context-pill span{color:var(--red);}
-    .ol-no-severe.hidden{display:none!important;}
 
     .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
     .spin-ring{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
 
     /* Outlook legend */
-    .ol-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;max-width:130px;}
+    .ol-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;}
     .ol-legend:empty{display:none;}
-    .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;}
+    .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;white-space:nowrap;}
+    .ol-legend-item span{white-space:nowrap;}
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
     /* Day 4-8 loop sub-tabs */
@@ -615,6 +615,7 @@
   <div id="page-radar" class="page">
     <div class="radar-wrap" style="flex:1;position:relative;">
       <iframe id="windy-frame" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=5&overlay=radar&product=radar&level=surface&lat=38.5&lon=-96&detail=false&pressure=false&message=false" allowfullscreen loading="eager"></iframe>
+      <div class="map-context-pill" style="max-width:50%;pointer-events:none;">Radar</div>
       <button class="radar-gps-btn" id="radar-gps-btn" onclick="radarGPS()">
         <span class="msr">my_location</span>
       </button>
@@ -625,16 +626,9 @@
   <div id="page-outlook" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="outlook-map"></div>
-      <div class="map-context-pill" id="ol-pill">Day 1 — <span>Categorical</span></div>
+      <div class="map-context-pill" id="ol-pill">Severe Outlook — Day 1 — <span>Overall</span></div>
       <div style="position:absolute;bottom:12px;left:12px;z-index:500;display:flex;flex-direction:column;gap:6px;">
         <div class="ol-legend" id="ol-legend"></div>
-      </div>
-      <div id="ol-no-severe" class="hidden" style="position:absolute;inset:0;z-index:490;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:20px;">
-        <div style="background:rgba(19,21,26,0.92);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:var(--r);padding:24px 28px;text-align:center;max-width:280px;pointer-events:all;">
-          <span class="msr" style="font-size:36px;color:var(--green);display:block;margin-bottom:10px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 48;">check_circle</span>
-          <div style="font-size:0.88rem;font-weight:700;color:var(--text2);margin-bottom:6px;" id="ol-no-severe-msg">No organized severe weather anticipated</div>
-          <div style="font-size:0.75rem;color:var(--text4);line-height:1.55;" id="ol-no-severe-sub">No severe weather is forecast for this outlook period.</div>
-        </div>
       </div>
       <div class="map-loading" id="ol-loading"><div class="spin-ring"></div></div>
     </div>
@@ -651,6 +645,7 @@
   <div id="page-watches" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="watches-map"></div>
+      <div class="map-context-pill" style="max-width:50%;">Watches &amp; Warnings</div>
       <div class="watches-legend" id="ww-legend"></div>
     </div>
     <div class="watches-controls">
@@ -665,6 +660,7 @@
   <div id="page-meso" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="meso-map"></div>
+      <div class="map-context-pill" style="max-width:50%;">Mesoscale Discussions</div>
       <div id="meso-empty" style="display:none;position:absolute;inset:0;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;padding:20px;">
         <div style="background:rgba(19,21,26,0.92);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:var(--r);padding:24px 28px;text-align:center;max-width:280px;">
           <span class="msr" style="font-size:36px;color:var(--border2);display:block;margin-bottom:10px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 48;">check_circle</span>
@@ -1498,16 +1494,34 @@ function renderHourlyPage(){
 // ══════════════════════════════════════════════════════
 let activeOutlookLayer = null;
 
-function showOutlookEmpty(title, sub) {
-  const el = document.getElementById('ol-no-severe');
-  const msg = document.getElementById('ol-no-severe-msg');
-  const subEl = document.getElementById('ol-no-severe-sub');
-  if (msg) msg.textContent = title || 'No severe weather anticipated';
-  if (subEl) subEl.textContent = sub || 'No severe weather is forecast for this outlook period.';
-  if (el) el.classList.remove('hidden');
+function lockOutlookMap() {
+  if (!outlookMap) return;
+  outlookMap.dragging.disable();
+  outlookMap.scrollWheelZoom.disable();
+  outlookMap.touchZoom.disable();
+  outlookMap.doubleClickZoom.disable();
+  outlookMap.keyboard.disable();
+  outlookMap.getContainer().style.cursor = 'default';
+}
+function unlockOutlookMap() {
+  if (!outlookMap) return;
+  outlookMap.dragging.enable();
+  outlookMap.scrollWheelZoom.enable();
+  outlookMap.touchZoom.enable();
+  outlookMap.doubleClickZoom.enable();
+  outlookMap.keyboard.enable();
+  outlookMap.getContainer().style.cursor = '';
+}
+function showOutlookEmpty(title, sub, reqId) {
+  if (reqId !== undefined && reqId !== currentOutlookReqId) return;
+  const legendEl = document.getElementById('ol-legend');
+  if (legendEl) {
+    legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">${title || 'No severe weather'}</span></div>`;
+  }
+  lockOutlookMap();
 }
 function hideOutlookEmpty() {
-  document.getElementById('ol-no-severe')?.classList.add('hidden');
+  unlockOutlookMap();
 }
 let activeOutlookSigLayer = null;
 let activeCigLayer = null;
@@ -1523,6 +1537,9 @@ function initOutlookMap() {
   outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:false, minZoom:4 })
     .setView([38.5, -96], 4);
   L.control.zoom({ position:'topright' }).addTo(outlookMap);
+  // Raise popup pane above the empty-state overlay (z-index 490)
+  outlookMap.getPane('popupPane').style.zIndex = 600;
+  outlookMap.getPane('tooltipPane').style.zIndex = 601;
   outlookMap.createPane('outlookPane');
   outlookMap.getPane('outlookPane').style.zIndex = 310;
   outlookMap._outlookRenderer = L.svg({ pane: 'outlookPane' }).addTo(outlookMap);
@@ -1785,13 +1802,15 @@ function updateOutlookLegend(gj, mode) {
 
 async function loadOutlookHazard(day, mode) {
   stopDay48Loop();
+  unlockOutlookMap();
   activeOutlookDay = day;
   // Always normalize mode — Day 3 only supports cat
   if (day >= 3 && mode !== 'cat' && mode !== 'prob') mode = 'cat';
   activeOutlookMode = mode;
   const reqId = ++currentOutlookReqId;
-  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : day === 3 ? 'Day 3' : `Day ${day}`;
-  document.getElementById('ol-pill').innerHTML = `${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
+  const d = new Date(); d.setDate(d.getDate() + day - 1);
+  const dayLabel = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
+  document.getElementById('ol-pill').innerHTML = `Severe Outlook — ${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
   const loading = document.getElementById('ol-loading');
   hideOutlookEmpty();
   loading.classList.remove('hidden');
@@ -1800,11 +1819,13 @@ async function loadOutlookHazard(day, mode) {
   if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
   if (!layerId) {
+    if (reqId !== currentOutlookReqId) return;
     loading.classList.add('hidden');
     document.getElementById('ol-legend').innerHTML = '';
     showOutlookEmpty(
       mode === 'cat' ? 'No Outlook Issued' : `No ${OUTLOOK_MODE_LABELS[mode]} Threat`,
-      mode === 'cat' ? 'SPC has not issued a severe weather outlook for this period.' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat exists for this period.`
+      mode === 'cat' ? 'SPC has not issued a severe weather outlook for this period.' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat exists for this period.`,
+      reqId
     );
     return;
   }
@@ -1814,7 +1835,6 @@ async function loadOutlookHazard(day, mode) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gjRaw = await res.json();
     if (reqId !== currentOutlookReqId) return;
-    // Re-hide in case a prior load showed it before we got here
     hideOutlookEmpty();
     document.getElementById('ol-legend').innerHTML = '';
     let gj;
@@ -1843,6 +1863,7 @@ async function loadOutlookHazard(day, mode) {
       }
     });
     if (!hasData) {
+      if (reqId !== currentOutlookReqId) return;
       document.getElementById('ol-legend').innerHTML = '';
       const hasTstmOnly = mode === 'cat' && (gj.features || []).some(f => {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
@@ -1851,7 +1872,8 @@ async function loadOutlookHazard(day, mode) {
       });
       showOutlookEmpty(
         hasTstmOnly ? 'No Organized Severe Weather' : mode === 'cat' ? 'No Severe Weather Outlook' : `No ${OUTLOOK_MODE_LABELS[mode]} Threat`,
-        hasTstmOnly ? 'Thunderstorms are possible but no organized severe weather is anticipated.' : mode === 'cat' ? 'SPC has not issued a severe weather outlook for this period.' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat exists for this period.`
+        hasTstmOnly ? 'Thunderstorms are possible but no organized severe weather is anticipated.' : mode === 'cat' ? 'SPC has not issued a severe weather outlook for this period.' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat exists for this period.`,
+        reqId
       );
       return;
     }
@@ -1875,7 +1897,7 @@ async function loadOutlookHazard(day, mode) {
     }).addTo(outlookMap);
     updateOutlookLegend(gj, mode);
     // TSTM-only: draw the polygons but show the informational overlay
-    if (mode === 'cat') {
+    if (mode === 'cat' && reqId === currentOutlookReqId) {
       const hasRiskCat = (gj.features || []).some(f => {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
@@ -1884,7 +1906,8 @@ async function loadOutlookHazard(day, mode) {
       if (!hasRiskCat) {
         showOutlookEmpty(
           'No Organized Severe Weather',
-          'Thunderstorms are possible but no organized severe weather is anticipated.'
+          'Thunderstorms are possible but no organized severe weather is anticipated.',
+          reqId
         );
       }
     }
@@ -1965,12 +1988,13 @@ async function loadOutlookDay48(dayNum) {
   activeDay48 = dayNum;
   activeOutlookDay = '4-8';
   const reqId = ++currentOutlookReqId;
+  lockOutlookMap();
 
   const loading = document.getElementById('ol-loading');
   hideOutlookEmpty();
   const isCached = !!day48GeoJSON[dayNum];
   if (!isCached) loading.classList.remove('hidden');
-  document.getElementById('ol-pill').innerHTML = `Day ${dayNum} — <span>Extended Outlook</span>`;
+  document.getElementById('ol-pill').innerHTML = `Severe Outlook — Day ${dayNum} — <span>Extended</span>`;
 
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
@@ -1980,6 +2004,8 @@ async function loadOutlookDay48(dayNum) {
     let gj;
 
     if (day48GeoJSON[dayNum]) {
+      // Yield to event loop so any navigation away can clear state before we render
+      await Promise.resolve();
       gj = day48GeoJSON[dayNum];
     } else {
       const layerId = OUTLOOK_LAYER_IDS[`${dayNum}-prob`];
@@ -1995,6 +2021,8 @@ async function loadOutlookDay48(dayNum) {
     }
 
     if (reqId !== currentOutlookReqId) return;
+    // Re-hide empty state — it may have been shown by a prior cached load that ran synchronously
+    hideOutlookEmpty();
 
     const dayFeatures = gj.features || [];
 
@@ -2024,12 +2052,9 @@ async function loadOutlookDay48(dayNum) {
 
     const hasData = sorted.some(f => getDay48DN(f) >= 15);
     if (!hasData) {
-      legendEl.innerHTML = '';
+      if (reqId !== currentOutlookReqId) return;
       const dt = new Date(); dt.setDate(dt.getDate() + dayNum - 1);
-      showOutlookEmpty(
-        `No Extended Outlook for Day ${dayNum}`,
-        `No organized severe weather is forecast for ${dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}.`
-      );
+      legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">No outlook for ${dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span></div>`;
       return;
     }
 
@@ -2081,7 +2106,7 @@ async function preloadAndStartDay48Loop() {
   loading.classList.remove('hidden');
   legendEl.innerHTML = '';
   hideOutlookEmpty();
-  document.getElementById('ol-pill').innerHTML = `Day 4–8 — <span>Loading…</span>`;
+  document.getElementById('ol-pill').innerHTML = `Severe Outlook — Day 4–8 — <span>Loading…</span>`;
 
   // Fetch all 5 days in parallel, silently caching each
   await Promise.allSettled([4,5,6,7,8].map(async d => {
