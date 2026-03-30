@@ -86,7 +86,7 @@
       border-top:1px solid var(--border);
       display:flex;
       padding-bottom:env(safe-area-inset-bottom);
-      z-index:200;
+      z-index:1050;
     }
     .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:0.58rem;font-weight:600;color:var(--text4);letter-spacing:0.04em;text-transform:uppercase;-webkit-tap-highlight-color:transparent;transition:color .15s;padding-bottom:2px;}
     .nav-tab .msr{font-size:22px;transition:color .15s;}
@@ -94,9 +94,9 @@
     .nav-tab.active .msr{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
 
     /* ── SHEETS ── */
-    .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:600;}
+    .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1100;}
     .sheet-backdrop.open{display:block;}
-    .sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);border-radius:22px 22px 0 0;z-index:700;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding-bottom:calc(env(safe-area-inset-bottom) + var(--nav-h));}
+    .sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);border-radius:22px 22px 0 0;z-index:1200;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding-bottom:calc(env(safe-area-inset-bottom) + var(--nav-h));}
     .sheet.open{transform:translateY(0);}
     .sheet-handle{width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,0.12);margin:10px auto 0;}
     .sheet-head{display:flex;align-items:center;gap:10px;padding:14px 18px 10px;}
@@ -277,21 +277,18 @@
     .ol-disc-row{padding:4px 10px 10px;}
     .ol-disc-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--red);border:none;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:700;color:#fff;-webkit-tap-highlight-color:transparent;}
     .ol-disc-btn .msr{font-size:14px;}
-    .map-context-pill{position:absolute;top:12px;left:12px;right:50px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .map-context-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .map-context-pill span{color:var(--red);}
-    .ol-no-severe{display:flex;align-items:center;gap:8px;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;white-space:nowrap;}
-    .ol-no-severe .msr{font-size:13px;color:var(--green);flex-shrink:0;}
-    .ol-no-severe span{font-size:0.65rem;font-weight:500;color:var(--text2);}
-    .ol-no-severe.hidden{display:none;}
 
     .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
     .spin-ring{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
 
     /* Outlook legend */
-    .ol-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;max-width:130px;}
+    .ol-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;}
     .ol-legend:empty{display:none;}
-    .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;}
+    .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;white-space:nowrap;}
+    .ol-legend-item span{white-space:nowrap;}
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
     /* Day 4-8 loop sub-tabs */
@@ -330,8 +327,9 @@
       padding-bottom:env(safe-area-inset-bottom);
       flex-shrink:0;
     }
-    .watches-poll-bar{height:2px;width:100%;background:var(--border);position:relative;overflow:hidden;}
-    .watches-poll-fill{height:100%;background:var(--red);width:100%;transform-origin:left;transition:none;}
+    .watches-poll-bar{width:100%;background:var(--border);position:relative;overflow:hidden;height:28px;display:flex;align-items:center;}
+    .watches-poll-fill{position:absolute;inset:0;background:var(--red);transform-origin:left;transition:none;height:100%;}
+    .watches-poll-label{position:relative;z-index:1;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.62rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.07em;pointer-events:none;}
     .watches-filter-row{display:flex;gap:6px;padding:8px 10px;justify-content:center;}
     .wf-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.72rem;font-weight:600;color:var(--text3);flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:all .15s;}
     .wf-btn .wf-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
@@ -617,6 +615,7 @@
   <div id="page-radar" class="page">
     <div class="radar-wrap" style="flex:1;position:relative;">
       <iframe id="windy-frame" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=5&overlay=radar&product=radar&level=surface&lat=38.5&lon=-96&detail=false&pressure=false&message=false" allowfullscreen loading="eager"></iframe>
+      <div class="map-context-pill" style="pointer-events:none;">Radar</div>
       <button class="radar-gps-btn" id="radar-gps-btn" onclick="radarGPS()">
         <span class="msr">my_location</span>
       </button>
@@ -627,13 +626,9 @@
   <div id="page-outlook" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="outlook-map"></div>
-      <div class="map-context-pill" id="ol-pill">Day 1 — <span>Categorical</span></div>
+      <div class="map-context-pill" id="ol-pill">Severe Outlook — Day 1 — <span>Overall</span></div>
       <div style="position:absolute;bottom:12px;left:12px;z-index:500;display:flex;flex-direction:column;gap:6px;">
         <div class="ol-legend" id="ol-legend"></div>
-        <div class="ol-no-severe hidden" id="ol-no-severe">
-          <span class="msr">check_circle</span>
-          <span id="ol-no-severe-msg">No organized severe weather anticipated</span>
-        </div>
       </div>
       <div class="map-loading" id="ol-loading"><div class="spin-ring"></div></div>
     </div>
@@ -650,10 +645,14 @@
   <div id="page-watches" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="watches-map"></div>
+      <div class="map-context-pill">Watches &amp; Warnings</div>
       <div class="watches-legend" id="ww-legend"></div>
     </div>
     <div class="watches-controls">
-      <div class="watches-poll-bar"><div class="watches-poll-fill" id="watches-poll-fill"></div></div>
+      <div class="watches-poll-bar">
+        <div class="watches-poll-fill" id="watches-poll-fill"></div>
+        <div class="watches-poll-label"><span class="msr" style="font-size:11px;">refresh</span><span id="watches-poll-pct">Updating…</span></div>
+      </div>
     </div>
   </div>
 
@@ -661,7 +660,14 @@
   <div id="page-meso" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="meso-map"></div>
-  
+      <div class="map-context-pill">Mesoscale Discussions</div>
+      <div id="meso-empty" style="display:none;position:absolute;inset:0;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;padding:20px;">
+        <div style="background:rgba(19,21,26,0.92);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:var(--r);padding:24px 28px;text-align:center;max-width:280px;">
+          <span class="msr" style="font-size:36px;color:var(--border2);display:block;margin-bottom:10px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 48;">check_circle</span>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text2);margin-bottom:6px;">No Active Discussions</div>
+          <div style="font-size:0.75rem;color:var(--text4);line-height:1.55;">No SPC Mesoscale Discussions are currently in effect.</div>
+        </div>
+      </div>
     </div>
     <div class="meso-controls" style="display:none;"></div>
   </div>
@@ -993,6 +999,7 @@ let currentPage = 'home';
 let outlookMapInit=false, watchesMapInit=false, mesoMapInit=false;
 let outlookMap=null;
 let watchesMap, watchLayer=null, watchesList=[], watchFilter='all';
+let activeWatches=[], activeWarnings=[];
 let mesoMap, mesoLayers={}, mesoData=[];
 
 // ══════════════════════════════════════════════════════
@@ -1002,9 +1009,10 @@ const PAGES = ['home','radar','outlook','watches','meso','hourly','severe101'];
 const TAB_MAP = {home:'tab-home',hourly:'tab-hourly',radar:'tab-radar',outlook:'tab-severe',watches:'tab-severe',meso:'tab-severe',severe101:'tab-severe'};
 
 function navigate(page) {
-  if (currentPage === page) return;
   closeAlertModal();
   closeDiscModal();
+  closeSevereSheet();
+  if (currentPage === page) return;
   PAGES.forEach(p => document.getElementById('page-'+p)?.classList.toggle('active', p===page));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const tabId = TAB_MAP[page];
@@ -1485,6 +1493,36 @@ function renderHourlyPage(){
 //  OUTLOOK MAP
 // ══════════════════════════════════════════════════════
 let activeOutlookLayer = null;
+
+function lockOutlookMap() {
+  if (!outlookMap) return;
+  outlookMap.dragging.disable();
+  outlookMap.scrollWheelZoom.disable();
+  outlookMap.touchZoom.disable();
+  outlookMap.doubleClickZoom.disable();
+  outlookMap.keyboard.disable();
+  outlookMap.getContainer().style.cursor = 'default';
+}
+function unlockOutlookMap() {
+  if (!outlookMap) return;
+  outlookMap.dragging.enable();
+  outlookMap.scrollWheelZoom.enable();
+  outlookMap.touchZoom.enable();
+  outlookMap.doubleClickZoom.enable();
+  outlookMap.keyboard.enable();
+  outlookMap.getContainer().style.cursor = '';
+}
+function showOutlookEmpty(title, sub, reqId) {
+  if (reqId !== undefined && reqId !== currentOutlookReqId) return;
+  const legendEl = document.getElementById('ol-legend');
+  if (legendEl) {
+    legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">${title || 'No severe weather'}</span></div>`;
+  }
+  lockOutlookMap();
+}
+function hideOutlookEmpty() {
+  unlockOutlookMap();
+}
 let activeOutlookSigLayer = null;
 let activeCigLayer = null;
 let activeOutlookDay = 1;
@@ -1499,6 +1537,9 @@ function initOutlookMap() {
   outlookMap = L.map('outlook-map', { zoomControl:false, attributionControl:false, minZoom:4 })
     .setView([38.5, -96], 4);
   L.control.zoom({ position:'topright' }).addTo(outlookMap);
+  // Raise popup pane above the empty-state overlay (z-index 490)
+  outlookMap.getPane('popupPane').style.zIndex = 600;
+  outlookMap.getPane('tooltipPane').style.zIndex = 601;
   outlookMap.createPane('outlookPane');
   outlookMap.getPane('outlookPane').style.zIndex = 310;
   outlookMap._outlookRenderer = L.svg({ pane: 'outlookPane' }).addTo(outlookMap);
@@ -1600,7 +1641,7 @@ function buildOutlookSidebar() {
     }
   });
   buildOutlookMobModeRow(1);
-  document.getElementById('ol-disc-btn').onclick = () => openDiscModal(activeOutlookDay === '4-8' ? activeDay48 : activeOutlookDay);
+  document.getElementById('ol-disc-btn').onclick = () => openDiscModal(activeOutlookDay === '4-8' ? activeDay48 : Number(activeOutlookDay));
 }
 
 function buildOutlookMobModeRow(day) {
@@ -1761,25 +1802,31 @@ function updateOutlookLegend(gj, mode) {
 
 async function loadOutlookHazard(day, mode) {
   stopDay48Loop();
-  activeOutlookDay = day; activeOutlookMode = mode;
+  unlockOutlookMap();
+  activeOutlookDay = day;
+  // Always normalize mode — Day 3 only supports cat
+  if (day >= 3 && mode !== 'cat' && mode !== 'prob') mode = 'cat';
+  activeOutlookMode = mode;
   const reqId = ++currentOutlookReqId;
-  const dayLabel = day === 1 ? 'Day 1' : day === 2 ? 'Day 2' : day === 3 ? 'Day 3' : `Day ${day}`;
-  document.getElementById('ol-pill').innerHTML = `${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
+  const d = new Date(); d.setDate(d.getDate() + day - 1);
+  const dayLabel = day === 1 ? 'Today' : day === 2 ? 'Tomorrow' : d.toLocaleDateString('en-US',{weekday:'long'});
+  document.getElementById('ol-pill').innerHTML = `Severe Outlook — ${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode] || mode}</span>`;
   const loading = document.getElementById('ol-loading');
-  // Hide the no-severe overlay at the start of every load
-  const noSevereEl = document.getElementById('ol-no-severe');
-  const noSevereMsg = document.getElementById('ol-no-severe-msg');
-  noSevereEl.classList.add('hidden');
+  hideOutlookEmpty();
   loading.classList.remove('hidden');
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
   if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
   const layerId = OUTLOOK_LAYER_IDS[`${day}-${mode}`];
   if (!layerId) {
+    if (reqId !== currentOutlookReqId) return;
     loading.classList.add('hidden');
     document.getElementById('ol-legend').innerHTML = '';
-    noSevereMsg.textContent = mode === 'cat' ? 'No severe weather outlook issued' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat`;
-    noSevereEl.classList.remove('hidden');
+    showOutlookEmpty(
+      mode === 'cat' ? 'No Outlook Issued' : `No ${OUTLOOK_MODE_LABELS[mode]} Threat`,
+      mode === 'cat' ? 'SPC has not issued a severe weather outlook for this period.' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat exists for this period.`,
+      reqId
+    );
     return;
   }
   try {
@@ -1787,7 +1834,9 @@ async function loadOutlookHazard(day, mode) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gjRaw = await res.json();
-    if (reqId !== currentOutlookReqId) return; // another tab was clicked while fetching
+    if (reqId !== currentOutlookReqId) return;
+    hideOutlookEmpty();
+    document.getElementById('ol-legend').innerHTML = '';
     let gj;
     if (mode === 'cat') {
       gj = { ...gjRaw, features: [...(gjRaw.features||[])].sort((a,b) => {
@@ -1801,7 +1850,6 @@ async function loadOutlookHazard(day, mode) {
         return dnA - dnB;
       })};
     }
-    // Check if there are any meaningful (non-TSTM) features to show
     const hasData = (gj.features || []).some(f => {
       const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
       const lbl = (f.properties?.LABEL || f.properties?.label || '').toString();
@@ -1815,23 +1863,25 @@ async function loadOutlookHazard(day, mode) {
       }
     });
     if (!hasData) {
+      if (reqId !== currentOutlookReqId) return;
       document.getElementById('ol-legend').innerHTML = '';
-      // Determine if there's only thunderstorms (TSTM) or truly nothing
       const hasTstmOnly = mode === 'cat' && (gj.features || []).some(f => {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
         return key === 'TSTM';
       });
-      noSevereMsg.textContent = hasTstmOnly
-        ? 'No organized severe weather anticipated'
-        : mode === 'cat' ? 'No severe weather outlook for this day' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat`;
-      noSevereEl.classList.remove('hidden');
+      showOutlookEmpty(
+        hasTstmOnly ? 'No Organized Severe Weather' : mode === 'cat' ? 'No Severe Weather Outlook' : `No ${OUTLOOK_MODE_LABELS[mode]} Threat`,
+        hasTstmOnly ? 'Thunderstorms are possible but no organized severe weather is anticipated.' : mode === 'cat' ? 'SPC has not issued a severe weather outlook for this period.' : `No organized ${OUTLOOK_MODE_LABELS[mode].toLowerCase()} threat exists for this period.`,
+        reqId
+      );
       return;
     }
     activeOutlookLayer = L.geoJSON(gj, {
       renderer: outlookMap._outlookRenderer,
       style: f => outlookStyleFeature(f, mode),
-      onEachFeature: (f, lyr) => {        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
+      onEachFeature: (f, lyr) => {
+        const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const lbl = (f.properties?.LABEL || f.properties?.label || '').toString();
         if (lbl.startsWith('CIG')) {
           const hazardName = mode === 'torn' ? 'EF2+ Tornado' : mode === 'wind' ? '65+ mph Wind' : mode === 'hail' ? '2"+ Hail' : 'Significant Severe';
@@ -1846,16 +1896,19 @@ async function loadOutlookHazard(day, mode) {
       }
     }).addTo(outlookMap);
     updateOutlookLegend(gj, mode);
-    // If cat mode and only TSTM (no risk categories), show the no-severe overlay
-    if (mode === 'cat') {
+    // TSTM-only: draw the polygons but show the informational overlay
+    if (mode === 'cat' && reqId === currentOutlookReqId) {
       const hasRiskCat = (gj.features || []).some(f => {
         const raw = (f.properties?.LABEL || f.properties?.label || f.properties?.DN || '').toString().toUpperCase().trim();
         const key = OUTLOOK_CAT[raw] ? raw : (OUTLOOK_DN_CAT[raw] || '');
         return key && key !== 'TSTM' && OUTLOOK_CAT[key];
       });
       if (!hasRiskCat) {
-        noSevereMsg.textContent = 'No organized severe weather anticipated';
-        noSevereEl.classList.remove('hidden');
+        showOutlookEmpty(
+          'No Organized Severe Weather',
+          'Thunderstorms are possible but no organized severe weather is anticipated.',
+          reqId
+        );
       }
     }
     function appendHatchLegend(mode) {
@@ -1895,6 +1948,7 @@ async function loadOutlookHazard(day, mode) {
             if (sigSvgEl && sigDefsEl && !sigSvgEl.querySelector('#cig-hatch')) {
               sigSvgEl.insertBefore(sigDefsEl, sigSvgEl.firstChild);
             }
+            if (reqId !== currentOutlookReqId) return;
             activeOutlookSigLayer = L.geoJSON(sigGj, {
               renderer: outlookMap._outlookRenderer,
               style: () => ({ fillColor:'url(#cig-hatch)', fillOpacity:1, color:'#000000', weight:1.5, opacity:0.7 }),
@@ -1934,18 +1988,14 @@ async function loadOutlookDay48(dayNum) {
   activeDay48 = dayNum;
   activeOutlookDay = '4-8';
   const reqId = ++currentOutlookReqId;
-  console.log(`[Day4-8] loadOutlookDay48(${dayNum}) reqId=${reqId}`);
+  lockOutlookMap();
 
   const loading = document.getElementById('ol-loading');
-  const noSevereEl = document.getElementById('ol-no-severe');
-  const noSevereMsg = document.getElementById('ol-no-severe-msg');
-  noSevereEl.classList.add('hidden');
-  // Only show spinner if we don't have cached data
+  hideOutlookEmpty();
   const isCached = !!day48GeoJSON[dayNum];
   if (!isCached) loading.classList.remove('hidden');
-  document.getElementById('ol-pill').innerHTML = `Day ${dayNum} — <span>Extended Outlook</span>`;
+  document.getElementById('ol-pill').innerHTML = `Severe Outlook — Day ${dayNum} — <span>Extended</span>`;
 
-  // Clear old layers immediately before fetching
   if (activeOutlookLayer)    { outlookMap.removeLayer(activeOutlookLayer);    activeOutlookLayer = null; }
   if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
   if (activeCigLayer)        { outlookMap.removeLayer(activeCigLayer);        activeCigLayer = null; }
@@ -1954,33 +2004,25 @@ async function loadOutlookDay48(dayNum) {
     let gj;
 
     if (day48GeoJSON[dayNum]) {
-      console.log(`[Day4-8] cache hit for day ${dayNum}, features:`, day48GeoJSON[dayNum].features?.length);
+      // Yield to event loop so any navigation away can clear state before we render
+      await Promise.resolve();
       gj = day48GeoJSON[dayNum];
     } else {
       const layerId = OUTLOOK_LAYER_IDS[`${dayNum}-prob`];
-      const fallbackId = layerId + 1; // ESRI group layers sometimes push data to layerId+1
-      console.log(`[Day4-8] fetching layer ${layerId} for day ${dayNum}`);
-
+      const fallbackId = layerId + 1;
       let res = await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
       gj = await res.json();
-
-      // ESRI can return 200 OK with an error payload instead of real features
       if (gj.error) {
-        console.warn(`[Day4-8] layer ${layerId} ESRI error: "${gj.error.message}" — trying fallback ${fallbackId}`);
         res = await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
         gj = await res.json();
         if (gj.error) throw new Error(gj.error.message);
       }
-
-      console.log(`[Day4-8] fetched day ${dayNum} from layer ${gj.error ? fallbackId : layerId}, features:`, gj.features?.length);
       day48GeoJSON[dayNum] = gj;
     }
 
-    // Abort if the user moved to another day while we were fetching
-    if (reqId !== currentOutlookReqId) {
-      console.log(`[Day4-8] ABORTED day ${dayNum} — reqId ${reqId} !== currentReqId ${currentOutlookReqId}`);
-      return;
-    }
+    if (reqId !== currentOutlookReqId) return;
+    // Re-hide empty state — it may have been shown by a prior cached load that ran synchronously
+    hideOutlookEmpty();
 
     const dayFeatures = gj.features || [];
 
@@ -2010,10 +2052,9 @@ async function loadOutlookDay48(dayNum) {
 
     const hasData = sorted.some(f => getDay48DN(f) >= 15);
     if (!hasData) {
-      legendEl.innerHTML = '';
-      noSevereMsg.textContent = `No organized severe weather forecast for Day ${dayNum}`;
-      noSevereEl.classList.remove('hidden');
-      loading.classList.add('hidden');
+      if (reqId !== currentOutlookReqId) return;
+      const dt = new Date(); dt.setDate(dt.getDate() + dayNum - 1);
+      legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">No outlook for ${dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span></div>`;
       return;
     }
 
@@ -2040,11 +2081,12 @@ async function loadOutlookDay48(dayNum) {
 
   } catch(e) {
     if (reqId === currentOutlookReqId) {
-      console.error(`[Day4-8] error for day ${dayNum}:`, e.message);
+      console.error(`Day 4-8 error for day ${dayNum}:`, e.message);
       document.getElementById('ol-legend').innerHTML = `<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load. Check connection.</div>`;
     }
   } finally {
-    if (reqId === currentOutlookReqId && !isCached) loading.classList.add('hidden');
+    // Always hide spinner regardless of cache status
+    if (reqId === currentOutlookReqId) loading.classList.add('hidden');
   }
 }
 
@@ -2061,11 +2103,10 @@ async function preloadAndStartDay48Loop() {
   // Show spinner, hide legend/pill while preloading
   const loading = document.getElementById('ol-loading');
   const legendEl = document.getElementById('ol-legend');
-  const noSevereEl = document.getElementById('ol-no-severe');
   loading.classList.remove('hidden');
   legendEl.innerHTML = '';
-  noSevereEl.classList.add('hidden');
-  document.getElementById('ol-pill').innerHTML = `Day 4–8 — <span>Loading…</span>`;
+  hideOutlookEmpty();
+  document.getElementById('ol-pill').innerHTML = `Severe Outlook — Day 4–8 — <span>Loading…</span>`;
 
   // Fetch all 5 days in parallel, silently caching each
   await Promise.allSettled([4,5,6,7,8].map(async d => {
@@ -2234,208 +2275,307 @@ function initWatchesMap(){
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(watchesMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
-  loadWatches();
-  if(window._watchesInterval) clearInterval(window._watchesInterval);
-  if(window._watchesPollTimer) clearInterval(window._watchesPollTimer);
 
+  // Clear any existing timers
+  if(window._watchesWatchTimer)  clearInterval(window._watchesWatchTimer);
+  if(window._watchesWarnTimer)   clearInterval(window._watchesWarnTimer);
+  if(window._watchesPctInterval) clearInterval(window._watchesPctInterval);
+  if(window._watchesPollTimer)   clearInterval(window._watchesPollTimer);
+
+  // Progress bar animates on the 30-second warning poll cycle
   function startWatchPollBar(){
     const fill=document.getElementById('watches-poll-fill');
+    const pct=document.getElementById('watches-poll-pct');
     if(!fill) return;
+    if(window._watchesPctInterval) clearInterval(window._watchesPctInterval);
     fill.style.transition='none';
     fill.style.width='0%';
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        fill.style.transition='width 20s linear';
-        fill.style.width='100%';
-      });
-    });
+    if(pct) pct.textContent='Next update in 30s';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      fill.style.transition='width 30s linear';
+      fill.style.width='100%';
+    }));
+    const POLL_SEC=30;
+    let remaining=POLL_SEC;
+    window._watchesPctInterval=setInterval(()=>{
+      remaining--;
+      if(pct) pct.textContent=remaining>0?`Next update in ${remaining}s`:'Updating…';
+      if(remaining<=0){ clearInterval(window._watchesPctInterval); }
+    },1000);
   }
 
+  // Initial load — fetch both in parallel
+  fetchWatches();
+  fetchWarnings();
   startWatchPollBar();
-  window._watchesInterval=setInterval(()=>{
-    loadWatches();
+
+  // Watches poll: every 15 minutes
+  window._watchesWatchTimer=setInterval(fetchWatches, 900000);
+
+  // Warnings poll: every 30 seconds
+  window._watchesWarnTimer=setInterval(()=>{
+    fetchWarnings();
     startWatchPollBar();
-  },20000);
+  }, 30000);
 }
 
-async function loadWatches(){
+// ── Fetch: NOAA WWA watches (all types) ───────────────────────────
+async function fetchWatches(){
   try{
     const ts=Date.now();
-    // Watches from NOAA WWA MapServer
-    const watchR=await fetch(`${NOAA_WWA}/1/query?where=prod_type+IN+('Tornado+Watch','Severe+Thunderstorm+Watch')&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${ts}`,{cache:'no-store'});
-
-    // Warnings: query each type separately — the NWS API handles single event= params most reliably
-    const [torWarnR, svrWarnR, floodWarnR] = await Promise.all([
-      fetch(`${WORKER}/nws/alerts/active?event=Tornado%20Warning&status=actual`,{cache:'no-store'}),
-      fetch(`${WORKER}/nws/alerts/active?event=Severe%20Thunderstorm%20Warning&status=actual`,{cache:'no-store'}),
-      fetch(`${WORKER}/nws/alerts/active?event=Flash%20Flood%20Warning&status=actual`,{cache:'no-store'}),
-    ]);
-
-    const norm=f=>({...f,properties:{...f.properties,event:f.properties.prod_type||'',expires:f.properties.expiration||null,areaDesc:f.properties.area_desc||f.properties.states||'',senderName:'NWS',parameters:{watchNumber:[f.properties.watch_num||'']}}});
-    const watches=watchR.ok?((await watchR.json()).features||[]).map(norm):[];
-
-    const extractWarns = async (r) => {
-      if (!r.ok) return [];
-      const data = await r.json();
-      return (data.features||[]).filter(f => f.geometry);
-    };
-
-    const [torWarns, svrWarns, floodWarns] = await Promise.all([
-      extractWarns(torWarnR),
-      extractWarns(svrWarnR),
-      extractWarns(floodWarnR),
-    ]);
-
-    const warns = [...torWarns, ...svrWarns, ...floodWarns];
-    console.log('Watches:', watches.length, 'Tor warns:', torWarns.length, 'Svr warns:', svrWarns.length, 'Flood warns:', floodWarns.length);
-
-    const pri=f=>{const ev=(f.properties?.event||'').toLowerCase();if(ev.includes('tornado warning'))return 0;if(ev.includes('severe thunderstorm warning'))return 1;if(ev.includes('flash flood'))return 2;if(ev.includes('tornado watch'))return 3;return 4;};
-    watchesList=[...warns,...watches].sort((a,b)=>pri(a)-pri(b));
-    renderWatchesMap(watchesList);
-    updateWatchLegend(watchesList);
-  }catch(e){ console.error('loadWatches:',e); }
+    const res=await fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${ts}`,{cache:'no-store'});
+    if(!res.ok) return;
+    const gj=await res.json();
+    const norm=f=>({...f,properties:{...f.properties,
+      event:f.properties.prod_type||'',
+      expires:f.properties.expiration||null,
+      areaDesc:f.properties.area_desc||f.properties.states||'',
+      senderName:'NWS',
+      description:f.properties.prod_type||'',
+      headline:f.properties.prod_type||'',
+      parameters:{watchNumber:[f.properties.watch_num||'']},
+    }});
+    activeWatches=(gj.features||[]).map(norm);
+    processAndRenderMap();
+  }catch(e){ console.error('fetchWatches:',e); }
 }
 
-function getWatchStyle(event,feat){
+// ── Fetch: NWS active alerts (all) ───────────────────────────────
+async function fetchWarnings(){
+  try{
+    const res=await fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'});
+    if(!res.ok) return;
+    const gj=await res.json();
+    activeWarnings=(gj.features||[]).filter(f=>f.geometry);
+    processAndRenderMap();
+  }catch(e){ console.error('fetchWarnings:',e); }
+}
+
+// ── NWS color config (strict allowlist) ──────────────────────────
+const SEVERE_COLORS={
+  'Tornado Emergency':           '#FF1493',
+  'Flash Flood Emergency':       '#000000',
+  'Tornado Warning':             '#FF0000',
+  'Tornado Watch':               '#FFFF00',
+  'Severe Thunderstorm Warning': '#FFA500',
+  'Severe Thunderstorm Watch':   '#DB7093',
+  'Extreme Wind Warning':        '#FF8C00',
+  'Flash Flood Warning':         '#00FF00',
+  'Flash Flood Watch':           '#2E8B57',
+  'Flood Warning':               '#00FF00',
+  'Flood Watch':                 '#2E8B57',
+  'Hurricane Warning':           '#DC143C',
+  'Hurricane Watch':             '#FF00FF',
+  'Tropical Storm Warning':      '#B22222',
+  'Tropical Storm Watch':        '#F08080',
+  'Storm Surge Warning':         '#B524F7',
+  'Storm Surge Watch':           '#DB70DB',
+};
+
+function getAlertPriority(event){
   const ev=event||'';
-  if(/tornado warning/i.test(ev)) return{cls:'tor-warn',label:'Tornado Warning',color:'#ff0000'};
-  if(/severe thunderstorm warning/i.test(ev)) return{cls:'svr-warn',label:'Svr T-Storm Warn',color:'#ff6600'};
-  if(/flash flood/i.test(ev)) return{cls:'flood-warn',label:'Flash Flood Warn',color:'#00c851'};
-  if(/tornado watch/i.test(ev)) return{cls:'tor',label:'Tornado Watch',color:'#ffe600'};
-  return{cls:'svr',label:'Svr T-Storm Watch',color:'#c2185b'};
+  if(/tornado emergency|flash flood emergency/i.test(ev))        return 0;
+  if(/tornado warning|extreme wind warning/i.test(ev))           return 1;
+  if(/hurricane warning|storm surge warning|flash flood warning|severe thunderstorm warning/i.test(ev)) return 2;
+  if(/tropical storm warning|flood warning/i.test(ev))           return 3;
+  return 4; // all watches
 }
 
-function renderWatchChips(features){
-  const isWarn=f=>(f.properties?.event||'').toLowerCase().includes('warning');
-  const visible=watchFilter==='watches'?features.filter(f=>!isWarn(f)):features.filter(f=>isWarn(f));
-  const chips=document.getElementById('watches-chips'); chips.innerHTML='';
-  visible.forEach((feat,i)=>{
-    const a=feat.properties;
-    const{color,label}=getWatchStyle(a.event,feat);
-    const exp=a.expires?new Date(a.expires).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'—';
-    const chip=document.createElement('div'); chip.className='watch-chip';
-    chip.innerHTML=`<div class="wc-dot" style="background:${color}"></div><div><div class="wc-label">${label}</div><div class="wc-exp">Until ${exp}</div></div>`;
-    chip.addEventListener('click',()=>{ document.querySelectorAll('.watch-chip').forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); showWatchDetail(feat); if(watchesMap&&feat.geometry){try{const coords=feat.geometry.type==='MultiPolygon'?feat.geometry.coordinates[0][0]:feat.geometry.coordinates[0];watchesMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[40,40]});}catch{}} });
-    chips.appendChild(chip);
+function getWatchStyle(event){
+  const ev=(event||'').trim();
+  const color=SEVERE_COLORS[ev]||'#8B5CF6';
+  const isEmerg=/emergency/i.test(ev);
+  const isWarn=/warning/i.test(ev);
+  const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
+  return{label:ev||'Alert', color, cls:'nws-alert', iconSym};
+}
+
+// ── Master processing function ────────────────────────────────────
+function processAndRenderMap(){
+  // A. Combine
+  let combined=[...activeWarnings,...activeWatches];
+
+  // B. Parse for Emergencies
+  combined.forEach(f=>{
+    const p=f.properties||{};
+    const ev=p.event||'';
+    const text=(p.description||p.headline||'').toUpperCase();
+    if(ev==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))
+      f.properties.event='Tornado Emergency';
+    else if(ev==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))
+      f.properties.event='Flash Flood Emergency';
   });
+
+  // C. Strict filter — only events in SEVERE_COLORS allowed
+  combined=combined.filter(f=>SEVERE_COLORS.hasOwnProperty(f.properties?.event||''));
+
+  // D. Sort: lowest priority number drawn last (on top in Leaflet)
+  combined.sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
+
+  watchesList=combined;
+
+  // E+F. Render and legend
+  renderWatchesMap(watchesList);
+  updateWatchLegend(watchesList);
 }
 
 function renderWatchesMap(features){
   if(watchLayer){watchesMap.removeLayer(watchLayer);watchLayer=null;}
-  const isWarn=f=>(f.properties?.event||'').toLowerCase().includes('warning');
-  const isTor=f=>(f.properties?.event||'').toLowerCase().includes('tornado warning');
-  let filtered=features;
-  if(watchFilter==='watches') filtered=features.filter(f=>!isWarn(f));
-  if(watchFilter==='warnings') filtered=features.filter(f=>isWarn(f));
-  const watches=filtered.filter(f=>!isWarn(f));
-  const nonTor=filtered.filter(f=>isWarn(f)&&!isTor(f));
-  const torWarns=filtered.filter(f=>isTor(f));
-  watchLayer=L.layerGroup().addTo(watchesMap);
-  const mkLayer=(feats,fo,w)=>L.geoJSON({type:'FeatureCollection',features:feats},{style:feat=>{const{color}=getWatchStyle(feat.properties?.event,feat);return{fillColor:color,fillOpacity:fo,color,weight:w,opacity:.9};},onEachFeature:(feat,lyr)=>{lyr.on('click',e=>{L.DomEvent.stopPropagation(e);showWatchDetail(feat);});}});
-  mkLayer(watches,.2,1.5).addTo(watchLayer);
-  mkLayer(nonTor,.75,1).addTo(watchLayer);
-  mkLayer(torWarns,.8,2).addTo(watchLayer);
+  if(!features.length) return;
+  // Single geoJSON layer — already priority-sorted so highest priority renders on top
+  watchLayer=L.geoJSON({type:'FeatureCollection',features},{
+    style:feat=>{
+      const ev=feat.properties?.event||'';
+      const{color}=getWatchStyle(ev);
+      const isEmerg=/emergency/i.test(ev);
+      const isWarn=/warning/i.test(ev);
+      const isTor=/tornado/i.test(ev);
+      return{
+        fillColor:color,
+        fillOpacity:isEmerg?.95:isTor?.85:isWarn?.7:.25,
+        color,
+        weight:isEmerg?3:isTor?2.5:isWarn?1.5:1,
+        opacity:.95,
+      };
+    },
+    onEachFeature:(feat,lyr)=>{
+      lyr.on('click',e=>{L.DomEvent.stopPropagation(e);showWatchDetail(feat);});
+    }
+  }).addTo(watchesMap);
 }
 
-async function showWatchDetail(feat){
+function showWatchDetail(feat){
   const a=feat.properties;
-  const{label,color}=getWatchStyle(a.event,feat);
-  const isWarn=(a.event||'').toLowerCase().includes('warning');
-  const isWatch=(a.event||'').toLowerCase().includes('watch');
-  const iconSym=isWarn?'warning':'emergency_home';
-
-  // Expiration
-  const expRaw=a.expires||a.expiration||a.expireTime||null;
-  const exp=expRaw?new Date(expRaw).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-
-  // Issued
-  const issuedRaw=a.effective||a.onset||a.sent||a.issueTime||null;
-  const issued=issuedRaw?new Date(issuedRaw).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-
-  // Area
-  const area=a.areaDesc||a.area_desc||a.states||a.attn||a.affected||'';
-  const areaShort=area.split(';').slice(0,4).map(s=>s.trim()).filter(Boolean).join(', ');
-
-  // Watch number
+  const{label,color,iconSym}=getWatchStyle(a.event);
   const num=a.parameters?.watchNumber?.[0]||a.watch_num||'';
 
-  // Style modal
+  // ── Synchronous baseline: populate modal instantly ─────────────
+  const expRaw=a.expires||a.expiration||null;
+  const exp=expRaw?new Date(expRaw).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'No expiration available';
+  const headline=(a.headline||(a.description||'').slice(0,200)||'No details available').trim();
+
+  // ── County extraction from areaDesc ───────────────────────────
+  // NWS areaDesc format: "County1, ST; County2, ST; ..."  or  "County1; County2"
+  const areaRaw=a.areaDesc||a.area_desc||a.states||'';
+  const counties=areaRaw.split(';').map(s=>s.trim()).filter(Boolean);
+  const countyDisplay=counties.length
+    ? counties.slice(0,6).join(' · ') + (counties.length>6 ? ` +${counties.length-6} more`:'')
+    : '';
+
+  // ── City extraction ────────────────────────────────────────────
+  // NWS puts cities in parameters.affectedCities[] or embedded in description as "INCLUDING THE CITIES OF..."
+  let cities=[];
+  const affectedCities=a.parameters?.affectedCities||a.parameters?.CITIES||[];
+  if(affectedCities.length){
+    cities=affectedCities.slice(0,6);
+  } else {
+    // Parse from description text: "INCLUDING THE CITIES OF X, Y, AND Z."
+    const desc=(a.description||'');
+    const cityMatch=desc.match(/INCLUDING\s+(?:THE\s+)?(?:CITIES?|CITY)\s+OF\s+([^.]+)\./i);
+    if(cityMatch){
+      cities=cityMatch[1].split(/,|\band\b/i).map(s=>s.trim()).filter(Boolean).slice(0,6);
+    }
+  }
+
+  // Style modal header
   document.getElementById('watch-modal-bar').style.background=color;
   const iconEl=document.getElementById('watch-modal-icon');
   iconEl.style.cssText=`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${color}22;`;
   const iconSym2=document.getElementById('watch-modal-icon-sym');
   iconSym2.style.color=color; iconSym2.textContent=iconSym;
   document.getElementById('watch-modal-title').textContent=label+(num?` #${num}`:'');
-  document.getElementById('watch-modal-meta').textContent='';
-  document.getElementById('watch-modal-badges').innerHTML='';
 
-  // Show modal
+  // Meta line: county count summary
+  const metaEl=document.getElementById('watch-modal-meta');
+  metaEl.textContent=counties.length
+    ? `${counties.length} ${counties.length===1?'county':'counties'} affected`
+    : '—';
+
+  // Badges row: county names as chips
+  const badgesEl=document.getElementById('watch-modal-badges');
+  if(counties.length){
+    const shown=counties.slice(0,8);
+    badgesEl.innerHTML=shown.map(c=>
+      `<span style="display:inline-flex;align-items:center;padding:3px 8px;background:rgba(255,255,255,0.06);border:1px solid var(--border2);border-radius:20px;font-size:0.62rem;font-weight:600;color:var(--text3);white-space:nowrap">${c}</span>`
+    ).join('')+(counties.length>8?`<span style="padding:3px 8px;font-size:0.62rem;color:var(--text4)">+${counties.length-8} more</span>`:'');
+  } else {
+    badgesEl.innerHTML='';
+  }
+
+  // Show modal immediately
   document.getElementById('watch-modal-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
 
-  // Fit map to polygon
+  // Fit map
   if(watchesMap&&feat.geometry){
-    try{
-      const coords=feat.geometry.type==='MultiPolygon'?feat.geometry.coordinates[0][0]:feat.geometry.coordinates[0];
+    try{const coords=feat.geometry.type==='MultiPolygon'?feat.geometry.coordinates[0][0]:feat.geometry.coordinates[0];
       watchesMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[40,60]});
     }catch{}
   }
 
-  // ── WATCHES: brief factual display, no AI ──────────────────
-  if(isWatch){
-    document.getElementById('watch-modal-body').innerHTML=`
-      <div class="meso-sum-section">
-        <div class="meso-sum-label"><span class="msr">schedule</span>ISSUED</div>
-        <div class="meso-sum-text">${issued}</div>
-      </div>
-      <div class="meso-sum-section">
-        <div class="meso-sum-label"><span class="msr">timer_off</span>EXPIRES</div>
-        <div class="meso-sum-text">${exp}</div>
-      </div>`;
-    return;
-  }
+  // Populate body synchronously with expiration + cities + headline
+  const isWatch=/watch/i.test(a.event||'');
+  const cityRow=cities.length
+    ? `<div class="meso-sum-section">
+        <div class="meso-sum-label"><span class="msr">location_city</span>CITIES IMPACTED</div>
+        <div class="meso-sum-text">${cities.join(', ')}</div>
+       </div>`
+    : '';
 
-  // ── WARNINGS: AI summary ───────────────────────────────────
-  document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:16px 0;"><div class="spin-ring"></div>Summarizing with AI…</div>`;
+  document.getElementById('watch-modal-body').innerHTML=`
+    <div class="meso-sum-section">
+      <div class="meso-sum-label"><span class="msr">timer_off</span>EXPIRES</div>
+      <div class="meso-sum-text">${exp}</div>
+    </div>
+    ${cityRow}
+    <div class="meso-sum-section" id="watch-detail-desc">
+      <div class="meso-sum-label"><span class="msr">info</span>DETAILS</div>
+      <div class="meso-sum-text">${headline}</div>
+    </div>
+    ${!isWatch?`<div id="watch-ai-spinner" style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.78rem;padding:12px 0;"><div class="spin-ring"></div>Getting AI summary…</div>`:''}`;
 
+  // Watches don't need AI — done
+  if(isWatch) return;
+
+  // ── Background AI — appends below baseline ─────────────────────
   const rawDesc=(a.description||a.headline||'').trim();
-  if(!rawDesc){
-    document.getElementById('watch-modal-body').innerHTML=`
-      <div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">location_on</span>AREA</div><div class="meso-sum-text">${areaShort||'—'}</div></div>
-      <div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">timer_off</span>EXPIRES</div><div class="meso-sum-text">${exp}</div></div>`;
-    return;
-  }
+  if(!rawDesc) return;
 
-  try{
-    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      model:'llama-3.3-70b-versatile',
-      max_tokens:350,
-      system:`You are a weather alert writer for a mobile weather app. Summarize this NWS weather warning in plain English. Structure your response in exactly these 3 sections:\n\nTHREAT:\n[One sentence describing what the hazard is and how severe]\n\nAFFECTED AREA:\n[One sentence on where — counties, cities, or regions]\n\nWHAT TO DO:\n[One sentence of specific safety action]\n\nNo jargon. No codes. No bullet points. No extra text.`,
-      messages:[{role:'user',content:rawDesc.slice(0,3000)}]
-    })});
-    if(!aiRes.ok) throw new Error('AI unavailable');
-    const aiData=await aiRes.json();
-    const summary=(aiData.content?.[0]?.text||'').trim();
-    if(!summary) throw new Error('Empty response');
-    const sectionIcons={'THREAT':'warning','AFFECTED AREA':'location_on','WHAT TO DO':'shield'};
-    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
-    let html=''; let i=0;
-    while(i<lines.length){
-      const line=lines[i];
-      const match=line.match(/^([A-Z][A-Z\s]+):$/);
-      if(match){
-        const lbl=match[1];
-        const body=lines[i+1]||'';
-        const icon=sectionIcons[lbl]||'info';
-        html+=`<div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">${icon}</span>${lbl}</div><div class="meso-sum-text">${body}</div></div>`;
-        i+=2;
-      } else { html+=`<div class="meso-sum-text" style="margin-bottom:10px">${line}</div>`; i++; }
+  (async()=>{
+    try{
+      const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:350,
+        system:`You are a weather alert writer for a mobile weather app. Summarize this NWS weather warning in plain English. Structure your response in exactly these 3 sections:\n\nTHREAT:\n[One sentence describing what the hazard is and how severe]\n\nAFFECTED AREA:\n[One sentence on where — counties, cities, or regions]\n\nWHAT TO DO:\n[One sentence of specific safety action]\n\nNo jargon. No codes. No bullet points. No extra text.`,
+        messages:[{role:'user',content:rawDesc.slice(0,3000)}]
+      })});
+      if(!aiRes.ok) throw new Error('AI unavailable');
+      const aiData=await aiRes.json();
+      const summary=(aiData.content?.[0]?.text||'').trim();
+      if(!summary) throw new Error('Empty response');
+
+      const sectionIcons={'THREAT':'warning','AFFECTED AREA':'location_on','WHAT TO DO':'shield'};
+      const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
+      let html=''; let i=0;
+      while(i<lines.length){
+        const line=lines[i];
+        const match=line.match(/^([A-Z][A-Z\s]+):$/);
+        if(match){
+          const lbl=match[1]; const body=lines[i+1]||''; const icon=sectionIcons[lbl]||'info';
+          html+=`<div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">${icon}</span>${lbl}</div><div class="meso-sum-text">${body}</div></div>`;
+          i+=2;
+        }else{html+=`<div class="meso-sum-text" style="margin-bottom:10px">${line}</div>`;i++;}
+      }
+
+      const spinner=document.getElementById('watch-ai-spinner');
+      const descEl=document.getElementById('watch-detail-desc');
+      if(spinner) spinner.remove();
+      if(descEl) descEl.outerHTML=html;
+    }catch(e){
+      const spinner=document.getElementById('watch-ai-spinner');
+      if(spinner) spinner.remove();
     }
-    document.getElementById('watch-modal-body').innerHTML=html;
-  }catch(e){
-    const fallback=rawDesc.slice(0,400)+(rawDesc.length>400?'…':'');
-    document.getElementById('watch-modal-body').innerHTML=`<div class="meso-sum-text">${fallback}</div>`;
-  }
+  })();
 }
 
 function closeWatchModal(){
@@ -2446,24 +2586,25 @@ function closeWatchDetail(){ closeWatchModal(); }
 
 function updateWatchLegend(features){
   const leg=document.getElementById('ww-legend'); leg.innerHTML='';
-  const TYPES=[
-    {test:f=>/tornado warning/i.test(f.properties?.event||''),     color:'var(--tor-warn)',  label:'Tornado Warning'},
-    {test:f=>/severe thunderstorm warning/i.test(f.properties?.event||''), color:'var(--svr-warn)', label:'Svr T-Storm Warning'},
-    {test:f=>/flash flood/i.test(f.properties?.event||''),         color:'var(--flood-warn)',label:'Flash Flood Warning'},
-    {test:f=>/tornado watch/i.test(f.properties?.event||''),       color:'var(--tor-watch)', label:'Tornado Watch'},
-    {test:f=>/severe thunderstorm watch/i.test(f.properties?.event||''),  color:'var(--svr-watch)', label:'Svr T-Storm Watch'},
-  ];
-  TYPES.forEach(({test,color,label})=>{
-    if(features.some(test)){
-      leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color}"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
+  const seen=new Map();
+  features.forEach(f=>{
+    const ev=(f.properties?.event||'').trim();
+    if(ev&&!seen.has(ev)){
+      const{color,label}=getWatchStyle(ev);
+      seen.set(ev,{color,label});
     }
   });
+  // Sort by priority: highest first in legend
+  [...seen.entries()]
+    .sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0]))
+    .forEach(([,{color,label}])=>{
+      leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
+    });
 }
 
 function setWatchFilter(f){
   watchFilter=f;
-  renderWatchesMap(watchesList);
-  updateWatchLegend(watchesList);
+  processAndRenderMap();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2493,32 +2634,32 @@ function classifyConcern(raw){
 }
 
 async function loadMeso(){
+  const setEmpty=(show)=>{
+    const el=document.getElementById('meso-empty');
+    if(el) el.style.display=show?'flex':'none';
+  };
   try{
-    // Primary: NOAA MapServer (has geometry)
     const r=await fetch(`${WORKER}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'});
     if(!r.ok) throw new Error(`NOAA ${r.status}`);
     const text=await r.text();
     let data;
     try{ data=JSON.parse(text); }catch(e){ throw new Error('Invalid JSON from NOAA'); }
-    if(!data.features) throw new Error('No features in response');
-    mesoData=data.features||[];
-
-    // If NOAA returned 0 features, try SPC active MD shapefile endpoint as fallback
-    if(mesoData.length===0){
-      const fallback=await fetch(`${WORKER}/proxy/products/md/activemd.txt`,{cache:'no-store'});
-      // just log — no geometry available from text
-      console.log('NOAA returned 0 meso features, no geometry fallback available');
-    }
-
+    const now=Date.now();
+    const allFeatures=data.features||[];
+    // Filter out NOAA "NoArea" sentinel records and expired features
+    mesoData=allFeatures.filter(f=>{
+      const p=f.properties||{};
+      if(p.name==='NoArea'||p.folderpath===null&&p.popupinfo===null&&(p['st_area(shape)']||0)<0.001) return false;
+      const exp=p.expiration||p.end||p.expire;
+      if(exp&&new Date(exp).getTime()<=now) return false;
+      return true;
+    });
+    setEmpty(mesoData.length===0);
     renderMesoMap(mesoData);
-    console.log('Meso loaded:',mesoData.length,'features');
   }catch(e){
     console.error('loadMeso error:',e);
-    // Try alternate NOAA endpoint layer index
-    try{
-      const r2=await fetch(`${WORKER}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer/layers?f=json`,{cache:'no-store'});
-      console.log('Alt layers status:',r2.status);
-    }catch(e2){}
+    mesoData=[];
+    setEmpty(true);
   }
 }
 

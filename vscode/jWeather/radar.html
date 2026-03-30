@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>jWeather — Radar</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --bg:#13151a; --surface:#1c1f27; --surface2:#22262f;
+    --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.11);
+    --text:#f1f3f6; --text2:#c8cdd6; --text3:#8b92a0; --text4:#555e6e;
+    --red:#f97316; --green:#22c55e; --blue:#38bdf8;
+    --font:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --r:14px; --r-sm:10px;
+    --header-h:54px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--font);}
+  #app{display:flex;flex-direction:column;height:100%;}
+
+  /* Header */
+  #header{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:100;position:relative;}
+  #header-icon{width:32px;height:32px;border-radius:10px;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  #header-icon .msr{font-size:18px;color:#fff;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+  #header-title{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+  #header-sub{font-size:0.72rem;color:var(--text4);margin-top:1px;}
+
+  /* Map */
+  #map-wrap{flex:1;position:relative;overflow:hidden;}
+  #radar-map{width:100%;height:100%;}
+
+  /* Pill */
+  #radar-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;}
+  #radar-pill .msr{font-size:13px;color:var(--red);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+  #radar-pill-ts{color:var(--red);}
+
+  /* GPS */
+  #gps-btn{position:absolute;top:12px;right:14px;z-index:500;width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);-webkit-tap-highlight-color:transparent;transition:all .15s;}
+  #gps-btn:active{background:var(--surface2);}
+  #gps-btn .msr{font-size:18px;}
+
+  /* Controls */
+  #controls{background:var(--surface);border-top:1px solid var(--border2);display:flex;flex-direction:column;justify-content:center;padding:12px 16px;gap:10px;flex-shrink:0;}
+  #scrubber-row{display:flex;align-items:center;gap:12px;}
+  #play-btn{width:36px;height:36px;border-radius:50%;background:var(--red);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:opacity .15s;}
+  #play-btn:active{opacity:.75;}
+  #play-btn .msr{font-size:20px;color:#fff;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+  #scrubber{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;}
+  #scrubber::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--red);cursor:pointer;border:2px solid var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+  #scrubber::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--red);cursor:pointer;border:2px solid var(--surface);}
+  #frame-dots{display:flex;align-items:center;gap:4px;justify-content:center;padding-bottom:2px;}
+  .fdot{width:5px;height:5px;border-radius:50%;background:var(--border2);transition:all .2s;flex-shrink:0;}
+  .fdot.past{background:var(--text4);}
+  .fdot.active{background:var(--red);transform:scale(1.5);}
+
+  /* Loading */
+  #map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.75);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .3s;}
+  #map-loading.hidden{opacity:0;pointer-events:none;}
+  .spin-ring{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;}
+  #loading-msg{font-size:0.75rem;color:var(--text4);font-weight:500;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Error */
+  #error-state{display:none;position:absolute;inset:0;z-index:490;align-items:center;justify-content:center;padding:20px;}
+  #error-state.show{display:flex;}
+  .error-card{background:rgba(19,21,26,0.95);border:1px solid var(--border2);border-radius:var(--r);padding:24px 28px;text-align:center;max-width:280px;}
+  .error-card .msr{font-size:32px;color:var(--text4);display:block;margin-bottom:10px;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 48;}
+  .error-card h3{font-size:0.88rem;font-weight:700;color:var(--text2);margin-bottom:6px;}
+  .error-card p{font-size:0.75rem;color:var(--text4);line-height:1.55;}
+
+  .msr{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .leaflet-control-zoom{border:1px solid var(--border2)!important;border-radius:var(--r-sm)!important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.4)!important;}
+  .leaflet-control-zoom-in,.leaflet-control-zoom-out{background:var(--surface)!important;color:var(--text2)!important;border-bottom:1px solid var(--border2)!important;width:34px!important;height:34px!important;line-height:34px!important;font-size:16px!important;}
+  .leaflet-control-zoom-in:hover,.leaflet-control-zoom-out:hover{background:var(--surface2)!important;}
+  .leaflet-control-attribution{display:none!important;}
+
+  /* Smooth radar crossfade */
+  .leaflet-tile-container{transition:opacity 0.2s ease-in-out;}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div id="header-icon"><span class="msr" style="font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">radar</span></div>
+    <div>
+      <div id="header-title">jWeather Radar</div>
+      <div id="header-sub">NWS NEXRAD Composite</div>
+    </div>
+  </div>
+
+  <div id="map-wrap">
+    <div id="radar-map"></div>
+    <div id="radar-pill">
+      <span class="msr">schedule</span>
+      <span id="radar-pill-ts">Loading…</span>
+    </div>
+    <button id="gps-btn" onclick="gpsCenter()">
+      <span class="msr">my_location</span>
+    </button>
+    <div id="map-loading">
+      <div class="spin-ring"></div>
+      <div id="loading-msg">Fetching radar times…</div>
+    </div>
+    <div id="error-state">
+      <div class="error-card">
+        <span class="msr">signal_disconnected</span>
+        <h3>Radar Unavailable</h3>
+        <p>Could not load NWS radar. Check connection or try again shortly.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div id="scrubber-row">
+      <button id="play-btn" onclick="togglePlay()">
+        <span class="msr" id="play-icon" style="font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">play_arrow</span>
+      </button>
+      <input type="range" id="scrubber" min="0" value="0" step="1">
+    </div>
+    <div id="frame-dots"></div>
+  </div>
+
+</div>
+<script>
+const PROXY    = 'https://proxy.jweather.app';
+const WMS_URL  = `${PROXY}/nws-radar/geoserver/conus/conus_bref_qcd/ows`;
+const CAP_URL  = `${WMS_URL}?SERVICE=WMS&REQUEST=GetCapabilities`;
+const MAX_FRAMES = 12;
+const FRAME_MS   = 600;  // time each frame is fully visible
+const FADE_MS    = 200;  // crossfade duration
+
+let radarMap, frames=[], layers={}, currentIdx=0, playing=false, playTimer=null;
+
+// ── Map init ─────────────────────────────────────────────
+function initMap() {
+  radarMap = L.map('radar-map', { zoomControl:false, attributionControl:false, minZoom:3, maxZoom:12 })
+    .setView([38.5, -96], 4);
+  L.control.zoom({ position:'topright' }).addTo(radarMap);
+
+  const r = window.devicePixelRatio > 1 ? '@2x' : '';
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}${r}.png`,
+    { subdomains:'abcd', maxZoom:19 }).addTo(radarMap);
+
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+    .then(r=>r.json())
+    .then(gj=>L.geoJSON(gj,{style:{color:'rgba(255,255,255,0.2)',weight:1,fill:false},interactive:false}).addTo(radarMap))
+    .catch(()=>{});
+
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}${r}.png`,
+    { subdomains:'abcd', maxZoom:19, pane:'shadowPane' }).addTo(radarMap);
+
+  loadFrames();
+}
+
+// ── Fetch available time steps via GetCapabilities ───────
+async function loadFrames() {
+  setMsg('Fetching radar times…');
+  try {
+    const res = await fetch(`${CAP_URL}&_=${Date.now()}`);
+    if (!res.ok) throw new Error(`GetCapabilities ${res.status}`);
+    const xml = await res.text();
+    const times = parseCapTimes(xml);
+    if (!times.length) throw new Error('No time steps in capabilities');
+
+    frames = times.slice(-MAX_FRAMES).map(t => ({ iso: t, label: fmtTime(t) }));
+    buildDots();
+    buildScrubber();
+    setMsg('Loading radar frames…');
+    await preload();
+    showFrame(frames.length - 1);
+    setLoading(false);
+    startPlay();
+  } catch(e) {
+    console.error('Radar error:', e);
+    setLoading(false);
+    document.getElementById('error-state').classList.add('show');
+  }
+}
+
+function parseCapTimes(xml) {
+  try {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    // NWS capabilities uses <Extent name="time"> or <Dimension name="time">
+    for (const sel of ['Extent[name="time"]','Dimension[name="time"]']) {
+      const el = doc.querySelector(sel);
+      if (!el) continue;
+      const val = el.textContent.trim();
+      if (!val) continue;
+      if (val.includes(',')) return val.split(',').map(s=>s.trim()).filter(Boolean);
+      if (val.includes('/')) return expandPeriod(val);
+      return [val];
+    }
+  } catch(e) { console.error('XML parse:', e); }
+  return [];
+}
+
+function expandPeriod(str) {
+  const [start, end, dur] = str.split('/');
+  const stepMs = parseDur(dur);
+  if (!stepMs) return [start, end].filter(Boolean);
+  const times = [];
+  let t = new Date(start).getTime();
+  const e = new Date(end).getTime();
+  while (t <= e + 1000) { times.push(new Date(t).toISOString()); t += stepMs; }
+  return times;
+}
+
+function parseDur(iso) {
+  if (!iso) return null;
+  const m = iso.match(/PT?(\d+)([YMWDHMS])/i);
+  if (!m) return null;
+  const n = parseInt(m[1]);
+  switch(m[2].toUpperCase()) {
+    case 'S': return n*1000; case 'M': return n*60000;
+    case 'H': return n*3600000; case 'D': return n*86400000;
+    default: return null;
+  }
+}
+
+// ── WMS layers ───────────────────────────────────────────
+function makeLayer(iso) {
+  return L.tileLayer.wms(WMS_URL, {
+    layers: 'conus_bref_qcd',
+    format: 'image/png',
+    transparent: true,
+    version: '1.3.0',
+    TIME: iso,
+    opacity: 0,
+    zIndex: 300,
+  });
+}
+
+async function preload() {
+  for (const f of frames) {
+    if (!layers[f.iso]) layers[f.iso] = makeLayer(f.iso);
+    layers[f.iso].addTo(radarMap);
+  }
+  await new Promise(r => setTimeout(r, 600));
+}
+
+function showFrame(idx) {
+  if (!frames.length) return;
+  idx = Math.max(0, Math.min(frames.length-1, idx));
+  const prev = currentIdx;
+  currentIdx = idx;
+  if (prev !== idx && layers[frames[prev]?.iso]) {
+    // Fade out previous
+    layers[frames[prev].iso].setOpacity(0);
+  }
+  // Fade in current
+  if (layers[frames[idx].iso]) {
+    layers[frames[idx].iso].setOpacity(0.85);
+  }
+  updateUI();
+}
+
+// ── Playback ─────────────────────────────────────────────
+function startPlay() {
+  playing = true;
+  document.getElementById('play-icon').textContent = 'pause';
+  const advance = () => {
+    if (!playing) return;
+    const isLast = currentIdx >= frames.length - 1;
+    const next = isLast ? 0 : currentIdx + 1;
+    showFrame(next);
+    // Pause longer on last frame before looping back
+    playTimer = setTimeout(advance, isLast ? FRAME_MS * 2.5 : FRAME_MS);
+  };
+  playTimer = setTimeout(advance, FRAME_MS);
+}
+function stopPlay() {
+  playing = false;
+  document.getElementById('play-icon').textContent = 'play_arrow';
+  if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+}
+function togglePlay() { playing ? stopPlay() : startPlay(); }
+
+// ── UI helpers ───────────────────────────────────────────
+function buildScrubber() {
+  const el = document.getElementById('scrubber');
+  el.max = frames.length-1; el.value = frames.length-1;
+  el.oninput = e => { stopPlay(); showFrame(parseInt(e.target.value)); };
+}
+function buildDots() {
+  const c = document.getElementById('frame-dots'); c.innerHTML='';
+  frames.forEach(()=>{ const d=document.createElement('div'); d.className='fdot'; c.appendChild(d); });
+}
+function updateUI() {
+  document.getElementById('radar-pill-ts').textContent = frames[currentIdx]?.label || '';
+  document.getElementById('scrubber').value = currentIdx;
+  document.querySelectorAll('.fdot').forEach((d,i)=>{
+    d.className = 'fdot'+(i===currentIdx?' active':i<currentIdx?' past':'');
+  });
+}
+function fmtTime(iso) {
+  try {
+    return new Date(iso).toLocaleTimeString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  } catch { return iso; }
+}
+function setLoading(show) { document.getElementById('map-loading').classList.toggle('hidden',!show); }
+function setMsg(m) { document.getElementById('loading-msg').textContent=m; }
+
+// ── GPS ──────────────────────────────────────────────────
+function gpsCenter() {
+  if (!navigator.geolocation) return;
+  const btn=document.getElementById('gps-btn'); btn.style.color='var(--red)';
+  navigator.geolocation.getCurrentPosition(
+    p=>{ radarMap.setView([p.coords.latitude,p.coords.longitude],8); btn.style.color=''; },
+    ()=>{ btn.style.color=''; }
+  );
+}
+
+// ── Auto-refresh every 6 min ─────────────────────────────
+setInterval(()=>{
+  stopPlay();
+  Object.values(layers).forEach(l=>radarMap.removeLayer(l));
+  layers={}; frames=[];
+  setLoading(true);
+  loadFrames();
+}, 6*60*1000);
+
+window.addEventListener('DOMContentLoaded', initMap);
+</script>
+</body>
+</html>
