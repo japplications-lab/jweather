@@ -470,7 +470,7 @@
     <div class="search-box">
       <span class="msr">search</span>
       <input type="search" id="search-input" placeholder="Search location…" autocomplete="off" spellcheck="false"/>
-      <button id="search-clear"><span class="msr">close</span></button>
+      <button id="search-clear" onmousedown="clearSearch(event)"><span class="msr">close</span></button>
     </div>
   </div>
   <div id="suggestions"></div>
@@ -885,6 +885,7 @@ searchInput.addEventListener('keydown',e=>{
 });
 document.addEventListener('mousedown',e=>{if(!sugDiv.contains(e.target)&&e.target!==searchInput)hideSugs();});
 function hideSugs(){sugDiv.style.display='none';sugDiv.innerHTML='';selIdx=-1;}
+function clearSearch(e){if(e)e.preventDefault();searchInput.value='';clearBtn.style.display='none';hideSugs();searchInput.focus();}
 
 const debouncedSearch=debounce(async q=>{
   if(searchCtrl)searchCtrl.abort();

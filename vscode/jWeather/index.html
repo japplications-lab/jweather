@@ -535,7 +535,7 @@
     <div class="search-row">
       <span class="msr" style="font-size:16px;color:var(--text4)">search</span>
       <input id="search-input" type="search" autocomplete="off" placeholder="City, state or ZIP…"/>
-      <button class="search-clear" id="search-clear" onclick="clearSearch()"><span class="msr">close</span></button>
+      <button class="search-clear" id="search-clear" onmousedown="clearSearch(event)" ontouchstart="clearSearch(event)"><span class="msr">close</span></button>
       <button class="gps-btn" id="gps-btn" onclick="useGPS()"><span class="msr">my_location</span></button>
     </div>
     <div id="suggestions"></div>
@@ -1125,7 +1125,7 @@ searchInput.addEventListener('focus',()=>{ if(searchInput.value.trim().length<2)
 document.addEventListener('touchstart',e=>{ if(!sugDiv.contains(e.target)&&e.target!==searchInput) hideSugs(); },{passive:true});
 
 function hideSugs(){ sugDiv.style.display='none'; sugDiv.innerHTML=''; selIdx=-1; }
-function clearSearch(){ searchInput.value=''; clearBtn.style.display='none'; hideSugs(); searchInput.focus(); }
+function clearSearch(e){ if(e) e.preventDefault(); searchInput.value=''; clearBtn.style.display='none'; hideSugs(); searchInput.focus(); }
 
 const debouncedSearch = debounce(async q=>{
   if(searchCtrl) searchCtrl.abort();
