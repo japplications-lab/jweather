@@ -20,7 +20,7 @@
       --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
       --blue:#60a5fa; --blue-dim:rgba(96,165,250,0.12);
       --amber:#f59e0b;
-      --sidebar-w:220px;
+      --sidebar-w:240px;
       --r:14px; --r-sm:10px; --r-xs:7px;
       --font:'Geist',system-ui,sans-serif;
     }
@@ -61,6 +61,7 @@
     .search-box:focus-within{border-color:var(--red);}
     .search-box .msr{font-size:15px;color:var(--text4);flex-shrink:0;}
     #search-input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.8rem;color:var(--text);padding:8px 6px;min-width:0;}
+    #search-input::-webkit-search-cancel-button,#search-input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none;}
     #search-input::placeholder{color:var(--text4);}
     #search-clear{background:none;border:none;cursor:pointer;color:var(--text4);padding:3px;display:none;align-items:center;}
     #search-clear .msr{font-size:16px;}
@@ -97,8 +98,8 @@
     #main{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;overflow:hidden;}
 
     /* Topbar */
-    #topbar{height:52px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;}
-    #topbar-title{font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+    #topbar{height:56px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;}
+    #topbar-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
     #topbar-sub{font-size:0.72rem;color:var(--text4);margin-left:4px;}
     #topbar-spacer{flex:1;}
     #topbar-date{font-size:0.75rem;color:var(--text4);font-weight:500;}
@@ -111,87 +112,96 @@
     /* ══════════════════════════════════════
        PAGE: HOME
     ══════════════════════════════════════ */
-    #page-home{overflow-y:auto;flex-direction:column;}
-    .home-grid{padding:20px;display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto auto 1fr;gap:16px;min-width:0;}
+    #page-home{overflow:hidden;flex-direction:column;}
+    .home-grid{
+      padding:20px;
+      display:grid;
+      grid-template-columns:440px 1fr;
+      grid-template-rows:auto auto 1fr;
+      gap:16px;
+      height:100%;
+      min-height:0;
+      overflow:hidden;
+    }
 
     /* Hero card */
-    .hero-card{background:var(--red);border-radius:var(--r);padding:24px;position:relative;overflow:hidden;grid-row:span 1;}
-    .hero-card::before{content:'';position:absolute;right:-20px;top:-20px;width:160px;height:160px;background:rgba(255,255,255,0.07);border-radius:50%;}
-    .hero-card::after{content:'';position:absolute;right:60px;bottom:-40px;width:110px;height:110px;background:rgba(255,255,255,0.05);border-radius:50%;}
+    .hero-card{background:var(--red);border-radius:var(--r);padding:28px 32px;position:relative;overflow:hidden;}
+    .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;}
+    .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
     .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
-    .hero-loc{font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:-0.02em;line-height:1.2;}
-    .hero-date{font-size:0.72rem;color:rgba(255,255,255,0.7);margin-top:3px;}
-    .hero-icon{width:64px;height:64px;flex-shrink:0;}
-    .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:20px;position:relative;z-index:1;}
-    .hero-temp{font-size:5rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
-    .hero-temp sup{font-size:1.5rem;font-weight:500;opacity:.8;vertical-align:super;}
-    .hero-desc{font-size:0.85rem;color:rgba(255,255,255,0.85);font-weight:500;text-align:right;max-width:130px;line-height:1.35;}
-    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;position:relative;z-index:1;}
-    .hero-stat{background:rgba(0,0,0,0.18);border-radius:var(--r-sm);padding:10px 12px;}
-    .hero-stat-label{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.6);}
-    .hero-stat-val{font-size:0.9rem;font-weight:700;color:#fff;margin-top:3px;}
+    .hero-loc{font-size:1.35rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
+    .hero-date{font-size:0.78rem;color:rgba(255,255,255,0.72);margin-top:4px;}
+    .hero-icon{width:90px;height:90px;flex-shrink:0;}
+    .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:1;}
+    .hero-temp{font-size:6.5rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
+    .hero-temp sup{font-size:2rem;font-weight:500;opacity:.8;vertical-align:super;}
+    .hero-desc{font-size:1rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
+    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:1;}
+    .hero-stat{background:rgba(0,0,0,0.2);border-radius:var(--r-sm);padding:13px 16px;}
+    .hero-stat-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.55);}
+    .hero-stat-val{font-size:1.05rem;font-weight:700;color:#fff;margin-top:5px;}
 
     /* Alerts card */
     .alerts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-    .card-head{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+    .card-head{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
     .card-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);}
-    .alert-row{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .alert-row{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
     .alert-row:last-child{border-bottom:none;}
     .alert-row:hover{background:var(--red-dim);}
     .alert-pip{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px;}
     .alert-info{flex:1;min-width:0;}
-    .alert-event{font-size:0.82rem;font-weight:600;color:var(--text);}
-    .alert-exp{font-size:0.7rem;color:var(--text4);margin-top:2px;}
-    .no-alerts{display:flex;align-items:center;gap:10px;padding:14px 16px;}
+    .alert-event{font-size:0.85rem;font-weight:600;color:var(--text);}
+    .alert-exp{font-size:0.72rem;color:var(--text4);margin-top:2px;}
+    .no-alerts{display:flex;align-items:center;gap:10px;padding:16px 18px;}
     .no-alerts-pip{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-dim);flex-shrink:0;}
-    .no-alerts-label{font-size:0.82rem;font-weight:500;color:var(--text2);}
-    .spc-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .no-alerts-label{font-size:0.85rem;font-weight:500;color:var(--text2);}
+    .spc-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
     .spc-row:hover{background:var(--red-dim);}
     .spc-pip{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
     .spc-info{flex:1;}
-    .spc-event{font-size:0.82rem;font-weight:600;color:var(--text);}
-    .spc-sub{font-size:0.7rem;color:var(--text3);margin-top:2px;}
+    .spc-event{font-size:0.85rem;font-weight:600;color:var(--text);}
+    .spc-sub{font-size:0.72rem;color:var(--text3);margin-top:2px;}
     @keyframes pulse-tor{0%,100%{background:#c8101f;}50%{background:#ff2233;box-shadow:0 0 14px rgba(229,24,42,0.6);}}
     @keyframes pulse-svr{0%,100%{background:#c06800;}50%{background:#ff8c00;box-shadow:0 0 12px rgba(255,140,0,0.6);}}
     @keyframes pulse-flood{0%,100%{background:#007a24;}50%{background:#00cc3e;box-shadow:0 0 12px rgba(0,200,80,0.6);}}
-    .alert-row-tor{animation:pulse-tor 1s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:12px;border-bottom:none!important;}
+    .alert-row-tor{animation:pulse-tor 1s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:14px;border-bottom:none!important;}
     .alert-row-tor .alert-event,.alert-row-tor .msr{color:#fff!important;}
     .alert-row-tor .alert-exp{color:rgba(255,255,255,.75)!important;}
     .alert-row-tor .alert-pip{display:none;}
-    .alert-row-svr{animation:pulse-svr 1.2s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:12px;border-bottom:none!important;}
+    .alert-row-svr{animation:pulse-svr 1.2s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:14px;border-bottom:none!important;}
     .alert-row-svr .alert-event,.alert-row-svr .msr{color:#fff!important;}
     .alert-row-svr .alert-exp{color:rgba(255,255,255,.85)!important;}
     .alert-row-svr .alert-pip{display:none;}
-    .alert-row-flood{animation:pulse-flood 1.2s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:12px;border-bottom:none!important;}
+    .alert-row-flood{animation:pulse-flood 1.2s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:14px;border-bottom:none!important;}
     .alert-row-flood .alert-event,.alert-row-flood .msr{color:#fff!important;}
     .alert-row-flood .alert-exp{color:rgba(255,255,255,.85)!important;}
     .alert-row-flood .alert-pip{display:none;}
 
-    /* Forecast card — spans right column, 2 rows */
-    .forecast-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;grid-column:2;grid-row:1/3;}
-    .forecast-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);}
-    .forecast-tile{background:var(--surface);padding:16px 14px;cursor:pointer;transition:background .1s;display:flex;flex-direction:column;gap:8px;}
-    .forecast-tile:hover{background:var(--surface2);}
-    .forecast-tile.open{background:var(--surface2);}
-    .ft-period{font-size:0.7rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
-    .ft-period.day{color:var(--text);}
-    .ft-icon{width:36px;height:36px;}
-    .ft-temp{font-size:1.8rem;font-weight:800;letter-spacing:-0.04em;color:var(--text);}
-    .ft-temp span{font-size:0.9rem;font-weight:400;color:var(--text4);}
-    .ft-desc{font-size:0.72rem;color:var(--text3);line-height:1.4;}
-    .ft-detail{grid-column:1/-1;padding:14px 16px;background:var(--surface3);border-top:1px solid var(--border);font-size:0.78rem;color:var(--text3);line-height:1.7;display:none;}
-    .ft-detail.open{display:block;animation:fadeIn .15s ease;}
+    /* Forecast card — fills full right column height */
+    .forecast-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;grid-column:2;grid-row:1/4;display:flex;flex-direction:column;min-height:0;}
+    .forecast-list{flex:1;overflow-y:auto;min-height:0;}
+    .forecast-row{display:grid;grid-template-columns:130px 40px 1fr auto;align-items:center;gap:0 16px;padding:0 22px;height:70px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .forecast-row:last-of-type{border-bottom:none;}
+    .forecast-row:hover{background:rgba(255,255,255,0.03);}
+    .forecast-period{font-size:0.88rem;font-weight:500;color:var(--text3);}
+    .forecast-period.day{color:var(--text);font-weight:700;}
+    .forecast-icon{width:40px;height:40px;}
+    .forecast-desc{font-size:0.82rem;color:var(--text3);}
+    .forecast-temp{font-size:1.3rem;font-weight:700;color:var(--text);}
+    .forecast-detail{display:none;padding:14px 22px 18px;font-size:0.8rem;color:var(--text3);line-height:1.75;background:var(--surface2);border-bottom:1px solid var(--border);}
+    .forecast-row.open+.forecast-detail{display:block;animation:fadeIn .15s ease;}
 
-    /* Radar card */
-    .radar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-    .radar-card-body{height:300px;}
+    /* Radar card — fills remaining left column space */
+    .radar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+    .radar-card-body{flex:1;min-height:200px;}
     .radar-card-body iframe{width:100%;height:100%;border:none;display:block;}
 
     /* ══════════════════════════════════════
        PAGE: HOURLY
     ══════════════════════════════════════ */
-    #page-hourly{overflow-y:auto;flex-direction:column;}
-    .hourly-wrap{padding:20px;max-width:900px;}
+    #page-hourly{flex-direction:row;overflow:hidden;}
+    #hourly-scroll{flex:1;overflow-y:auto;min-width:0;}
+    .hourly-wrap{padding:20px;}
     .hourly-header{margin-bottom:16px;}
     .hourly-header h2{font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;}
     .hourly-header p{font-size:0.78rem;color:var(--text4);margin-top:4px;}
@@ -219,6 +229,22 @@
     .hd-stat .msr{font-size:14px;color:var(--text4);margin-top:1px;flex-shrink:0;}
     .hd-label{font-size:0.6rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text4);}
     .hd-val{font-size:0.82rem;font-weight:600;color:var(--text2);margin-top:1px;}
+
+    /* Clock panel */
+    #clock-panel{width:300px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:40px 24px;}
+    #clock-time{font-size:5rem;font-weight:800;letter-spacing:-0.05em;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
+    #clock-ampm{font-size:1.4rem;font-weight:600;color:var(--text3);margin-top:4px;letter-spacing:0.05em;}
+    #clock-date-full{font-size:0.85rem;font-weight:500;color:var(--text4);margin-top:14px;text-align:center;line-height:1.5;}
+    #clock-divider{width:40px;height:2px;background:var(--border2);border-radius:1px;margin:20px 0;}
+    #clock-loc{display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;color:var(--text3);}
+    #clock-loc .msr{font-size:15px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #clock-seconds-ring{position:relative;width:120px;height:120px;margin-bottom:24px;}
+    #clock-seconds-ring svg{width:120px;height:120px;transform:rotate(-90deg);}
+    #clock-seconds-track{fill:none;stroke:var(--border2);stroke-width:3;}
+    #clock-seconds-progress{fill:none;stroke:var(--red);stroke-width:3;stroke-linecap:round;stroke-dasharray:339.3;stroke-dashoffset:339.3;transition:stroke-dashoffset .95s linear;}
+    #clock-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+    #clock-inner-time{font-size:1.5rem;font-weight:800;letter-spacing:-0.04em;color:var(--text);font-variant-numeric:tabular-nums;}
+    #clock-inner-ampm{font-size:0.65rem;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.1em;}
 
     /* ══════════════════════════════════════
        PAGE: RADAR (full map)
@@ -354,6 +380,62 @@
     .am-instruction{margin-top:14px;padding:12px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r-sm);font-size:0.8rem;color:var(--text2);line-height:1.65;}
     .am-instruction strong{display:block;color:var(--red);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
 
+    /* ══════════════════════════════════════
+       CUSTOM SCROLLBARS
+    ══════════════════════════════════════ */
+    #sidebar-nav,
+    .forecast-list,
+    #hourly-scroll,
+    #outlook-legend-wrap,
+    #meso-list,
+    #watches-list,
+    .disc-body,
+    .am-body {
+      scrollbar-width: thin;
+      scrollbar-color: var(--surface3) transparent;
+    }
+    #sidebar-nav::-webkit-scrollbar,
+    .forecast-list::-webkit-scrollbar,
+    #hourly-scroll::-webkit-scrollbar,
+    #outlook-legend-wrap::-webkit-scrollbar,
+    #meso-list::-webkit-scrollbar,
+    #watches-list::-webkit-scrollbar,
+    .disc-body::-webkit-scrollbar,
+    .am-body::-webkit-scrollbar {
+      width: 4px;
+    }
+    #sidebar-nav::-webkit-scrollbar-track,
+    .forecast-list::-webkit-scrollbar-track,
+    #hourly-scroll::-webkit-scrollbar-track,
+    #outlook-legend-wrap::-webkit-scrollbar-track,
+    #meso-list::-webkit-scrollbar-track,
+    #watches-list::-webkit-scrollbar-track,
+    .disc-body::-webkit-scrollbar-track,
+    .am-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #sidebar-nav::-webkit-scrollbar-thumb,
+    .forecast-list::-webkit-scrollbar-thumb,
+    #hourly-scroll::-webkit-scrollbar-thumb,
+    #outlook-legend-wrap::-webkit-scrollbar-thumb,
+    #meso-list::-webkit-scrollbar-thumb,
+    #watches-list::-webkit-scrollbar-thumb,
+    .disc-body::-webkit-scrollbar-thumb,
+    .am-body::-webkit-scrollbar-thumb {
+      background: var(--surface3);
+      border-radius: 4px;
+    }
+    #sidebar-nav::-webkit-scrollbar-thumb:hover,
+    .forecast-list::-webkit-scrollbar-thumb:hover,
+    #hourly-scroll::-webkit-scrollbar-thumb:hover,
+    #outlook-legend-wrap::-webkit-scrollbar-thumb:hover,
+    #meso-list::-webkit-scrollbar-thumb:hover,
+    #watches-list::-webkit-scrollbar-thumb:hover,
+    .disc-body::-webkit-scrollbar-thumb:hover,
+    .am-body::-webkit-scrollbar-thumb:hover {
+      background: var(--border2);
+    }
+
     /* Toast */
     #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--surface2);color:var(--text2);font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -449,7 +531,7 @@
               <div class="hero-loc" id="ch-loc">—</div>
               <div class="hero-date" id="ch-date"></div>
             </div>
-            <img class="hero-icon" id="ch-icon" alt="" width="64" height="64" style="opacity:0;transition:opacity .3s"/>
+            <img class="hero-icon" id="ch-icon" alt="" width="90" height="90" style="opacity:0;transition:opacity .3s"/>
           </div>
           <div class="hero-bottom">
             <div class="hero-temp"><span id="ch-temp">--</span><sup>°F</sup></div>
@@ -479,7 +561,7 @@
             <span class="card-label">7-Day Forecast</span>
             <span class="msr" style="font-size:15px;color:var(--text4)">calendar_month</span>
           </div>
-          <div class="forecast-grid" id="forecast-content"></div>
+          <div class="forecast-list" id="forecast-content"></div>
         </div>
 
         <!-- Local Radar -->
@@ -497,8 +579,25 @@
 
     <!-- HOURLY -->
     <div class="page" id="page-hourly">
-      <div class="hourly-wrap" id="hourly-content">
-        <div style="padding:40px;text-align:center;color:var(--text4);">Search for a location to view hourly forecasts.</div>
+      <div id="hourly-scroll">
+        <div id="hourly-content">
+          <div style="padding:40px;text-align:center;color:var(--text4);">Search for a location to view hourly forecasts.</div>
+        </div>
+      </div>
+      <div id="clock-panel">
+        <div id="clock-seconds-ring">
+          <svg viewBox="0 0 120 120">
+            <circle class="clock-seconds-track" id="clock-seconds-track" cx="60" cy="60" r="54"/>
+            <circle id="clock-seconds-progress" cx="60" cy="60" r="54"/>
+          </svg>
+          <div id="clock-inner">
+            <div id="clock-inner-time">12:00</div>
+            <div id="clock-inner-ampm">AM</div>
+          </div>
+        </div>
+        <div id="clock-date-full">Monday<br>January 1, 2025</div>
+        <div id="clock-divider"></div>
+        <div id="clock-loc"><span class="msr">location_on</span><span id="clock-loc-name">—</span></div>
       </div>
     </div>
 
@@ -618,9 +717,10 @@
 <!-- TOAST -->
 <div id="toast"><span class="msr">info</span><span id="toast-msg">—</span></div>
 
+
 <script>
 // ══════════════════════════════════════════════════════
-//  CONSTANTS — identical to mobile
+//  CONSTANTS
 // ══════════════════════════════════════════════════════
 const WORKER = 'https://proxy.jweather.app';
 const NOAA_BASE = `${WORKER}/noaa/vector/rest/services/outlooks/SPC_wx_outlks/MapServer`;
@@ -654,6 +754,14 @@ const OUTLOOK_CAT = {
 const OUTLOOK_DN_CAT = {'2':'TSTM','3':'MRGL','4':'SLGT','5':'ENH','6':'MDT','8':'HIGH'};
 const OUTLOOK_CAT_ORDER = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
 const OUTLOOK_MODE_LABELS = {cat:'Overall',torn:'Tornado',wind:'Wind',hail:'Hail',prob:'Probabilistic'};
+const OUTLOOK_CAT_DESC = {
+  TSTM:"Scattered thunderstorms are possible in this area, though most won't be severe.",
+  MRGL:"An isolated storm or two could turn severe, but most of the area will see nothing significant.",
+  SLGT:"Some storms today will produce damaging winds, large hail, or a brief tornado.",
+  ENH: "Multiple severe storms are likely. Damaging winds, large hail, and tornadoes are all possible.",
+  MDT: "This is a dangerous weather day. Widespread severe storms are expected. Have your shelter plan ready.",
+  HIGH:"A significant severe weather outbreak is likely. Violent tornadoes, destructive winds, and very large hail are expected.",
+};
 const DAY48_PROB_SCALE = [
   {dn:15,fill:'#c8eec8',stroke:'#90c890',label:'15% — Some Risk'},
   {dn:30,fill:'#f0e040',stroke:'#b8a800',label:'30% — Enhanced Risk'},
@@ -665,7 +773,16 @@ const PROB_WIND=[{dn:5,fill:'#8b4726',stroke:'#5f3019',label:'Isolated'},{dn:15,
 const PROB_HAIL=PROB_WIND;
 function getOutlookProbScale(m){if(m==='wind')return PROB_WIND;if(m==='hail')return PROB_HAIL;return PROB_TORN;}
 
-const SEVERE_COLORS={'Tornado Emergency':'#FF1493','Flash Flood Emergency':'#000000','Tornado Warning':'#FF0000','Tornado Watch':'#FFFF00','Severe Thunderstorm Warning':'#FFA500','Severe Thunderstorm Watch':'#DB7093','Extreme Wind Warning':'#FF8C00','Flash Flood Warning':'#00FF00','Flash Flood Watch':'#2E8B57','Flood Warning':'#00FF00','Flood Watch':'#2E8B57','Hurricane Warning':'#DC143C','Hurricane Watch':'#FF00FF','Tropical Storm Warning':'#B22222','Tropical Storm Watch':'#F08080','Storm Surge Warning':'#B524F7','Storm Surge Watch':'#DB70DB'};
+const SEVERE_COLORS={
+  'Tornado Emergency':'#FF1493','Flash Flood Emergency':'#000000',
+  'Tornado Warning':'#FF0000','Tornado Watch':'#FFFF00',
+  'Severe Thunderstorm Warning':'#FFA500','Severe Thunderstorm Watch':'#DB7093',
+  'Extreme Wind Warning':'#FF8C00','Flash Flood Warning':'#00FF00',
+  'Flash Flood Watch':'#2E8B57','Flood Warning':'#00FF00','Flood Watch':'#2E8B57',
+  'Hurricane Warning':'#DC143C','Hurricane Watch':'#FF00FF',
+  'Tropical Storm Warning':'#B22222','Tropical Storm Watch':'#F08080',
+  'Storm Surge Warning':'#B524F7','Storm Surge Watch':'#DB70DB',
+};
 
 // ══════════════════════════════════════════════════════
 //  STATE
@@ -685,8 +802,18 @@ let day48GeoJSON={}, day48LoopTimer=null, day48LoopActive=false, activeDay48=4;
 //  UTILITIES
 // ══════════════════════════════════════════════════════
 function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
-function compass(d){const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return dirs[Math.round(d/22.5)%16];}
-function showToast(msg,dur=2800){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function compass(deg){const d=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return d[Math.round(deg/22.5)%16];}
+let _toastT=null;
+function showToast(msg){document.getElementById('toast-msg').textContent=msg;const t=document.getElementById('toast');t.classList.add('show');clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove('show'),3000);}
+
+const STATE_ABBR={Alabama:'AL',Alaska:'AK',Arizona:'AZ',Arkansas:'AR',California:'CA',Colorado:'CO',Connecticut:'CT',Delaware:'DE',Florida:'FL',Georgia:'GA',Hawaii:'HI',Idaho:'ID',Illinois:'IL',Indiana:'IN',Iowa:'IA',Kansas:'KS',Kentucky:'KY',Louisiana:'LA',Maine:'ME',Maryland:'MD',Massachusetts:'MA',Michigan:'MI',Minnesota:'MN',Mississippi:'MS',Missouri:'MO',Montana:'MT',Nebraska:'NE',Nevada:'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND',Ohio:'OH',Oklahoma:'OK',Oregon:'OR',Pennsylvania:'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD',Tennessee:'TN',Texas:'TX',Utah:'UT',Vermont:'VT',Virginia:'VA',Washington:'WA','West Virginia':'WV',Wisconsin:'WI',Wyoming:'WY','District of Columbia':'DC','Puerto Rico':'PR'};
+function abbr(n){return STATE_ABBR[n]||n;}
+function parseNom(r){
+  const a=r.address||{};
+  const city=a.city||a.town||a.village||a.hamlet||a.county||r.display_name.split(',')[0];
+  const state=abbr(a.state||'');
+  return{label:state?`${city}, ${state}`:city, city, state, lat:parseFloat(r.lat), lng:parseFloat(r.lon)};
+}
 
 const ICONS={
   'sun':'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 64 64%22%3E%3Ccircle cx%3D%2232%22 cy%3D%2232%22 r%3D%2212%22 fill%3D%22%23FFD93D%22/%3E%3Cg stroke%3D%22%23FFD93D%22 stroke-width%3D%223%22 stroke-linecap%3D%22round%22%3E%3Cline x1%3D%2232%22 y1%3D%226%22 x2%3D%2232%22 y2%3D%2212%22/%3E%3Cline x1%3D%2232%22 y1%3D%2252%22 x2%3D%2232%22 y2%3D%2258%22/%3E%3Cline x1%3D%226%22 y1%3D%2232%22 x2%3D%2212%22 y2%3D%2232%22/%3E%3Cline x1%3D%2252%22 y1%3D%2232%22 x2%3D%2258%22 y2%3D%2232%22/%3E%3Cline x1%3D%2214%22 y1%3D%2214%22 x2%3D%2218%22 y2%3D%2218%22/%3E%3Cline x1%3D%2246%22 y1%3D%2246%22 x2%3D%2250%22 y2%3D%2250%22/%3E%3Cline x1%3D%2250%22 y1%3D%2214%22 x2%3D%2246%22 y2%3D%2218%22/%3E%3Cline x1%3D%2218%22 y1%3D%2246%22 x2%3D%2214%22 y2%3D%2250%22/%3E%3C/g%3E%3C/svg%3E',
@@ -700,15 +827,15 @@ const ICONS={
   'wind':'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 64 64%22%3E%3Cg stroke%3D%22%2394A3B8%22 stroke-width%3D%223%22 stroke-linecap%3D%22round%22 fill%3D%22none%22%3E%3Cpath d%3D%22M8 22 Q28 22 36 18 Q44 14 50 18 Q56 22 50 28%22/%3E%3Cpath d%3D%22M8 32 Q28 32 36 28 Q44 24 50 28%22/%3E%3Cpath d%3D%22M8 42 Q20 42 28 38 Q36 34 40 38%22/%3E%3C/g%3E%3C/svg%3E',
 };
 function getIcon(desc,day=true){
-  if(!desc) return ICONS[day?'sun':'moon'];
+  if(!desc)return ICONS[day?'sun':'moon'];
   const d=desc.toLowerCase();
-  if(d.includes('thunder')||d.includes('tstm')) return ICONS['storm'];
-  if(d.includes('snow')||d.includes('blizzard')) return ICONS['snow'];
-  if(d.includes('rain')||d.includes('shower')||d.includes('drizzle')) return ICONS['rain'];
-  if(d.includes('fog')||d.includes('haze')||d.includes('mist')) return ICONS['fog'];
-  if(d.includes('cloud')||d.includes('overcast')) return ICONS['cloud'];
-  if(d.includes('partly')||d.includes('mostly sunny')) return ICONS['partly'];
-  if(d.includes('wind')||d.includes('breezy')) return ICONS['wind'];
+  if(d.includes('thunder')||d.includes('tstm'))return ICONS['storm'];
+  if(d.includes('snow')||d.includes('blizzard'))return ICONS['snow'];
+  if(d.includes('rain')||d.includes('shower')||d.includes('drizzle'))return ICONS['rain'];
+  if(d.includes('fog')||d.includes('haze')||d.includes('mist'))return ICONS['fog'];
+  if(d.includes('cloud')||d.includes('overcast'))return ICONS['cloud'];
+  if(d.includes('partly')||d.includes('mostly sunny'))return ICONS['partly'];
+  if(d.includes('wind')||d.includes('breezy'))return ICONS['wind'];
   return ICONS[day?'sun':'moon'];
 }
 
@@ -716,19 +843,19 @@ function getIcon(desc,day=true){
 //  NAVIGATION
 // ══════════════════════════════════════════════════════
 function navigate(page){
-  closeDiscModal(); closeAlertModal();
-  currentPage = page;
-  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id===`page-${page}`));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
+  closeDiscModal();closeAlertModal();
+  currentPage=page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   const labels={home:'Home',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Watches & Warnings',meso:'Mesoscale Discussions'};
-  document.getElementById('topbar-title').textContent = labels[page]||page;
-  if(page==='outlook' && !outlookMapInit){ initOutlookMap(); outlookMapInit=true; }
-  if(page==='watches' && !watchesMapInit){ initWatchesMap(); watchesMapInit=true; }
-  if(page==='meso'    && !mesoMapInit)   { initMesoMap();    mesoMapInit=true; setTimeout(()=>mesoMap?.invalidateSize(),100); }
-  if(page==='meso'    && mesoMapInit)    { setTimeout(()=>mesoMap?.invalidateSize(),50); }
-  if(page==='watches' && watchesMapInit) { setTimeout(()=>watchesMap?.invalidateSize(),50); }
-  if(page==='outlook' && outlookMapInit) { setTimeout(()=>outlookMap?.invalidateSize(),50); }
-  if(page==='hourly') renderHourlyPage();
+  document.getElementById('topbar-title').textContent=labels[page]||page;
+  if(page==='outlook'&&!outlookMapInit){initOutlookMap();outlookMapInit=true;}
+  if(page==='watches'&&!watchesMapInit){initWatchesMap();watchesMapInit=true;}
+  if(page==='meso'&&!mesoMapInit){initMesoMap();mesoMapInit=true;setTimeout(()=>mesoMap?.invalidateSize(),100);}
+  if(page==='meso'&&mesoMapInit){setTimeout(()=>mesoMap?.invalidateSize(),50);}
+  if(page==='watches'&&watchesMapInit){setTimeout(()=>watchesMap?.invalidateSize(),50);}
+  if(page==='outlook'&&outlookMapInit){setTimeout(()=>outlookMap?.invalidateSize(),50);}
+  if(page==='hourly')renderHourlyPage();
 }
 
 // ══════════════════════════════════════════════════════
@@ -737,15 +864,6 @@ function navigate(page){
 function getRecents(){try{return JSON.parse(localStorage.getItem(REC_KEY))||[];}catch{return[];}}
 function saveRecent(loc){let r=getRecents().filter(x=>x.label!==loc.label);r.unshift(loc);if(r.length>5)r=r.slice(0,5);localStorage.setItem(REC_KEY,JSON.stringify(r));}
 function removeRecent(lbl){localStorage.setItem(REC_KEY,JSON.stringify(getRecents().filter(r=>r.label!==lbl)));}
-
-function parseNom(r){
-  const a=r.address||{};
-  const city=a.city||a.town||a.village||a.hamlet||a.municipality||'';
-  const state=a.state||'';
-  const stateCode=({'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY'})[state]||state;
-  const label=city&&stateCode?`${city}, ${stateCode}`:r.display_name.split(',').slice(0,2).join(',').trim();
-  return{label,city,state:stateCode,lat:parseFloat(r.lat),lng:parseFloat(r.lon)};
-}
 
 const searchInput=document.getElementById('search-input');
 const sugDiv=document.getElementById('suggestions');
@@ -766,7 +884,6 @@ searchInput.addEventListener('keydown',e=>{
   else if(e.key==='Escape')hideSugs();
 });
 document.addEventListener('mousedown',e=>{if(!sugDiv.contains(e.target)&&e.target!==searchInput)hideSugs();});
-
 function hideSugs(){sugDiv.style.display='none';sugDiv.innerHTML='';selIdx=-1;}
 
 const debouncedSearch=debounce(async q=>{
@@ -815,6 +932,7 @@ function chooseLoc(loc){
   curLoc=loc;
   localStorage.setItem(LOC_KEY,JSON.stringify(loc));
   document.getElementById('cur-loc-name').textContent=loc.label;
+  document.getElementById('clock-loc-name').textContent=loc.label;
   loadWeather(loc);
   updateRadar(loc.lat,loc.lng);
 }
@@ -823,14 +941,23 @@ function chooseLoc(loc){
 //  WEATHER DATA
 // ══════════════════════════════════════════════════════
 async function loadWeather(loc){
-  const{lat,lng,label,city,state}=loc;
-  document.getElementById('ch-loc').textContent=label;
+  curLoc=loc;
+  const [lat,lng]=[Number(loc.lat),Number(loc.lng)];
+  document.getElementById('ch-loc').textContent=loc.label;
+  document.getElementById('ch-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('ch-temp').textContent='--';
   document.getElementById('ch-desc').textContent='Loading…';
   try{
-    const ptR=await fetch(`${WORKER}/nws/points/${lat},${lng}`);
-    if(!ptR.ok) throw new Error('NWS points failed');
-    const props=(await ptR.json()).properties;
+    // NWS points — cached 24h in localStorage
+    const ck=`nws_pts_${lat.toFixed(3)}_${lng.toFixed(3)}`;
+    let props;
+    try{const c=localStorage.getItem(ck);if(c){const{ts,data}=JSON.parse(c);if(Date.now()-ts<86400000)props=data;}}catch{}
+    if(!props){
+      const r=await fetch(`${WORKER}/nws/points/${lat},${lng}`);
+      if(!r.ok)throw new Error('NWS points failed');
+      props=(await r.json()).properties;
+      try{localStorage.setItem(ck,JSON.stringify({ts:Date.now(),data:props}));}catch{}
+    }
     const[stR,fcR,alR,hrR,spcResult]=await Promise.all([
       fetch(props.observationStations.replace('https://api.weather.gov',`${WORKER}/nws`)),
       fetch(props.forecast.replace('https://api.weather.gov',`${WORKER}/nws`)),
@@ -900,18 +1027,17 @@ function abbrDay(n){for(const d in DA)if(n.startsWith(d))return n.replace(d,DA[d
 function renderForecast(periods){
   const wrap=document.getElementById('forecast-content');wrap.innerHTML='';
   if(!periods?.length){wrap.innerHTML='<div style="padding:20px;color:var(--text4);font-size:.8rem;">No data</div>';return;}
-  let openDetail=null;
   periods.forEach(p=>{
-    const tile=document.createElement('div');tile.className='forecast-tile';
-    tile.innerHTML=`<div class="ft-period${p.isDaytime?' day':''}">${abbrDay(p.name)}</div><img class="ft-icon" alt="" width="36" height="36" style="opacity:0;transition:opacity .25s"><div class="ft-temp">${p.temperature}<span>°</span></div><div class="ft-desc">${p.shortForecast}</div>`;
-    const img=tile.querySelector('.ft-icon');img.onload=()=>img.style.opacity='1';img.src=getIcon(p.shortForecast,p.isDaytime);
-    const det=document.createElement('div');det.className='ft-detail';det.textContent=p.detailedForecast;
-    tile.addEventListener('click',()=>{
-      const wasOpen=tile.classList.contains('open');
-      wrap.querySelectorAll('.forecast-tile.open').forEach(t=>{t.classList.remove('open');t.nextElementSibling?.classList.remove('open');});
-      if(!wasOpen){tile.classList.add('open');det.classList.add('open');}
+    const row=document.createElement('div');row.className='forecast-row';
+    row.innerHTML=`<div class="forecast-period${p.isDaytime?' day':''}">${abbrDay(p.name)}</div><img class="forecast-icon" alt="" width="36" height="36" style="opacity:0;transition:opacity .25s"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
+    const img=row.querySelector('.forecast-icon');img.onload=()=>img.style.opacity='1';img.src=getIcon(p.shortForecast,p.isDaytime);
+    const det=document.createElement('div');det.className='forecast-detail';det.textContent=p.detailedForecast;
+    row.addEventListener('click',()=>{
+      const wasOpen=row.classList.contains('open');
+      wrap.querySelectorAll('.forecast-row.open').forEach(r=>r.classList.remove('open'));
+      if(!wasOpen)row.classList.add('open');
     });
-    wrap.appendChild(tile);wrap.appendChild(det);
+    wrap.appendChild(row);wrap.appendChild(det);
   });
 }
 
@@ -975,13 +1101,14 @@ function radarGPS(){
 // ══════════════════════════════════════════════════════
 function renderHourlyPage(){
   const wrap=document.getElementById('hourly-content');
+  document.getElementById('clock-loc-name').textContent=curLoc?.label||'—';
   if(!hourlyPeriods.length){wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--text4);font-size:0.85rem;">Search for a location to view hourly forecasts.</div>';return;}
   wrap.innerHTML='';
   const inner=document.createElement('div');inner.className='hourly-wrap';
   const hdr=document.createElement('div');hdr.className='hourly-header';
   hdr.innerHTML=`<h2>Hourly Forecast</h2><p>${curLoc?.label||'Your Location'}</p>`;
   inner.appendChild(hdr);
-  let curDay='', section=null, tbl=null;
+  let curDay='',section=null;
   hourlyPeriods.forEach(p=>{
     const d=new Date(p.startTime);
     const dayKey=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -995,20 +1122,40 @@ function renderHourlyPage(){
     const timeStr=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
     const pop=(p.probabilityOfPrecipitation?.value||0);
     const popCls=pop>=70?'high':pop>=40?'mid':'';
-    const row=document.createElement('div');row.className='hour-row'+(isNow?' now-row':'');
+    const row=document.createElement('div');row.className='hour-row';
     row.innerHTML=`<div class="hr-time${isNow?' now':''}">${isNow?'Now':timeStr}</div><div class="hr-icon"><img width="32" height="32" alt="" style="opacity:0;transition:opacity .2s"/></div><div class="hr-precip ${popCls}"><span class="msr">water_drop</span>${pop}%</div><div class="hr-temp">${p.temperature}°</div><div class="hr-wind"><span class="hr-wind-speed">${p.windSpeed}</span> ${p.windDirection}</div><button class="hr-plus"><span class="msr">add</span></button>`;
     const img=row.querySelector('img');img.onload=()=>img.style.opacity='1';img.src=getIcon(p.shortForecast,p.isDaytime);
     const drawer=document.createElement('div');drawer.className='hour-drawer';
-    const stats=[['humidity','Water Drop',`${p.relativeHumidity?.value||'--'}%`,'Humidity'],['device_thermostat','Device Thermostat',`${p.dewpoint?.value!=null?Math.round(p.dewpoint.value*9/5+32):'--'}°F`,'Dew Point'],['air','Air',p.windSpeed+' '+p.windDirection,'Wind'],['wb_sunny','Sun',p.shortForecast,'Conditions']];
-    drawer.innerHTML=stats.map(([icon,,val,lbl])=>`<div class="hd-stat"><span class="msr">${icon}</span><div><div class="hd-label">${lbl}</div><div class="hd-val">${val}</div></div></div>`).join('');
+    const dps=[
+      ['humidity',`${p.relativeHumidity?.value||'--'}%`,'Humidity'],
+      ['device_thermostat',`${p.dewpoint?.value!=null?Math.round(p.dewpoint.value*9/5+32):'--'}°F`,'Dew Point'],
+      ['air',`${p.windSpeed} ${p.windDirection}`,'Wind'],
+      ['wb_sunny',p.shortForecast,'Conditions'],
+    ];
+    drawer.innerHTML=dps.map(([icon,val,lbl])=>`<div class="hd-stat"><span class="msr">${icon}</span><div><div class="hd-label">${lbl}</div><div class="hd-val">${val}</div></div></div>`).join('');
     row.querySelector('.hr-plus').addEventListener('click',e=>{e.stopPropagation();const open=row.classList.contains('is-open');section.querySelectorAll('.hour-row.is-open').forEach(r=>{r.classList.remove('is-open');r.nextElementSibling?.classList.remove('open');});if(!open){row.classList.add('is-open');drawer.classList.add('open');}});
     section.appendChild(row);section.appendChild(drawer);
   });
   wrap.appendChild(inner);
 }
 
+// ── Live Clock ──
+function tickClock(){
+  const now=new Date();
+  const h=now.getHours();const m=now.getMinutes();const s=now.getSeconds();
+  const h12=h%12||12;const ampm=h<12?'AM':'PM';
+  document.getElementById('clock-inner-time').textContent=`${h12}:${String(m).padStart(2,'0')}`;
+  document.getElementById('clock-inner-ampm').textContent=ampm;
+  const circ=339.3;
+  document.getElementById('clock-seconds-progress').style.strokeDashoffset=circ-(s/60*circ);
+  const dateStr=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const[weekday,...rest]=dateStr.split(', ');
+  document.getElementById('clock-date-full').innerHTML=`${weekday}<br>${rest.join(', ')}`;
+}
+setInterval(tickClock,1000);
+
 // ══════════════════════════════════════════════════════
-//  OUTLOOK MAP — identical logic to mobile
+//  OUTLOOK MAP
 // ══════════════════════════════════════════════════════
 function lockOutlookMap(){if(!outlookMap)return;outlookMap.dragging.disable();outlookMap.scrollWheelZoom.disable();outlookMap.touchZoom.disable();outlookMap.doubleClickZoom.disable();outlookMap.keyboard.disable();}
 function unlockOutlookMap(){if(!outlookMap)return;outlookMap.dragging.enable();outlookMap.scrollWheelZoom.enable();outlookMap.touchZoom.enable();outlookMap.doubleClickZoom.enable();outlookMap.keyboard.enable();}
@@ -1016,7 +1163,7 @@ function unlockOutlookMap(){if(!outlookMap)return;outlookMap.dragging.enable();o
 function showOutlookEmpty(title,sub,reqId){
   if(reqId!==undefined&&reqId!==currentOutlookReqId)return;
   const legendEl=document.getElementById('ol-legend');
-  if(legendEl)legendEl.innerHTML=`<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">${title||'No severe weather'}</span></div>`;
+  if(legendEl)legendEl.innerHTML=`<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.7rem;color:var(--text2);font-weight:600;">${title||'No severe weather'}</span></div>`;
   lockOutlookMap();
 }
 function hideOutlookEmpty(){unlockOutlookMap();}
@@ -1031,16 +1178,36 @@ function initOutlookMap(){
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(outlookMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(outlookMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(outlookMap);
-  // Inject hatch pattern
+  // Hatch pattern for significant threat areas
   const svgNS='http://www.w3.org/2000/svg';
-  const cigDefs=document.createElementNS(svgNS,'defs');const cigPat=document.createElementNS(svgNS,'pattern');
+  const cigDefs=document.createElementNS(svgNS,'defs');
+  const cigPat=document.createElementNS(svgNS,'pattern');
   cigPat.setAttribute('id','cig-hatch');cigPat.setAttribute('patternUnits','userSpaceOnUse');cigPat.setAttribute('width','8');cigPat.setAttribute('height','8');cigPat.setAttribute('patternTransform','rotate(45)');
   const cigRect=document.createElementNS(svgNS,'rect');cigRect.setAttribute('width','8');cigRect.setAttribute('height','8');cigRect.setAttribute('fill','none');
   const cigLine=document.createElementNS(svgNS,'line');cigLine.setAttribute('x1','0');cigLine.setAttribute('y1','0');cigLine.setAttribute('x2','0');cigLine.setAttribute('y2','8');cigLine.setAttribute('stroke','#000000');cigLine.setAttribute('stroke-width','2');
   cigPat.appendChild(cigRect);cigPat.appendChild(cigLine);cigDefs.appendChild(cigPat);
-  outlookMap.on('layeradd',function injectCigDefs(){const svgEl=outlookMap.getPane('outlookPane')?.querySelector('svg');if(svgEl&&!svgEl.querySelector('#cig-hatch')){svgEl.insertBefore(cigDefs,svgEl.firstChild);}});
+  outlookMap.on('layeradd',function(){
+    const svgEl=outlookMap.getPane('outlookPane')?.querySelector('svg');
+    if(svgEl&&!svgEl.querySelector('#cig-hatch'))svgEl.insertBefore(cigDefs,svgEl.firstChild);
+  });
   buildOutlookSidebar();
   loadOutlookHazard(1,'cat');
+}
+
+async function fetchDayMaxThreat(day){
+  const layerId=OUTLOOK_LAYER_IDS[`${day}-cat`];if(!layerId)return null;
+  try{
+    const res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=LABEL,DN&f=json&returnGeometry=false`);
+    if(!res.ok)return null;
+    const data=await res.json();
+    const order=['HIGH','MDT','ENH','SLGT','MRGL'];let best=null;
+    (data.features||[]).forEach(f=>{
+      const raw=(f.attributes?.LABEL||f.attributes?.DN||'').toString().toUpperCase().trim();
+      const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
+      if(key&&key!=='TSTM'){const rank=order.indexOf(key);if(best===null||rank<best.rank)best={rank,color:OUTLOOK_CAT[key].fill};}
+    });
+    return best?best.color:null;
+  }catch{return null;}
 }
 
 function buildOutlookSidebar(){
@@ -1048,9 +1215,9 @@ function buildOutlookSidebar(){
   [1,2,3,'4-8'].forEach(day=>{
     const isRange=day==='4-8';const dayNum=isRange?4:day;
     const d=new Date();d.setDate(d.getDate()+dayNum-1);
-    const tabLabel=isRange?'4–8':day===1?'Today':day===2?'Tomorrow':d.toLocaleDateString('en-US',{weekday:'short'});
+    const tabLabel=isRange?'Day 4–8':day===1?'Today':day===2?'Tomorrow':d.toLocaleDateString('en-US',{weekday:'long'});
     const tab=document.createElement('button');tab.className='ol-day-tab'+(day===1?' active':'');tab.dataset.day=day;
-    tab.innerHTML=`<span>${tabLabel}</span><span class="threat-bar" id="tb-${day}"></span>`;
+    tab.innerHTML=`<span>${tabLabel}</span><span class="threat-bar" id="tb-${day}" style="display:block;height:3px;border-radius:2px;margin-top:4px;"></span>`;
     tab.addEventListener('click',()=>{
       document.querySelectorAll('.ol-day-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');
       if(isRange){buildOutlookModeRow('4-8');if(activeOutlookDay!=='4-8')preloadAndStartDay48Loop();}
@@ -1070,8 +1237,13 @@ function buildOutlookModeRow(day){
     row.style.display='none';loopRow.style.display='flex';
     for(let d=4;d<=8;d++){
       const dt=new Date();dt.setDate(dt.getDate()+d-1);
-      const btn=document.createElement('button');btn.className='ol-loop-btn'+(d===activeDay48?' active':'');btn.textContent=dt.toLocaleDateString('en-US',{weekday:'short'});btn.dataset.day48=d;
-      btn.addEventListener('click',()=>{stopDay48Loop();activeDay48=d;loopRow.querySelectorAll('.ol-loop-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.day48)===d));loadOutlookDay48(d);clearTimeout(btn._restartT);btn._restartT=setTimeout(()=>startDay48Loop(),2200);});
+      const btn=document.createElement('button');btn.className='ol-loop-btn'+(d===activeDay48?' active':'');
+      btn.textContent=dt.toLocaleDateString('en-US',{weekday:'short'});btn.dataset.day48=d;
+      btn.addEventListener('click',()=>{
+        stopDay48Loop();activeDay48=d;
+        loopRow.querySelectorAll('.ol-loop-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.day48)===d));
+        loadOutlookDay48(d);clearTimeout(btn._restartT);btn._restartT=setTimeout(()=>startDay48Loop(),2200);
+      });
       loopRow.appendChild(btn);
     }
   }else{
@@ -1086,85 +1258,195 @@ function buildOutlookModeRow(day){
   }
 }
 
-async function fetchDayMaxThreat(day){
-  const layerId=OUTLOOK_LAYER_IDS[`${day}-cat`];if(!layerId)return null;
-  try{
-    const res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=LABEL,DN&f=json&returnGeometry=false`);
-    if(!res.ok)return null;const data=await res.json();
-    const order=['HIGH','MDT','ENH','SLGT','MRGL'];let best=null;
-    (data.features||[]).forEach(f=>{const raw=(f.attributes?.LABEL||f.attributes?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');if(key&&key!=='TSTM'){const rank=order.indexOf(key);if(best===null||rank<best.rank)best={rank,color:OUTLOOK_CAT[key].fill};}});
-    return best?best.color:null;
-  }catch(e){return null;}
-}
-
-// outlook style/legend/popup helpers (identical to mobile)
 function outlookStyleFeature(f,mode){
-  const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();
-  const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();
-  if(lbl.startsWith('CIG'))return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0};
-  if(mode==='cat'){const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');if(!OUTLOOK_CAT[key])return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0};const c=OUTLOOK_CAT[key];return{fillColor:c.fill,color:c.stroke,weight:1,fillOpacity:key==='TSTM'?0.35:0.7,opacity:1};}
-  const scale=getOutlookProbScale(mode);const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));if(!dn)return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0};let c=scale[0];for(const x of scale)if(dn>=x.dn)c=x;return{fillColor:c.fill,color:c.stroke,weight:1,fillOpacity:0.75,opacity:1};
-}
-function updateOutlookLegend(gj,mode){
-  const leg=document.getElementById('ol-legend');leg.innerHTML='';
+  const p=f.properties||{};
+  const lbl=(p.LABEL||p.label||'').toString();
+  if(lbl.startsWith('CIG'))return{fillColor:'transparent',fillOpacity:0,color:'transparent',weight:0,opacity:0};
   if(mode==='cat'){
-    const present=new Set();(gj.features||[]).forEach(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');if(key&&OUTLOOK_CAT[key])present.add(key);});
-    OUTLOOK_CAT_ORDER.filter(k=>present.has(k)).forEach(k=>{const c=OUTLOOK_CAT[k];const item=document.createElement('div');item.className='ol-legend-item';item.innerHTML=`<div class="ol-legend-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>`;leg.appendChild(item);});
+    const raw=(p.LABEL||p.label||p.DN||'').toString().toUpperCase().trim();
+    const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
+    if(key==='TSTM')return{fillColor:'#c8eec8',color:'#90c890',weight:1,fillOpacity:0.45,opacity:0.7};
+    if(!key||!OUTLOOK_CAT[key])return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0,interactive:false};
+    const c=OUTLOOK_CAT[key];
+    return{fillColor:c.fill,color:c.stroke,weight:1.2,fillOpacity:0.82,opacity:1};
   }else{
-    const scale=getOutlookProbScale(mode);const present=new Set();(gj.features||[]).forEach(f=>{const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));if(dn>0)present.add(dn);});
-    scale.filter(p=>[...present].some(d=>d>=p.dn)).forEach(p=>{const item=document.createElement('div');item.className='ol-legend-item';item.innerHTML=`<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>`;leg.appendChild(item);});
+    const dnRaw=p.DN??p.dn??0;
+    const dn=Math.round(parseFloat(dnRaw)*(parseFloat(dnRaw)<=1?100:1));
+    if(dn<=0)return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0};
+    const scale=getOutlookProbScale(mode);
+    let c=scale[0];for(const x of scale){if(dn>=x.dn)c=x;}
+    return{fillColor:c.fill,color:c.stroke,weight:1.2,fillOpacity:0.82,opacity:1};
   }
 }
+
 function outlookPopupContent(f,mode,day){
-  const d=new Date();d.setDate(d.getDate()+day-1);const dayLabel=day===1?'Today':day===2?'Tomorrow':d.toLocaleDateString('en-US',{weekday:'long'});
-  const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();
-  if(mode==='cat'){const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');const c=OUTLOOK_CAT[key]||{fill:'#888',stroke:'#555',label:raw};return`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div><div class="popup-risk">${c.label}</div><div class="popup-sub">Day ${day} · ${dayLabel}</div></div></div></div>`;}
-  const scale=getOutlookProbScale(mode);const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));let c=scale[0];for(const x of scale)if(dn>=x.dn)c=x;return`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div><div class="popup-risk">${dn}% ${OUTLOOK_MODE_LABELS[mode]}</div><div class="popup-sub">Day ${day} · ${dayLabel}</div></div></div></div>`;
+  const p=f.properties||{};
+  const dayLabel=day===1?'Day 1':day===2?'Day 2':'Day 3';
+  if(mode==='cat'){
+    const raw=(p.LABEL||p.label||p.DN||'').toString().toUpperCase().trim();
+    const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
+    const c=OUTLOOK_CAT[key]||{fill:'#ccc',stroke:'#999',label:raw};
+    const desc=OUTLOOK_CAT_DESC[key]||'';
+    return`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div><div class="popup-risk">${c.label}</div><div class="popup-sub">${dayLabel} · Categorical</div></div></div>${desc?`<div class="popup-divider"></div><div class="popup-desc">${desc}</div>`:''}</div>`;
+  }else{
+    const dn=Math.round(parseFloat(p.DN??p.dn??0)*(parseFloat(p.DN??p.dn??0)<=1?100:1));
+    const scale=getOutlookProbScale(mode);
+    let c=scale[0];for(const x of scale){if(dn>=x.dn)c=x;}
+    const probDescs={
+      torn:{2:"An isolated tornado is possible, but most storms won't produce one.",5:"A few tornadoes are possible. Have a shelter plan ready.",10:"Tornadoes are becoming more likely. Know where you'll shelter.",15:"Significant tornado threat. Multiple tornadoes possible — some could be strong.",30:"Major tornado outbreak expected. Strong, long-track tornadoes likely. Seek shelter.",45:"Extremely dangerous tornado situation. Violent tornadoes expected.",60:"Catastrophic tornado threat. A historic outbreak is possible."},
+      wind:{5:"Isolated damaging gusts possible.",15:"Damaging winds of 60+ mph are likely in portions of this area.",30:"Widespread damaging winds expected.",45:"Destructive winds likely. Significant structural damage possible.",60:"Extreme wind event. Widespread catastrophic damage likely."},
+      hail:{5:"Isolated large hail is possible.",15:"Large hail — golf ball size or bigger — is likely.",30:"Widespread large hail expected. Damage to vehicles and crops likely.",45:"Very large hail — baseball size or larger — likely.",60:"Extreme hail threat. Softball-sized hail possible."},
+    };
+    const tierDescs=probDescs[mode]||{};
+    const matchDn=[2,5,10,15,30,45,60].filter(v=>v<=dn).pop()||dn;
+    const desc=tierDescs[matchDn]||'Severe weather is possible in this area.';
+    return`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border-color:${c.stroke}"></div><div><div class="popup-risk">${c.label}</div><div class="popup-sub">${dayLabel} · ${OUTLOOK_MODE_LABELS[mode]}</div></div></div><div class="popup-divider"></div><div class="popup-desc">${desc}</div></div>`;
+  }
+}
+
+function updateOutlookLegend(gj,mode){
+  const items=document.getElementById('ol-legend');items.innerHTML='';
+  if(mode==='cat'){
+    const present=new Set();
+    (gj.features||[]).forEach(f=>{
+      const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();
+      const key=OUTLOOK_CAT[raw]?raw:OUTLOOK_DN_CAT[raw];
+      if(key&&!(f.properties?.LABEL||f.properties?.label||'').toString().startsWith('CIG'))present.add(key);
+    });
+    OUTLOOK_CAT_ORDER.filter(k=>present.has(k)).forEach(k=>{
+      const c=OUTLOOK_CAT[k];const item=document.createElement('div');item.className='ol-legend-item';
+      item.innerHTML=`<div class="ol-legend-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>`;items.appendChild(item);
+    });
+  }else{
+    const present=new Set();
+    (gj.features||[]).forEach(f=>{
+      const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();
+      if(lbl.startsWith('CIG'))return;
+      const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));
+      if(dn>0)present.add(dn);
+    });
+    getOutlookProbScale(mode).filter(p=>[...present].some(d=>d>=p.dn)).forEach(p=>{
+      const item=document.createElement('div');item.className='ol-legend-item';
+      item.innerHTML=`<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>`;items.appendChild(item);
+    });
+  }
+}
+
+function appendHatchLegend(mode){
+  const hazardLabel=mode==='torn'?'EF2+ Tornado Possible':mode==='wind'?'65+ mph Wind Possible':mode==='hail'?'2"+ Hail Possible':'Sig. Severe Possible';
+  const div=document.createElement('div');div.className='ol-legend-item';
+  div.innerHTML=`<div style="width:10px;height:10px;flex-shrink:0;border-radius:2px;border:1px solid #555;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 5px);box-sizing:border-box;"></div><span>${hazardLabel}</span>`;
+  document.getElementById('ol-legend').appendChild(div);
 }
 
 async function loadOutlookHazard(day,mode){
   stopDay48Loop();unlockOutlookMap();
-  activeOutlookDay=day;if(day>=3&&mode!=='cat'&&mode!=='prob')mode='cat';activeOutlookMode=mode;
+  activeOutlookDay=day;
+  if(day>=3&&mode!=='cat'&&mode!=='prob')mode='cat';
+  activeOutlookMode=mode;
   const reqId=++currentOutlookReqId;
   const d=new Date();d.setDate(d.getDate()+day-1);
   const dayLabel=day===1?'Today':day===2?'Tomorrow':d.toLocaleDateString('en-US',{weekday:'long'});
   document.getElementById('ol-pill').innerHTML=`Severe Outlook — ${dayLabel} — <span>${OUTLOOK_MODE_LABELS[mode]||mode}</span>`;
-  const loading=document.getElementById('ol-loading');hideOutlookEmpty();loading.classList.remove('hidden');
+  const loading=document.getElementById('ol-loading');
+  hideOutlookEmpty();loading.classList.remove('hidden');
   if(activeOutlookLayer){outlookMap.removeLayer(activeOutlookLayer);activeOutlookLayer=null;}
   if(activeOutlookSigLayer){outlookMap.removeLayer(activeOutlookSigLayer);activeOutlookSigLayer=null;}
   if(activeCigLayer){outlookMap.removeLayer(activeCigLayer);activeCigLayer=null;}
   const layerId=OUTLOOK_LAYER_IDS[`${day}-${mode}`];
-  if(!layerId){if(reqId!==currentOutlookReqId)return;loading.classList.add('hidden');document.getElementById('ol-legend').innerHTML='';showOutlookEmpty(mode==='cat'?'No Outlook Issued':`No ${OUTLOOK_MODE_LABELS[mode]} Threat`,null,reqId);return;}
+  if(!layerId){
+    if(reqId!==currentOutlookReqId)return;
+    loading.classList.add('hidden');
+    document.getElementById('ol-legend').innerHTML='';
+    showOutlookEmpty(mode==='cat'?'No Outlook Issued':`No ${OUTLOOK_MODE_LABELS[mode]} Threat`,null,reqId);
+    return;
+  }
   try{
     const url=`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`;
     const res=await fetch(url);if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const gjRaw=await res.json();if(reqId!==currentOutlookReqId)return;
     hideOutlookEmpty();document.getElementById('ol-legend').innerHTML='';
     let gj;
-    if(mode==='cat'){gj={...gjRaw,features:[...(gjRaw.features||[])].sort((a,b)=>{const area=f=>{const g=f.geometry;if(!g)return 0;const rings=(g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[]).flat(1);return rings.reduce((s,r)=>{let a=0;for(let i=0,j=r.length-1;i<r.length;j=i++){a+=(r[j][0]+r[i][0])*(r[j][1]-r[i][1]);}return s+Math.abs(a/2);},0);};return area(b)-area(a);})};}
-    else{gj={...gjRaw,features:[...(gjRaw.features||[])].sort((a,b)=>{return parseFloat(a.properties?.DN??a.properties?.dn??0)-parseFloat(b.properties?.DN??b.properties?.dn??0);})};}
-    const hasData=(gj.features||[]).some(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();if(lbl.startsWith('CIG'))return false;if(mode==='cat'){const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key&&OUTLOOK_CAT[key];}else{const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));return dn>0;}});
-    if(!hasData){if(reqId!==currentOutlookReqId)return;document.getElementById('ol-legend').innerHTML='';const hasTstmOnly=mode==='cat'&&(gj.features||[]).some(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key==='TSTM';});showOutlookEmpty(hasTstmOnly?'No Organized Severe Weather':mode==='cat'?'No Severe Weather Outlook':`No ${OUTLOOK_MODE_LABELS[mode]} Threat`,null,reqId);return;}
-    activeOutlookLayer=L.geoJSON(gj,{renderer:outlookMap._outlookRenderer,style:f=>outlookStyleFeature(f,mode),onEachFeature:(f,lyr)=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();if(lbl.startsWith('CIG'))return;const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');if(mode==='cat'&&!OUTLOOK_CAT[key])return;lyr.bindPopup(outlookPopupContent(f,mode,day),{closeButton:false,maxWidth:260});lyr.on('mouseover',function(){this.setStyle({fillOpacity:.95,weight:2.5});});lyr.on('mouseout',function(){activeOutlookLayer.resetStyle(this);});}}).addTo(outlookMap);
+    if(mode==='cat'){
+      gj={...gjRaw,features:[...(gjRaw.features||[])].sort((a,b)=>{
+        const area=f=>{const g=f.geometry;if(!g)return 0;const rings=(g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[]).flat(1);return rings.reduce((s,r)=>{let a=0;for(let i=0,j=r.length-1;i<r.length;j=i++){a+=(r[j][0]+r[i][0])*(r[j][1]-r[i][1]);}return s+Math.abs(a/2);},0);};
+        return area(b)-area(a);
+      })};
+    }else{
+      gj={...gjRaw,features:[...(gjRaw.features||[])].sort((a,b)=>parseFloat(a.properties?.DN??a.properties?.dn??0)-parseFloat(b.properties?.DN??b.properties?.dn??0))};
+    }
+    const hasData=(gj.features||[]).some(f=>{
+      const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();
+      const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();
+      if(lbl.startsWith('CIG'))return false;
+      if(mode==='cat'){const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key&&OUTLOOK_CAT[key];}
+      else{const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));return dn>0;}
+    });
+    if(!hasData){
+      if(reqId!==currentOutlookReqId)return;
+      document.getElementById('ol-legend').innerHTML='';
+      const hasTstmOnly=mode==='cat'&&(gj.features||[]).some(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key==='TSTM';});
+      showOutlookEmpty(hasTstmOnly?'No Organized Severe Weather':mode==='cat'?'No Severe Weather Outlook':`No ${OUTLOOK_MODE_LABELS[mode]} Threat`,null,reqId);
+      return;
+    }
+    activeOutlookLayer=L.geoJSON(gj,{
+      renderer:outlookMap._outlookRenderer,
+      style:f=>outlookStyleFeature(f,mode),
+      onEachFeature:(f,lyr)=>{
+        const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();
+        const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();
+        if(lbl.startsWith('CIG')){
+          const hazardName=mode==='torn'?'EF2+ Tornado':mode==='wind'?'65+ mph Wind':mode==='hail'?'2"+ Hail':'Significant Severe';
+          lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(45deg,#fff 0,#fff 3px,#000 3px,#000 5px);border:1.5px solid #000;"></div><div><div class="popup-risk">⚠ Significant Threat</div><div class="popup-sub">${hazardName} particularly possible</div></div></div></div>`,{closeButton:false,maxWidth:260});
+          return;
+        }
+        const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
+        if(mode==='cat'&&!OUTLOOK_CAT[key])return;
+        lyr.bindPopup(outlookPopupContent(f,mode,day),{closeButton:false,maxWidth:290});
+        lyr.on('mouseover',function(){this.setStyle({fillOpacity:0.95,weight:2.5});});
+        lyr.on('mouseout',function(){activeOutlookLayer.resetStyle(this);});
+      }
+    }).addTo(outlookMap);
     updateOutlookLegend(gj,mode);
-    if(mode==='cat'&&reqId===currentOutlookReqId){const hasRiskCat=(gj.features||[]).some(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key&&key!=='TSTM'&&OUTLOOK_CAT[key];});if(!hasRiskCat)showOutlookEmpty('No Organized Severe Weather',null,reqId);}
-    // CIG and SIG layers
+    if(mode==='cat'&&reqId===currentOutlookReqId){
+      const hasRiskCat=(gj.features||[]).some(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key&&key!=='TSTM'&&OUTLOOK_CAT[key];});
+      if(!hasRiskCat)showOutlookEmpty('No Organized Severe Weather',null,reqId);
+    }
     const cigFeatures=(gj.features||[]).filter(f=>(f.properties?.LABEL||f.properties?.label||'').toString().startsWith('CIG'));
-    function appendHatchLegend(m){const hazardLabel=m==='torn'?'EF2+ Tornado Possible':m==='wind'?'65+ mph Wind Possible':m==='hail'?'2"+ Hail Possible':'Sig. Severe Possible';const div=document.createElement('div');div.className='ol-legend-item';div.innerHTML=`<div style="width:10px;height:10px;flex-shrink:0;border-radius:2px;border:1px solid #555;background:#fff;background-image:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 5px);box-sizing:border-box;"></div><span>${hazardLabel}</span>`;document.getElementById('ol-legend').appendChild(div);}
-    if(cigFeatures.length&&mode!=='cat'){activeCigLayer=L.geoJSON({type:'FeatureCollection',features:cigFeatures},{renderer:outlookMap._outlookRenderer,style:()=>({fillColor:'url(#cig-hatch)',fillOpacity:1,color:'#000000',weight:1.5,opacity:0.7}),interactive:false}).addTo(outlookMap);appendHatchLegend(mode);}
+    if(cigFeatures.length&&mode!=='cat'){
+      activeCigLayer=L.geoJSON({type:'FeatureCollection',features:cigFeatures},{renderer:outlookMap._outlookRenderer,style:()=>({fillColor:'url(#cig-hatch)',fillOpacity:1,color:'#000000',weight:1.5,opacity:0.7}),interactive:false}).addTo(outlookMap);
+      appendHatchLegend(mode);
+    }
     const sigId=mode!=='cat'?OUTLOOK_SIG_IDS[`${day}-${mode}`]:null;
-    if(sigId){try{const sigRes=await fetch(`${NOAA_BASE}/${sigId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);if(sigRes.ok){const sigGj=await sigRes.json();if(sigGj.features?.length&&reqId===currentOutlookReqId){const hazardName=mode==='torn'?'EF2+ Tornado':mode==='wind'?'65+ mph Wind':'2"+ Hail';activeOutlookSigLayer=L.geoJSON(sigGj,{renderer:outlookMap._outlookRenderer,style:()=>({fillColor:'url(#cig-hatch)',fillOpacity:1,color:'#000000',weight:1.5,opacity:0.7}),onEachFeature:(f,lyr)=>{lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #000;width:13px;height:13px;box-sizing:border-box;border-radius:2px;"></div><div><div class="popup-risk">&#9888; Significant Threat</div><div class="popup-sub">${hazardName} particularly likely</div></div></div></div>`,{closeButton:false,maxWidth:260});}}).addTo(outlookMap);if(!cigFeatures.length)appendHatchLegend(mode);}}}catch(e){}}
-  }catch(e){if(reqId===currentOutlookReqId){console.error('Outlook error:',e);document.getElementById('ol-legend').innerHTML=`<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load.</div>`;}}
-  finally{if(reqId===currentOutlookReqId)loading.classList.add('hidden');}
+    if(sigId){
+      try{
+        const sigRes=await fetch(`${NOAA_BASE}/${sigId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+        if(sigRes.ok){
+          const sigGj=await sigRes.json();
+          if(sigGj.features?.length&&reqId===currentOutlookReqId){
+            const hazardName=mode==='torn'?'EF2+ Tornado':mode==='wind'?'65+ mph Wind':'2"+ Hail';
+            activeOutlookSigLayer=L.geoJSON(sigGj,{renderer:outlookMap._outlookRenderer,style:()=>({fillColor:'url(#cig-hatch)',fillOpacity:1,color:'#000000',weight:1.5,opacity:0.7}),onEachFeature:(f,lyr)=>{lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:repeating-linear-gradient(-45deg,#000 0px,#000 2px,#fff 2px,#fff 6px);border:1.5px solid #000;width:13px;height:13px;box-sizing:border-box;border-radius:2px;"></div><div><div class="popup-risk">⚠ Significant Threat</div><div class="popup-sub">${hazardName} particularly likely</div></div></div></div>`,{closeButton:false,maxWidth:260});}}).addTo(outlookMap);
+            if(!cigFeatures.length)appendHatchLegend(mode);
+          }
+        }
+      }catch{}
+    }
+  }catch(e){
+    if(reqId===currentOutlookReqId){console.error('Outlook load error:',e);document.getElementById('ol-legend').innerHTML=`<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load. Check connection.</div>`;}
+  }finally{
+    if(reqId===currentOutlookReqId)loading.classList.add('hidden');
+  }
 }
 
 // Day 4-8
-const DAY48_PROB_SCALE_DATA=DAY48_PROB_SCALE;
-function getDay48Color(dn){let c=DAY48_PROB_SCALE_DATA[0];for(const x of DAY48_PROB_SCALE_DATA)if(dn>=x.dn)c=x;return c;}
+function getDay48Color(dn){let c=DAY48_PROB_SCALE[0];for(const x of DAY48_PROB_SCALE){if(dn>=x.dn)c=x;}return c;}
 
 async function loadOutlookDay48(dayNum){
-  activeDay48=dayNum;activeOutlookDay='4-8';const reqId=++currentOutlookReqId;lockOutlookMap();
-  const loading=document.getElementById('ol-loading');hideOutlookEmpty();const isCached=!!day48GeoJSON[dayNum];if(!isCached)loading.classList.remove('hidden');
+  activeDay48=dayNum;activeOutlookDay='4-8';
+  const reqId=++currentOutlookReqId;lockOutlookMap();
+  const loading=document.getElementById('ol-loading');
+  hideOutlookEmpty();
+  const isCached=!!day48GeoJSON[dayNum];if(!isCached)loading.classList.remove('hidden');
   document.getElementById('ol-pill').innerHTML=`Severe Outlook — Day ${dayNum} — <span>Extended</span>`;
   if(activeOutlookLayer){outlookMap.removeLayer(activeOutlookLayer);activeOutlookLayer=null;}
   if(activeOutlookSigLayer){outlookMap.removeLayer(activeOutlookSigLayer);activeOutlookSigLayer=null;}
@@ -1172,19 +1454,33 @@ async function loadOutlookDay48(dayNum){
   try{
     let gj;
     if(day48GeoJSON[dayNum]){await Promise.resolve();gj=day48GeoJSON[dayNum];}
-    else{const layerId=OUTLOOK_LAYER_IDS[`${dayNum}-prob`];const fallbackId=layerId+1;let res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);gj=await res.json();if(gj.error){res=await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);gj=await res.json();if(gj.error)throw new Error(gj.error.message);}day48GeoJSON[dayNum]=gj;}
-    if(reqId!==currentOutlookReqId)return;hideOutlookEmpty();
+    else{
+      const layerId=OUTLOOK_LAYER_IDS[`${dayNum}-prob`];const fallbackId=layerId+1;
+      let res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+      gj=await res.json();
+      if(gj.error){res=await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);gj=await res.json();if(gj.error)throw new Error(gj.error.message);}
+      day48GeoJSON[dayNum]=gj;
+    }
+    if(reqId!==currentOutlookReqId)return;
+    hideOutlookEmpty();
     const dayFeatures=gj.features||[];
     function getDay48DN(f){const p=f.properties||{};const raw=p.DN??p.dn;if(raw!=null){const n=parseFloat(raw);return n<=1?Math.round(n*100):Math.round(n);}const lbl=(p.LABEL||p.label||'').toString().replace('%','').trim();const n=parseFloat(lbl);return isNaN(n)?0:Math.round(n);}
     const sorted=[...dayFeatures].sort((a,b)=>getDay48DN(a)-getDay48DN(b));
     const legendEl=document.getElementById('ol-legend');legendEl.innerHTML='';
     const presentDns=new Set();sorted.forEach(f=>{const dn=getDay48DN(f);if(dn>0)presentDns.add(dn);});
-    DAY48_PROB_SCALE_DATA.filter(p=>[...presentDns].some(d=>d>=p.dn)).forEach(p=>{const item=document.createElement('div');item.className='ol-legend-item';item.innerHTML=`<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>`;legendEl.appendChild(item);});
+    DAY48_PROB_SCALE.filter(p=>[...presentDns].some(d=>d>=p.dn)).forEach(p=>{
+      const item=document.createElement('div');item.className='ol-legend-item';
+      item.innerHTML=`<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>`;legendEl.appendChild(item);
+    });
     const hasData=sorted.some(f=>getDay48DN(f)>=15);
-    if(!hasData){if(reqId!==currentOutlookReqId)return;const dt=new Date();dt.setDate(dt.getDate()+dayNum-1);legendEl.innerHTML=`<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">No outlook for ${dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span></div>`;return;}
+    if(!hasData){
+      const dt=new Date();dt.setDate(dt.getDate()+dayNum-1);
+      legendEl.innerHTML=`<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;"><span class="msr" style="font-size:13px;color:var(--green);font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.7rem;color:var(--text2);font-weight:600;">No outlook for ${dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span></div>`;
+      return;
+    }
     const dt=new Date();dt.setDate(dt.getDate()+dayNum-1);const dayLabel=dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-    activeOutlookLayer=L.geoJSON({type:'FeatureCollection',features:sorted},{renderer:outlookMap._outlookRenderer,style:f=>{const dn=getDay48DN(f);if(dn<15)return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0};const c=getDay48Color(dn);return{fillColor:c.fill,color:c.stroke,weight:1.2,fillOpacity:0.82,opacity:1};},onEachFeature:(f,lyr)=>{const dn=getDay48DN(f);if(dn<15)return;const c=getDay48Color(dn);lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><div><div class="popup-risk">${c.label}</div><div class="popup-sub">Day ${dayNum} · ${dayLabel}</div></div></div><div class="popup-desc" style="padding-top:8px;border-top:1px solid var(--border);margin-top:6px;">Extended probabilistic outlook. Monitor as the event approaches.</div></div>`,{closeButton:false,maxWidth:260});lyr.on('mouseover',function(){this.setStyle({fillOpacity:.95,weight:2.5});});lyr.on('mouseout',function(){activeOutlookLayer.resetStyle(this);});}}).addTo(outlookMap);
-  }catch(e){if(reqId===currentOutlookReqId){console.error('Day48 error:',e);document.getElementById('ol-legend').innerHTML=`<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load.</div>`;}}
+    activeOutlookLayer=L.geoJSON({type:'FeatureCollection',features:sorted},{renderer:outlookMap._outlookRenderer,style:f=>{const dn=getDay48DN(f);if(dn<15)return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0};const c=getDay48Color(dn);return{fillColor:c.fill,color:c.stroke,weight:1.2,fillOpacity:0.82,opacity:1};},onEachFeature:(f,lyr)=>{const dn=getDay48DN(f);if(dn<15)return;const c=getDay48Color(dn);lyr.bindPopup(`<div class="popup-inner"><div class="popup-header"><div class="popup-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><div><div class="popup-risk">${c.label}</div><div class="popup-sub">Day ${dayNum} · ${dayLabel}</div></div></div><div class="popup-divider"></div><div class="popup-desc">Extended probabilistic outlook. Monitor as the event approaches.</div></div>`,{closeButton:false,maxWidth:260});lyr.on('mouseover',function(){this.setStyle({fillOpacity:.95,weight:2.5});});lyr.on('mouseout',function(){activeOutlookLayer.resetStyle(this);});}}).addTo(outlookMap);
+  }catch(e){if(reqId===currentOutlookReqId)document.getElementById('ol-legend').innerHTML=`<div style="font-size:0.75rem;color:var(--text4);padding:4px 0">Failed to load.</div>`;}
   finally{if(reqId===currentOutlookReqId)loading.classList.add('hidden');}
 }
 
@@ -1198,48 +1494,89 @@ async function preloadAndStartDay48Loop(){
   document.getElementById('ol-pill').innerHTML=`Severe Outlook — Day 4–8 — <span>Loading…</span>`;
   await Promise.allSettled([4,5,6,7,8].map(async d=>{
     if(day48GeoJSON[d])return;
-    try{const layerId=OUTLOOK_LAYER_IDS[`${d}-prob`];const fallbackId=layerId+1;let res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);let gj=await res.json();if(gj.error){res=await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);gj=await res.json();}if(!gj.error)day48GeoJSON[d]=gj;}catch(e){}
+    try{const layerId=OUTLOOK_LAYER_IDS[`${d}-prob`];const fallbackId=layerId+1;let res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);let gj=await res.json();if(gj.error){res=await fetch(`${NOAA_BASE}/${fallbackId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);gj=await res.json();}if(!gj.error)day48GeoJSON[d]=gj;}catch{}
   }));
   loading.classList.add('hidden');await loadOutlookDay48(4);startDay48Loop();
 }
 function stopDay48Loop(){if(day48LoopTimer){clearInterval(day48LoopTimer);day48LoopTimer=null;}day48LoopActive=false;}
-function startDay48Loop(){stopDay48Loop();day48LoopActive=true;day48LoopTimer=setInterval(()=>{const next=activeDay48>=8?4:activeDay48+1;activeDay48=next;const loopRow=document.getElementById('outlook-loop-row');if(loopRow)loopRow.querySelectorAll('.ol-loop-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.day48)===next));loadOutlookDay48(next);},2200);}
+function startDay48Loop(){
+  stopDay48Loop();day48LoopActive=true;
+  const advance=()=>{
+    const next=activeDay48>=8?4:activeDay48+1;
+    activeDay48=next;
+    const loopRow=document.getElementById('outlook-loop-row');
+    if(loopRow)loopRow.querySelectorAll('.ol-loop-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.day48)===next));
+    loadOutlookDay48(next);
+  };
+  day48LoopTimer=setInterval(advance,2200);
+}
 
-// Discussion modal
+// ── Discussion Modal ──
 async function openDiscModal(day){
-  const isExtended=day>=4;const dt=new Date();dt.setDate(dt.getDate()+day-1);
+  const isExtended=day>=4;
+  const dt=new Date();dt.setDate(dt.getDate()+day-1);
   const dayLabel=day===1?'Today':day===2?'Tomorrow':day===3?'Day 3':dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
   document.getElementById('disc-title').textContent=isExtended?'Days 4–8 Extended Outlook — SPC Discussion':`Day ${day} — ${dayLabel} — SPC Outlook`;
-  document.getElementById('disc-body').innerHTML='<div class="disc-loading"><div class="spin-ring"></div><span>Loading discussion…</span></div>';
+  document.getElementById('disc-body').innerHTML='<div class="disc-loading"><div class="spin-ring"></div>Loading discussion…</div>';
   document.getElementById('disc-modal').classList.add('open');
   try{
-    const WORKER_URL=WORKER;
     let spcUrl;
-    if(isExtended){spcUrl=`${WORKER_URL}/proxy/products/exper/day4-8/`;}
-    else{spcUrl=`${WORKER_URL}/proxy/products/outlook/day${day}otlk.html`;}
+    if(isExtended){spcUrl=`${WORKER}/proxy/products/exper/day4-8/`;}
+    else{spcUrl=`${WORKER}/proxy/products/outlook/day${day}otlk.html`;}
     let spcRes=await fetch(spcUrl);
-    if(!spcRes.ok&&isExtended){const today=new Date();const dateStr=today.getFullYear().toString()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0');spcUrl=`${WORKER_URL}/proxy/products/exper/day4-8/day4-8_${dateStr}.html`;spcRes=await fetch(spcUrl);}
-    if(!spcRes.ok)throw new Error(`HTTP ${spcRes.status}`);
+    if(!spcRes.ok&&isExtended){
+      const today=new Date();
+      const dateStr=today.getFullYear().toString()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0');
+      spcRes=await fetch(`${WORKER}/proxy/products/exper/day4-8/day4-8_${dateStr}.html`);
+    }
+    if(!spcRes.ok)throw new Error(`SPC fetch failed: ${spcRes.status}`);
     const html=await spcRes.text();
-    const tmp=document.createElement('div');tmp.innerHTML=html;
-    const pre=tmp.querySelector('pre')||tmp.querySelector('.discussion')||tmp.querySelector('body');
-    const rawText=(pre?.textContent||tmp.textContent||'').trim();
-    if(!rawText)throw new Error('Empty response');
-    const aiRes=await fetch(`${WORKER_URL}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:800,system:`You are a weather briefing writer. Summarize this SPC outlook discussion in plain English. Use short paragraphs. No bullet points. Focus on the key threats, timing, and affected areas. Keep it under 200 words.`,messages:[{role:'user',content:rawText.slice(0,6000)}]})});
+    const div=document.createElement('div');div.innerHTML=html;
+    const pre=div.querySelector('pre')||div.querySelector('.discussion')||div.querySelector('body');
+    let rawText=(pre?pre.textContent:div.textContent).trim();
+    const discStart=rawText.search(/\.\.\.|(Day [1-8])|(ACUS0[1-8])|SPC|CONVECTIVE|EXTENDED/i);
+    if(discStart>50)rawText=rawText.slice(discStart);
+    rawText=rawText.slice(0,6000);
+    if(!rawText||rawText.length<50)throw new Error('Discussion text unavailable');
+    const system=isExtended
+      ?`You are summarizing the SPC Day 4-8 extended outlook discussion for a weather app. Reply with ONLY these 4 labeled sections:\n\nWHERE:\n[Which regions have elevated severe weather probability]\n\nMAIN THREATS:\n[Primary hazards across Days 4-8]\n\nTIMING:\n[Which days look most active]\n\nHOW SERIOUS:\n[One honest sentence on overall confidence and severity]`
+      :`You are summarizing an SPC severe weather outlook for a weather app. Reply with ONLY these 4 labeled sections:\n\nWHERE:\n[Specific states and regions affected]\n\nMAIN THREATS:\n[The 2-3 specific hazards in order of concern]\n\nTIMING:\n[When storms are expected — morning, afternoon, evening, overnight]\n\nHOW SERIOUS:\n[One honest plain-English sentence on overall severity]`;
+    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system,messages:[{role:'user',content:rawText}],max_tokens:800})});
     if(!aiRes.ok)throw new Error('AI unavailable');
-    const aiData=await aiRes.json();const summary=(aiData.content?.[0]?.text||'').trim();
+    const aiData=await aiRes.json();
+    const summary=aiData.content?.[0]?.text||'';
     if(!summary)throw new Error('Empty AI response');
-    document.getElementById('disc-body').textContent=summary;
-  }catch(e){document.getElementById('disc-body').textContent=`Could not load discussion. ${e.message}`;}
+    const icons={'WHERE':'location_on','MAIN THREATS':'warning','TIMING':'schedule','HOW SERIOUS':'assessment'};
+    const lines=summary.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+    let discOut='';let i=0;
+    while(i<lines.length){
+      const line=lines[i];const match=line.match(/^([A-Z][A-Z\s]+):$/);
+      if(match){const lbl=match[1];const body=lines[i+1]||'';const icon=icons[lbl]||'info';discOut+=`<div class="disc-section"><div class="disc-section-label"><span class="msr" style="font-size:12px;vertical-align:middle;margin-right:4px;">${icon}</span>${lbl}</div><div class="disc-section-text">${body}</div></div>`;i+=2;}
+      else{discOut+=`<div class="disc-section-text" style="margin-bottom:10px">${line}</div>`;i++;}
+    }
+    document.getElementById('disc-body').innerHTML=discOut;
+  }catch(e){document.getElementById('disc-body').innerHTML=`<div class="disc-err">Could not load discussion (${e.message}).</div>`;}
 }
 function closeDiscModal(){document.getElementById('disc-modal').classList.remove('open');}
 document.getElementById('disc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('disc-modal'))closeDiscModal();});
 
 // ══════════════════════════════════════════════════════
-//  WATCHES & WARNINGS — identical logic to mobile
+//  WATCHES & WARNINGS
 // ══════════════════════════════════════════════════════
-function getWatchStyle(event){const ev=(event||'').trim();const color=SEVERE_COLORS[ev]||'#8B5CF6';const isEmerg=/emergency/i.test(ev);const isWarn=/warning/i.test(ev);const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';return{label:ev||'Alert',color,cls:'nws-alert',iconSym};}
-function getAlertPriority(event){const ev=event||'';if(/tornado emergency|flash flood emergency/i.test(ev))return 0;if(/tornado warning|extreme wind warning/i.test(ev))return 1;if(/hurricane warning|storm surge warning|flash flood warning|severe thunderstorm warning/i.test(ev))return 2;if(/tropical storm warning|flood warning/i.test(ev))return 3;return 4;}
+function getAlertPriority(event){
+  const ev=event||'';
+  if(/tornado emergency|flash flood emergency/i.test(ev))return 0;
+  if(/tornado warning|extreme wind warning/i.test(ev))return 1;
+  if(/hurricane warning|storm surge warning|flash flood warning|severe thunderstorm warning/i.test(ev))return 2;
+  if(/tropical storm warning|flood warning/i.test(ev))return 3;
+  return 4;
+}
+function getWatchStyle(event){
+  const ev=(event||'').trim();const color=SEVERE_COLORS[ev]||'#8B5CF6';
+  const isEmerg=/emergency/i.test(ev);const isWarn=/warning/i.test(ev);
+  const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
+  return{label:ev||'Alert',color,iconSym};
+}
 
 function initWatchesMap(){
   watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
@@ -1266,25 +1603,66 @@ function startWatchPollBar(){
 }
 
 async function fetchWatches(){
-  try{const ts=Date.now();const res=await fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${ts}`,{cache:'no-store'});if(!res.ok)return;const gj=await res.json();const norm=f=>({...f,properties:{...f.properties,event:f.properties.prod_type||'',expires:f.properties.expiration||null,areaDesc:f.properties.area_desc||f.properties.states||'',senderName:'NWS',description:f.properties.prod_type||'',headline:f.properties.prod_type||'',parameters:{watchNumber:[f.properties.watch_num||'']}}});activeWatches=(gj.features||[]).map(norm);processAndRenderMap();}catch(e){console.error('fetchWatches:',e);}
+  try{
+    const ts=Date.now();
+    const res=await fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${ts}`,{cache:'no-store'});
+    if(!res.ok)return;
+    const gj=await res.json();
+    const norm=f=>({...f,properties:{...f.properties,event:f.properties.prod_type||'',expires:f.properties.expiration||null,areaDesc:f.properties.area_desc||f.properties.states||'',senderName:'NWS',description:f.properties.prod_type||'',headline:f.properties.prod_type||'',parameters:{watchNumber:[f.properties.watch_num||'']}}});
+    activeWatches=(gj.features||[]).map(norm);
+    processAndRenderMap();
+  }catch(e){console.error('fetchWatches:',e);}
 }
+
 async function fetchWarnings(){
-  try{const res=await fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'});if(!res.ok)return;const gj=await res.json();activeWarnings=(gj.features||[]).filter(f=>f.geometry);processAndRenderMap();}catch(e){console.error('fetchWarnings:',e);}
+  try{
+    const res=await fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'});
+    if(!res.ok)return;
+    const gj=await res.json();
+    activeWarnings=(gj.features||[]).filter(f=>f.geometry);
+    processAndRenderMap();
+  }catch(e){console.error('fetchWarnings:',e);}
 }
 
 function processAndRenderMap(){
   let combined=[...activeWarnings,...activeWatches];
-  combined.forEach(f=>{const p=f.properties||{};const ev=p.event||'';const text=(p.description||p.headline||'').toUpperCase();if(ev==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))f.properties.event='Tornado Emergency';else if(ev==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))f.properties.event='Flash Flood Emergency';});
+  combined.forEach(f=>{
+    const p=f.properties||{};const ev=p.event||'';
+    const text=(p.description||p.headline||'').toUpperCase();
+    if(ev==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))f.properties.event='Tornado Emergency';
+    else if(ev==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))f.properties.event='Flash Flood Emergency';
+  });
   combined=combined.filter(f=>SEVERE_COLORS.hasOwnProperty(f.properties?.event||''));
   combined.sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
   watchesList=combined;
-  renderWatchesMap(watchesList);updateWatchLegend(watchesList);renderWatchesPanel(watchesList);
+  renderWatchesMap(watchesList);
+  updateWatchLegend(watchesList);
+  renderWatchesPanel(watchesList);
 }
 
 function renderWatchesMap(features){
   if(watchLayer){watchesMap.removeLayer(watchLayer);watchLayer=null;}
   if(!features.length)return;
-  watchLayer=L.geoJSON({type:'FeatureCollection',features},{style:feat=>{const ev=feat.properties?.event||'';const{color}=getWatchStyle(ev);const isEmerg=/emergency/i.test(ev);const isWarn=/warning/i.test(ev);const isTor=/tornado/i.test(ev);return{fillColor:color,fillOpacity:isEmerg?.95:isTor?.85:isWarn?.7:.25,color,weight:isEmerg?3:isTor?2.5:isWarn?1.5:1,opacity:.95};},onEachFeature:(feat,lyr)=>{lyr.on('click',e=>{L.DomEvent.stopPropagation(e);highlightWatchInPanel(feat);});}}).addTo(watchesMap);
+  watchLayer=L.geoJSON({type:'FeatureCollection',features},{
+    style:feat=>{
+      const ev=feat.properties?.event||'';const{color}=getWatchStyle(ev);
+      const isEmerg=/emergency/i.test(ev);const isWarn=/warning/i.test(ev);const isTor=/tornado/i.test(ev);
+      return{fillColor:color,fillOpacity:isEmerg?.95:isTor?.85:isWarn?.7:.25,color,weight:isEmerg?3:isTor?2.5:isWarn?1.5:1,opacity:.95};
+    },
+    onEachFeature:(feat,lyr)=>{
+      lyr.on('click',e=>{
+        L.DomEvent.stopPropagation(e);
+        // Highlight panel item
+        const ev=feat.properties?.event||'';
+        document.querySelectorAll('.watch-item').forEach(el=>el.style.background='');
+        document.querySelectorAll('.watch-item').forEach(el=>{
+          if(el.querySelector('.watch-event')?.textContent===(getWatchStyle(ev).label))el.style.background='var(--surface2)';
+        });
+        // Zoom map
+        try{const bounds=lyr.getBounds();if(bounds.isValid())watchesMap.fitBounds(bounds,{padding:[40,40]});}catch{}
+      });
+    }
+  }).addTo(watchesMap);
 }
 
 function renderWatchesPanel(features){
@@ -1294,33 +1672,41 @@ function renderWatchesPanel(features){
   empty.style.display='none';document.getElementById('watches-panel-sub').textContent=`${features.length} active alert${features.length!==1?'s':''}`;
   features.forEach(feat=>{
     const a=feat.properties;const{label,color}=getWatchStyle(a.event);
-    const expRaw=a.expires||a.expiration||null;const exp=expRaw?new Date(expRaw).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-    const areaRaw=a.areaDesc||a.area_desc||a.states||'';const counties=areaRaw.split(';').map(s=>s.trim()).filter(Boolean);
+    const expRaw=a.expires||a.expiration||null;
+    const exp=expRaw?new Date(expRaw).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
+    const areaRaw=a.areaDesc||a.area_desc||a.states||'';
+    const counties=areaRaw.split(';').map(s=>s.trim()).filter(Boolean);
     const item=document.createElement('div');item.className='watch-item';
-    item.innerHTML=`<div class="watch-item-header"><div class="watch-dot" style="background:${color}"></div><div class="watch-event">${label}</div></div><div class="watch-meta">Until ${exp}</div>${counties.length?`<div class="watch-counties">${counties.slice(0,6).map(c=>`<span class="watch-county">${c}</span>`).join('')}${counties.length>6?`<span class="watch-county">+${counties.length-6} more</span>`:''}</div>`:''}`; 
+    item.innerHTML=`<div class="watch-item-header"><div class="watch-dot" style="background:${color}"></div><div class="watch-event">${label}</div></div><div class="watch-meta">Until ${exp}</div>${counties.length?`<div class="watch-counties">${counties.slice(0,6).map(c=>`<span class="watch-county">${c}</span>`).join('')}${counties.length>6?`<span class="watch-county">+${counties.length-6} more</span>`:''}</div>`:''}`;
     item.addEventListener('click',()=>{
       list.querySelectorAll('.watch-item').forEach(el=>el.style.background='');item.style.background='var(--surface2)';
-      if(watchesMap&&feat.geometry){try{const coords=feat.geometry.type==='MultiPolygon'?feat.geometry.coordinates[0][0]:feat.geometry.coordinates[0];watchesMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[40,40]});}catch{}}
+      if(watchesMap&&feat.geometry){try{const g=feat.geometry;const coords=g.type==='MultiPolygon'?g.coordinates[0][0]:g.coordinates[0];watchesMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[40,40]});}catch{}}
     });
     list.appendChild(item);
   });
 }
 
-function highlightWatchInPanel(feat){
-  const ev=feat.properties?.event||'';const items=document.querySelectorAll('.watch-item');const{label}=getWatchStyle(ev);
-  items.forEach(item=>{item.style.background=item.querySelector('.watch-event')?.textContent===label?'var(--surface2)':'';});
-}
-
 function updateWatchLegend(features){
   const leg=document.getElementById('ww-legend');leg.innerHTML='';const seen=new Map();
   features.forEach(f=>{const ev=(f.properties?.event||'').trim();if(ev&&!seen.has(ev)){const{color,label}=getWatchStyle(ev);seen.set(ev,{color,label});}});
-  [...seen.entries()].sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0])).forEach(([,{color,label}])=>{leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;});
+  [...seen.entries()].sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0])).forEach(([,{color,label}])=>{
+    leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
+  });
 }
 
 // ══════════════════════════════════════════════════════
-//  MESO MAP — identical logic to mobile
+//  MESO MAP
 // ══════════════════════════════════════════════════════
-function getMesoHazardLabel(raw){const s=(raw||'').toLowerCase();if(s.includes('tornado'))return'Tornado';if(s.includes('hail'))return'Large Hail';if(s.includes('wind'))return'Damaging Winds';if(s.includes('severe'))return'Severe T-Storms';if(s.includes('thunder')||s.includes('convect'))return'Thunderstorms';return raw||'Discussion';}
+function classifyConcern(raw){
+  const s=(raw||'').toLowerCase();
+  if(s.includes('tornado'))return'Potential Tornado';
+  if(s.includes('flash flood')||s.includes('flood'))return'Flash Flooding';
+  if(s.includes('hail'))return'Large Hail';
+  if(s.includes('wind'))return'Damaging Winds';
+  if(s.includes('severe'))return'Severe T-Storms';
+  if(s.includes('thunder')||s.includes('convect'))return'Thunderstorms';
+  return raw||'Discussion';
+}
 
 function initMesoMap(){
   mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
@@ -1335,14 +1721,23 @@ function initMesoMap(){
 }
 
 async function loadMeso(){
-  const setEmpty=show=>{const el=document.getElementById('meso-map-empty');if(el)el.classList.toggle('show',show);const panel=document.getElementById('meso-empty-panel');if(panel)panel.style.display=show?'block':'none';};
+  const setEmpty=show=>{
+    const el=document.getElementById('meso-map-empty');if(el)el.classList.toggle('show',show);
+    const panel=document.getElementById('meso-empty-panel');if(panel)panel.style.display=show?'block':'none';
+  };
   try{
     const r=await fetch(`${WORKER}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'});
     if(!r.ok)throw new Error(`NOAA ${r.status}`);
     const text=await r.text();let data;
     try{data=JSON.parse(text);}catch(e){throw new Error('Invalid JSON');}
     const now=Date.now();const allFeatures=data.features||[];
-    mesoData=allFeatures.filter(f=>{const p=f.properties||{};if(p.name==='NoArea'||p.folderpath===null&&p.popupinfo===null&&(p['st_area(shape)']||0)<0.001)return false;const exp=p.expiration||p.end||p.expire;if(exp&&new Date(exp).getTime()<=now)return false;return true;});
+    mesoData=allFeatures.filter(f=>{
+      const p=f.properties||{};
+      if(p.name==='NoArea'||p.folderpath===null&&p.popupinfo===null&&(p['st_area(shape)']||0)<0.001)return false;
+      const exp=p.expiration||p.end||p.expire;
+      if(exp&&new Date(exp).getTime()<=now)return false;
+      return true;
+    });
     setEmpty(mesoData.length===0);
     renderMesoMap(mesoData);renderMesoPanel(mesoData);
   }catch(e){console.error('loadMeso:',e);mesoData=[];setEmpty(true);}
@@ -1352,7 +1747,18 @@ function renderMesoMap(features){
   Object.values(mesoLayers).forEach(l=>mesoMap.removeLayer(l));mesoLayers={};
   if(!features.length)return;
   mesoMap.invalidateSize();
-  mesoLayers.all=L.geoJSON({type:'FeatureCollection',features},{style:()=>({fillColor:'#f97316',fillOpacity:.35,color:'#f97316',weight:2.5,opacity:1}),onEachFeature:(feat,lyr)=>{lyr.on('click',()=>{const idx=mesoData.findIndex(f=>f===feat);if(idx>=0){try{const bounds=lyr.getBounds();if(bounds.isValid())mesoMap.fitBounds(bounds,{padding:[40,40]});}catch(e){}highlightMesoInPanel(idx);}});}}).addTo(mesoMap);
+  mesoLayers.all=L.geoJSON({type:'FeatureCollection',features},{
+    style:()=>({fillColor:'#f97316',fillOpacity:.35,color:'#f97316',weight:2.5,opacity:1}),
+    onEachFeature:(feat,lyr)=>{
+      lyr.on('click',()=>{
+        const idx=mesoData.findIndex(f=>f===feat);
+        if(idx>=0){
+          try{const bounds=lyr.getBounds();if(bounds.isValid())mesoMap.fitBounds(bounds,{padding:[60,60]});}catch{}
+          showMesoDetail(feat,idx);
+        }
+      });
+    }
+  }).addTo(mesoMap);
 }
 
 function renderMesoPanel(features){
@@ -1361,18 +1767,55 @@ function renderMesoPanel(features){
   document.getElementById('meso-empty-panel').style.display=features.length?'none':'block';
   features.forEach((feat,idx)=>{
     const p=feat.properties||{};
-    const num=p.md||p.mdNum||p.number||'';
-    const hazard=getMesoHazardLabel(p.concerning||p.hazard||p.folderpath||'');
+    const num=String(p.name||p.num||idx+1).replace(/[^0-9]/g,'').padStart(4,'0');
+    const concern=classifyConcern(p.concerning||p.discussion_type||'');
     const states=p.affecting||p.states||p.area_desc||'';
     const item=document.createElement('div');item.className='meso-item';
-    item.innerHTML=`<div class="meso-item-num">MD #${num||idx+1}</div><div class="meso-item-title">${hazard}</div><div class="meso-item-meta">${states}</div>`;
-    item.addEventListener('click',()=>{list.querySelectorAll('.meso-item').forEach(el=>el.style.background='');item.style.background='var(--surface2)';try{const lyr=Object.values(mesoLayers.all?._layers||{})[idx];if(lyr?.getBounds){const b=lyr.getBounds();if(b.isValid())mesoMap.fitBounds(b,{padding:[40,40]});}}catch{}});
+    item.innerHTML=`<div class="meso-item-num">MD #${num}</div><div class="meso-item-title">${concern}</div><div class="meso-item-meta">${states}</div>`;
+    item.addEventListener('click',()=>{
+      list.querySelectorAll('.meso-item').forEach(el=>el.style.background='');item.style.background='var(--surface2)';
+      try{const layers=Object.values(mesoLayers.all?._layers||{});if(layers[idx]?.getBounds){const b=layers[idx].getBounds();if(b.isValid())mesoMap.fitBounds(b,{padding:[40,40]});}}catch{}
+      showMesoDetail(feat,idx);
+    });
     list.appendChild(item);
   });
 }
 
-function highlightMesoInPanel(idx){
-  const items=document.querySelectorAll('.meso-item');items.forEach((el,i)=>el.style.background=i===idx?'var(--surface2)':'');}
+async function showMesoDetail(feat,i){
+  const p=feat.properties||{};
+  const numStr=String(p.name||p.num||i+1).replace(/[^0-9]/g,'').padStart(4,'0');
+  const concern=classifyConcern(p.concerning||p.discussion_type||'');
+  const states=p.affecting||p.states||p.area_desc||'';
+  const exp=p.expire||p.expiration;
+  const expStr=exp?new Date(exp).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
+  const year=new Date().getFullYear();
+  document.getElementById('disc-title').textContent=`Mesoscale Discussion #${numStr}`;
+  document.getElementById('disc-body').innerHTML=`<div style="margin-bottom:8px;font-size:0.75rem;color:var(--text4);">${concern}${states?' · '+states:''} · ${expStr}</div><div class="disc-loading"><div class="spin-ring"></div>Fetching discussion…</div>`;
+  document.getElementById('disc-modal').classList.add('open');
+  try{
+    const r=await fetch(`${WORKER}/proxy/products/md/${year}/md${numStr}.html`);
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const html=await r.text();
+    const div=document.createElement('div');div.innerHTML=html;
+    const pre=div.querySelector('pre');
+    let raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
+    document.getElementById('disc-body').innerHTML=`<div style="margin-bottom:8px;font-size:0.75rem;color:var(--text4);">${concern}${states?' · '+states:''} · ${expStr}</div><div class="disc-loading"><div class="spin-ring"></div>Summarizing with AI…</div>`;
+    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,system:`You are a severe weather analyst. Summarize this SPC mesoscale discussion in plain English in exactly 4 sections:\n\nWHAT'S HAPPENING:\n[Current weather setup]\n\nPRIMARY THREAT:\n[Most critical hazard]\n\nAFFECTED AREA:\n[Where exactly]\n\nTIMING:\n[When]`,messages:[{role:'user',content:raw}]})});
+    if(!aiRes.ok)throw new Error('AI unavailable');
+    const aiData=await aiRes.json();const summary=(aiData.content?.[0]?.text||'').trim();
+    if(!summary)throw new Error('Empty response');
+    const sectionIcons={"WHAT'S HAPPENING":'wb_cloudy','PRIMARY THREAT':'warning','AFFECTED AREA':'location_on','TIMING':'schedule'};
+    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
+    let html2=`<div style="margin-bottom:12px;font-size:0.75rem;color:var(--text4);">${concern}${states?' · '+states:''} · ${expStr}</div>`;
+    let j=0;
+    while(j<lines.length){
+      const line=lines[j];const sectionMatch=line.match(/^([A-Z'S ]+):$/);
+      if(sectionMatch){const lbl=sectionMatch[1];const body=lines[j+1]||'';const icon=sectionIcons[lbl]||'info';html2+=`<div class="disc-section"><div class="disc-section-label"><span class="msr" style="font-size:12px;vertical-align:middle;margin-right:4px;">${icon}</span>${lbl}</div><div class="disc-section-text">${body}</div></div>`;j+=2;}
+      else{html2+=`<div class="disc-section-text" style="margin-bottom:10px">${line}</div>`;j++;}
+    }
+    document.getElementById('disc-body').innerHTML=html2;
+  }catch(e){document.getElementById('disc-body').innerHTML=`<div class="disc-err">Could not load discussion (${e.message}).</div>`;}
+}
 
 // ══════════════════════════════════════════════════════
 //  INIT
@@ -1385,6 +1828,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   curLoc=loc;
   searchInput.value=loc.label;clearBtn.style.display='flex';
   document.getElementById('cur-loc-name').textContent=loc.label;
+  document.getElementById('clock-loc-name').textContent=loc.label;
+  tickClock();
   loadWeather(loc);updateRadar(loc.lat,loc.lng);
 });
 </script>
