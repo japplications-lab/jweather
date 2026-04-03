@@ -42,8 +42,6 @@
     @keyframes div-pulse-warn{0%,100%{opacity:0.4;}50%{opacity:1;}}
     .svg-pulse-emerg{animation:svg-pulse-emerg 0.8s ease-in-out infinite !important;}
     .svg-pulse-warn{animation:svg-pulse-warn 1.4s ease-in-out infinite !important;}
-    .wl-swatch.svg-pulse-emerg{animation:div-pulse-emerg 0.8s ease-in-out infinite !important;}
-    .wl-swatch.svg-pulse-warn{animation:div-pulse-warn 1.4s ease-in-out infinite !important;}
 
     /* ── HEADER ── */
     .app-header{
@@ -593,7 +591,6 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="app-header">
   <div class="logo">
     <div class="logo-mark"><span class="msr">wb_sunny</span></div>
@@ -610,13 +607,10 @@
   </div>
 </header>
 
-<!-- PAGES -->
 <div class="pages">
 
-  <!-- ══ HOME ══ -->
   <div id="page-home" class="page active">
     <div class="home-inner">
-      <!-- Current -->
       <div class="current-hero" id="current-hero">
         <div class="ch-top">
           <div>
@@ -636,7 +630,6 @@
         </div>
       </div>
 
-      <!-- Alerts -->
       <div class="card">
         <div class="card-head">
           <span class="card-label">Alerts &amp; Outlooks</span>
@@ -647,7 +640,6 @@
         </div>
       </div>
 
-      <!-- Local Radar -->
       <div class="card">
         <div class="card-head">
           <span class="card-label">Local Radar</span>
@@ -661,7 +653,6 @@
         </button>
       </div>
 
-      <!-- 7-Day -->
       <div class="card">
         <div class="card-head">
           <span class="card-label">7-Day Forecast</span>
@@ -679,7 +670,6 @@
     </div>
   </div>
 
-  <!-- ══ RADAR ══ -->
   <div id="page-radar" class="page">
     <div class="radar-wrap" style="flex:1;position:relative;">
       <iframe id="windy-frame" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=5&overlay=radar&product=radar&level=surface&lat=38.5&lon=-96&detail=false&pressure=false&message=false" allowfullscreen loading="eager"></iframe>
@@ -690,7 +680,6 @@
     </div>
   </div>
 
-  <!-- ══ OUTLOOK ══ -->
   <div id="page-outlook" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="outlook-map"></div>
@@ -709,7 +698,6 @@
     </div>
   </div>
 
-  <!-- ══ WATCHES ══ -->
   <div id="page-watches" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="watches-map"></div>
@@ -724,7 +712,6 @@
     </div>
   </div>
 
-  <!-- ══ MESO ══ -->
   <div id="page-meso" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="meso-map"></div>
@@ -740,7 +727,6 @@
     <div class="meso-controls" style="display:none;"></div>
   </div>
 
-  <!-- ══ HOURLY ══ -->
   <div id="page-hourly" class="page">
     <div class="hourly-inner" id="hourly-content">
       <div class="state-box">
@@ -750,13 +736,11 @@
     </div>
   </div>
 
-  <!-- ══ SEVERE 101 ══ -->
   <div id="page-severe101" class="page">
     <div class="s101-inner">
       <div class="s101-back" onclick="navigate('home')">
         <span class="msr">arrow_back</span>Back
       </div>
-      <!-- Watches vs Warnings -->
       <div class="s101-section">
         <div class="s101-section-head">
           <div class="s101-icon" style="background:var(--amber-dim);"><span class="msr" style="color:var(--amber);">warning</span></div>
@@ -775,7 +759,6 @@
           </div>
         </div>
       </div>
-      <!-- EF Scale -->
       <div class="s101-section">
         <div class="s101-section-head">
           <div class="s101-icon" style="background:var(--red-dim);"><span class="msr" style="color:var(--red);">tornado</span></div>
@@ -790,7 +773,6 @@
           <div class="ef-row" style="border-color:rgba(168,85,247,0.35)"><div class="ef-num" style="background:rgba(168,85,247,0.12)"><div class="ef-label" style="color:#c084fc">EF5</div><div class="ef-mph" style="color:#c084fc">>200 mph</div></div><div class="ef-body"><h4>Incredible Damage</h4><p>Structures swept away. Catastrophic destruction.</p></div></div>
         </div>
       </div>
-      <!-- Flash Floods -->
       <div class="s101-section">
         <div class="s101-section-head">
           <div class="s101-icon" style="background:var(--blue-dim);"><span class="msr" style="color:var(--blue);">water</span></div>
@@ -802,10 +784,7 @@
     </div>
   </div>
 
-</div><!-- /pages -->
-
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
+</div><nav class="bottom-nav">
   <button class="nav-tab active" id="tab-home" onclick="navigate('home')">
     <span class="msr">wb_sunny</span>Home
   </button>
@@ -820,7 +799,6 @@
   </button>
 </nav>
 
-<!-- SEVERE SHEET -->
 <div class="sheet-backdrop" id="severe-backdrop"></div>
 <div class="sheet" id="severe-sheet">
   <div class="sheet-handle"></div>
@@ -853,7 +831,6 @@
   </div>
 </div>
 
-<!-- ALERT MODAL -->
 <div id="alert-modal">
   <div class="alert-modal-box">
     <div class="am-handle"></div>
@@ -867,10 +844,8 @@
   </div>
 </div>
 
-<!-- TORNADO BACKDROP -->
 <div id="tor-banner-backdrop" onclick="dismissTorBanner()"></div>
 
-<!-- HIGH-IMPACT TORNADO ALERT BANNER -->
 <div id="tor-alert-banner">
   <div class="tab-head">
     <div class="tab-head-icon"><span class="msr">crisis_alert</span></div>
@@ -887,7 +862,6 @@
   </div>
 </div>
 
-<!-- ALERT DETAIL OVERLAY -->
 <div id="alert-overlay">
   <div class="ao-box" onclick="event.stopPropagation()">
     <div class="ao-head">
@@ -926,7 +900,6 @@
   </div>
 </div>
 
-<!-- DISCUSSION MODAL -->
 <div id="disc-modal">
   <div class="disc-box">
     <div class="disc-handle"></div>
@@ -941,7 +914,6 @@
   </div>
 </div>
 
-<!-- MESO MODAL -->
 <div id="meso-modal-backdrop" onclick="closeMesoModal()" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);"></div>
 <div id="meso-modal" style="display:none;position:fixed;inset:0;z-index:701;align-items:center;justify-content:center;padding:20px;pointer-events:none;">
   <div style="background:var(--surface);border:1px solid rgba(249,115,22,0.35);border-radius:var(--r);width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 0 40px rgba(249,115,22,0.12),0 24px 60px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:fadeIn .15s ease;">
@@ -966,7 +938,6 @@
   </div>
 </div>
 
-<!-- WATCH MODAL -->
 <div id="watch-modal-backdrop" onclick="closeWatchModal()" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);"></div>
 <div id="watch-modal" style="display:none;position:fixed;inset:0;z-index:701;align-items:center;justify-content:center;padding:20px;pointer-events:none;">
   <div id="watch-modal-box" style="background:var(--surface);border-radius:var(--r);width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:fadeIn .15s ease;">
@@ -992,10 +963,6 @@
   </div>
 </div>
 
-<!-- DESKTOP WARNING -->
-
-
-<!-- TOAST -->
 <div id="toast"><span class="msr">info</span><span id="toast-msg">—</span></div>
 
 <script>
@@ -1805,7 +1772,7 @@ function outlookPopupContent(f, mode, day) {
         15: "Significant tornado threat. Multiple tornadoes are possible — some could be strong. Take this seriously.",
         30: "Major tornado outbreak underway or expected. Strong, long-track tornadoes likely. Seek sturdy shelter now.",
         45: "Extremely dangerous tornado situation. Violent tornadoes expected across a wide area.",
-        60: "Catastrophic tornado threat. A historic outbreak is possible. This level is issued only a handful of times per decade.",
+        60: "Catastrophic tornado threat. A historic outbreak is possible. This level is issued only a few times per decade.",
       },
       wind: {
         5:  "Isolated damaging wind gusts are possible, but widespread impacts are not expected.",
@@ -2374,11 +2341,13 @@ function getAlertPriority(event){
 
 function getWatchStyle(event){
   const ev=(event||'').trim();
-  const color=SEVERE_COLORS[ev]||'#8B5CF6';
+  // Find case-insensitive match for event key in SEVERE_COLORS
+  const matchedKey = Object.keys(SEVERE_COLORS).find(k => k.toLowerCase() === ev.toLowerCase());
+  const color=matchedKey ? SEVERE_COLORS[matchedKey] : '#8B5CF6';
   const isEmerg=/emergency/i.test(ev);
   const isWarn=/warning/i.test(ev);
   const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
-  return{label:ev||'Alert',color,iconSym};
+  return{label:matchedKey || ev || 'Alert',color,iconSym};
 }
 
 function hexToRgba(hex,alpha){
@@ -2463,26 +2432,21 @@ async function fetchWarnings(){
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'}),
       fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'})
     ]);
-
-    // --- diagnostics ---
-    console.log('[watches] nws:', nwsRes.status, nwsRes.value?.ok, nwsRes.value?.status);
-    console.log('[watches] wwa0:', wwa0Res.status, wwa0Res.value?.ok, wwa0Res.value?.status);
-    console.log('[watches] wwa1:', wwa1Res.status, wwa1Res.value?.ok, wwa1Res.value?.status);
-
     let combinedFeatures=[];
     if(nwsRes.status==='fulfilled'&&nwsRes.value.ok){
       const gj=await nwsRes.value.json();
       const norm=f=>{const p=f.properties||{};const areaDesc=(p.areaDesc||p.area_desc||'').trim();const expires=p.expires||p.ends||p.expiration||null;const senderName=(p.senderName||p.sender||'NWS').trim();const nwsHeadline=(p.parameters?.NWSheadline?.[0]||p.parameters?.headline?.[0]||'').trim();const description=(p.description||p.instruction||'').trim();const headline=nwsHeadline||p.headline||p.event||'';return{...f,properties:{...p,areaDesc,expires,senderName,description,headline,event:p.event||''}};};
       combinedFeatures=(gj.features||[]).map(norm);
-      const withGeo=combinedFeatures.filter(f=>f.geometry);
-      console.log(`[watches] NWS total=${combinedFeatures.length} withGeo=${withGeo.length}`);
-      if(withGeo.length) console.log('[watches] NWS geo sample events:', [...new Set(withGeo.slice(0,10).map(f=>f.properties?.event))]);
     }
     const pushWWA=(f)=>{
       const p=f.properties||{};if(!f.geometry)return;
       const pt=(p.prod_type||'').trim();const raw=pt.toUpperCase();
-      let eventName=SEVERE_COLORS[pt]?pt:'';
-      if(!eventName){
+      let eventName='';
+      // Use case-insensitive matching against keys in SEVERE_COLORS
+      const matchedKey = Object.keys(SEVERE_COLORS).find(k => k.toLowerCase() === pt.toLowerCase());
+      if (matchedKey) {
+          eventName = matchedKey;
+      } else {
         if(raw.includes('TORNADO')&&raw.includes('EMERGENCY'))eventName='Tornado Emergency';
         else if(raw.includes('TORNADO')&&raw.includes('WARNING'))eventName='Tornado Warning';
         else if(raw.includes('TORNADO')&&raw.includes('WATCH'))eventName='Tornado Watch';
@@ -2503,11 +2467,7 @@ async function fetchWarnings(){
         else if(raw.includes('STORM SURGE')&&raw.includes('WARNING'))eventName='Storm Surge Warning';
         else if(raw.includes('STORM SURGE')&&raw.includes('WATCH'))eventName='Storm Surge Watch';
       }
-      if(!eventName){
-        console.log('[watches] WWA unmatched prod_type:', JSON.stringify(pt));
-        return;
-      }
-      if(!SEVERE_COLORS[eventName])return;
+      if(!eventName || !Object.keys(SEVERE_COLORS).some(k => k.toLowerCase() === eventName.toLowerCase())) return;
       const areaDesc=(p.area_desc||p.areaDesc||p.states||'').trim();
       const rawExp=p.expiration||p.ends||p.end||null;
       let expires=rawExp;
@@ -2516,22 +2476,13 @@ async function fetchWarnings(){
       else if(typeof rawExp==='string')expires=rawExp;
       combinedFeatures.push({...f,properties:{...p,event:eventName,areaDesc,expires,senderName:p.wfo||'NWS',description:'',headline:eventName,url:p.url||p.cap_id||''}});
     };
-    if(wwa0Res.status==='fulfilled'&&wwa0Res.value.ok){
-      const gj=await wwa0Res.value.json();
-      console.log(`[watches] WWA layer0 features: ${(gj.features||[]).length}, sample prod_types:`, [...new Set((gj.features||[]).slice(0,5).map(f=>f.properties?.prod_type))]);
-      (gj.features||[]).forEach(pushWWA);
-    }
-    if(wwa1Res.status==='fulfilled'&&wwa1Res.value.ok){
-      const gj=await wwa1Res.value.json();
-      console.log(`[watches] WWA layer1 features: ${(gj.features||[]).length}, sample prod_types:`, [...new Set((gj.features||[]).slice(0,5).map(f=>f.properties?.prod_type))]);
-      (gj.features||[]).forEach(pushWWA);
-    }
+    if(wwa0Res.status==='fulfilled'&&wwa0Res.value.ok){const gj=await wwa0Res.value.json();(gj.features||[]).forEach(pushWWA);}
+    if(wwa1Res.status==='fulfilled'&&wwa1Res.value.ok){const gj=await wwa1Res.value.json();(gj.features||[]).forEach(pushWWA);}
     combinedFeatures.forEach(f=>{
       const p=f.properties||{};const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
       if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
       else if(p.event==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))p.event='Flash Flood Emergency';
     });
-    // Dedup: for warnings (not watches), if NWS has real description+geometry, drop empty WWA duplicates
     const nwsWithDesc=new Set(
       combinedFeatures
         .filter(f=>f.geometry&&(f.properties?.description||'').length>20&&!/watch/i.test(f.properties?.event||''))
@@ -2545,9 +2496,8 @@ async function fetchWarnings(){
       if(!nwsWithDesc.has(ev))return true;
       return false;
     });
-    activeWarnings=deduped.filter(f=>f.geometry&&f.properties&&SEVERE_COLORS.hasOwnProperty(f.properties?.event||''));
-    console.log(`[watches] combined=${combinedFeatures.length} deduped=${deduped.length} final activeWarnings=${activeWarnings.length}`);
-    if(activeWarnings.length) console.log('[watches] activeWarnings events:', activeWarnings.map(f=>f.properties?.event));
+    // Ensure case-insensitive check against keys
+    activeWarnings=deduped.filter(f=>f.geometry&&f.properties&&Object.keys(SEVERE_COLORS).some(k => k.toLowerCase() === (f.properties?.event||'').toLowerCase()));
     activeWarnings.sort((a,b)=>getAlertPriority(b.properties.event)-getAlertPriority(a.properties.event));
     activeWatches=[];
     renderWatchesMap(activeWarnings);
@@ -2585,9 +2535,14 @@ function isLifeThreatening(feat){
 }
 
 function renderWatchesMap(features){
-  const newLayer=L.geoJSON({type:'FeatureCollection',features},{
+  // Sort so higher urgency (Warnings) is drawn on top of Watches
+  const sorted = [...features].sort((a,b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
+  
+  const newLayer = L.geoJSON({type:'FeatureCollection',features: sorted},{
     style:feat=>{
-      const ev=feat.properties?.event||'';const lifeThreat=isLifeThreatening(feat);const color=lifeThreat?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
+      const ev=feat.properties?.event||'';const lifeThreat=isLifeThreatening(feat);
+      const styleConfig = getWatchStyle(ev);
+      const color=lifeThreat?'#FF1493': styleConfig.color;
       const isWatch=/watch/i.test(ev);const isTorWarn=/tornado warning/i.test(ev)&&!lifeThreat;
       return{fillColor:color,fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.18:0.25),color,weight:lifeThreat?3.5:(isWatch?1.5:2),opacity:1};
     },
@@ -2632,7 +2587,8 @@ function updateWatchLegend(features){
     const ev=(f.properties?.event||'').trim();if(!ev)return;
     const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;else if(pulse==='warn')hasWarnPulse=true;
-    const{color,label}=isLifeThreatening(f)?{color:'#FF1493',label:getWatchStyle(ev).label}:getWatchStyle(ev);
+    const styleRes = getWatchStyle(ev);
+    const{color,label}=isLifeThreatening(f)?{color:'#FF1493',label:styleRes.label}:styleRes;
     if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
     else{if(!seenWarn.has(ev))seenWarn.set(ev,{color,label});}
   });
@@ -2691,8 +2647,11 @@ async function openAlertOverlay(feat){
   const threatEl=document.getElementById('ao-primary-threat');
   threatEl.innerHTML='—';threatEl.style.color='';
   const descUpper=(rawDesc||rawHeadline||'').toUpperCase();
+  const eventUpper = (p.event || '').toUpperCase();
   const hasTorPoss=descUpper.includes('TORNADO...POSSIBLE')||descUpper.includes('TORNADO POSSIBLE');
-  if(!isWatch&&hasTorPoss){
+  
+  // FIXED: Tornado Possible warning is only shown for Severe Thunderstorm Warnings
+  if(eventUpper.includes('SEVERE THUNDERSTORM WARNING') && hasTorPoss){
     threatEl.innerHTML=`<span style="color:#FFFF00;font-weight:900;animation:blink-warn 0.8s step-start infinite;">⚠ TORNADO POSSIBLE!</span>`;
   }
   document.getElementById('ao-expires').textContent=exp;
@@ -2731,8 +2690,12 @@ async function openAlertOverlay(feat){
       if(match){
         const lbl=match[1];const body=lines[i+1]||'';const icon=sectionIcons[lbl]||'info';
         if(lbl==='THREAT'){
+          const isSVR_AI = eventUpper.includes('SEVERE THUNDERSTORM WARNING');
           const hasTorPossible=/tornado possible/i.test(body);
-          if(hasTorPossible){const baseThreat=body.replace(/[·\-,]?\s*tornado possible\s*[·\-,]?/i,'').replace(/\s{2,}/g,' ').trim();threatEl.innerHTML=(baseThreat?`<span>${baseThreat} · </span>`:'')+`<span style="color:#FFFF00;animation:blink-warn 0.8s step-start infinite;font-weight:800;">⚠ TORNADO POSSIBLE!</span>`;}
+          if(isSVR_AI && hasTorPossible){
+              const baseThreat=body.replace(/[·\-,]?\s*tornado possible\s*[·\-,]?/i,'').replace(/\s{2,}/g,' ').trim();
+              threatEl.innerHTML=(baseThreat?`<span>${baseThreat} · </span>`:'')+`<span style="color:#FFFF00;animation:blink-warn 0.8s step-start infinite;font-weight:800;">⚠ TORNADO POSSIBLE!</span>`;
+          }
           else{threatEl.innerHTML=`<span>${body}</span>`;threatEl.style.color='';}
           i+=2;continue;
         }
@@ -2828,7 +2791,6 @@ async function loadMeso(){
     try{ data=JSON.parse(text); }catch(e){ throw new Error('Invalid JSON from NOAA'); }
     const now=Date.now();
     const allFeatures=data.features||[];
-    // Filter out NOAA "NoArea" sentinel records and expired features
     mesoData=allFeatures.filter(f=>{
       const p=f.properties||{};
       if(p.name==='NoArea'||p.folderpath===null&&p.popupinfo===null&&(p['st_area(shape)']||0)<0.001) return false;
@@ -2854,26 +2816,21 @@ async function showMesoDetail(feat,i){
   const area=p.affected||p.area||p.affected_area||'';
   const exp=p.expire||p.expireTime;
   const expStr=exp?new Date(exp).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-  // Extract just the 4-digit number regardless of format (e.g. "MD 0285" → "0285")
   const numStr=String(num).replace(/[^0-9]/g,'').padStart(4,'0');
-  const displayNum=numStr; // always show as plain number
+  const displayNum=numStr;
   const year=new Date().getFullYear();
 
-  // Populate header
   document.getElementById('meso-modal-num').textContent=`Mesoscale Discussion #${displayNum}`;
 
-  // Badges
   let badges=`<span class="meso-badge meso-badge-concern"><span class="msr">crisis_alert</span>${concern}</span>`;
   if(area) badges+=`<span class="meso-badge meso-badge-area"><span class="msr">location_on</span>${area}</span>`;
   if(expStr!=='—') badges+=`<span class="meso-badge meso-badge-expire"><span class="msr">schedule</span>${expStr}</span>`;
   document.getElementById('meso-modal-badges').innerHTML=badges;
 
-  // Show modal
   document.getElementById('meso-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:16px 0;"><div class="spin-ring"></div>Fetching discussion…</div>`;
   document.getElementById('meso-modal-backdrop').style.display='block';
   document.getElementById('meso-modal').style.display='flex';
 
-  // Fit map bounds
   if(mesoMap&&feat.geometry){
     try{
       const coords=feat.geometry.coordinates[0];
@@ -2917,7 +2874,6 @@ Be direct and specific. Avoid meteorological jargon. No extra text outside the 4
     const summary=(aiData.content?.[0]?.text||'').trim();
     if(!summary) throw new Error('Empty response');
 
-    // Parse sections
     const sectionIcons={
       "WHAT'S HAPPENING":'wb_cloudy',
       'PRIMARY THREAT':'warning',
@@ -2951,12 +2907,9 @@ function closeMesoModal(){
 function closeMesoSheet(){ closeMesoModal(); }
 function closeMesoDetail(){ closeMesoModal(); }
 
-function renderMesoChips(features){ /* chips removed — map polygons are the only interaction */ }
-
 function renderMesoMap(features){
   Object.values(mesoLayers).forEach(l=>mesoMap.removeLayer(l));
   mesoLayers={};
-  console.log('renderMesoMap called with',features.length,'features');
   if(!features.length) return;
   mesoMap.invalidateSize();
   mesoLayers.all=L.geoJSON({type:'FeatureCollection',features},{
@@ -2965,7 +2918,6 @@ function renderMesoMap(features){
       lyr.on('click',()=>{
         const idx=mesoData.findIndex(f=>f===feat);
         if(idx>=0){
-          // Zoom to clicked polygon
           try{
             const bounds=lyr.getBounds();
             if(bounds.isValid()) mesoMap.fitBounds(bounds,{padding:[60,60]});
@@ -2990,12 +2942,4 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadWeather(loc);
   updateRadar(loc.lat,loc.lng);
 
-  // Redirect desktop users immediately
-  if(window.innerWidth>=768){
-    window.location.replace('desktop.html');
-    return;
-  }
-});
-</script>
-</body>
-</html>
+  if(window.innerWidth>=
