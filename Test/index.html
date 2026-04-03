@@ -2428,10 +2428,20 @@ async function fetchWarnings(){
       if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
       else if(p.event==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))p.event='Flash Flood Emergency';
     });
-    const nwsWithDesc=new Set(combinedFeatures.filter(f=>f.geometry&&(f.properties?.description||'').length>20).map(f=>f.properties?.event||'').filter(Boolean));
+    // Dedup: for warnings (not watches), if NWS has real description+geometry, drop empty WWA duplicates
+    const nwsWithDesc=new Set(
+      combinedFeatures
+        .filter(f=>f.geometry&&(f.properties?.description||'').length>20&&!/watch/i.test(f.properties?.event||''))
+        .map(f=>f.properties?.event||'')
+        .filter(Boolean)
+    );
     const deduped=combinedFeatures.filter(f=>{
       const ev=f.properties?.event||'';
+      // Always keep watches — their polygons only come from WWA layer
+      if(/watch/i.test(ev))return true;
+      // Keep if it has real description text
       if((f.properties?.description||'').length>20)return true;
+      // Keep if NWS didn't supply this event type with geometry+description
       if(!nwsWithDesc.has(ev))return true;
       return false;
     });
