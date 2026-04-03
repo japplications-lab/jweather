@@ -2358,6 +2358,15 @@ const SEVERE_COLORS={
   'Storm Surge Watch':'#DB70DB',
 };
 
+// Case-insensitive SEVERE_COLORS lookup — WWA feeds can return uppercase strings
+function severeLookup(event){
+  if(!event)return null;
+  if(SEVERE_COLORS[event])return{key:event,color:SEVERE_COLORS[event]};
+  const lower=event.toLowerCase();
+  const found=Object.keys(SEVERE_COLORS).find(k=>k.toLowerCase()===lower);
+  return found?{key:found,color:SEVERE_COLORS[found]}:null;
+}
+
 function getAlertPriority(event){
   const ev=event||'';
   if(/tornado emergency|flash flood emergency/i.test(ev))return 0;
@@ -2374,11 +2383,13 @@ function getAlertPriority(event){
 
 function getWatchStyle(event){
   const ev=(event||'').trim();
-  const color=SEVERE_COLORS[ev]||'#8B5CF6';
-  const isEmerg=/emergency/i.test(ev);
-  const isWarn=/warning/i.test(ev);
+  const found=severeLookup(ev);
+  const color=found?found.color:'#8B5CF6';
+  const key=found?found.key:ev;
+  const isEmerg=/emergency/i.test(key);
+  const isWarn=/warning/i.test(key);
   const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
-  return{label:ev||'Alert',color,iconSym};
+  return{label:key||ev||'Alert',color,iconSym};
 }
 
 function hexToRgba(hex,alpha){
@@ -2409,6 +2420,21 @@ function extractPrimaryThreat(event,desc){
 }
 
 let _shownTorAlertIds=new Set();
+let _seenWarningIds=new Set(); // tracks all active warning IDs for new-warning audio
+
+function playNewWarningSound(isHighPriority){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(isHighPriority){
+      // Three-tone ascending ding (tornado / emergency)
+      const playDing=(time,freq)=>{const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(freq,time);gain.gain.setValueAtTime(0,time);gain.gain.linearRampToValueAtTime(0.35,time+0.01);gain.gain.exponentialRampToValueAtTime(0.001,time+0.7);osc.start(time);osc.stop(time+0.7);};
+      playDing(ctx.currentTime,880);playDing(ctx.currentTime+0.3,1046);playDing(ctx.currentTime+0.6,1318);
+    }else{
+      // Single softer ding (SVR / other warnings)
+      const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(660,ctx.currentTime);gain.gain.setValueAtTime(0,ctx.currentTime);gain.gain.linearRampToValueAtTime(0.25,ctx.currentTime+0.01);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.6);
+    }
+  }catch{}
+}
 
 // ══════════════════════════════════════════════════════
 //  WATCHES MAP
@@ -2507,7 +2533,7 @@ async function fetchWarnings(){
         console.log('[watches] WWA unmatched prod_type:', JSON.stringify(pt));
         return;
       }
-      if(!SEVERE_COLORS[eventName])return;
+      if(!severeLookup(eventName))return;
       const areaDesc=(p.area_desc||p.areaDesc||p.states||'').trim();
       const rawExp=p.expiration||p.ends||p.end||null;
       let expires=rawExp;
@@ -2545,11 +2571,32 @@ async function fetchWarnings(){
       if(!nwsWithDesc.has(ev))return true;
       return false;
     });
-    activeWarnings=deduped.filter(f=>f.geometry&&f.properties&&SEVERE_COLORS.hasOwnProperty(f.properties?.event||''));
+    const _severeKeys=Object.keys(SEVERE_COLORS).map(k=>k.toLowerCase());
+    activeWarnings=deduped.filter(f=>{
+      if(!f.geometry||!f.properties)return false;
+      const ev=(f.properties.event||'').toLowerCase();
+      return _severeKeys.includes(ev);
+    });
     console.log(`[watches] combined=${combinedFeatures.length} deduped=${deduped.length} final activeWarnings=${activeWarnings.length}`);
     if(activeWarnings.length) console.log('[watches] activeWarnings events:', activeWarnings.map(f=>f.properties?.event));
     activeWarnings.sort((a,b)=>getAlertPriority(b.properties.event)-getAlertPriority(a.properties.event));
     activeWatches=[];
+
+    // Detect genuinely new warnings and play audio once per new event
+    let newHighPriority=false, newNormalPriority=false;
+    const currentIds=new Set();
+    activeWarnings.forEach(f=>{
+      const id=f.properties?.id||f.properties?.cap_id||f.properties?.url||JSON.stringify({ev:f.properties?.event,exp:f.properties?.expires});
+      currentIds.add(id);
+      if(!_seenWarningIds.has(id)){
+        const ev=(f.properties?.event||'').toLowerCase();
+        if(/tornado warning|tornado emergency|flash flood emergency/.test(ev))newHighPriority=true;
+        else if(/severe thunderstorm warning|flash flood warning/.test(ev))newNormalPriority=true;
+      }
+    });
+    _seenWarningIds=currentIds; // replace with current set so expired warnings are removed
+    if(newHighPriority)playNewWarningSound(true);
+    else if(newNormalPriority)playNewWarningSound(false);
     renderWatchesMap(activeWarnings);
     updateWatchLegend(activeWarnings);
   }catch(e){console.error('fetchWarnings Error:',e);}
@@ -2585,9 +2632,12 @@ function isLifeThreatening(feat){
 }
 
 function renderWatchesMap(features){
-  const newLayer=L.geoJSON({type:'FeatureCollection',features},{
+  // Sort ascending by priority so lowest-priority (watches) render first, warnings on top
+  const sorted=[...features].sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
+  const newLayer=L.geoJSON({type:'FeatureCollection',features:sorted},{
     style:feat=>{
-      const ev=feat.properties?.event||'';const lifeThreat=isLifeThreatening(feat);const color=lifeThreat?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
+      const ev=feat.properties?.event||'';const lifeThreat=isLifeThreatening(feat);
+      const found=severeLookup(ev);const color=lifeThreat?'#FF1493':(found?found.color:'#8B5CF6');
       const isWatch=/watch/i.test(ev);const isTorWarn=/tornado warning/i.test(ev)&&!lifeThreat;
       return{fillColor:color,fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.18:0.25),color,weight:lifeThreat?3.5:(isWatch?1.5:2),opacity:1};
     },
@@ -2614,7 +2664,7 @@ function renderWatchesMap(features){
     if(!allReady&&attempts++<20)requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
-  features.forEach(feat=>{
+  sorted.forEach(feat=>{
     const p=feat.properties||{};
     if(shouldPulse(feat)==='emerg'&&/tornado warning/i.test(p.event||'')){
       const id=p.id||p.cap_id||p.url||JSON.stringify({ev:p.event,exp:p.expires});
@@ -2691,8 +2741,9 @@ async function openAlertOverlay(feat){
   const threatEl=document.getElementById('ao-primary-threat');
   threatEl.innerHTML='—';threatEl.style.color='';
   const descUpper=(rawDesc||rawHeadline||'').toUpperCase();
-  const hasTorPoss=descUpper.includes('TORNADO...POSSIBLE')||descUpper.includes('TORNADO POSSIBLE');
-  if(!isWatch&&hasTorPoss){
+  const hasTorPoss=/severe thunderstorm warning/i.test(p.event||'')&&
+    (descUpper.includes('TORNADO...POSSIBLE')||descUpper.includes('TORNADO POSSIBLE'));
+  if(hasTorPoss){
     threatEl.innerHTML=`<span style="color:#FFFF00;font-weight:900;animation:blink-warn 0.8s step-start infinite;">⚠ TORNADO POSSIBLE!</span>`;
   }
   document.getElementById('ao-expires').textContent=exp;
