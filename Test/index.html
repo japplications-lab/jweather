@@ -2329,6 +2329,88 @@ document.querySelector('.outlook-controls').addEventListener('click', e => {
   if (!e.target.closest('#ol-disc-btn')) closeDiscModal();
 });
 
+// ══════════════════════════════════════════════════════
+//  WATCHES & WARNINGS CONSTANTS + HELPERS
+// ══════════════════════════════════════════════════════
+const SEVERE_COLORS={
+  'Tornado Emergency':'#FF1493',
+  'Flash Flood Emergency':'#8B0000',
+  'Tornado Warning':'#FF0000',
+  'Tornado Watch':'#FFFF00',
+  'Severe Thunderstorm Warning':'#FFA500',
+  'Severe Thunderstorm Watch':'#DB7093',
+  'Extreme Wind Warning':'#FF8C00',
+  'High Wind Warning':'#DAA520',
+  'High Wind Watch':'#B8860B',
+  'Flash Flood Warning':'#00FF00',
+  'Flash Flood Watch':'#2E8B57',
+  'Flash Flood Statement':'#00EE76',
+  'Flood Warning':'#00CC44',
+  'Flood Watch':'#2E8B57',
+  'Flood Statement':'#00EE76',
+  'Areal Flood Warning':'#00CC44',
+  'Areal Flood Watch':'#2E8B57',
+  'Hurricane Warning':'#DC143C',
+  'Hurricane Watch':'#FF00FF',
+  'Tropical Storm Warning':'#B22222',
+  'Tropical Storm Watch':'#F08080',
+  'Storm Surge Warning':'#B524F7',
+  'Storm Surge Watch':'#DB70DB',
+};
+
+function getAlertPriority(event){
+  const ev=event||'';
+  if(/tornado emergency|flash flood emergency/i.test(ev))return 0;
+  if(/tornado warning/i.test(ev))return 1;
+  if(/extreme wind warning|hurricane warning|storm surge warning/i.test(ev))return 2;
+  if(/severe thunderstorm warning|flash flood warning/i.test(ev))return 3;
+  if(/tropical storm warning|flood warning|areal flood warning|high wind warning/i.test(ev))return 4;
+  if(/tornado watch|severe thunderstorm watch/i.test(ev))return 5;
+  if(/flash flood watch|flood watch|areal flood watch/i.test(ev))return 6;
+  if(/watch/i.test(ev))return 7;
+  if(/statement/i.test(ev))return 8;
+  return 9;
+}
+
+function getWatchStyle(event){
+  const ev=(event||'').trim();
+  const color=SEVERE_COLORS[ev]||'#8B5CF6';
+  const isEmerg=/emergency/i.test(ev);
+  const isWarn=/warning/i.test(ev);
+  const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
+  return{label:ev||'Alert',color,iconSym};
+}
+
+function hexToRgba(hex,alpha){
+  hex=hex.replace('#','');
+  if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+  const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
+  return`rgba(${r},${g},${b},${alpha})`;
+}
+
+function parseAlertDate(raw){
+  if(!raw)return null;
+  if(typeof raw==='number'||/^\d{10,13}$/.test(String(raw))){
+    const ms=parseInt(raw,10);return new Date(ms>9999999999?ms:ms*1000);
+  }
+  const d=new Date(raw);return isNaN(d.getTime())?null:d;
+}
+
+function extractPrimaryThreat(event,desc){
+  const ev=(event||'').toUpperCase();const d=(desc||'').toUpperCase();const threats=[];
+  const windMatch=d.match(/(\d{2,3})\s*(?:TO\s*\d+\s*)?[-\s]?MPH/);
+  if(windMatch)threats.push(`${windMatch[1]} mph winds`);
+  const hailMatch=d.match(/(\d+\.?\d*)\s*(?:IN(?:CH)?|INCH)\s*HAIL|(\bPENNY\b|\bQUARTER\b|\bGOLF BALL\b|\bBASEBALL\b|\bSOFTBALL\b)\s*SIZE\s*HAIL/i);
+  if(hailMatch){const sizeWord={PENNY:'0.75"',QUARTER:'1"','GOLF BALL':'1.75"',BASEBALL:'2.75"',SOFTBALL:'4"'};const word=(hailMatch[2]||'').toUpperCase();threats.push(sizeWord[word]?`${sizeWord[word]} hail`:`${hailMatch[1]}" hail`);}
+  if(d.includes('TORNADO POSSIBLE')||d.includes('TORNADOES POSSIBLE'))threats.push('Tornado Possible');
+  if(ev.includes('TORNADO WARNING')&&!threats.length)return'Tornado';
+  if((ev.includes('FLASH FLOOD')||ev.includes('FLOOD'))&&!threats.length)return'Flash Flooding';
+  return threats.join(' · ')||'—';
+}
+
+let _shownTorAlertIds=new Set();
+
+// ══════════════════════════════════════════════════════
 //  WATCHES MAP
 // ══════════════════════════════════════════════════════
 let radarLayer=null;
