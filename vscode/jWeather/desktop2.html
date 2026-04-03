@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>jWeather — Desktop v2.0</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b0d11; --surface: #14171d; --surface-2: #1c2129;
+      --accent: #f97316; --accent-dim: rgba(249,115,22,0.15);
+      --text: #ffffff; --text-dim: #94a3b8;
+      --emerg: #FF1493; --warn: #ef4444; --watch: #eab308;
+      --sidebar-w: 260px; --border: rgba(255,255,255,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    .msr { font-family: 'Material Symbols Rounded'; font-weight: normal; font-size: 20px; display: inline-block; vertical-align: middle; }
+
+    /* Animations for Life-Threatening Weather */
+    @keyframes pulse-emerg { 0%, 100% { fill-opacity: 0.3; stroke-width: 2px; } 50% { fill-opacity: 0.85; stroke-width: 6px; stroke: #fff; } }
+    .svg-pulse-emerg { animation: pulse-emerg 0.8s ease-in-out infinite !important; }
+
+    /* Sidebar Navigation */
+    aside { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; }
+    .brand { padding: 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+    .logo { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
+    nav { flex: 1; padding: 12px; overflow-y: auto; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; color: var(--text-dim); cursor: pointer; transition: 0.2s; font-size: 0.9rem; margin-bottom: 4px; }
+    .nav-item:hover { background: var(--surface-2); color: white; }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+
+    /* Main Content Area */
+    main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+    header { height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; background: var(--surface); justify-content: space-between; }
+    
+    .search-box { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); width: 300px; }
+    .search-box input { background: transparent; border: none; outline: none; color: white; width: 100%; font-size: 0.85rem; }
+
+    /* Page Views */
+    .view { display: none; flex: 1; height: 100%; position: relative; }
+    .view.active { display: flex; }
+
+    /* Dashboard/Home Layout */
+    .dashboard { display: grid; grid-template-columns: 1fr 350px; grid-template-rows: auto 1fr; gap: 20px; padding: 20px; width: 100%; overflow-y: auto; }
+    .card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 24px; position: relative; overflow: hidden; }
+    .hero { grid-column: 1 / 2; background: linear-gradient(135deg, var(--accent), #ca8a04); border: none; }
+    .temp { font-size: 5rem; font-weight: 800; line-height: 1; margin: 10px 0; }
+    
+    /* Global Map Elements */
+    .map-frame { width: 100%; height: 100%; background: #000; }
+    .map-overlay { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); padding: 12px 20px; border-radius: 30px; border: 1px solid var(--border); font-weight: 700; font-size: 0.8rem; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+<aside>
+  <div class="brand"><div class="logo"><span class="msr">partly_cloudy_day</span></div><span style="font-weight:900">jWeather</span></div>
+  <nav>
+    <div class="nav-item active" onclick="switchView('home', this)"><span class="msr">dashboard</span>Dashboard</div>
+    <div class="nav-item" onclick="switchView('radar', this)"><span class="msr">radar</span>Live Radar</div>
+    <div class="nav-item" onclick="switchView('warnings', this)"><span class="msr">warning</span>Watches & Warnings</div>
+    <div class="nav-item" onclick="switchView('outlook', this)"><span class="msr">thunderstorm</span>Severe Outlook</div>
+  </nav>
+</aside>
+
+<main>
+  <header>
+    <div class="search-box">
+      <span class="msr">search</span>
+      <input type="text" id="loc-search" placeholder="Enter City or Zip..." onkeypress="if(event.key==='Enter') searchLocation()">
+    </div>
+    <div id="clock" style="font-variant-numeric: tabular-nums; font-weight: 700;">12:00 PM</div>
+  </header>
+
+  <div id="view-home" class="view active">
+    <div class="dashboard">
+      <div class="card hero">
+        <h2 id="display-city">Kansas City, MO</h2>
+        <div class="temp" id="display-temp">--°</div>
+        <div id="display-desc" style="font-weight: 600;">Loading weather data...</div>
+      </div>
+      <div class="card" style="grid-row: 1 / 3;">
+        <h4 style="color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.1em; margin-bottom: 15px;">Local Hazards</h4>
+        <div id="local-alerts-list" style="display: flex; flex-direction: column; gap: 10px;">
+          </div>
+      </div>
+      <div class="card" style="padding: 0; min-height: 300px;">
+        <div id="home-map" class="map-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-warnings" class="view">
+    <div class="map-overlay">Active <span style="color:var(--accent)">Watches & Warnings</span></div>
+    <div id="wwa-map" class="map-frame"></div>
+  </div>
+
+  <div id="view-radar" class="view">
+    <div class="map-overlay">NEXRAD <span style="color:var(--accent)">High-Res Reflectivity</span></div>
+    <div id="radar-map" class="map-frame"></div>
+  </div>
+</main>
+
+<script>
+/** * APP ENGINE
+ */
+const API = 'https://proxy.jweather.app';
+let currentCoords = { lat: 39.0997, lon: -94.5786 }; // Default: Kansas City
+let maps = {};
+
+// 1. Initialize App
+window.onload = () => {
+  updateClock();
+  setInterval(updateClock, 1000);
+  initMaps();
+  loadWeatherData();
+};
+
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+}
+
+// 2. View Management
+function switchView(viewId, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`view-${viewId}`).classList.add('active');
+  el.classList.add('active');
+  
+  // Force map resize
+  if (maps[viewId]) maps[viewId].invalidateSize();
+}
+
+// 3. Weather Data Logic
+async function loadWeatherData() {
+  try {
+    const pts = await fetch(`${API}/nws/points/${currentCoords.lat},${currentCoords.lon}`).then(r => r.json());
+    const obs = await fetch(pts.properties.observationStations.replace('https://api.weather.gov', API)).then(r => r.json());
+    const latest = await fetch(`${obs.features[0].id.replace('https://api.weather.gov', API)}/observations/latest`).then(r => r.json());
+    
+    const props = latest.properties;
+    document.getElementById('display-temp').textContent = `${Math.round(props.temperature.value * 9/5 + 32)}°`;
+    document.getElementById('display-desc').textContent = props.textDescription;
+    
+    loadLocalAlerts();
+  } catch (e) { console.error("Weather Load Error:", e); }
+}
+
+async function loadLocalAlerts() {
+  const list = document.getElementById('local-alerts-list');
+  try {
+    const alerts = await fetch(`${API}/nws/alerts/active?point=${currentCoords.lat},${currentCoords.lon}`).then(r => r.json());
+    list.innerHTML = alerts.features.length ? "" : "<p style='color:var(--text-dim); font-size:0.8rem;'>No active alerts.</p>";
+    
+    alerts.features.forEach(f => {
+      const div = document.createElement('div');
+      div.style.cssText = "padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); border-left: 4px solid var(--warn); font-size: 0.85rem;";
+      div.innerHTML = `<strong>${f.properties.event}</strong><br><span style="font-size:0.7rem; opacity:0.7;">Until ${new Date(f.properties.expires).toLocaleTimeString()}</span>`;
+      list.appendChild(div);
+    });
+  } catch (e) { list.innerHTML = "Error loading alerts."; }
+}
+
+// 4. Map Logic (Triple-Source Implementation)
+function initMaps() {
+  // Common Dark Theme
+  const tiles = () => L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png');
+
+  // Dashboard Map
+  maps.home = L.map('home-map', { zoomControl: false, attributionControl: false }).setView([currentCoords.lat, currentCoords.lon], 9);
+  tiles().addTo(maps.home);
+
+  // WWA Map
+  maps.warnings = L.map('wwa-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
+  tiles().addTo(maps.warnings);
+  fetchGlobalAlerts(maps.warnings);
+  
+  // Radar Map
+  maps.radar = L.map('radar-map', { zoomControl: false, attributionControl: false }).setView([38.5, -96], 4);
+  tiles().addTo(maps.radar);
+  L.tileLayer.wms("https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi", {
+    layers: 'nexrad-n0q-900913', format: 'image/png', transparent: true, opacity: 0.5
+  }).addTo(maps.radar);
+}
+
+async function fetchGlobalAlerts(map) {
+  try {
+    const res = await fetch(`${API}/nws/alerts/active?status=actual`).then(r => r.json());
+    L.geoJSON(res, {
+      style: (f) => {
+        const ev = f.properties.event;
+        const isEmerg = /emergency/i.test(ev); // Pink Emergency Logic
+        return { 
+          fillColor: isEmerg ? '#FF1493' : '#ef4444', 
+          fillOpacity: 0.4, weight: isEmerg ? 3 : 1, color: isEmerg ? '#FF1493' : '#ef4444' 
+        };
+      },
+      onEachFeature: (f, lyr) => {
+        // High-Impact IBW Pulsing
+        if (/emergency/i.test(f.properties.event) || (f.properties.description || "").includes("CATASTROPHIC")) {
+          setTimeout(() => { if (lyr._path) lyr._path.classList.add('svg-pulse-emerg'); }, 100);
+        }
+        lyr.bindPopup(`<strong>${f.properties.event}</strong><br>${f.properties.headline}`);
+      }
+    }).addTo(map);
+  } catch (e) { console.error("Global Alerts Load Error"); }
+}
+
+async function searchLocation() {
+  const query = document.getElementById('loc-search').value;
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`).then(r => r.json());
+    if (res.length) {
+      currentCoords = { lat: parseFloat(res[0].lat), lon: parseFloat(res[0].lon) };
+      document.getElementById('display-city').textContent = res[0].display_name.split(',')[0];
+      maps.home.setView([currentCoords.lat, currentCoords.lon], 9);
+      loadWeatherData();
+    }
+  } catch (e) { alert("Location not found."); }
+}
+</script>
+
+</body>
+</html>
