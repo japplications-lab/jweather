@@ -529,6 +529,8 @@
     #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
     /* Leaflet overrides */
+    .leaflet-container{background:#111318!important;}
+    .leaflet-tile-pane{will-change:transform;}
     .leaflet-control-zoom{border:1px solid var(--border2)!important;border-radius:var(--r-sm)!important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.4)!important;}
     .leaflet-control-zoom-in,.leaflet-control-zoom-out{background:var(--surface)!important;color:var(--text2)!important;border-bottom:1px solid var(--border2)!important;width:34px!important;height:34px!important;line-height:34px!important;font-size:16px!important;}
     .leaflet-control-zoom-in:hover,.leaflet-control-zoom-out:hover{background:var(--surface2)!important;}
@@ -885,7 +887,7 @@ const OUTLOOK_LAYER_IDS = {
 };
 const OUTLOOK_SIG_IDS = {'1-torn':2,'1-hail':4,'1-wind':6,'2-torn':10,'2-hail':12,'2-wind':14};
 const OUTLOOK_CAT = {
-  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'Thunderstorms' },
+  'TSTM':{ fill:'#4ade80', stroke:'#16a34a', label:'Thunderstorms' },
   'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'       },
   'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'         },
   'ENH': { fill:'#e88020', stroke:'#b05000', label:'Enhanced'       },
@@ -1446,9 +1448,9 @@ function initOutlookMap(){
   outlookMap.createPane('outlookPane');outlookMap.getPane('outlookPane').style.zIndex=310;
   outlookMap._outlookRenderer=L.svg({pane:'outlookPane'}).addTo(outlookMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(outlookMap);
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(outlookMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(outlookMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(outlookMap);
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(outlookMap)).catch(()=>{});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(outlookMap);
   // Hatch pattern for significant threat areas
   const svgNS='http://www.w3.org/2000/svg';
   const cigDefs=document.createElementNS(svgNS,'defs');
@@ -1536,7 +1538,7 @@ function outlookStyleFeature(f,mode){
   if(mode==='cat'){
     const raw=(p.LABEL||p.label||p.DN||'').toString().toUpperCase().trim();
     const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
-    if(key==='TSTM')return{fillColor:'#c8eec8',color:'#90c890',weight:1,fillOpacity:0.45,opacity:0.7};
+    if(key==='TSTM')return{fillColor:'#4ade80',color:'#16a34a',weight:1,fillOpacity:0.35,opacity:0.7};
     if(!key||!OUTLOOK_CAT[key])return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0,interactive:false};
     const c=OUTLOOK_CAT[key];
     return{fillColor:c.fill,color:c.stroke,weight:1.2,fillOpacity:0.82,opacity:1};
@@ -1834,10 +1836,8 @@ function closeDiscModal(){document.getElementById('disc-modal').classList.remove
 document.getElementById('disc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('disc-modal'))closeDiscModal();});
 
 // ══════════════════════════════════════════════════════
-//  WATCHES & WARNINGS — CLEAN REBUILD
+//  WATCHES & WARNINGS
 // ══════════════════════════════════════════════════════
-
-// ── Priority & style helpers ──────────────────────────
 function getAlertPriority(event){
   const ev=event||'';
   if(/tornado emergency|flash flood emergency/i.test(ev))return 0;
@@ -1851,77 +1851,25 @@ function getAlertPriority(event){
   if(/statement/i.test(ev))return 8;
   return 9;
 }
-
 function getWatchStyle(event){
-  const ev=(event||'').trim();
-  const color=SEVERE_COLORS[ev]||'#8B5CF6';
-  const isEmerg=/emergency/i.test(ev);
-  const isWarn=/warning/i.test(ev);
+  const ev=(event||'').trim();const color=SEVERE_COLORS[ev]||'#8B5CF6';
+  const isEmerg=/emergency/i.test(ev);const isWarn=/warning/i.test(ev);
   const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
   return{label:ev||'Alert',color,iconSym};
 }
 
-// ── IBW Pulse classification ──────────────────────────
-// Returns 'emerg', 'warn', or null based on Impact-Based Warning tags
-function determinePulse(feat){
-  const p=feat.properties||{};
-  const ev=(p.event||'').toUpperCase();
-  const desc=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
-
-  // Tornado Warnings
-  if(ev.includes('TORNADO WARNING')||ev.includes('TORNADO EMERGENCY')){
-    if(ev.includes('TORNADO EMERGENCY')||desc.includes('TORNADO EMERGENCY'))return'emerg';
-    if(desc.includes('CATASTROPHIC')||desc.includes('OBSERVED'))return'emerg';
-    return null;
-  }
-
-  // Severe Thunderstorm Warnings — Destructive = emergency pulse, Considerable = warn pulse
-  if(ev.includes('SEVERE THUNDERSTORM WARNING')){
-    const isDestructive=desc.includes('DESTRUCTIVE')||
-      /MAX HAIL SIZE\.\.\.[23]\.\d/.test(desc)||
-      desc.includes('WIND...80 MPH');
-    if(isDestructive)return'emerg';
-    const isConsiderable=desc.includes('CONSIDERABLE')||
-      desc.includes('MAX HAIL SIZE...1.75')||
-      desc.includes('WIND...70 MPH');
-    const hasTorPoss=desc.includes('TORNADO...POSSIBLE')||desc.includes('TORNADO POSSIBLE');
-    if(isConsiderable||hasTorPoss)return'warn';
-  }
-
-  // Flash Flood Warnings
-  if(ev.includes('FLASH FLOOD WARNING')){
-    if(ev.includes('EMERGENCY')||desc.includes('FLASH FLOOD EMERGENCY')||desc.includes('CATASTROPHIC'))return'emerg';
-    if(desc.includes('CONSIDERABLE'))return'warn';
-  }
-
-  return null;
-}
-
-// A feature is life-threatening if it warrants emergency-level (pink) rendering
-function isLifeThreatening(feat){
-  const p=feat.properties||{};
-  const ev=(p.event||'').toUpperCase();
-  const desc=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
-  if(/tornado emergency|flash flood emergency/i.test(p.event||''))return true;
-  if(ev.includes('TORNADO WARNING')&&(desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||desc.includes('OBSERVED')))return true;
-  if(ev.includes('SEVERE THUNDERSTORM WARNING')&&desc.includes('DESTRUCTIVE'))return true;
-  if(ev.includes('FLASH FLOOD WARNING')&&(desc.includes('CATASTROPHIC')||desc.includes('EMERGENCY')))return true;
-  return false;
-}
-
-// ── Map init ──────────────────────────────────────────
 function initWatchesMap(){
   watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
 
-  // Radar pane below warning polygons (overlay pane default is 400)
+  // Radar pane sits below warning polygons (default overlay pane is 400)
   watchesMap.createPane('radarPane');
   watchesMap.getPane('radarPane').style.zIndex=350;
 
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
 
-  // NEXRAD radar overlay
+  // Static NEXRAD radar overlay
   radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
     layers:'nexrad-n0q-900913',
     format:'image/png',
@@ -1931,23 +1879,14 @@ function initWatchesMap(){
   }).addTo(watchesMap);
 
   // County boundaries
-  fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
-    .then(r=>r.json())
-    .then(gj=>L.geoJSON(gj,{style:{color:'#9ca3af',weight:0.4,fill:false,opacity:.5},interactive:false}).addTo(watchesMap))
-    .catch(()=>{});
+  fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#374151',weight:0.5,fill:false,opacity:.8},interactive:false}).addTo(watchesMap)).catch(()=>{});
   // State boundaries
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-    .then(r=>r.json())
-    .then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(watchesMap))
-    .catch(()=>{});
-  // Map labels on top
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(watchesMap)).catch(()=>{});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
 
-  // Start polling
   if(window._watchesWarnTimer)clearInterval(window._watchesWarnTimer);
   if(window._watchesPctInterval)clearInterval(window._watchesPctInterval);
-  fetchWarnings();
-  startWatchPollPill();
+  fetchWarnings();startWatchPollPill();
   window._watchesWarnTimer=setInterval(()=>{fetchWarnings();startWatchPollPill();},30000);
 }
 
@@ -1956,13 +1895,9 @@ function startWatchPollPill(){
   const txt=document.getElementById('watches-refresh-txt');
   if(!bar||!txt)return;
   if(window._watchesPctInterval)clearInterval(window._watchesPctInterval);
-  bar.style.transition='none';
-  bar.style.width='0%';
+  bar.style.transition='none';bar.style.width='0%';
   txt.textContent='Next update in 30s';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    bar.style.transition='width 30s linear';
-    bar.style.width='100%';
-  }));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 30s linear';bar.style.width='100%';}));
   let remaining=30;
   window._watchesPctInterval=setInterval(()=>{
     remaining--;
@@ -1971,210 +1906,222 @@ function startWatchPollPill(){
   },1000);
 }
 
-// ── Data fetch — Triple-source strategy ──────────────
-async function fetchWarnings(){
-  try{
-    // Refresh radar layer timestamp so tiles re-request
-    if(radarLayer)radarLayer.setParams({_ts:Date.now()},false);
 
-    // Parallel fetch: NWS alerts API + NOAA WWA layer 0 (warnings) + layer 1 (watches)
-    const[nwsRes,wwa0Res,wwa1Res]=await Promise.allSettled([
-      fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'}),
-      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'}),
-      fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'})
+async function fetchWarnings() {
+  try {
+    if (radarLayer) radarLayer.setParams({ _refresh: Date.now() }, false);
+
+    // Fetch NWS API + NOAA WWA layer 0 (warnings) + layer 1 (watches) all in parallel
+    const [nwsRes, wwa0Res, wwa1Res] = await Promise.allSettled([
+      fetch(`${WORKER}/nws/alerts/active?status=actual`, { cache: 'no-store' }),
+      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' }),
+      fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
     ]);
 
-    // ── NWS: primary source for rich text/metadata ──
-    let nwsFeatures=[];
-    if(nwsRes.status==='fulfilled'&&nwsRes.value.ok){
-      const gj=await nwsRes.value.json();
-      nwsFeatures=(gj.features||[]).map(f=>{
-        const p=f.properties||{};
-        return{
-          ...f,
-          _source:'NWS',
-          properties:{
-            ...p,
-            event:(p.event||'').trim(),
-            areaDesc:(p.areaDesc||p.area_desc||'').trim(),
-            expires:p.expires||p.ends||p.expiration||null,
-            senderName:(p.senderName||p.sender||'NWS').trim(),
-            description:(p.description||p.instruction||'').trim(),
-            headline:(p.parameters?.NWSheadline?.[0]||p.parameters?.headline?.[0]||p.headline||p.event||'').trim(),
-          }
-        };
-      }).filter(f=>SEVERE_COLORS.hasOwnProperty(f.properties.event));
+    let combinedFeatures = [];
+
+    // NWS API — rich metadata, descriptions, county names
+    if (nwsRes.status === 'fulfilled' && nwsRes.value.ok) {
+      const gj = await nwsRes.value.json();
+      const norm = f => {
+        const p = f.properties || {};
+        const areaDesc = (p.areaDesc || p.area_desc || '').trim();
+        const expires = p.expires || p.ends || p.expiration || null;
+        const senderName = (p.senderName || p.sender || 'NWS').trim();
+        const nwsHeadline = (p.parameters?.NWSheadline?.[0] || p.parameters?.headline?.[0] || '').trim();
+        const description = (p.description || p.instruction || '').trim();
+        const headline = nwsHeadline || p.headline || p.event || '';
+        return { ...f, properties: { ...p, areaDesc, expires, senderName, description, headline, event: p.event || '' } };
+      };
+      combinedFeatures = (gj.features || []).map(norm);
     }
 
-    // ── NOAA WWA: primary source for real-time polygon geometry ──
-    // These often arrive with better polygon precision but less text metadata.
-    // We normalize prod_type → standard event name, then merge.
-    const wwaEventMap=pt=>{
-      if(!pt)return'';
-      if(SEVERE_COLORS[pt])return pt; // direct match (title-case)
-      const raw=pt.toUpperCase();
-      if(raw.includes('TORNADO')&&raw.includes('EMERGENCY'))return'Tornado Emergency';
-      if(raw.includes('TORNADO')&&raw.includes('WARNING'))return'Tornado Warning';
-      if(raw.includes('TORNADO')&&raw.includes('WATCH'))return'Tornado Watch';
-      if((raw.includes('SVR')||raw.includes('SEVERE'))&&raw.includes('WARNING'))return'Severe Thunderstorm Warning';
-      if((raw.includes('SVR')||raw.includes('SEVERE'))&&raw.includes('WATCH'))return'Severe Thunderstorm Watch';
-      if(raw.includes('FLASH FLOOD')&&raw.includes('EMERGENCY'))return'Flash Flood Emergency';
-      if(raw.includes('FLASH FLOOD')&&raw.includes('WARNING'))return'Flash Flood Warning';
-      if(raw.includes('FLASH FLOOD')&&raw.includes('WATCH'))return'Flash Flood Watch';
-      if(raw.includes('FLOOD')&&raw.includes('WARNING'))return'Flood Warning';
-      if(raw.includes('FLOOD')&&raw.includes('WATCH'))return'Flood Watch';
-      if(raw.includes('HIGH WIND')&&raw.includes('WARNING'))return'High Wind Warning';
-      if(raw.includes('HIGH WIND')&&raw.includes('WATCH'))return'High Wind Watch';
-      if(raw.includes('EXTREME WIND'))return'Extreme Wind Warning';
-      if(raw.includes('HURRICANE')&&raw.includes('WARNING'))return'Hurricane Warning';
-      if(raw.includes('HURRICANE')&&raw.includes('WATCH'))return'Hurricane Watch';
-      if(raw.includes('TROPICAL STORM')&&raw.includes('WARNING'))return'Tropical Storm Warning';
-      if(raw.includes('TROPICAL STORM')&&raw.includes('WATCH'))return'Tropical Storm Watch';
-      if(raw.includes('STORM SURGE')&&raw.includes('WARNING'))return'Storm Surge Warning';
-      if(raw.includes('STORM SURGE')&&raw.includes('WATCH'))return'Storm Surge Watch';
-      return'';
+    // Helper: normalize a WWA feature's prod_type → NWS event name and push if valid
+    const pushWWA = (f) => {
+      const p = f.properties || {};
+      if (!f.geometry) return;
+      // prod_type is already title-case (e.g. "Severe Thunderstorm Watch")
+      // but may also be abbreviated — normalize both cases
+      const pt = (p.prod_type || '').trim();
+      const raw = pt.toUpperCase();
+      let eventName = SEVERE_COLORS[pt] ? pt : ''; // direct match first
+      if (!eventName) {
+        if (raw.includes('TORNADO') && raw.includes('EMERGENCY')) eventName = 'Tornado Emergency';
+        else if (raw.includes('TORNADO') && raw.includes('WARNING')) eventName = 'Tornado Warning';
+        else if (raw.includes('TORNADO') && raw.includes('WATCH')) eventName = 'Tornado Watch';
+        else if ((raw.includes('SVR') || raw.includes('SEVERE')) && raw.includes('WARNING')) eventName = 'Severe Thunderstorm Warning';
+        else if ((raw.includes('SVR') || raw.includes('SEVERE')) && raw.includes('WATCH')) eventName = 'Severe Thunderstorm Watch';
+        else if (raw.includes('FLASH FLOOD') && raw.includes('EMERGENCY')) eventName = 'Flash Flood Emergency';
+        else if (raw.includes('FLASH FLOOD') && raw.includes('WARNING')) eventName = 'Flash Flood Warning';
+        else if (raw.includes('FLASH FLOOD') && raw.includes('WATCH')) eventName = 'Flash Flood Watch';
+        else if (raw.includes('FLOOD') && raw.includes('WARNING')) eventName = 'Flood Warning';
+        else if (raw.includes('FLOOD') && raw.includes('WATCH')) eventName = 'Flood Watch';
+        else if (raw.includes('HIGH WIND') && raw.includes('WARNING')) eventName = 'High Wind Warning';
+        else if (raw.includes('HIGH WIND') && raw.includes('WATCH')) eventName = 'High Wind Watch';
+        else if (raw.includes('EXTREME WIND')) eventName = 'Extreme Wind Warning';
+        else if (raw.includes('HURRICANE') && raw.includes('WARNING')) eventName = 'Hurricane Warning';
+        else if (raw.includes('HURRICANE') && raw.includes('WATCH')) eventName = 'Hurricane Watch';
+        else if (raw.includes('TROPICAL STORM') && raw.includes('WARNING')) eventName = 'Tropical Storm Warning';
+        else if (raw.includes('TROPICAL STORM') && raw.includes('WATCH')) eventName = 'Tropical Storm Watch';
+        else if (raw.includes('STORM SURGE') && raw.includes('WARNING')) eventName = 'Storm Surge Warning';
+        else if (raw.includes('STORM SURGE') && raw.includes('WATCH')) eventName = 'Storm Surge Watch';
+      }
+      if (!eventName || !SEVERE_COLORS[eventName]) return;
+      const areaDesc = (p.area_desc || p.areaDesc || p.states || '').trim();
+      const rawExp = p.expiration || p.ends || p.end || null;
+      let expires = rawExp;
+      if (typeof rawExp === 'number' && rawExp > 9999999999) expires = new Date(rawExp).toISOString();
+      else if (typeof rawExp === 'number' && rawExp > 0) expires = new Date(rawExp * 1000).toISOString();
+      else if (typeof rawExp === 'string') expires = rawExp;
+      combinedFeatures.push({
+        ...f,
+        properties: { ...p, event: eventName, areaDesc, expires, senderName: p.wfo || 'NWS', description: '', headline: eventName, url: p.url || p.cap_id || '' }
+      });
     };
 
-    const normalizeWWAExpiry=raw=>{
-      if(!raw)return null;
-      if(typeof raw==='number'&&raw>9999999999)return new Date(raw).toISOString();
-      if(typeof raw==='number'&&raw>0)return new Date(raw*1000).toISOString();
-      return raw;
-    };
+    // Layer 0: all NWS warnings with polygons
+    if (wwa0Res.status === 'fulfilled' && wwa0Res.value.ok) {
+      const gj = await wwa0Res.value.json();
+      (gj.features || []).forEach(pushWWA);
+    }
+    // Layer 1: SPC convective watches (tornado, SVR) with polygons
+    if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
+      const gj = await wwa1Res.value.json();
+      (gj.features || []).forEach(pushWWA);
+    }
 
-    let wwaFeatures=[];
-    [[wwa0Res],[wwa1Res]].forEach(([res])=>{
-      if(res.status!=='fulfilled'||!res.value.ok)return;
-      // We consume the body via json() here — but since allSettled already resolved,
-      // we need to store the promise and await below. Actually the response body
-      // is still available; we just call .json() on it directly.
-      res.value.json().then(gj=>{
-        (gj.features||[]).forEach(f=>{
-          if(!f.geometry)return;
-          const p=f.properties||{};
-          const eventName=wwaEventMap((p.prod_type||'').trim());
-          if(!eventName||!SEVERE_COLORS[eventName])return;
-          wwaFeatures.push({
-            ...f,
-            _source:'NOAA',
-            properties:{
-              ...p,
-              event:eventName,
-              areaDesc:(p.area_desc||p.areaDesc||p.states||'').trim(),
-              expires:normalizeWWAExpiry(p.expiration||p.ends||p.end||null),
-              senderName:p.wfo||'NWS',
-              description:'',
-              headline:eventName,
-              url:p.url||p.cap_id||'',
-            }
-          });
-        });
-      }).catch(()=>{});
+    // Upgrade emergencies
+    combinedFeatures.forEach(f => {
+      const p = f.properties || {};
+      const text = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
+      if (p.event === 'Tornado Warning' && text.includes('TORNADO EMERGENCY')) p.event = 'Tornado Emergency';
+      else if (p.event === 'Flash Flood Warning' && text.includes('FLASH FLOOD EMERGENCY')) p.event = 'Flash Flood Emergency';
     });
 
-    // Small wait to let the NOAA .json() promises above settle into wwaFeatures
-    await new Promise(res=>setTimeout(res,120));
-
-    // ── Merge & deduplicate ──
-    // Strategy: for each (event, expiry, area) triple, keep only one copy.
-    // Prefer NWS version (has description) over NOAA version (has only geometry).
-    // If NWS didn't cover an event type at all, use the NOAA geometry version.
-    const allFeatures=[...nwsFeatures,...wwaFeatures];
-
-    // Step 1: Emergency upgrade — scan description text for emergency tags
-    allFeatures.forEach(f=>{
-      const p=f.properties||{};
-      const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
-      if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
-      else if(p.event==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))p.event='Flash Flood Emergency';
-    });
-
-    // Step 2: Deduplicate — event types well-covered by NWS need no NOAA backup
-    const nwsEventTypes=new Set(
-      nwsFeatures.filter(f=>(f.properties?.description||'').length>20)
-        .map(f=>f.properties?.event||'').filter(Boolean)
+    // Deduplicate: for each event type, if we have NWS features with real description AND
+    // WWA features with empty description, drop the WWA ones (NWS has better data for pulse/display)
+    const nwsWithDesc = new Set(
+      combinedFeatures
+        .filter(f => f.geometry && (f.properties?.description||'').length > 20)
+        .map(f => f.properties?.event || '')
+        .filter(Boolean)
     );
-    const deduped=allFeatures.filter(f=>{
-      if(f._source==='NWS')return true; // always keep NWS features
-      const ev=f.properties?.event||'';
-      return!nwsEventTypes.has(ev); // only keep NOAA if NWS didn't cover this event type
+    const deduped = combinedFeatures.filter(f => {
+      const ev = f.properties?.event || '';
+      // Keep if it has a real description, OR if NWS didn't provide this event type
+      if ((f.properties?.description||'').length > 20) return true;
+      if (!nwsWithDesc.has(ev)) return true;
+      return false; // drop empty-description duplicate when NWS version exists
     });
 
-    // Step 3: Strict dedup by (event + expiry + area prefix) key — prevents double polygons
-    const seen=new Set();
-    const final=deduped.filter(f=>{
-      if(!f.geometry)return false;
-      if(!SEVERE_COLORS.hasOwnProperty(f.properties?.event||''))return false;
-      const p=f.properties||{};
-      const key=`${p.event}|${p.expires||''}|${(p.areaDesc||'').slice(0,12)}`;
-      if(seen.has(key))return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Step 4: Sort highest-priority first
-    final.sort((a,b)=>getAlertPriority(a.properties.event)-getAlertPriority(b.properties.event));
-
-    activeWarnings=final;
-    activeWatches=[];
+    activeWarnings = deduped.filter(f => f.geometry && f.properties && SEVERE_COLORS.hasOwnProperty(f.properties?.event || ''));
+    activeWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
+    activeWatches = [];
 
     renderWatchesMap(activeWarnings);
     updateWatchLegend(activeWarnings);
-
-  }catch(e){
-    console.error('fetchWarnings error:',e);
+  } catch (e) {
+    console.error('fetchWarnings Error:', e);
   }
 }
 
-// ── Render ────────────────────────────────────────────
-function renderWatchesMap(features){
-  const newLayer=L.geoJSON({type:'FeatureCollection',features},{
-    style:feat=>{
-      const ev=feat.properties?.event||'';
-      const lifeThreat=isLifeThreatening(feat);
-      const color=lifeThreat?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
-      const isWatch=/watch/i.test(ev);
-      const isTorWarn=/tornado warning/i.test(ev)&&!lifeThreat;
-      return{
-        fillColor:color,
-        fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.12:0.20),
+let _watchPulseIntervals = [];
+
+function shouldPulse(feat) {
+  const p = feat.properties || {};
+  const event = (p.event || '').toUpperCase();
+  const desc = (p.description || p.headline || '').toUpperCase();
+
+  // 1. Tornado Warnings
+  if (event.includes('TORNADO WARNING')) {
+    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || event.includes('EMERGENCY')) return 'emerg';
+    return null;
+  }
+
+  // 2. Severe Thunderstorm Warnings
+  if (event.includes('SEVERE THUNDERSTORM WARNING')) {
+    const isDestructive = desc.includes('DESTRUCTIVE') ||
+                          desc.includes('MAX HAIL SIZE...2.75') ||
+                          desc.includes('MAX HAIL SIZE...3.') ||
+                          desc.includes('WIND...80 MPH');
+    if (isDestructive) return 'emerg';
+
+    const isConsiderable = desc.includes('CONSIDERABLE') ||
+                           desc.includes('MAX HAIL SIZE...1.75') ||
+                           desc.includes('WIND...70 MPH');
+    const hasTorPoss = desc.includes('TORNADO...POSSIBLE') || desc.includes('TORNADO POSSIBLE');
+    if (isConsiderable || hasTorPoss) return 'warn';
+  }
+
+  // 3. Flash Flood Warnings
+  if (event.includes('FLASH FLOOD WARNING')) {
+    if (desc.includes('CATASTROPHIC') || event.includes('EMERGENCY')) return 'emerg';
+    if (desc.includes('CONSIDERABLE')) return 'warn';
+  }
+
+  return null;
+}
+
+function isLifeThreatening(feat) {
+  const p = feat.properties || {};
+  const ev = (p.event || '').toUpperCase();
+  const desc = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
+  if (ev.includes('TORNADO EMERGENCY') || ev.includes('EMERGENCY')) return true;
+  if (ev.includes('TORNADO WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('OBSERVED'))) return true;
+  if (ev.includes('SEVERE THUNDERSTORM WARNING') && desc.includes('DESTRUCTIVE')) return true;
+  if (ev.includes('FLASH FLOOD WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('EMERGENCY'))) return true;
+  return false;
+}
+
+function renderWatchesMap(features) {
+  const newLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+    style: feat => {
+      const ev = feat.properties?.event || '';
+      const lifeThreat = isLifeThreatening(feat);
+      const color = lifeThreat ? '#FF1493' : (SEVERE_COLORS[ev] || '#8B5CF6');
+      const isWatch = /watch/i.test(ev);
+      const isTorWarn = /tornado warning/i.test(ev) && !lifeThreat;
+      return {
+        fillColor: color,
+        fillOpacity: lifeThreat ? 0.6 : isTorWarn ? 0.85 : (isWatch ? 0.18 : 0.25),
         color,
-        weight:lifeThreat?3.5:(isWatch?1.5:2),
-        opacity:1,
+        weight: lifeThreat ? 3.5 : (isWatch ? 1.5 : 2),
+        opacity: 1
       };
     },
-    onEachFeature:(feat,lyr)=>{
-      lyr.on('click',e=>{
+    onEachFeature: (feat, lyr) => {
+      lyr.on('click', e => {
         L.DomEvent.stopPropagation(e);
-        try{const b=lyr.getBounds();if(b.isValid())watchesMap.fitBounds(b,{padding:[60,60]});}catch{}
+        try { const b = lyr.getBounds(); if (b.isValid()) watchesMap.fitBounds(b, { padding: [60, 60] }); } catch {}
         openAlertOverlay(feat);
       });
     }
   });
 
-  // Atomic swap — add new layer before removing old to avoid blank flash
+  // Atomic swap — add new before removing old, no blank flash
   newLayer.addTo(watchesMap);
-  if(watchLayer)watchesMap.removeLayer(watchLayer);
-  watchLayer=newLayer;
+  if (watchLayer) watchesMap.removeLayer(watchLayer);
+  watchLayer = newLayer;
 
-  // Apply IBW pulse CSS classes — retry until Leaflet has created _path elements
-  let attempts=0;
-  const applyPulse=()=>{
-    let allReady=true;
-    watchLayer.eachLayer(lyr=>{
-      const pulse=determinePulse(lyr.feature);
-      if(!pulse)return;
-      if(!lyr._path){allReady=false;return;}
-      lyr._path.classList.add(pulse==='emerg'?'svg-pulse-emerg':'svg-pulse-warn');
+  // Apply pulse classes — retry until all _path elements exist (Leaflet creates them async)
+  let attempts = 0;
+  const applyPulse = () => {
+    let allReady = true;
+    watchLayer.eachLayer(lyr => {
+      const pulse = shouldPulse(lyr.feature);
+      if (!pulse) return;
+      if (!lyr._path) { allReady = false; return; }
+      const cls = pulse === 'emerg' ? 'svg-pulse-emerg' : 'svg-pulse-warn';
+      lyr._path.classList.add(cls);
     });
-    if(!allReady&&attempts++<20)requestAnimationFrame(applyPulse);
+    if (!allReady && attempts++ < 20) requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
 
-  // High-impact tornado banner — show once per unique alert ID
+  // Check for high-impact tornado warnings and show banner (once per unique alert)
   features.forEach(feat=>{
     const p=feat.properties||{};
-    if(determinePulse(feat)==='emerg'&&/tornado warning/i.test(p.event||'')){
+    if(shouldPulse(feat)==='emerg' && /tornado warning/i.test(p.event||'')){
       const id=p.id||p.cap_id||p.url||JSON.stringify({ev:p.event,exp:p.expires});
       if(!_shownTorAlertIds.has(id)){
         _shownTorAlertIds.add(id);
@@ -2184,26 +2131,21 @@ function renderWatchesMap(features){
   });
 }
 
-// ── Legend ────────────────────────────────────────────
+
 function updateWatchLegend(features){
   const legWarn=document.getElementById('ww-legend-warnings');
   const legWatch=document.getElementById('ww-legend-watches');
-  legWarn.innerHTML='';
-  legWatch.innerHTML='';
+  legWarn.innerHTML='';legWatch.innerHTML='';
 
-  const seenWarn=new Map();
-  const seenWatch=new Map();
-  let hasEmergPulse=false;
-  let hasWarnPulse=false;
-
+  const seenWarn=new Map();const seenWatch=new Map();
+  let hasEmergPulse=false;let hasWarnPulse=false;
   features.forEach(f=>{
     const ev=(f.properties?.event||'').trim();
     if(!ev)return;
-    const pulse=determinePulse(f);
+    const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;
     else if(pulse==='warn')hasWarnPulse=true;
-    const color=isLifeThreatening(f)?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
-    const label=getWatchStyle(ev).label;
+    const{color,label}=isLifeThreatening(f)?{color:'#FF1493',label:getWatchStyle(ev).label}:getWatchStyle(ev);
     if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
     else{if(!seenWarn.has(ev))seenWarn.set(ev,{color,label});}
   });
@@ -2212,21 +2154,19 @@ function updateWatchLegend(features){
     if(!map.size){el.style.display='none';return;}
     el.style.display='';
     el.innerHTML=`<div class="watches-legend-title">${title}</div>`;
-    [...map.entries()]
-      .sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0]))
-      .forEach(([,{color,label}])=>{
-        el.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
-      });
+    [...map.entries()].sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0])).forEach(([,{color,label}])=>{
+      el.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
+    });
   };
 
   renderItems(seenWarn,legWarn,'Warnings');
   renderItems(seenWatch,legWatch,'Watches');
 
-  // Pulse key in warnings legend
+  // Pulse key — shown in warnings legend if any pulsing alerts are active
   if((hasEmergPulse||hasWarnPulse)&&legWarn.style.display!=='none'){
     if(hasEmergPulse){
       legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF1493;border:1px solid rgba(255,20,147,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:#FF1493;font-weight:700;">Flashing = Life-Threatening</span></div>`;
-    }else{
+    } else {
       legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-warn" style="background:#FFA500;border:1px solid rgba(255,165,0,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:var(--text3);font-weight:600;">Flashing = High Impact Storm</span></div>`;
     }
   }
@@ -2505,9 +2445,9 @@ function initMesoMap(){
   mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(mesoMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(mesoMap)).catch(()=>{});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval)clearInterval(window._mesoInterval);
   window._mesoInterval=setInterval(loadMeso,120000);
