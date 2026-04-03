@@ -14,7 +14,7 @@
   <style>
     :root {
       --red:#f97316; --red-dim:rgba(249,115,22,0.12); --red-border:rgba(249,115,22,0.25);
-      --bg:#13151a; --surface:#1c1f27; --surface2:#22262f;
+      --bg:#13151a; --surface:#1c1f27; --surface2:#22262f; --surface3:#272b36;
       --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
       --text:#ffffff; --text2:#e2e6ed; --text3:#b0b7c3; --text4:#6e7585;
       --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
@@ -36,6 +36,14 @@
     @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
     @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
     @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+    @keyframes svg-pulse-emerg{0%,100%{fill-opacity:0.15;stroke-width:3px;}50%{fill-opacity:0.85;stroke-width:6px;}}
+    @keyframes svg-pulse-warn{0%,100%{fill-opacity:0.08;}50%{fill-opacity:0.65;}}
+    @keyframes div-pulse-emerg{0%,100%{opacity:0.45;}50%{opacity:1;}}
+    @keyframes div-pulse-warn{0%,100%{opacity:0.4;}50%{opacity:1;}}
+    .svg-pulse-emerg{animation:svg-pulse-emerg 0.8s ease-in-out infinite !important;}
+    .svg-pulse-warn{animation:svg-pulse-warn 1.4s ease-in-out infinite !important;}
+    .wl-swatch.svg-pulse-emerg{animation:div-pulse-emerg 0.8s ease-in-out infinite !important;}
+    .wl-swatch.svg-pulse-warn{animation:div-pulse-warn 1.4s ease-in-out infinite !important;}
 
     /* ── HEADER ── */
     .app-header{
@@ -256,7 +264,7 @@
     ══════════════════════════ */
     #page-outlook{flex:1;flex-direction:column;}
     #page-outlook .map-wrap{flex:1;position:relative;overflow:hidden;}
-    #outlook-map{position:absolute;inset:0;width:100%;height:100%;background:#111318;}
+    #outlook-map{position:absolute;inset:0;width:100%;height:100%;}
     .outlook-controls{
       position:relative;z-index:1000;
       background:var(--surface);
@@ -319,7 +327,7 @@
     ══════════════════════════ */
     #page-watches{flex:1;flex-direction:column;}
     #page-watches .map-wrap{flex:1;position:relative;overflow:hidden;}
-    #watches-map{position:absolute;inset:0;width:100%;height:100%;background:#111318;}
+    #watches-map{position:absolute;inset:0;width:100%;height:100%;}
     .watches-controls{
       position:relative;z-index:1000;
       background:var(--surface);
@@ -351,7 +359,7 @@
     ══════════════════════════ */
     #page-meso{flex:1;flex-direction:column;}
     #page-meso .map-wrap{flex:1;position:relative;overflow:hidden;}
-    #meso-map{position:absolute;inset:0;width:100%;height:100%;background:#111318;}
+    #meso-map{position:absolute;inset:0;width:100%;height:100%;}
     .meso-controls{
       position:relative;z-index:1000;
       background:var(--surface);
@@ -500,14 +508,73 @@
     .state-title{font-size:0.88rem;font-weight:600;color:var(--text3);}
     .state-sub{font-size:0.75rem;color:var(--text4);line-height:1.5;max-width:240px;}
 
-    /* Leaflet overrides */
-    .leaflet-container{background:#111318!important;font-family:var(--font);}
-    .leaflet-tile-pane{will-change:transform;}
+    /* Toast */
     #toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--surface2);color:var(--text2);font-family:var(--font);font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
     #toast .msr{font-size:15px;color:var(--amber);}
 
+    /* ══════════════════════════
+       ALERT OVERLAY
+    ══════════════════════════ */
+    #alert-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px 16px calc(var(--nav-h) + 16px);}
+    #alert-overlay.open{display:flex;}
+    .ao-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:560px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
+    .ao-head{padding:0 16px;height:56px;display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative;}
+    .ao-head-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px 0 0 2px;}
+    .ao-head-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .ao-head-icon .msr{font-size:17px;color:#fff;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+    .ao-head-text{flex:1;min-width:0;}
+    .ao-head-title{font-size:0.95rem;font-weight:800;letter-spacing:-0.02em;line-height:1.2;}
+    .ao-head-sub{font-size:0.65rem;color:var(--text4);margin-top:2px;font-weight:500;}
+    .ao-close{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;transition:background .15s;}
+    .ao-close .msr{font-size:15px;}
+    .ao-meta{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .ao-meta-item{padding:10px 14px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:3px;}
+    .ao-meta-item:last-child{border-right:none;}
+    .ao-meta-label{font-size:0.52rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);display:flex;align-items:center;gap:3px;}
+    .ao-meta-label .msr{font-size:10px;}
+    .ao-meta-val{font-size:0.75rem;font-weight:600;color:var(--text2);line-height:1.3;}
+    .ao-body{flex:1;overflow-y:auto;padding:14px 16px;-webkit-overflow-scrolling:touch;}
+    .ao-ai-block{border-radius:var(--r-sm);padding:12px 14px;border:1px solid;}
+    .ao-ai-header{display:flex;align-items:center;gap:6px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07);}
+    .ao-ai-header .msr{font-size:14px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+    .ao-ai-header>span{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+    .ao-ai-spinner{margin-left:auto;}
+    .ao-ai-section{margin-bottom:8px;padding:8px 10px;background:rgba(0,0,0,0.2);border-radius:8px;}
+    .ao-ai-section:last-child{margin-bottom:0;}
+    .ao-ai-section-label{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4);margin-bottom:3px;display:flex;align-items:center;gap:4px;}
+    .ao-ai-section-label .msr{font-size:11px;color:var(--amber);}
+    .ao-ai-section-text{font-size:0.78rem;color:var(--text2);line-height:1.6;}
+    .ao-ai-err{font-size:0.72rem;color:var(--text4);font-style:italic;}
+    @keyframes blink-warn{0%,100%{opacity:1;}50%{opacity:0;}}
+
+    /* ══════════════════════════
+       HIGH-IMPACT TORNADO BANNER
+    ══════════════════════════ */
+    @keyframes tor-banner-in{from{opacity:0;transform:translate(-50%,-16px);}to{opacity:1;transform:translate(-50%,0);}}
+    #tor-alert-banner{display:none;position:fixed;top:calc(var(--header-h) + 8px);left:50%;transform:translateX(-50%);z-index:9999;width:min(480px,calc(100vw - 24px));background:#0d0d0d;border:2px solid #FF1493;border-radius:var(--r);box-shadow:0 0 40px rgba(255,20,147,0.5),0 16px 48px rgba(0,0,0,0.7);overflow:hidden;}
+    #tor-alert-banner.open{display:block;animation:tor-banner-in .25s cubic-bezier(.16,1,.3,1);}
+    .tab-head{background:linear-gradient(135deg,rgba(255,20,147,0.25),rgba(255,20,147,0.08));padding:12px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,20,147,0.3);}
+    .tab-head-icon{width:36px;height:36px;background:#FF1493;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:svg-pulse-emerg 0.8s ease-in-out infinite;}
+    .tab-head-icon .msr{font-size:18px;color:#fff;font-variation-settings:'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24;}
+    .tab-head-text{flex:1;min-width:0;}
+    .tab-head-title{font-size:0.9rem;font-weight:800;color:#FF1493;letter-spacing:-0.02em;}
+    .tab-head-sub{font-size:0.62rem;color:rgba(255,255,255,0.55);margin-top:2px;}
+    .tab-dismiss-x{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.5);flex-shrink:0;}
+    .tab-dismiss-x .msr{font-size:15px;}
+    .tab-body{padding:12px 16px 2px;max-height:180px;overflow-y:auto;}
+    .tab-nws-bullet{font-size:0.78rem;color:var(--text2);line-height:1.6;padding:5px 8px;background:rgba(255,20,147,0.07);border-radius:6px;margin-bottom:5px;border-left:2px solid #FF1493;}
+    .tab-nws-header{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,20,147,0.6);margin:8px 0 3px;}
+    .tab-nws-line{font-size:0.75rem;color:var(--text3);line-height:1.55;margin-bottom:2px;}
+    .tab-footer{padding:8px 16px 12px;display:flex;align-items:center;justify-content:space-between;}
+    .tab-footer-exp{font-size:0.62rem;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:3px;}
+    .tab-footer-exp .msr{font-size:10px;}
+    .tab-dismiss-btn{background:#FF1493;border:none;border-radius:var(--r-sm);padding:6px 16px;font-family:var(--font);font-size:0.72rem;font-weight:700;color:#fff;cursor:pointer;}
+    #tor-banner-backdrop{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.4);backdrop-filter:blur(1px);}
+    #tor-banner-backdrop.open{display:block;}
+
     /* Leaflet overrides */
+    .leaflet-container{font-family:var(--font);}
     .leaflet-control-zoom{border:1px solid var(--border2)!important;border-radius:10px!important;overflow:hidden;box-shadow:none!important;}
     .leaflet-control-zoom a{font-family:var(--font)!important;color:var(--text2)!important;background:rgba(26,29,36,0.95)!important;backdrop-filter:blur(8px);width:34px!important;height:34px!important;line-height:34px!important;font-size:17px!important;display:flex!important;align-items:center;justify-content:center;}
     .leaflet-control-zoom a:hover{color:var(--red)!important;}
@@ -800,22 +867,61 @@
   </div>
 </div>
 
-<!-- TORNADO OVERLAY -->
-<div id="tornado-overlay">
-  <div class="tor-box" id="tor-box">
-    <div class="tor-banner">
-      <span class="msr">tornado</span>
-      <div>
-        <div class="tor-eyebrow" id="tor-eyebrow">Active Warning</div>
-        <div class="tor-title" id="tor-title">Tornado Warning</div>
+<!-- TORNADO BACKDROP -->
+<div id="tor-banner-backdrop" onclick="dismissTorBanner()"></div>
+
+<!-- HIGH-IMPACT TORNADO ALERT BANNER -->
+<div id="tor-alert-banner">
+  <div class="tab-head">
+    <div class="tab-head-icon"><span class="msr">crisis_alert</span></div>
+    <div class="tab-head-text">
+      <div class="tab-head-title" id="tab-title">Tornado Warning</div>
+      <div class="tab-head-sub" id="tab-sub">High-Impact Tornado</div>
+    </div>
+    <button class="tab-dismiss-x" onclick="dismissTorBanner()"><span class="msr">close</span></button>
+  </div>
+  <div class="tab-body" id="tab-body"></div>
+  <div class="tab-footer">
+    <div class="tab-footer-exp"><span class="msr">schedule</span><span id="tab-exp"></span></div>
+    <button class="tab-dismiss-btn" onclick="dismissTorBanner()">Dismiss</button>
+  </div>
+</div>
+
+<!-- ALERT DETAIL OVERLAY -->
+<div id="alert-overlay">
+  <div class="ao-box" onclick="event.stopPropagation()">
+    <div class="ao-head">
+      <div class="ao-head-stripe" id="ao-stripe"></div>
+      <div class="ao-head-icon" id="ao-icon"><span class="msr" id="ao-icon-sym">warning</span></div>
+      <div class="ao-head-text">
+        <div class="ao-head-title" id="ao-title"></div>
+        <div class="ao-head-sub" id="ao-issued"></div>
+      </div>
+      <button class="ao-close" onclick="closeAlertOverlay()"><span class="msr">close</span></button>
+    </div>
+    <div class="ao-meta">
+      <div class="ao-meta-item">
+        <div class="ao-meta-label"><span class="msr">thunderstorm</span>Primary Threat</div>
+        <div class="ao-meta-val" id="ao-primary-threat">—</div>
+      </div>
+      <div class="ao-meta-item">
+        <div class="ao-meta-label"><span class="msr">schedule</span>Expires</div>
+        <div class="ao-meta-val" id="ao-expires"></div>
+      </div>
+      <div class="ao-meta-item">
+        <div class="ao-meta-label"><span class="msr">crisis_alert</span>Threat Type</div>
+        <div class="ao-meta-val" id="ao-threat-type"></div>
       </div>
     </div>
-    <div class="tor-body">
-      <div class="tor-loc" id="tor-loc"></div>
-      <div class="tor-msg" id="tor-msg"></div>
-      <div class="tor-action"><strong id="tor-action-title">⚡ Take shelter now</strong><span id="tor-action-body"></span></div>
-      <div class="tor-exp" id="tor-exp"></div>
-      <button class="tor-btn" onclick="document.getElementById('tornado-overlay').classList.remove('show')">I understand — View Forecast</button>
+    <div class="ao-body">
+      <div class="ao-ai-block" id="ao-ai-block">
+        <div class="ao-ai-header">
+          <span class="msr">auto_awesome</span>
+          <span>jWeather AI Summary</span>
+          <div class="ao-ai-spinner" id="ao-ai-spinner"><div class="spin-ring" style="width:16px;height:16px;border-width:2px;"></div></div>
+        </div>
+        <div id="ao-ai-content"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -924,7 +1030,7 @@ const OUTLOOK_SIG_IDS = {
   '2-torn':10,'2-hail':12,'2-wind':14,
 };
 const OUTLOOK_CAT = {
-  'TSTM':{ fill:'#4ade80', stroke:'#16a34a', label:'Thunderstorms' },
+  'TSTM':{ fill:'#c8eec8', stroke:'#90c890', label:'Thunderstorms' },
   'MRGL':{ fill:'#6abf6a', stroke:'#3d8c3d', label:'Marginal'       },
   'SLGT':{ fill:'#f0e040', stroke:'#b8a800', label:'Slight'         },
   'ENH': { fill:'#e88020', stroke:'#b05000', label:'Enhanced'       },
@@ -1372,7 +1478,6 @@ function renderAlerts(data,spcResult){
     row.addEventListener('click',()=>showAlertModal(i));
     c.appendChild(row);
   });
-  if(activeAlerts.length) maybeShowTornado(activeAlerts);
 }
 
 function showAlertModal(i){
@@ -1385,29 +1490,6 @@ function showAlertModal(i){
 }
 function closeAlertModal(){ document.getElementById('alert-modal').classList.remove('open'); }
 document.getElementById('alert-modal').addEventListener('click',e=>{ if(e.target===document.getElementById('alert-modal')) closeAlertModal(); });
-
-// ── Tornado Overlay ──
-function maybeShowTornado(feats){
-  const w=feats.find(f=>(f.properties?.event||'').toLowerCase().includes('tornado warning'));
-  if(!w) return;
-  const a=w.properties;
-  const desc=(a.description||'').trim();
-  const isObs=/\bOBSERVED\b/.test(desc);
-  const isEm=/TORNADO EMERGENCY/i.test(desc)||/TORNADO EMERGENCY/i.test(a.headline||'');
-  const exp=a.expires?new Date(a.expires).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):null;
-  const summary=desc.slice(0,desc.search(/[.!?]\s/)+1)||desc.slice(0,160);
-  if(isEm||isObs){
-    document.getElementById('tor-eyebrow').textContent=isEm?'🚨 TORNADO EMERGENCY':'🚨 CONFIRMED TORNADO';
-    document.getElementById('tor-title').textContent=isEm?'Tornado Emergency':'Tornado on the Ground';
-    document.getElementById('tor-action-title').textContent='🚨 TAKE SHELTER IMMEDIATELY';
-    document.getElementById('tor-action-body').textContent=isEm?'This is a Tornado Emergency. Seek lowest floor of sturdy building NOW.':'A tornado has been observed. Get underground immediately.';
-    document.getElementById('tor-box').style.borderColor='#ff0000';
-  }
-  document.getElementById('tor-loc').innerHTML=`<span class="msr">location_on</span>${curLoc?.label||'Your Location'}`;
-  document.getElementById('tor-msg').textContent=summary;
-  document.getElementById('tor-exp').textContent=exp?`Warning until ${exp}`:'';
-  document.getElementById('tornado-overlay').classList.add('show');
-}
 
 // ── Radar ──
 function updateRadar(lat,lng){
@@ -1525,15 +1607,15 @@ function initOutlookMap() {
   outlookMap.getPane('outlookPane').style.zIndex = 310;
   outlookMap._outlookRenderer = L.svg({ pane: 'outlookPane' }).addTo(outlookMap);
   const ret = window.devicePixelRatio > 1 ? '@2x' : '';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${ret}.png`, {
-    attribution:'', subdomains:'abcd', maxZoom:19, crossOrigin:true
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${ret}.png`, {
+    attribution:'', subdomains:'abcd', maxZoom:19
   }).addTo(outlookMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
     .then(r => r.json())
-    .then(gj => L.geoJSON(gj, { style:{ color:'#4b5563', weight:1.5, fill:false, opacity:0.9 }, interactive:false }).addTo(outlookMap))
+    .then(gj => L.geoJSON(gj, { style:{ color:'#6b7280', weight:1.5, fill:false, opacity:0.75 }, interactive:false }).addTo(outlookMap))
     .catch(() => {});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${ret}.png`, {
-    attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane', crossOrigin:true
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${ret}.png`, {
+    attribution:'', subdomains:'abcd', maxZoom:19, pane:'shadowPane'
   }).addTo(outlookMap);
   // Inject SVG hatch pattern
   const svgNS = 'http://www.w3.org/2000/svg';
@@ -2249,345 +2331,351 @@ document.querySelector('.outlook-controls').addEventListener('click', e => {
 
 //  WATCHES MAP
 // ══════════════════════════════════════════════════════
+let radarLayer=null;
+
 function initWatchesMap(){
   watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
+
+  watchesMap.createPane('radarPane');
+  watchesMap.getPane('radarPane').style.zIndex=350;
+
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,crossOrigin:true}).addTo(watchesMap);
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(watchesMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane',crossOrigin:true}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
 
-  // Clear any existing timers
-  if(window._watchesWatchTimer)  clearInterval(window._watchesWatchTimer);
-  if(window._watchesWarnTimer)   clearInterval(window._watchesWarnTimer);
-  if(window._watchesPctInterval) clearInterval(window._watchesPctInterval);
-  if(window._watchesPollTimer)   clearInterval(window._watchesPollTimer);
+  radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
+    layers:'nexrad-n0q-900913',format:'image/png',transparent:true,opacity:0.45,pane:'radarPane',
+  }).addTo(watchesMap);
 
-  // Progress bar animates on the 30-second warning poll cycle
-  function startWatchPollBar(){
-    const fill=document.getElementById('watches-poll-fill');
-    const pct=document.getElementById('watches-poll-pct');
-    if(!fill) return;
-    if(window._watchesPctInterval) clearInterval(window._watchesPctInterval);
-    fill.style.transition='none';
-    fill.style.width='0%';
-    if(pct) pct.textContent='Next update in 30s';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      fill.style.transition='width 30s linear';
-      fill.style.width='100%';
-    }));
-    const POLL_SEC=30;
-    let remaining=POLL_SEC;
-    window._watchesPctInterval=setInterval(()=>{
-      remaining--;
-      if(pct) pct.textContent=remaining>0?`Next update in ${remaining}s`:'Updating…';
-      if(remaining<=0){ clearInterval(window._watchesPctInterval); }
-    },1000);
-  }
+  fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#374151',weight:0.5,fill:false,opacity:.8},interactive:false}).addTo(watchesMap)).catch(()=>{});
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(watchesMap)).catch(()=>{});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
 
-  // Initial load — fetch both in parallel
-  fetchWatches();
-  fetchWarnings();
-  startWatchPollBar();
-
-  // Watches poll: every 15 minutes
-  window._watchesWatchTimer=setInterval(fetchWatches, 900000);
-
-  // Warnings poll: every 30 seconds
-  window._watchesWarnTimer=setInterval(()=>{
-    fetchWarnings();
-    startWatchPollBar();
-  }, 30000);
+  if(window._watchesWarnTimer)clearInterval(window._watchesWarnTimer);
+  if(window._watchesPctInterval)clearInterval(window._watchesPctInterval);
+  fetchWarnings();startWatchPollPill();
+  window._watchesWarnTimer=setInterval(()=>{fetchWarnings();startWatchPollPill();},30000);
 }
 
-// ══════════════════════════════════════════════════════
-//  WATCHES & WARNINGS — TRIPLE-SOURCE REBUILD (mobile)
-// ══════════════════════════════════════════════════════
-
-// ── IBW pulse animations ──────────────────────────────
-const styleEl=document.createElement('style');
-styleEl.textContent=`
-@keyframes svg-pulse-emerg{0%,100%{fill-opacity:0.15;stroke-width:3px;}50%{fill-opacity:0.85;stroke-width:6px;}}
-@keyframes svg-pulse-warn{0%,100%{fill-opacity:0.08;}50%{fill-opacity:0.65;}}
-.svg-pulse-emerg{animation:svg-pulse-emerg 0.8s ease-in-out infinite!important;}
-.svg-pulse-warn{animation:svg-pulse-warn 1.4s ease-in-out infinite!important;}
-`;
-document.head.appendChild(styleEl);
-
-// ── NWS color config (strict allowlist) ──────────────
-const SEVERE_COLORS={
-  'Tornado Emergency':           '#FF1493',
-  'Flash Flood Emergency':       '#8B0000',
-  'Tornado Warning':             '#FF0000',
-  'Tornado Watch':               '#FFFF00',
-  'Severe Thunderstorm Warning': '#FFA500',
-  'Severe Thunderstorm Watch':   '#DB7093',
-  'Extreme Wind Warning':        '#FF8C00',
-  'High Wind Warning':           '#DAA520',
-  'High Wind Watch':             '#B8860B',
-  'Flash Flood Warning':         '#00FF00',
-  'Flash Flood Watch':           '#2E8B57',
-  'Flash Flood Statement':       '#00EE76',
-  'Flood Warning':               '#00CC44',
-  'Flood Watch':                 '#2E8B57',
-  'Flood Statement':             '#00EE76',
-  'Areal Flood Warning':         '#00CC44',
-  'Areal Flood Watch':           '#2E8B57',
-  'Hurricane Warning':           '#DC143C',
-  'Hurricane Watch':             '#FF00FF',
-  'Tropical Storm Warning':      '#B22222',
-  'Tropical Storm Watch':        '#F08080',
-  'Storm Surge Warning':         '#B524F7',
-  'Storm Surge Watch':           '#DB70DB',
-};
-
-// ── Priority & style helpers ──────────────────────────
-function getAlertPriority(event){
-  const ev=event||'';
-  if(/tornado emergency|flash flood emergency/i.test(ev))return 0;
-  if(/tornado warning/i.test(ev))return 1;
-  if(/extreme wind warning|hurricane warning|storm surge warning/i.test(ev))return 2;
-  if(/severe thunderstorm warning|flash flood warning/i.test(ev))return 3;
-  if(/tropical storm warning|flood warning|areal flood warning|high wind warning/i.test(ev))return 4;
-  if(/tornado watch|severe thunderstorm watch/i.test(ev))return 5;
-  if(/flash flood watch|flood watch|areal flood watch/i.test(ev))return 6;
-  if(/watch/i.test(ev))return 7;
-  if(/statement/i.test(ev))return 8;
-  return 9;
+function startWatchPollPill(){
+  const fill=document.getElementById('watches-poll-fill');
+  const pct=document.getElementById('watches-poll-pct');
+  if(!fill)return;
+  if(window._watchesPctInterval)clearInterval(window._watchesPctInterval);
+  fill.style.transition='none';fill.style.width='0%';
+  if(pct)pct.textContent='Next update in 30s';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{fill.style.transition='width 30s linear';fill.style.width='100%';}));
+  let remaining=30;
+  window._watchesPctInterval=setInterval(()=>{
+    remaining--;
+    if(pct)pct.textContent=remaining>0?`Next update in ${remaining}s`:'Updating…';
+    if(remaining<=0)clearInterval(window._watchesPctInterval);
+  },1000);
 }
 
-function getWatchStyle(event){
-  const ev=(event||'').trim();
-  const color=SEVERE_COLORS[ev]||'#8B5CF6';
-  const isEmerg=/emergency/i.test(ev);
-  const isWarn=/warning/i.test(ev);
-  const iconSym=isEmerg?'crisis_alert':isWarn?'warning':'emergency_home';
-  return{label:ev||'Alert',color,cls:'nws-alert',iconSym};
+async function fetchWarnings(){
+  try{
+    if(radarLayer)radarLayer.setParams({_refresh:Date.now()},false);
+    const[nwsRes,wwa0Res,wwa1Res]=await Promise.allSettled([
+      fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'}),
+      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'}),
+      fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'})
+    ]);
+    let combinedFeatures=[];
+    if(nwsRes.status==='fulfilled'&&nwsRes.value.ok){
+      const gj=await nwsRes.value.json();
+      const norm=f=>{const p=f.properties||{};const areaDesc=(p.areaDesc||p.area_desc||'').trim();const expires=p.expires||p.ends||p.expiration||null;const senderName=(p.senderName||p.sender||'NWS').trim();const nwsHeadline=(p.parameters?.NWSheadline?.[0]||p.parameters?.headline?.[0]||'').trim();const description=(p.description||p.instruction||'').trim();const headline=nwsHeadline||p.headline||p.event||'';return{...f,properties:{...p,areaDesc,expires,senderName,description,headline,event:p.event||''}};};
+      combinedFeatures=(gj.features||[]).map(norm);
+    }
+    const pushWWA=(f)=>{
+      const p=f.properties||{};if(!f.geometry)return;
+      const pt=(p.prod_type||'').trim();const raw=pt.toUpperCase();
+      let eventName=SEVERE_COLORS[pt]?pt:'';
+      if(!eventName){
+        if(raw.includes('TORNADO')&&raw.includes('EMERGENCY'))eventName='Tornado Emergency';
+        else if(raw.includes('TORNADO')&&raw.includes('WARNING'))eventName='Tornado Warning';
+        else if(raw.includes('TORNADO')&&raw.includes('WATCH'))eventName='Tornado Watch';
+        else if((raw.includes('SVR')||raw.includes('SEVERE'))&&raw.includes('WARNING'))eventName='Severe Thunderstorm Warning';
+        else if((raw.includes('SVR')||raw.includes('SEVERE'))&&raw.includes('WATCH'))eventName='Severe Thunderstorm Watch';
+        else if(raw.includes('FLASH FLOOD')&&raw.includes('EMERGENCY'))eventName='Flash Flood Emergency';
+        else if(raw.includes('FLASH FLOOD')&&raw.includes('WARNING'))eventName='Flash Flood Warning';
+        else if(raw.includes('FLASH FLOOD')&&raw.includes('WATCH'))eventName='Flash Flood Watch';
+        else if(raw.includes('FLOOD')&&raw.includes('WARNING'))eventName='Flood Warning';
+        else if(raw.includes('FLOOD')&&raw.includes('WATCH'))eventName='Flood Watch';
+        else if(raw.includes('HIGH WIND')&&raw.includes('WARNING'))eventName='High Wind Warning';
+        else if(raw.includes('HIGH WIND')&&raw.includes('WATCH'))eventName='High Wind Watch';
+        else if(raw.includes('EXTREME WIND'))eventName='Extreme Wind Warning';
+        else if(raw.includes('HURRICANE')&&raw.includes('WARNING'))eventName='Hurricane Warning';
+        else if(raw.includes('HURRICANE')&&raw.includes('WATCH'))eventName='Hurricane Watch';
+        else if(raw.includes('TROPICAL STORM')&&raw.includes('WARNING'))eventName='Tropical Storm Warning';
+        else if(raw.includes('TROPICAL STORM')&&raw.includes('WATCH'))eventName='Tropical Storm Watch';
+        else if(raw.includes('STORM SURGE')&&raw.includes('WARNING'))eventName='Storm Surge Warning';
+        else if(raw.includes('STORM SURGE')&&raw.includes('WATCH'))eventName='Storm Surge Watch';
+      }
+      if(!eventName||!SEVERE_COLORS[eventName])return;
+      const areaDesc=(p.area_desc||p.areaDesc||p.states||'').trim();
+      const rawExp=p.expiration||p.ends||p.end||null;
+      let expires=rawExp;
+      if(typeof rawExp==='number'&&rawExp>9999999999)expires=new Date(rawExp).toISOString();
+      else if(typeof rawExp==='number'&&rawExp>0)expires=new Date(rawExp*1000).toISOString();
+      else if(typeof rawExp==='string')expires=rawExp;
+      combinedFeatures.push({...f,properties:{...p,event:eventName,areaDesc,expires,senderName:p.wfo||'NWS',description:'',headline:eventName,url:p.url||p.cap_id||''}});
+    };
+    if(wwa0Res.status==='fulfilled'&&wwa0Res.value.ok){const gj=await wwa0Res.value.json();(gj.features||[]).forEach(pushWWA);}
+    if(wwa1Res.status==='fulfilled'&&wwa1Res.value.ok){const gj=await wwa1Res.value.json();(gj.features||[]).forEach(pushWWA);}
+    combinedFeatures.forEach(f=>{
+      const p=f.properties||{};const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
+      if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
+      else if(p.event==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))p.event='Flash Flood Emergency';
+    });
+    const nwsWithDesc=new Set(combinedFeatures.filter(f=>f.geometry&&(f.properties?.description||'').length>20).map(f=>f.properties?.event||'').filter(Boolean));
+    const deduped=combinedFeatures.filter(f=>{
+      const ev=f.properties?.event||'';
+      if((f.properties?.description||'').length>20)return true;
+      if(!nwsWithDesc.has(ev))return true;
+      return false;
+    });
+    activeWarnings=deduped.filter(f=>f.geometry&&f.properties&&SEVERE_COLORS.hasOwnProperty(f.properties?.event||''));
+    activeWarnings.sort((a,b)=>getAlertPriority(b.properties.event)-getAlertPriority(a.properties.event));
+    activeWatches=[];
+    renderWatchesMap(activeWarnings);
+    updateWatchLegend(activeWarnings);
+  }catch(e){console.error('fetchWarnings Error:',e);}
 }
 
-// ── IBW pulse + life-threatening classification ───────
-function determinePulse(feat){
-  const p=feat.properties||{};
-  const ev=(p.event||'').toUpperCase();
-  const desc=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
-  if(ev.includes('TORNADO WARNING')||ev.includes('TORNADO EMERGENCY')){
-    if(ev.includes('TORNADO EMERGENCY')||desc.includes('TORNADO EMERGENCY'))return'emerg';
-    if(desc.includes('CATASTROPHIC')||desc.includes('OBSERVED'))return'emerg';
+function shouldPulse(feat){
+  const p=feat.properties||{};const event=(p.event||'').toUpperCase();const desc=(p.description||p.headline||'').toUpperCase();
+  if(event.includes('TORNADO WARNING')){
+    if(desc.includes('CATASTROPHIC')||desc.includes('OBSERVED')||event.includes('EMERGENCY'))return'emerg';
     return null;
   }
-  if(ev.includes('SEVERE THUNDERSTORM WARNING')){
-    const isDestructive=desc.includes('DESTRUCTIVE')||/MAX HAIL SIZE\.\.\.[23]\.\d/.test(desc)||desc.includes('WIND...80 MPH');
+  if(event.includes('SEVERE THUNDERSTORM WARNING')){
+    const isDestructive=desc.includes('DESTRUCTIVE')||desc.includes('MAX HAIL SIZE...2.75')||desc.includes('MAX HAIL SIZE...3.')||desc.includes('WIND...80 MPH');
     if(isDestructive)return'emerg';
     const isConsiderable=desc.includes('CONSIDERABLE')||desc.includes('MAX HAIL SIZE...1.75')||desc.includes('WIND...70 MPH');
-    if(isConsiderable||desc.includes('TORNADO...POSSIBLE')||desc.includes('TORNADO POSSIBLE'))return'warn';
+    const hasTorPoss=desc.includes('TORNADO...POSSIBLE')||desc.includes('TORNADO POSSIBLE');
+    if(isConsiderable||hasTorPoss)return'warn';
   }
-  if(ev.includes('FLASH FLOOD WARNING')){
-    if(ev.includes('EMERGENCY')||desc.includes('FLASH FLOOD EMERGENCY')||desc.includes('CATASTROPHIC'))return'emerg';
+  if(event.includes('FLASH FLOOD WARNING')){
+    if(desc.includes('CATASTROPHIC')||event.includes('EMERGENCY'))return'emerg';
     if(desc.includes('CONSIDERABLE'))return'warn';
   }
   return null;
 }
 
 function isLifeThreatening(feat){
-  const p=feat.properties||{};
-  const ev=(p.event||'').toUpperCase();
-  const desc=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
-  if(/tornado emergency|flash flood emergency/i.test(p.event||''))return true;
+  const p=feat.properties||{};const ev=(p.event||'').toUpperCase();const desc=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
+  if(ev.includes('TORNADO EMERGENCY')||ev.includes('EMERGENCY'))return true;
   if(ev.includes('TORNADO WARNING')&&(desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||desc.includes('OBSERVED')))return true;
   if(ev.includes('SEVERE THUNDERSTORM WARNING')&&desc.includes('DESTRUCTIVE'))return true;
   if(ev.includes('FLASH FLOOD WARNING')&&(desc.includes('CATASTROPHIC')||desc.includes('EMERGENCY')))return true;
   return false;
 }
 
-// ── NOAA prod_type → standard event name ─────────────
-function wwaEventName(pt){
-  if(!pt)return'';
-  if(SEVERE_COLORS[pt])return pt;
-  const raw=pt.toUpperCase();
-  if(raw.includes('TORNADO')&&raw.includes('EMERGENCY'))return'Tornado Emergency';
-  if(raw.includes('TORNADO')&&raw.includes('WARNING'))return'Tornado Warning';
-  if(raw.includes('TORNADO')&&raw.includes('WATCH'))return'Tornado Watch';
-  if((raw.includes('SVR')||raw.includes('SEVERE'))&&raw.includes('WARNING'))return'Severe Thunderstorm Warning';
-  if((raw.includes('SVR')||raw.includes('SEVERE'))&&raw.includes('WATCH'))return'Severe Thunderstorm Watch';
-  if(raw.includes('FLASH FLOOD')&&raw.includes('EMERGENCY'))return'Flash Flood Emergency';
-  if(raw.includes('FLASH FLOOD')&&raw.includes('WARNING'))return'Flash Flood Warning';
-  if(raw.includes('FLASH FLOOD')&&raw.includes('WATCH'))return'Flash Flood Watch';
-  if(raw.includes('FLOOD')&&raw.includes('WARNING'))return'Flood Warning';
-  if(raw.includes('FLOOD')&&raw.includes('WATCH'))return'Flood Watch';
-  if(raw.includes('HIGH WIND')&&raw.includes('WARNING'))return'High Wind Warning';
-  if(raw.includes('HIGH WIND')&&raw.includes('WATCH'))return'High Wind Watch';
-  if(raw.includes('EXTREME WIND'))return'Extreme Wind Warning';
-  if(raw.includes('HURRICANE')&&raw.includes('WARNING'))return'Hurricane Warning';
-  if(raw.includes('HURRICANE')&&raw.includes('WATCH'))return'Hurricane Watch';
-  if(raw.includes('TROPICAL STORM')&&raw.includes('WARNING'))return'Tropical Storm Warning';
-  if(raw.includes('TROPICAL STORM')&&raw.includes('WATCH'))return'Tropical Storm Watch';
-  if(raw.includes('STORM SURGE')&&raw.includes('WARNING'))return'Storm Surge Warning';
-  if(raw.includes('STORM SURGE')&&raw.includes('WATCH'))return'Storm Surge Watch';
-  return'';
-}
-
-// ── Main fetch — triple source ────────────────────────
-async function fetchWarnings(){
-  try{
-    const[nwsRes,wwa0Res,wwa1Res]=await Promise.allSettled([
-      fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'}),
-      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'}),
-      fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'}),
-    ]);
-
-    // NWS: rich text/metadata
-    let nwsFeatures=[];
-    if(nwsRes.status==='fulfilled'&&nwsRes.value.ok){
-      const gj=await nwsRes.value.json();
-      nwsFeatures=(gj.features||[]).map(f=>{
-        const p=f.properties||{};
-        return{...f,_source:'NWS',properties:{...p,
-          event:(p.event||'').trim(),
-          areaDesc:(p.areaDesc||p.area_desc||'').trim(),
-          expires:p.expires||p.ends||p.expiration||null,
-          senderName:(p.senderName||p.sender||'NWS').trim(),
-          description:(p.description||p.instruction||'').trim(),
-          headline:(p.parameters?.NWSheadline?.[0]||p.parameters?.headline?.[0]||p.headline||p.event||'').trim(),
-          parameters:p.parameters||{},
-        }};
-      }).filter(f=>SEVERE_COLORS.hasOwnProperty(f.properties.event));
-    }
-
-    // NOAA WWA: better polygon geometry
-    const normalizeExp=raw=>{
-      if(!raw)return null;
-      if(typeof raw==='number'&&raw>9999999999)return new Date(raw).toISOString();
-      if(typeof raw==='number'&&raw>0)return new Date(raw*1000).toISOString();
-      return raw;
-    };
-    let wwaFeatures=[];
-    for(const res of[wwa0Res,wwa1Res]){
-      if(res.status!=='fulfilled'||!res.value.ok)continue;
-      try{
-        const gj=await res.value.json();
-        (gj.features||[]).forEach(f=>{
-          if(!f.geometry)return;
-          const p=f.properties||{};
-          const eventName=wwaEventName((p.prod_type||'').trim());
-          if(!eventName||!SEVERE_COLORS[eventName])return;
-          wwaFeatures.push({...f,_source:'NOAA',properties:{...p,
-            event:eventName,
-            areaDesc:(p.area_desc||p.areaDesc||p.states||'').trim(),
-            expires:normalizeExp(p.expiration||p.ends||p.end||null),
-            senderName:p.wfo||'NWS',
-            description:'',
-            headline:eventName,
-            url:p.url||p.cap_id||'',
-            parameters:{watchNumber:[p.watch_num||'']},
-          }});
-        });
-      }catch{}
-    }
-
-    // Emergency upgrade
-    const all=[...nwsFeatures,...wwaFeatures];
-    all.forEach(f=>{
-      const p=f.properties||{};
-      const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
-      if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
-      else if(p.event==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))p.event='Flash Flood Emergency';
-    });
-
-    // Deduplicate: prefer NWS over NOAA for event types NWS covers
-    const nwsEventTypes=new Set(nwsFeatures.filter(f=>(f.properties?.description||'').length>20).map(f=>f.properties?.event||'').filter(Boolean));
-    const deduped=all.filter(f=>{
-      if(f._source==='NWS')return true;
-      return!nwsEventTypes.has(f.properties?.event||'');
-    });
-    const seen=new Set();
-    const final=deduped.filter(f=>{
-      if(!f.geometry||!SEVERE_COLORS.hasOwnProperty(f.properties?.event||''))return false;
-      const p=f.properties||{};
-      const key=`${p.event}|${p.expires||''}|${(p.areaDesc||'').slice(0,12)}`;
-      if(seen.has(key))return false;
-      seen.add(key);
-      return true;
-    });
-    final.sort((a,b)=>getAlertPriority(a.properties.event)-getAlertPriority(b.properties.event));
-
-    activeWarnings=final;
-    activeWatches=[];
-    watchesList=final;
-    renderWatchesMap(final);
-    updateWatchLegend(final);
-  }catch(e){console.error('fetchWarnings:',e);}
-}
-
-// fetchWatches is now a no-op — data comes from unified fetchWarnings
-async function fetchWatches(){}
-
-// processAndRenderMap no longer needed — fetchWarnings is atomic
-function processAndRenderMap(){}
-
 function renderWatchesMap(features){
-  if(watchLayer){watchesMap.removeLayer(watchLayer);watchLayer=null;}
-  if(!features.length)return;
   const newLayer=L.geoJSON({type:'FeatureCollection',features},{
     style:feat=>{
-      const ev=feat.properties?.event||'';
-      const lifeThreat=isLifeThreatening(feat);
-      const color=lifeThreat?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
-      const isWatch=/watch/i.test(ev);
-      const isTorWarn=/tornado warning/i.test(ev)&&!lifeThreat;
-      return{
-        fillColor:color,
-        fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.18:0.28),
-        color,
-        weight:lifeThreat?3.5:(isWatch?1.5:2),
-        opacity:1,
-      };
+      const ev=feat.properties?.event||'';const lifeThreat=isLifeThreatening(feat);const color=lifeThreat?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
+      const isWatch=/watch/i.test(ev);const isTorWarn=/tornado warning/i.test(ev)&&!lifeThreat;
+      return{fillColor:color,fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.18:0.25),color,weight:lifeThreat?3.5:(isWatch?1.5:2),opacity:1};
     },
     onEachFeature:(feat,lyr)=>{
-      lyr.on('click',e=>{L.DomEvent.stopPropagation(e);showWatchDetail(feat);});
+      lyr.on('click',e=>{
+        L.DomEvent.stopPropagation(e);
+        try{const b=lyr.getBounds();if(b.isValid())watchesMap.fitBounds(b,{padding:[60,60]});}catch{}
+        openAlertOverlay(feat);
+      });
     }
   });
-  // Atomic swap — no blank flash between refreshes
   newLayer.addTo(watchesMap);
   if(watchLayer)watchesMap.removeLayer(watchLayer);
   watchLayer=newLayer;
-  // Apply IBW pulse classes once Leaflet renders _path elements
   let attempts=0;
   const applyPulse=()=>{
     let allReady=true;
     watchLayer.eachLayer(lyr=>{
-      const pulse=determinePulse(lyr.feature);
-      if(!pulse)return;
+      const pulse=shouldPulse(lyr.feature);if(!pulse)return;
       if(!lyr._path){allReady=false;return;}
-      lyr._path.classList.add(pulse==='emerg'?'svg-pulse-emerg':'svg-pulse-warn');
+      const cls=pulse==='emerg'?'svg-pulse-emerg':'svg-pulse-warn';
+      lyr._path.classList.add(cls);
     });
     if(!allReady&&attempts++<20)requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
+  features.forEach(feat=>{
+    const p=feat.properties||{};
+    if(shouldPulse(feat)==='emerg'&&/tornado warning/i.test(p.event||'')){
+      const id=p.id||p.cap_id||p.url||JSON.stringify({ev:p.event,exp:p.expires});
+      if(!_shownTorAlertIds.has(id)){_shownTorAlertIds.add(id);showTorBanner(feat);}
+    }
+  });
 }
 
 function updateWatchLegend(features){
-  const leg=document.getElementById('ww-legend');
+  const leg=document.getElementById('ww-legend');if(!leg)return;
   leg.innerHTML='';
-  const seen=new Map();
+  const seenWarn=new Map();const seenWatch=new Map();
+  let hasEmergPulse=false;let hasWarnPulse=false;
   features.forEach(f=>{
-    const ev=(f.properties?.event||'').trim();
-    if(!ev||seen.has(ev))return;
-    const color=isLifeThreatening(f)?'#FF1493':(SEVERE_COLORS[ev]||'#8B5CF6');
-    const label=getWatchStyle(ev).label;
-    seen.set(ev,{color,label});
+    const ev=(f.properties?.event||'').trim();if(!ev)return;
+    const pulse=shouldPulse(f);
+    if(pulse==='emerg')hasEmergPulse=true;else if(pulse==='warn')hasWarnPulse=true;
+    const{color,label}=isLifeThreatening(f)?{color:'#FF1493',label:getWatchStyle(ev).label}:getWatchStyle(ev);
+    if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
+    else{if(!seenWarn.has(ev))seenWarn.set(ev,{color,label});}
   });
-  [...seen.entries()]
-    .sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0]))
-    .forEach(([,{color,label}])=>{
-      leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
-    });
+  const allSeen=new Map([...seenWarn,...seenWatch]);
+  [...allSeen.entries()].sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0])).forEach(([,{color,label}])=>{
+    leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
+  });
+  if(hasEmergPulse){
+    leg.innerHTML+=`<div class="wl-item" style="margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF1493;border:1px solid rgba(255,20,147,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:#FF1493;font-weight:700;">Flashing = Life-Threatening</span></div>`;
+  } else if(hasWarnPulse){
+    leg.innerHTML+=`<div class="wl-item" style="margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-warn" style="background:#FFA500;border:1px solid rgba(255,165,0,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:var(--text3);font-weight:600;">Flashing = High Impact Storm</span></div>`;
+  }
 }
 
-function setWatchFilter(f){
-  watchFilter=f;
-  renderWatchesMap(watchesList);
+// ══════════════════════════════════════════════════════
+//  ALERT OVERLAY
+// ══════════════════════════════════════════════════════
+async function openAlertOverlay(feat){
+  const p=feat.properties||{};
+  const{label,color,iconSym}=getWatchStyle(p.event||'');
+  const isEmerg=/emergency/i.test(p.event||'');
+  const isWarn=/warning/i.test(p.event||'');
+  const isWatch=/watch/i.test(p.event||'');
+  const alpha=isEmerg?0.18:0.10;const borderAlpha=isEmerg?0.35:0.2;
+  const bg=hexToRgba(color,alpha);const border=hexToRgba(color,borderAlpha);
+  const expDate=parseAlertDate(p.expires||p.expiration||p.end||null);
+  const exp=expDate?expDate.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
+  const sender=(p.senderName||p.sender||'NWS Storm Prediction Center').replace(/^NWS\s*/i,'NWS ').trim();
+  const descForTag=(p.description||p.headline||'').toUpperCase();
+  let tagSuffix='';
+  if(descForTag.includes('DESTRUCTIVE'))tagSuffix=' (Destructive)';
+  else if(descForTag.includes('CONSIDERABLE'))tagSuffix=' (Considerable)';
+  const threatType=isEmerg?'Emergency':isWarn?'Warning'+tagSuffix:isWatch?'Watch':'Advisory';
+  let rawDesc=(p.description||'').trim();
+  const rawHeadline=(p.headline||'').trim();
+  const aiContent=document.getElementById('ao-ai-content');
+  const aiSpinner=document.getElementById('ao-ai-spinner');
+  const box=document.querySelector('.ao-box');
+  box.style.borderColor=hexToRgba(color,0.3);
+  document.getElementById('ao-stripe').style.background=color;
+  const iconEl=document.getElementById('ao-icon');
+  iconEl.style.background=color;
+  document.getElementById('ao-icon-sym').textContent=iconSym;
+  const titleEl=document.getElementById('ao-title');
+  titleEl.textContent=label;titleEl.style.color=color;
+  const aiBlock=document.getElementById('ao-ai-block');
+  aiBlock.style.background=bg;aiBlock.style.borderColor=border;
+  const aiHeader=aiBlock.querySelector('.ao-ai-header');
+  aiHeader.style.borderBottomColor=hexToRgba(color,0.15);
+  aiHeader.querySelector('.msr').style.color=color;
+  aiHeader.querySelector('span').style.color=color;
+  document.getElementById('ao-primary-threat').closest('.ao-meta-item').style.display=isWatch?'none':'';
+  document.getElementById('ao-threat-type').closest('.ao-meta-item').style.display=isWatch?'none':'';
+  document.querySelector('.ao-meta').style.gridTemplateColumns=isWatch?'1fr':'repeat(3,1fr)';
+  document.getElementById('ao-issued').textContent=sender;
+  const threatEl=document.getElementById('ao-primary-threat');
+  threatEl.innerHTML='—';threatEl.style.color='';
+  const descUpper=(rawDesc||rawHeadline||'').toUpperCase();
+  const hasTorPoss=descUpper.includes('TORNADO...POSSIBLE')||descUpper.includes('TORNADO POSSIBLE');
+  if(!isWatch&&hasTorPoss){
+    threatEl.innerHTML=`<span style="color:#FFFF00;font-weight:900;animation:blink-warn 0.8s step-start infinite;">⚠ TORNADO POSSIBLE!</span>`;
+  }
+  document.getElementById('ao-expires').textContent=exp;
+  document.getElementById('ao-threat-type').textContent=threatType;
+  aiContent.innerHTML='';aiSpinner.style.display='none';
+  document.getElementById('alert-overlay').classList.add('open');
+  if(isWatch){aiBlock.style.display='none';return;}
+  aiBlock.style.display='';
+  aiSpinner.style.display='block';
+  if(!rawDesc){
+    const rawUrl=p.url||p.cap_id||'';
+    if(rawUrl){
+      try{const r=await fetch(rawUrl.replace('https://api.weather.gov',`${WORKER}/nws`),{cache:'no-store'});if(r.ok){const d=await r.json();rawDesc=(d.properties?.description||d.properties?.instruction||'').trim();}}catch{}
+    }
+    if(!rawDesc){
+      try{const ev=encodeURIComponent(p.event||'');const r=await fetch(`${WORKER}/nws/alerts/active?event=${ev}&status=actual`,{cache:'no-store'});if(r.ok){const gj=await r.json();const match=(gj.features||[]).filter(f=>(f.properties?.description||'').length>80).sort((a,b)=>b.properties.description.length-a.properties.description.length)[0];if(match)rawDesc=(match.properties.description||'').trim();}}catch{}
+    }
+  }
+  const textForAI=(rawDesc||rawHeadline||'').slice(0,3000);
+  if(!textForAI||textForAI.length<20){aiSpinner.style.display='none';aiContent.innerHTML=`<div class="ao-ai-err">No alert text available.</div>`;return;}
+  try{
+    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      max_tokens:450,
+      system:`You are a severe weather analyst summarizing an NWS alert for a weather app. Be concise and direct.\nReply with ONLY these 4 labeled sections (no preamble, no extra text):\n\nTHREAT:\n[Primary hazard in brief — e.g. "60 mph winds · 1" hail". If the alert mentions a tornado is possible, append "· Tornado Possible". Max 10 words.]\n\nIMMEDIATE RISK:\n[What is happening and why it is dangerous — 1-2 sentences]\n\nTIMING:\n[When it starts, peaks, and ends — 1 sentence]\n\nACTIONS:\n[The single most important safety action — 1 sentence]`,
+      messages:[{role:'user',content:textForAI}]
+    })});
+    if(!aiRes.ok)throw new Error(`AI ${aiRes.status}`);
+    const aiData=await aiRes.json();
+    const summary=(aiData.content?.[0]?.text||'').trim();
+    if(!summary)throw new Error('empty');
+    const sectionIcons={'THREAT':'thunderstorm','IMMEDIATE RISK':'crisis_alert','TIMING':'schedule','ACTIONS':'shield'};
+    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
+    let html='';let i=0;
+    while(i<lines.length){
+      const match=lines[i].match(/^([A-Z][A-Z\s]+):$/);
+      if(match){
+        const lbl=match[1];const body=lines[i+1]||'';const icon=sectionIcons[lbl]||'info';
+        if(lbl==='THREAT'){
+          const hasTorPossible=/tornado possible/i.test(body);
+          if(hasTorPossible){const baseThreat=body.replace(/[·\-,]?\s*tornado possible\s*[·\-,]?/i,'').replace(/\s{2,}/g,' ').trim();threatEl.innerHTML=(baseThreat?`<span>${baseThreat} · </span>`:'')+`<span style="color:#FFFF00;animation:blink-warn 0.8s step-start infinite;font-weight:800;">⚠ TORNADO POSSIBLE!</span>`;}
+          else{threatEl.innerHTML=`<span>${body}</span>`;threatEl.style.color='';}
+          i+=2;continue;
+        }
+        html+=`<div class="ao-ai-section"><div class="ao-ai-section-label"><span class="msr">${icon}</span>${lbl}</div><div class="ao-ai-section-text">${body}</div></div>`;
+        i+=2;
+      }else{html+=`<div class="ao-ai-section-text" style="margin-bottom:8px">${lines[i]}</div>`;i++;}
+    }
+    aiContent.innerHTML=html||`<div class="ao-ai-err">Summary unavailable.</div>`;
+  }catch(e){aiContent.innerHTML=`<div class="ao-ai-err">Could not generate summary.</div>`;}
+  finally{aiSpinner.style.display='none';}
 }
+function closeAlertOverlay(){document.getElementById('alert-overlay').classList.remove('open');}
+document.getElementById('alert-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('alert-overlay'))closeAlertOverlay();});
 
+// ══════════════════════════════════════════════════════
+//  TORNADO BANNER
+// ══════════════════════════════════════════════════════
+function dismissTorBanner(){
+  document.getElementById('tor-alert-banner').classList.remove('open');
+  document.getElementById('tor-banner-backdrop').classList.remove('open');
+}
+async function showTorBanner(feat){
+  const p=feat.properties||{};
+  const{label}=getWatchStyle(p.event||'');
+  const expDate=parseAlertDate(p.expires||p.expiration||p.end||null);
+  const exp=expDate?expDate.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
+  const ibwTag=/(CATASTROPHIC|CONSIDERABLE|OBSERVED)/i.exec(p.description||p.headline||'');
+  const sub=ibwTag?`${ibwTag[1].charAt(0)+ibwTag[1].slice(1).toLowerCase()} Tornado`:'High-Impact Tornado';
+  document.getElementById('tab-title').textContent=label;
+  document.getElementById('tab-sub').textContent=sub;
+  document.getElementById('tab-exp').textContent=`Expires ${exp}`;
+  let rawDesc=(p.description||'').trim();
+  if(!rawDesc){
+    try{const rawUrl=p.url||p.cap_id||'';if(rawUrl){const r=await fetch(rawUrl.replace('https://api.weather.gov',`${WORKER}/nws`),{cache:'no-store'});if(r.ok){const d=await r.json();rawDesc=(d.properties?.description||'').trim();}}}catch{}
+    if(!rawDesc){
+      try{const r=await fetch(`${WORKER}/nws/alerts/active?event=Tornado+Warning&status=actual`,{cache:'no-store'});if(r.ok){const gj=await r.json();const match=(gj.features||[]).filter(f=>(f.properties?.description||'').length>80).sort((a,b)=>b.properties.description.length-a.properties.description.length)[0];if(match)rawDesc=(match.properties.description||'').trim();}}catch{}
+    }
+  }
+  const body=document.getElementById('tab-body');
+  if(rawDesc){
+    body.innerHTML=rawDesc.replace(/\r\n/g,'\n').split('\n').map(line=>{
+      const l=line.trim();if(!l)return null;
+      if(l.startsWith('*'))return`<div class="tab-nws-bullet">${l.slice(1).trim()}</div>`;
+      if(l===l.toUpperCase()&&l.length>4&&/[A-Z]/.test(l))return`<div class="tab-nws-header">${l}</div>`;
+      return`<div class="tab-nws-line">${l}</div>`;
+    }).filter(Boolean).join('');
+  }else{body.innerHTML=`<div class="tab-nws-line">A high-impact tornado warning is in effect. Take shelter immediately.</div>`;}
+  document.getElementById('tor-alert-banner').classList.add('open');
+  document.getElementById('tor-banner-backdrop').classList.add('open');
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const playDing=(time,freq=880)=>{const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(freq,time);gain.gain.setValueAtTime(0,time);gain.gain.linearRampToValueAtTime(0.4,time+0.01);gain.gain.exponentialRampToValueAtTime(0.001,time+0.8);osc.start(time);osc.stop(time+0.8);};
+    playDing(ctx.currentTime,880);playDing(ctx.currentTime+0.35,1046);playDing(ctx.currentTime+0.7,1318);
+  }catch{}
+}
 
 // ══════════════════════════════════════════════════════
 //  MESO MAP
@@ -2596,9 +2684,9 @@ function initMesoMap(){
   mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,crossOrigin:true}).addTo(mesoMap);
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(mesoMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane',crossOrigin:true}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(mesoMap)).catch(()=>{});
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval) clearInterval(window._mesoInterval);
   window._mesoInterval=setInterval(loadMeso,120000);
@@ -2717,32 +2805,27 @@ Be direct and specific. Avoid meteorological jargon. No extra text outside the 4
     const summary=(aiData.content?.[0]?.text||'').trim();
     if(!summary) throw new Error('Empty response');
 
-    // Parse sections — strip any leading ## markdown the model may add
-    const sectionCfg={
-      "WHAT'S HAPPENING":{icon:'wb_cloudy',   color:'#60a5fa', bg:'rgba(96,165,250,0.1)',  border:'rgba(96,165,250,0.25)'},
-      'PRIMARY THREAT':  {icon:'warning',      color:'#f97316', bg:'rgba(249,115,22,0.1)',  border:'rgba(249,115,22,0.25)'},
-      'AFFECTED AREA':   {icon:'location_on',  color:'#a78bfa', bg:'rgba(167,139,250,0.1)', border:'rgba(167,139,250,0.25)'},
-      'TIMING':          {icon:'schedule',      color:'#34d399', bg:'rgba(52,211,153,0.1)',  border:'rgba(52,211,153,0.25)'},
+    // Parse sections
+    const sectionIcons={
+      "WHAT'S HAPPENING":'wb_cloudy',
+      'PRIMARY THREAT':'warning',
+      'AFFECTED AREA':'location_on',
+      'TIMING':'schedule',
     };
-    const lines=summary.split('\n').map(l=>l.trim().replace(/^#+\s*/,'')).filter(Boolean);
+    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
     let html2=''; let j=0;
     while(j<lines.length){
       const line=lines[j];
-      const sectionMatch=line.match(/^([A-Z][A-Z'S ]+):$/);
+      const sectionMatch=line.match(/^([A-Z'S ]+):$/);
       if(sectionMatch){
-        const lbl=sectionMatch[1].trim();
+        const lbl=sectionMatch[1];
         const body=lines[j+1]||'';
-        const cfg=sectionCfg[lbl]||{icon:'info',color:'var(--red)',bg:'rgba(249,115,22,0.08)',border:'rgba(249,115,22,0.2)'};
-        html2+=`<div style="background:${cfg.bg};border:1px solid ${cfg.border};border-radius:10px;padding:12px 14px;margin-bottom:10px;">
-          <div style="font-size:0.58rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:${cfg.color};margin-bottom:6px;display:flex;align-items:center;gap:5px;">
-            <span class="msr" style="font-size:13px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;color:${cfg.color};">${cfg.icon}</span>${lbl}
-          </div>
-          <div style="font-size:0.82rem;line-height:1.7;color:var(--text2);">${body}</div>
-        </div>`;
+        const icon=sectionIcons[lbl]||'info';
+        html2+=`<div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">${icon}</span>${lbl}</div><div class="meso-sum-text">${body}</div></div>`;
         j+=2;
-      } else { html2+=`<div style="font-size:0.82rem;line-height:1.7;color:var(--text3);margin-bottom:10px;">${line}</div>`; j++; }
+      } else { html2+=`<div class="meso-sum-text" style="margin-bottom:12px">${line}</div>`; j++; }
     }
-    document.getElementById('meso-modal-body').innerHTML=html2||`<div class="meso-err">Could not parse summary.</div>`;
+    document.getElementById('meso-modal-body').innerHTML=html2;
 
   }catch(e){
     document.getElementById('meso-modal-body').innerHTML=`<div class="meso-err"><strong>Could not load summary</strong><br><span style="font-size:.72rem;opacity:.75">${e.message}</span><br><br><span style="font-size:.72rem;color:var(--text4)">Check that GROQ_API_KEY is set in your Cloudflare Worker environment variables.</span></div>`;
