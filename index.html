@@ -999,6 +999,9 @@ let searchCtrl = null, searchSugs = [], selIdx = -1;
 let currentPage = 'home';
 let outlookMapInit=false, watchesMapInit=false, mesoMapInit=false;
 let outlookMap=null;
+let activeOutlookLayer=null, activeOutlookSigLayer=null, activeCigLayer=null;
+let activeOutlookDay=1, activeOutlookMode='cat', currentOutlookReqId=0;
+let day48GeoJSON={}, day48LoopTimer=null, day48LoopActive=false, activeDay48=4;
 let watchesMap, watchLayer=null, watchesList=[], watchFilter='all';
 let radarLayer=null;
 let activeWatches=[], activeWarnings=[];
@@ -1494,7 +1497,7 @@ function renderHourlyPage(){
 // ══════════════════════════════════════════════════════
 //  OUTLOOK MAP
 // ══════════════════════════════════════════════════════
-let activeOutlookLayer = null;
+let activeAlertFeature = null;
 
 function lockOutlookMap(){if(!outlookMap)return;outlookMap.dragging.disable();outlookMap.scrollWheelZoom.disable();outlookMap.touchZoom.disable();outlookMap.doubleClickZoom.disable();outlookMap.keyboard.disable();}
 function unlockOutlookMap(){if(!outlookMap)return;outlookMap.dragging.enable();outlookMap.scrollWheelZoom.enable();outlookMap.touchZoom.enable();outlookMap.doubleClickZoom.enable();outlookMap.keyboard.enable();}
