@@ -2264,9 +2264,9 @@ function renderWatchesMap(features) {
   features.forEach(feat=>{
     const ev=(feat.properties?.event||'').toUpperCase();
     const desc=(feat.properties?.description||feat.properties?.headline||feat.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
-    const isTorEvent=ev.includes('TORNADO');
-    const isObserved=desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||ev.includes('TORNADO EMERGENCY');
-    if(isTorEvent&&(isLifeThreatening(feat)||isObserved)){
+    // Only ding for features that actually render pink (tornado + life-threatening)
+    const isTorLifeThreat=isLifeThreatening(feat)&&/tornado/i.test(feat.properties?.event||'');
+    if(isTorLifeThreat){
       const id=feat.properties?.id||feat.properties?.cap_id||feat.properties?.url||JSON.stringify({ev:feat.properties?.event,exp:feat.properties?.expires});
       if(!_torAudioIds.has(id)){_torAudioIds.add(id);playTornadoAlert();}
     }
