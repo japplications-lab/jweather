@@ -2182,8 +2182,8 @@ function isLifeThreatening(feat) {
 }
 
 function renderWatchesMap(features) {
-  // Render lowest priority first so highest priority polygons sit on top and receive clicks
-  const renderFeatures = [...features].reverse();
+  // Sort ascending by priority (watches first = bottom, tornado emergencies last = top of SVG stack)
+  const renderFeatures = [...features].sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
   const newLayer = L.geoJSON({ type: 'FeatureCollection', features: renderFeatures }, {
     style: feat => {
       const ev = feat.properties?.event || '';

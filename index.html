@@ -2330,9 +2330,9 @@ function playTornadoAlert(){
 }
 
 function renderWatchesMap(features){
-  if(watchLayer){watchesMap.removeLayer(watchLayer);watchLayer=null;}
-  if(!features.length)return;
-  watchLayer=L.geoJSON({type:'FeatureCollection',features},{
+  // Sort ascending: watches/low-priority first (SVG bottom), emergencies last (SVG top = receives clicks)
+  const renderFeatures=[...features].sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
+  const newLayer=L.geoJSON({type:'FeatureCollection',features:renderFeatures},{
     style:feat=>{
       const ev=feat.properties?.event||'';
       const lifeThreat=isLifeThreatening(feat);
@@ -2342,7 +2342,10 @@ function renderWatchesMap(features){
       return{fillColor:color,fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.18:0.25),color,weight:lifeThreat?3.5:(isWatch?1.5:2),opacity:1};
     },
     onEachFeature:(feat,lyr)=>{lyr.on('click',e=>{L.DomEvent.stopPropagation(e);showWatchDetail(feat);});}
-  }).addTo(watchesMap);
+  });
+  newLayer.addTo(watchesMap);
+  if(watchLayer)watchesMap.removeLayer(watchLayer);
+  watchLayer=newLayer;
   // Apply pulse classes
   let attempts=0;
   const applyPulse=()=>{
@@ -2356,9 +2359,13 @@ function renderWatchesMap(features){
     if(!allReady&&attempts++<20)requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
-  // Audio ding for new life-threatening tornado warnings
+  // Audio ding for observed/life-threatening tornado warnings
   features.forEach(feat=>{
-    if(isLifeThreatening(feat)&&/tornado/i.test(feat.properties?.event||'')){
+    const ev=(feat.properties?.event||'').toUpperCase();
+    const desc=(feat.properties?.description||feat.properties?.headline||feat.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+    const isTorEvent=ev.includes('TORNADO');
+    const isObserved=desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||ev.includes('TORNADO EMERGENCY');
+    if(isTorEvent&&(isLifeThreatening(feat)||isObserved)){
       const id=feat.properties?.id||feat.properties?.cap_id||feat.properties?.url||JSON.stringify({ev:feat.properties?.event,exp:feat.properties?.expires});
       if(!_torAudioIds.has(id)){_torAudioIds.add(id);playTornadoAlert();}
     }
