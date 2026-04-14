@@ -2201,14 +2201,15 @@ function renderWatchesMap(features) {
     style: feat => {
       const ev = feat.properties?.event || '';
       const lifeThreat = isLifeThreatening(feat);
-      const color = lifeThreat ? '#FF2DD4' : (SEVERE_COLORS[ev] || '#8B5CF6');
+      const isTorLifeThreat = lifeThreat && /tornado/i.test(ev);
+      const color = isTorLifeThreat ? '#FF2DD4' : (SEVERE_COLORS[ev] || '#8B5CF6');
       const isWatch = /watch/i.test(ev);
-      const isTorWarn = /tornado warning/i.test(ev) && !lifeThreat;
+      const isTorWarn = /tornado warning/i.test(ev) && !isTorLifeThreat;
       return {
         fillColor: color,
-        fillOpacity: lifeThreat ? 0.6 : isTorWarn ? 0.85 : (isWatch ? 0.18 : 0.25),
+        fillOpacity: isTorLifeThreat ? 0.6 : isTorWarn ? 0.85 : (isWatch ? 0.18 : 0.25),
         color,
-        weight: lifeThreat ? 3.5 : (isWatch ? 1.5 : 2),
+        weight: isTorLifeThreat ? 3.5 : (isWatch ? 1.5 : 2),
         opacity: 1
       };
     }
@@ -2275,13 +2276,18 @@ function updateWatchLegend(features){
   legWarn.innerHTML='';legWatch.innerHTML='';
 
   const seenWarn=new Map();const seenWatch=new Map();
-  let hasEmergPulse=false;let hasWarnPulse=false;
+  let hasEmergPulse=false;let hasWarnPulse=false;let hasObservedTornado=false;
   features.forEach(f=>{
     const ev=(f.properties?.event||'').trim();
     if(!ev)return;
     const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;
     else if(pulse==='warn')hasWarnPulse=true;
+    // Only show OBSERVED TORNADO legend entry for actual tornado warnings with observed/confirmed
+    if(pulse==='emerg'&&/tornado/i.test(ev)){
+      const desc=(f.properties?.description||f.properties?.headline||f.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+      if(desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||/tornado emergency/i.test(ev))hasObservedTornado=true;
+    }
     // Always use base color for legend — fuchsia is only for map polygons
     const{color,label}=getWatchStyle(ev);
     if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
@@ -2302,7 +2308,7 @@ function updateWatchLegend(features){
 
   // Pulse key — shown in warnings legend if any pulsing alerts are active
   if((hasEmergPulse||hasWarnPulse)&&legWarn.style.display!=='none'){
-    if(hasEmergPulse){
+    if(hasObservedTornado){
       legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;">volume_up</span><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
     }
   }
