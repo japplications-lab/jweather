@@ -338,8 +338,18 @@
       flex-shrink:0;
     }
     .watches-poll-bar{width:100%;background:var(--border);position:relative;overflow:hidden;height:28px;display:flex;align-items:center;}
-    #watches-init-overlay{display:flex;position:absolute;inset:0;z-index:490;background:rgba(13,15,20,0.82);backdrop-filter:blur(3px);align-items:center;justify-content:center;gap:12px;font-size:0.85rem;font-weight:600;color:var(--text3);pointer-events:none;transition:opacity .4s;}
+    @keyframes init-fade-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes init-dot{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}
+    #watches-init-overlay{display:flex;position:absolute;inset:0;z-index:490;background:rgba(10,12,17,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;pointer-events:none;transition:opacity .5s ease;}
     #watches-init-overlay.hidden{opacity:0;}
+    #watches-init-inner{display:flex;flex-direction:column;align-items:center;gap:18px;animation:init-fade-in .4s ease both;}
+    #watches-init-icon{width:44px;height:44px;border-radius:12px;background:var(--red-dim);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;}
+    #watches-init-icon .msr{font-size:22px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #watches-init-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text4);}
+    #watches-init-dots{display:flex;gap:5px;align-items:center;}
+    #watches-init-dots span{width:5px;height:5px;border-radius:50%;background:var(--red);animation:init-dot 1.2s ease-in-out infinite;}
+    #watches-init-dots span:nth-child(2){animation-delay:.2s;}
+    #watches-init-dots span:nth-child(3){animation-delay:.4s;}
     .watches-poll-fill{position:absolute;inset:0;background:var(--red);transform-origin:left;transition:none;height:100%;}
     .watches-poll-label{position:relative;z-index:1;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.62rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.07em;pointer-events:none;}
     .watches-filter-row{display:flex;gap:6px;padding:8px 10px;justify-content:center;}
@@ -662,8 +672,11 @@
       <div class="map-context-pill">Alerts</div>
       <div class="watches-legend" id="ww-legend"></div>
       <div id="watches-init-overlay">
-        <div class="spin-ring"></div>
-        <span>Loading alerts…</span>
+        <div id="watches-init-inner">
+          <div id="watches-init-icon"><span class="msr">cell_tower</span></div>
+          <div id="watches-init-label">Fetching live alerts</div>
+          <div id="watches-init-dots"><span></span><span></span><span></span></div>
+        </div>
       </div>
     </div>
     <div class="watches-controls">
@@ -1530,7 +1543,7 @@ function initOutlookMap() {
   const r = window.devicePixelRatio > 1 ? '@2x' : '';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`, { subdomains: 'abcd', maxZoom: 19, opacity: 0.55 }).addTo(outlookMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r => r.json()).then(gj => L.geoJSON(gj, { style: { color: '#4b5563', weight: 1.5, fill: false, opacity: .9 }, interactive: false }).addTo(outlookMap)).catch(() => {});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`, { subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane' }).addTo(outlookMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`, { subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane', opacity: 0.7 }).addTo(outlookMap);
   // CIG hatch pattern
   const svgNS = 'http://www.w3.org/2000/svg';
   const cigDefs = document.createElementNS(svgNS, 'defs');
