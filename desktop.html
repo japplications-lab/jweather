@@ -2026,8 +2026,8 @@ async function fetchWarnings() {
       fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
     ]);
     // If every single fetch failed, bail out silently — keep existing layer intact
-    const anySucceeded = [nwsRes,wwa0Res,wwa1Res].some(r=>r.status==='fulfilled'&&r.value?.ok);
-    if(!anySucceeded) return;
+    const succeeded = [nwsRes,wwa0Res,wwa1Res].filter(r=>r.status==='fulfilled'&&r.value?.ok).length;
+    if(succeeded === 0) return; // all failed — keep existing layer
 
     let combinedFeatures = [];
 
@@ -2129,12 +2129,11 @@ async function fetchWarnings() {
     newWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
     // Only update the map if we got real data; if fetch returned empty but we had warnings before,
     // keep the existing layer to avoid a blank map from a transient empty response
-    if(newWarnings.length > 0 || !watchLayer || watchLayer.getLayers().length === 0){
-      activeWarnings = newWarnings;
-      activeWatches = [];
-      renderWatchesMap(activeWarnings);
-      updateWatchLegend(activeWarnings);
-    }
+    // Always render when we have data from at least one source
+    activeWarnings = newWarnings;
+    activeWatches = [];
+    renderWatchesMap(activeWarnings);
+    updateWatchLegend(activeWarnings);
     if(window._watchesFirstLoad){
       window._watchesFirstLoad=false;
       const ov=document.getElementById('watches-init-overlay');
