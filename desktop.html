@@ -2193,7 +2193,7 @@ function renderWatchesMap(features) {
     onEachFeature: (feat, lyr) => {
       lyr.on('click', e => {
         L.DomEvent.stopPropagation(e);
-        try { const b = lyr.getBounds(); if (b.isValid()) watchesMap.fitBounds(b, { padding: [60, 60] }); } catch {}
+
         openAlertOverlay(feat);
       });
     }
@@ -2598,7 +2598,7 @@ function renderMesoMap(features){
       lyr.on('click',()=>{
         const idx=mesoData.findIndex(f=>f===feat);
         if(idx>=0){
-          try{const bounds=lyr.getBounds();if(bounds.isValid())mesoMap.fitBounds(bounds,{padding:[60,60]});}catch{}
+
           showMesoDetail(feat,idx);
         }
       });
@@ -2619,7 +2619,7 @@ function renderMesoPanel(features){
     item.innerHTML=`<div class="meso-item-num">MD #${num}</div><div class="meso-item-title">${concern}</div><div class="meso-item-meta">${states}</div>`;
     item.addEventListener('click',()=>{
       list.querySelectorAll('.meso-item').forEach(el=>el.style.background='');item.style.background='var(--surface2)';
-      try{const layers=Object.values(mesoLayers.all?._layers||{});if(layers[idx]?.getBounds){const b=layers[idx].getBounds();if(b.isValid())mesoMap.fitBounds(b,{padding:[40,40]});}}catch{}
+
       showMesoDetail(feat,idx);
     });
     list.appendChild(item);

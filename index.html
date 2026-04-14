@@ -2422,7 +2422,7 @@ async function showWatchDetail(feat){
   document.getElementById('watch-modal-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
   if(watchesMap&&feat.geometry){
-    try{const coords=feat.geometry.type==='MultiPolygon'?feat.geometry.coordinates[0][0]:feat.geometry.coordinates[0];watchesMap.fitBounds(coords.map(c=>[c[1],c[0]]),{padding:[40,60]});}catch{}
+
   }
   let rawDesc=(a.description||'').trim();
   if(!rawDesc){
@@ -2595,7 +2595,7 @@ async function showMesoDetail(feat,i){
   if(mesoMap&&feat.geometry){
     try{
       const coords=feat.geometry.coordinates[0];
-      mesoMap.fitBounds(L.latLngBounds(coords.map(c=>[c[1],c[0]])),{paddingTopLeft:[16,16],paddingBottomRight:[16,80]});
+
     }catch{}
   }
 
@@ -2672,7 +2672,7 @@ function renderMesoMap(features){
           // Zoom to clicked polygon
           try{
             const bounds=lyr.getBounds();
-            if(bounds.isValid()) mesoMap.fitBounds(bounds,{padding:[60,60]});
+
           }catch(e){}
           showMesoDetail(feat,idx);
         }
