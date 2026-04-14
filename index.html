@@ -298,6 +298,8 @@
     .ol-legend-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;font-weight:500;color:var(--text2);padding:2px 0;white-space:nowrap;}
     .ol-legend-item span{white-space:nowrap;}
     .ol-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+    .ol-warn-triangle{width:14px;height:14px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;}
+    .ol-warn-triangle svg{width:14px;height:14px;display:block;}
 
     /* Day 4-8 loop sub-tabs */
     .ol-loop-row{display:flex;gap:6px;padding:8px 10px;justify-content:center;}
@@ -1526,7 +1528,7 @@ function initOutlookMap() {
   outlookMap.getPane('outlookPane').style.zIndex = 310;
   outlookMap._outlookRenderer = L.svg({ pane: 'outlookPane' }).addTo(outlookMap);
   const r = window.devicePixelRatio > 1 ? '@2x' : '';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`, { subdomains: 'abcd', maxZoom: 19 }).addTo(outlookMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`, { subdomains: 'abcd', maxZoom: 19, opacity: 0.55 }).addTo(outlookMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r => r.json()).then(gj => L.geoJSON(gj, { style: { color: '#4b5563', weight: 1.5, fill: false, opacity: .9 }, interactive: false }).addTo(outlookMap)).catch(() => {});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`, { subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane' }).addTo(outlookMap);
   // CIG hatch pattern
@@ -1690,6 +1692,9 @@ function outlookPopupContent(f, mode, day) {
   }
 }
 
+const ENHANCED_PLUS=new Set(['ENH','MDT','HIGH']);
+function warnTriangleHTML(cat){return ENHANCED_PLUS.has(cat)?`<span class="ol-warn-triangle" title="Significant severe weather expected">${WARN_TRIANGLE_SVG}</span>`:'';}
+
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('ol-legend'); items.innerHTML = '';
   if (mode === 'cat') {
@@ -1701,7 +1706,7 @@ function updateOutlookLegend(gj, mode) {
     });
     OUTLOOK_CAT_ORDER.filter(k => present.has(k) && k !== 'TSTM').forEach(k => {
       const c = OUTLOOK_CAT[k]; const item = document.createElement('div'); item.className = 'ol-legend-item';
-      item.innerHTML = `<div class="ol-legend-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>`;
+      item.innerHTML = `<div class="ol-legend-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>${warnTriangleHTML(k)}`;
       items.appendChild(item);
     });
   } else {
@@ -1714,7 +1719,8 @@ function updateOutlookLegend(gj, mode) {
     });
     getOutlookProbScale(mode).filter(p => [...present].some(d => d >= p.dn)).forEach(p => {
       const item = document.createElement('div'); item.className = 'ol-legend-item';
-      item.innerHTML = `<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>`;
+      const triangle = p.dn >= 10 ? `<span class="ol-warn-triangle" title="Significant severe weather expected">${WARN_TRIANGLE_SVG}</span>` : '';
+      item.innerHTML = `<div class="ol-legend-swatch" style="background:${p.fill};border:1px solid ${p.stroke}"></div><span>${p.label}</span>${triangle}`;
       items.appendChild(item);
     });
   }
