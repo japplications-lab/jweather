@@ -542,7 +542,7 @@
       <span class="msr">thunderstorm</span>SPC Outlook
     </button>
     <button class="nav-item" data-page="watches" onclick="navigate('watches')">
-      <span class="msr">warning</span>Watches &amp; Warnings
+      <span class="msr">warning</span>Alerts
     </button>
     <button class="nav-item" data-page="meso" onclick="navigate('meso')">
       <span class="msr">cyclone</span>Mesoscale Discussions
@@ -690,7 +690,7 @@
     <div class="page" id="page-watches">
       <div id="watches-map-wrap">
         <div id="watches-map"></div>
-        <div class="map-context-pill">Watches &amp; Warnings</div>
+        <div class="map-context-pill">Alerts</div>
         <div class="watches-legends">
           <div class="watches-legend" id="ww-legend-warnings"></div>
           <div class="watches-legend" id="ww-legend-watches"></div>
@@ -990,7 +990,7 @@ function navigate(page){
   currentPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  const labels={home:'Home',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Watches & Warnings',meso:'Mesoscale Discussions'};
+  const labels={home:'Home',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Alerts',meso:'Mesoscale Discussions'};
   document.getElementById('topbar-title').textContent=labels[page]||page;
   if(page==='outlook'&&!outlookMapInit){initOutlookMap();outlookMapInit=true;}
   if(page==='watches'&&!watchesMapInit){initWatchesMap();watchesMapInit=true;}
@@ -2465,6 +2465,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('clock-loc-name').textContent=loc.label;
   tickClock();
   loadWeather(loc);updateRadar(loc.lat,loc.lng);
+
+  // Deep-link via hash: desktop.html#alerts, #radar, #outlook, #meso, #hourly
+  const hashPage=window.location.hash.replace('#','').toLowerCase();
+  const validPages=['home','hourly','radar','outlook','watches','alerts','meso'];
+  if(hashPage==='alerts'){navigate('watches');}else if(hashPage&&validPages.includes(hashPage)){navigate(hashPage);}
 });
 </script>
 </body>

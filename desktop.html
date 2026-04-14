@@ -37,10 +37,12 @@
     @keyframes svg-pulse-warn{0%,100%{fill-opacity:0.08;}50%{fill-opacity:0.65;}}
     @keyframes div-pulse-emerg{0%,100%{opacity:0.45;}50%{opacity:1;}}
     @keyframes div-pulse-warn{0%,100%{opacity:0.4;}50%{opacity:1;}}
+    @keyframes tor-text-pulse{0%,100%{opacity:0.5;text-shadow:none;}50%{opacity:1;text-shadow:0 0 8px rgba(255,45,212,0.9);}}
     .svg-pulse-emerg{animation:svg-pulse-emerg 0.8s ease-in-out infinite !important;}
     .svg-pulse-warn{animation:svg-pulse-warn 1.4s ease-in-out infinite !important;}
     .wl-swatch.svg-pulse-emerg{animation:div-pulse-emerg 0.8s ease-in-out infinite !important;}
     .wl-swatch.svg-pulse-warn{animation:div-pulse-warn 1.4s ease-in-out infinite !important;}
+    .wl-tor-ground{animation:tor-text-pulse 0.8s ease-in-out infinite;}
     .skel{border-radius:6px;background:linear-gradient(90deg,var(--surface) 25%,var(--border2) 50%,var(--surface) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear;}
 
     /* ══════════════════════════════════════
@@ -313,17 +315,20 @@
     .watches-legend-title{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:5px;}
     .wl-item{display:flex;align-items:center;gap:6px;padding:2px 0;white-space:nowrap;}
     .wl-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-    #watches-refresh-pill{position:absolute;bottom:12px;right:52px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-size:0.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;overflow:hidden;}
+    #watches-refresh-pill{position:absolute;bottom:12px;right:52px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-size:0.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;overflow:hidden;cursor:pointer;transition:border-color .15s,color .15s;}
+    #watches-refresh-pill:hover{border-color:var(--red);color:var(--text2);}
+    #watches-refresh-txt{display:inline-block;min-width:10.5ch;text-align:left;}
     #watches-refresh-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,0.08);width:0%;transition:width 30s linear;border-radius:20px;}
     #watches-refresh-label{position:relative;z-index:1;display:flex;align-items:center;gap:5px;}
     #watches-refresh-label .msr{font-size:11px;color:var(--red);}
 
-    /* Alert detail overlay */
+    /* ══════════════════════════════════════
+       ALERT OVERLAY
+    ══════════════════════════════════════ */
     #alert-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:40px;}
     #alert-overlay.open{display:flex;}
     @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-    .ao-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:620px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
-    .ao-box--watch{max-width:380px;}
+    .ao-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:560px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
     .ao-head{padding:0 20px;height:58px;display:flex;align-items:center;gap:12px;flex-shrink:0;position:relative;}
     .ao-head-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px 0 0 2px;}
     .ao-head-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -334,48 +339,29 @@
     .ao-close{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;transition:background .15s;}
     .ao-close:hover{background:rgba(255,255,255,.13);}
     .ao-close .msr{font-size:16px;}
-    .ao-meta{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-shrink:0;}
-    .ao-meta-item{padding:12px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:3px;}
-    .ao-meta-item:last-child{border-right:none;}
-    .ao-meta-label{font-size:0.56rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);display:flex;align-items:center;gap:4px;}
-    .ao-meta-label .msr{font-size:11px;}
-    .ao-meta-val{font-size:0.82rem;font-weight:600;color:var(--text2);line-height:1.3;}
-    .ao-body{flex:1;overflow-y:auto;padding:18px 20px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;}
+    .ao-expiry-bar{display:flex;align-items:center;gap:6px;padding:7px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;}
+    .ao-expiry-bar .msr{font-size:13px;color:var(--text4);}
+    #ao-expires-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4);}
+    #ao-expires{font-size:0.78rem;font-weight:600;color:var(--text2);margin-left:4px;}
+    .ao-body{flex:1;overflow-y:auto;padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;}
     .ao-body::-webkit-scrollbar{width:4px;}
-    .ao-body::-webkit-scrollbar-track{background:transparent;}
     .ao-body::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px;}
+    .ao-spinner-wrap{display:none;align-items:center;gap:10px;color:var(--text4);font-size:0.82rem;padding:10px 2px;}
+    .ao-spinner-wrap.show{display:flex;}
+    .ao-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;}
+    .ao-sec-label{display:flex;align-items:center;gap:5px;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:8px;}
+    .ao-sec-label .msr{font-size:12px;}
+    .ao-counties-wrap{display:flex;flex-wrap:wrap;gap:4px;}
+    .ao-county-chip{font-size:0.68rem;font-weight:500;padding:3px 9px;border-radius:20px;background:var(--surface3);border:1px solid var(--border2);color:var(--text2);}
+    .ao-cities-wrap{display:flex;flex-wrap:wrap;gap:4px;}
+    .ao-city-chip{font-size:0.68rem;font-weight:500;padding:3px 9px;border-radius:20px;color:var(--text2);}
+    .ao-desc-text{font-size:0.82rem;color:var(--text2);line-height:1.7;}
+    .ao-desc-text p{margin:0 0 6px;}
+    .ao-desc-text p:last-child{margin-bottom:0;}
+    .ao-section--cta{border-color:rgba(255,255,255,0.14);}
+    .ao-cta-text{font-size:0.84rem;font-weight:600;color:var(--text);line-height:1.65;}
 
-    /* Threat description block */
-    .ao-threat-block{border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;border:1px solid;}
-    .ao-threat-label{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
-    .ao-threat-label .msr{font-size:12px;}
-    .ao-threat-headline{font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4;}
-    .ao-threat-text{font-size:0.78rem;line-height:1.75;white-space:pre-wrap;color:var(--text3);max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;}
-    .ao-threat-text::-webkit-scrollbar{width:3px;}
-    .ao-threat-text::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px;}
-
-    /* Cities section */
-    .ao-section-label{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
-    .ao-section-label .msr{font-size:12px;color:var(--text4);}
-    .ao-cities{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px;}
-    .ao-city{font-size:0.68rem;padding:3px 10px;border-radius:20px;font-weight:500;}
-
-    /* AI Summary block inside alert overlay */
-    .ao-ai-block{border-radius:var(--r-sm);padding:14px 16px;border:1px solid;}
-    .ao-ai-header{display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07);}
-    .ao-ai-header .msr{font-size:15px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
-    .ao-ai-header>span{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
-    .ao-ai-spinner{margin-left:auto;}
-    .ao-ai-section{margin-bottom:8px;padding:10px 12px;background:rgba(0,0,0,0.2);border-radius:8px;}
-    .ao-ai-section:last-child{margin-bottom:0;}
-    .ao-ai-section-label{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
-    .ao-ai-section-label .msr{font-size:12px;color:var(--amber);}
-    .ao-ai-section-text{font-size:0.82rem;color:var(--text2);line-height:1.65;}
-    .ao-ai-err{font-size:0.75rem;color:var(--text4);font-style:italic;}
-    .ao-nws-header{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4);margin:12px 0 4px;}
-    .ao-nws-header:first-child{margin-top:0;}
-    .ao-nws-bullet{font-size:0.82rem;color:var(--text2);line-height:1.65;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:6px;margin-bottom:6px;border-left:2px solid;}
-    .ao-nws-line{font-size:0.8rem;color:var(--text3);line-height:1.6;margin-bottom:2px;}
+    
 
     /* ══════════════════════════════════════
        PAGE: MESO (split — map + panel)
@@ -496,33 +482,7 @@
       background: var(--border2);
     }
 
-    /* High-impact tornado alert banner */
-    @keyframes tor-banner-in{from{opacity:0;transform:translate(-50%,-16px);}to{opacity:1;transform:translate(-50%,0);}}
-    @keyframes blink-warn{0%,100%{opacity:1;}50%{opacity:0;}}
-    #tor-alert-banner{display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;width:min(560px,90vw);background:#0d0d0d;border:2px solid #FF1493;border-radius:var(--r);box-shadow:0 0 40px rgba(255,20,147,0.5),0 16px 48px rgba(0,0,0,0.7);overflow:hidden;}
-    #tor-alert-banner.open{display:block;animation:tor-banner-in .25s cubic-bezier(.16,1,.3,1);}
-    .tab-head{background:linear-gradient(135deg,rgba(255,20,147,0.25),rgba(255,20,147,0.08));padding:14px 18px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,20,147,0.3);}
-    .tab-head-icon{width:38px;height:38px;background:#FF1493;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:svg-pulse-emerg 0.8s ease-in-out infinite;}
-    .tab-head-icon .msr{font-size:20px;color:#fff;font-variation-settings:'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24;}
-    .tab-head-text{flex:1;min-width:0;}
-    .tab-head-title{font-size:1rem;font-weight:800;color:#FF1493;letter-spacing:-0.02em;}
-    .tab-head-sub{font-size:0.68rem;color:rgba(255,255,255,0.55);margin-top:2px;}
-    .tab-dismiss-x{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.5);flex-shrink:0;transition:all .15s;}
-    .tab-dismiss-x:hover{background:rgba(255,20,147,0.2);color:#FF1493;}
-    .tab-dismiss-x .msr{font-size:16px;}
-    .tab-body{padding:14px 18px 4px;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,20,147,0.3) transparent;}
-    .tab-body::-webkit-scrollbar{width:3px;}
-    .tab-body::-webkit-scrollbar-thumb{background:rgba(255,20,147,0.3);border-radius:3px;}
-    .tab-nws-bullet{font-size:0.82rem;color:var(--text2);line-height:1.65;padding:6px 10px;background:rgba(255,20,147,0.07);border-radius:6px;margin-bottom:6px;border-left:2px solid #FF1493;}
-    .tab-nws-header{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,20,147,0.6);margin:10px 0 4px;}
-    .tab-nws-line{font-size:0.78rem;color:var(--text3);line-height:1.6;margin-bottom:2px;}
-    .tab-footer{padding:10px 18px 14px;display:flex;align-items:center;justify-content:space-between;}
-    .tab-footer-exp{font-size:0.65rem;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px;}
-    .tab-footer-exp .msr{font-size:11px;}
-    .tab-dismiss-btn{background:#FF1493;border:none;border-radius:var(--r-sm);padding:7px 18px;font-family:var(--font);font-size:0.75rem;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s;}
-    .tab-dismiss-btn:hover{opacity:0.85;}
-    #tor-banner-backdrop{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.4);backdrop-filter:blur(1px);}
-    #tor-banner-backdrop.open{display:block;}
+
 
     /* Toast */
     #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--surface2);color:var(--text2);font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
@@ -582,7 +542,7 @@
       <span class="msr">thunderstorm</span>SPC Outlook
     </button>
     <button class="nav-item" data-page="watches" onclick="navigate('watches')">
-      <span class="msr">warning</span>Watches &amp; Warnings
+      <span class="msr">warning</span>Alerts
     </button>
     <button class="nav-item" data-page="meso" onclick="navigate('meso')">
       <span class="msr">cyclone</span>Mesoscale Discussions
@@ -730,14 +690,14 @@
     <div class="page" id="page-watches">
       <div id="watches-map-wrap">
         <div id="watches-map"></div>
-        <div class="map-context-pill">Watches &amp; Warnings</div>
+        <div class="map-context-pill">Alerts</div>
         <div class="watches-legends">
           <div class="watches-legend" id="ww-legend-warnings"></div>
           <div class="watches-legend" id="ww-legend-watches"></div>
         </div>
-        <div id="watches-refresh-pill">
+        <div id="watches-refresh-pill" onclick="manualRefreshWarnings()" title="Click to refresh now">
           <div id="watches-refresh-bar"></div>
-          <div id="watches-refresh-label"><span class="msr">refresh</span><span id="watches-refresh-txt">Updating…</span></div>
+          <div id="watches-refresh-label"><span class="msr" id="watches-refresh-icon">refresh</span><span id="watches-refresh-txt">Updating…</span></div>
         </div>
       </div>
     </div>
@@ -798,26 +758,6 @@
   </div>
 </div>
 
-<!-- Tornado backdrop -->
-<div id="tor-banner-backdrop" onclick="dismissTorBanner()"></div>
-
-<!-- High-impact tornado alert banner -->
-<div id="tor-alert-banner">
-  <div class="tab-head">
-    <div class="tab-head-icon"><span class="msr">crisis_alert</span></div>
-    <div class="tab-head-text">
-      <div class="tab-head-title" id="tab-title">Tornado Warning</div>
-      <div class="tab-head-sub" id="tab-sub">High-Impact Tornado</div>
-    </div>
-    <button class="tab-dismiss-x" onclick="dismissTorBanner()"><span class="msr">close</span></button>
-  </div>
-  <div class="tab-body" id="tab-body"></div>
-  <div class="tab-footer">
-    <div class="tab-footer-exp"><span class="msr">schedule</span><span id="tab-exp"></span></div>
-    <button class="tab-dismiss-btn" onclick="dismissTorBanner()">Dismiss</button>
-  </div>
-</div>
-
 <!-- TOAST -->
 <div id="toast"><span class="msr">info</span><span id="toast-msg">—</span></div>
 
@@ -834,28 +774,34 @@
       </div>
       <button class="ao-close" onclick="closeAlertOverlay()"><span class="msr">close</span></button>
     </div>
-    <div class="ao-meta">
-      <div class="ao-meta-item">
-        <div class="ao-meta-label"><span class="msr">thunderstorm</span>Primary Threat</div>
-        <div class="ao-meta-val" id="ao-primary-threat">—</div>
-      </div>
-      <div class="ao-meta-item">
-        <div class="ao-meta-label"><span class="msr">schedule</span>Expires</div>
-        <div class="ao-meta-val" id="ao-expires"></div>
-      </div>
-      <div class="ao-meta-item">
-        <div class="ao-meta-label"><span class="msr">crisis_alert</span>Threat Type</div>
-        <div class="ao-meta-val" id="ao-threat-type"></div>
-      </div>
+    <div class="ao-expiry-bar" id="ao-expiry-bar">
+      <span class="msr">schedule</span>
+      <span id="ao-expires-label">Expires</span>
+      <span id="ao-expires"></span>
     </div>
     <div class="ao-body">
-      <div class="ao-ai-block" id="ao-ai-block">
-        <div class="ao-ai-header">
-          <span class="msr">auto_awesome</span>
-          <span>jWeather AI Summary</span>
-          <div class="ao-ai-spinner" id="ao-ai-spinner"><div class="spin-ring"></div></div>
+      <div class="ao-spinner-wrap" id="ao-ai-spinner"><div class="spin-ring"></div><span>Loading…</span></div>
+      <div id="ao-ai-content">
+        <!-- Counties -->
+        <div class="ao-section" id="ao-sec-counties" style="display:none">
+          <div class="ao-sec-label"><span class="msr">map</span>Counties Impacted</div>
+          <div class="ao-counties-wrap" id="ao-counties"></div>
         </div>
-        <div id="ao-ai-content"></div>
+        <!-- Cities -->
+        <div class="ao-section" id="ao-sec-cities" style="display:none">
+          <div class="ao-sec-label"><span class="msr">location_city</span>Cities Impacted</div>
+          <div class="ao-cities-wrap" id="ao-cities-chips"></div>
+        </div>
+        <!-- Description -->
+        <div class="ao-section" id="ao-sec-desc" style="display:none">
+          <div class="ao-sec-label"><span class="msr">info</span>What's Happening</div>
+          <div class="ao-desc-text" id="ao-desc"></div>
+        </div>
+        <!-- Call to Action -->
+        <div class="ao-section ao-section--cta" id="ao-sec-cta" style="display:none">
+          <div class="ao-sec-label"><span class="msr">shield</span>What To Do</div>
+          <div class="ao-cta-text" id="ao-cta"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -922,7 +868,7 @@ function warnTriangleHTML(cat){return ENHANCED_PLUS.has(cat)?WARN_TRIANGLE:'';}
 
 const SEVERE_COLORS={
   // Emergencies
-  'Tornado Emergency':'#FF1493',
+  'Tornado Emergency':'#FF2DD4',
   'Flash Flood Emergency':'#8B0000',
   // Tornado
   'Tornado Warning':'#FF0000',
@@ -962,81 +908,6 @@ let outlookMapInit=false, watchesMapInit=false, mesoMapInit=false;
 let outlookMap=null, watchesMap=null, watchLayer=null, watchesList=[];
 let activeWatches=[], activeWarnings=[];
 let radarLayer=null;
-let _shownTorAlertIds=new Set(); // track which alerts we've already shown a banner for
-
-function dismissTorBanner(){
-  document.getElementById('tor-alert-banner').classList.remove('open');
-  document.getElementById('tor-banner-backdrop').classList.remove('open');
-}
-
-async function showTorBanner(feat){
-  const p=feat.properties||{};
-  const{label,color}=getWatchStyle(p.event||'');
-  const expDate=parseAlertDate(p.expires||p.expiration||p.end||null);
-  const exp=expDate?expDate.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-  const ibwTag=/(CATASTROPHIC|CONSIDERABLE|OBSERVED)/i.exec(p.description||p.headline||'');
-  const sub=ibwTag?`${ibwTag[1].charAt(0)+ibwTag[1].slice(1).toLowerCase()} Tornado`:'High-Impact Tornado';
-
-  document.getElementById('tab-title').textContent=label;
-  document.getElementById('tab-sub').textContent=sub;
-  document.getElementById('tab-exp').textContent=`Expires ${exp}`;
-
-  // Format NWS text
-  let rawDesc=(p.description||'').trim();
-  if(!rawDesc){
-    try{
-      const rawUrl=p.url||p.cap_id||'';
-      if(rawUrl){
-        const r=await fetch(rawUrl.replace('https://api.weather.gov',`${WORKER}/nws`),{cache:'no-store'});
-        if(r.ok){const d=await r.json();rawDesc=(d.properties?.description||'').trim();}
-      }
-    }catch{}
-    if(!rawDesc){
-      try{
-        const r=await fetch(`${WORKER}/nws/alerts/active?event=Tornado+Warning&status=actual`,{cache:'no-store'});
-        if(r.ok){
-          const gj=await r.json();
-          const match=(gj.features||[]).filter(f=>(f.properties?.description||'').length>80).sort((a,b)=>b.properties.description.length-a.properties.description.length)[0];
-          if(match)rawDesc=(match.properties.description||'').trim();
-        }
-      }catch{}
-    }
-  }
-
-  const body=document.getElementById('tab-body');
-  if(rawDesc){
-    body.innerHTML=rawDesc.replace(/\r\n/g,'\n').split('\n').map(line=>{
-      const l=line.trim();
-      if(!l)return null;
-      if(l.startsWith('*'))return`<div class="tab-nws-bullet">${l.slice(1).trim()}</div>`;
-      if(l===l.toUpperCase()&&l.length>4&&/[A-Z]/.test(l))return`<div class="tab-nws-header">${l}</div>`;
-      return`<div class="tab-nws-line">${l}</div>`;
-    }).filter(Boolean).join('');
-  }else{
-    body.innerHTML=`<div class="tab-nws-line">A high-impact tornado warning is in effect. Take shelter immediately.</div>`;
-  }
-
-  document.getElementById('tor-alert-banner').classList.add('open');
-  document.getElementById('tor-banner-backdrop').classList.add('open');
-
-  // Play alert sound
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const playDing=(time,freq=880)=>{
-      const osc=ctx.createOscillator();
-      const gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.type='sine';osc.frequency.setValueAtTime(freq,time);
-      gain.gain.setValueAtTime(0,time);
-      gain.gain.linearRampToValueAtTime(0.4,time+0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001,time+0.8);
-      osc.start(time);osc.stop(time+0.8);
-    };
-    playDing(ctx.currentTime,880);
-    playDing(ctx.currentTime+0.35,1046);
-    playDing(ctx.currentTime+0.7,1318);
-  }catch{}
-}
 let mesoMap=null, mesoLayers={}, mesoData=[];
 let activeOutlookLayer=null, activeOutlookSigLayer=null, activeCigLayer=null;
 let currentOutlookReqId=0, activeOutlookDay=1, activeOutlookMode='cat';
@@ -1119,7 +990,7 @@ function navigate(page){
   currentPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  const labels={home:'Home',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Watches & Warnings',meso:'Mesoscale Discussions'};
+  const labels={home:'Home',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Alerts',meso:'Mesoscale Discussions'};
   document.getElementById('topbar-title').textContent=labels[page]||page;
   if(page==='outlook'&&!outlookMapInit){initOutlookMap();outlookMapInit=true;}
   if(page==='watches'&&!watchesMapInit){initWatchesMap();watchesMapInit=true;}
@@ -1538,8 +1409,7 @@ function outlookStyleFeature(f,mode){
   if(mode==='cat'){
     const raw=(p.LABEL||p.label||p.DN||'').toString().toUpperCase().trim();
     const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
-    if(key==='TSTM')return{fillColor:'#4ade80',color:'#16a34a',weight:1,fillOpacity:0.35,opacity:0.7};
-    if(!key||!OUTLOOK_CAT[key])return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0,interactive:false};
+    if(!key||key==='TSTM'||!OUTLOOK_CAT[key])return{fillColor:'transparent',color:'transparent',weight:0,fillOpacity:0,opacity:0,interactive:false};
     const c=OUTLOOK_CAT[key];
     return{fillColor:c.fill,color:c.stroke,weight:1.2,fillOpacity:0.82,opacity:1};
   }else{
@@ -1586,7 +1456,7 @@ function updateOutlookLegend(gj,mode){
       const key=OUTLOOK_CAT[raw]?raw:OUTLOOK_DN_CAT[raw];
       if(key&&!(f.properties?.LABEL||f.properties?.label||'').toString().startsWith('CIG'))present.add(key);
     });
-    OUTLOOK_CAT_ORDER.filter(k=>present.has(k)).forEach(k=>{
+    OUTLOOK_CAT_ORDER.filter(k=>present.has(k)&&k!=='TSTM').forEach(k=>{
       const c=OUTLOOK_CAT[k];const item=document.createElement('div');item.className='ol-legend-item';
       item.innerHTML=`<div class="ol-legend-swatch" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>${warnTriangleHTML(k)}`;items.appendChild(item);
     });
@@ -1653,14 +1523,13 @@ async function loadOutlookHazard(day,mode){
       const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();
       const lbl=(f.properties?.LABEL||f.properties?.label||'').toString();
       if(lbl.startsWith('CIG'))return false;
-      if(mode==='cat'){const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key&&OUTLOOK_CAT[key];}
+      if(mode==='cat'){const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key&&key!=='TSTM'&&OUTLOOK_CAT[key];}
       else{const dn=Math.round(parseFloat(f.properties?.DN??f.properties?.dn??0)*(parseFloat(f.properties?.DN??f.properties?.dn??0)<=1?100:1));return dn>0;}
     });
     if(!hasData){
       if(reqId!==currentOutlookReqId)return;
       document.getElementById('ol-legend').innerHTML='';
-      const hasTstmOnly=mode==='cat'&&(gj.features||[]).some(f=>{const raw=(f.properties?.LABEL||f.properties?.label||f.properties?.DN||'').toString().toUpperCase().trim();const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');return key==='TSTM';});
-      showOutlookEmpty(hasTstmOnly?'No Organized Severe Weather':mode==='cat'?'No Severe Weather Outlook':`No ${OUTLOOK_MODE_LABELS[mode]} Threat`,null,reqId);
+      showOutlookEmpty(mode==='cat'?'No Severe Weather Outlook':`No ${OUTLOOK_MODE_LABELS[mode]} Threat`,null,reqId);
       return;
     }
     activeOutlookLayer=L.geoJSON(gj,{
@@ -1675,7 +1544,7 @@ async function loadOutlookHazard(day,mode){
           return;
         }
         const key=OUTLOOK_CAT[raw]?raw:(OUTLOOK_DN_CAT[raw]||'');
-        if(mode==='cat'&&!OUTLOOK_CAT[key])return;
+        if(mode==='cat'&&(!OUTLOOK_CAT[key]||key==='TSTM'))return;
         lyr.bindPopup(outlookPopupContent(f,mode,day),{closeButton:false,maxWidth:290});
         lyr.on('mouseover',function(){this.setStyle({fillOpacity:0.95,weight:2.5});});
         lyr.on('mouseout',function(){activeOutlookLayer.resetStyle(this);});
@@ -1893,17 +1762,68 @@ function initWatchesMap(){
 function startWatchPollPill(){
   const bar=document.getElementById('watches-refresh-bar');
   const txt=document.getElementById('watches-refresh-txt');
+  const icon=document.getElementById('watches-refresh-icon');
   if(!bar||!txt)return;
   if(window._watchesPctInterval)clearInterval(window._watchesPctInterval);
   bar.style.transition='none';bar.style.width='0%';
   txt.textContent='Next update in 30s';
+  if(icon)icon.textContent='refresh';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 30s linear';bar.style.width='100%';}));
   let remaining=30;
   window._watchesPctInterval=setInterval(()=>{
     remaining--;
-    txt.textContent=remaining>0?`Next update in ${remaining}s`:'Updating…';
+    // Only update text if user isn't hovering (hover shows "Refresh now")
+    if(!document.getElementById('watches-refresh-pill').matches(':hover')){
+      txt.textContent=remaining>0?`Next update in ${remaining}s`:'Updating…';
+    }
     if(remaining<=0)clearInterval(window._watchesPctInterval);
   },1000);
+}
+
+// Hover: show "Refresh now" text
+document.addEventListener('DOMContentLoaded',()=>{
+  const pill=document.getElementById('watches-refresh-pill');
+  if(!pill)return;
+  pill.addEventListener('mouseenter',()=>{
+    document.getElementById('watches-refresh-txt').textContent='Refresh now';
+    document.getElementById('watches-refresh-icon').textContent='refresh';
+  });
+  pill.addEventListener('mouseleave',()=>{
+    // Restore countdown text — recompute from bar width
+    const bar=document.getElementById('watches-refresh-bar');
+    const pct=parseFloat(bar?.style.width)||0;
+    const remaining=Math.round((1-pct/100)*30);
+    document.getElementById('watches-refresh-txt').textContent=remaining>0?`Next update in ${remaining}s`:'Next update in 30s';
+  });
+});
+
+function manualRefreshWarnings(){
+  // Cancel existing timer and restart
+  if(window._watchesWarnTimer){clearInterval(window._watchesWarnTimer);window._watchesWarnTimer=null;}
+  fetchWarnings();
+  startWatchPollPill();
+  window._watchesWarnTimer=setInterval(()=>{fetchWarnings();startWatchPollPill();},30000);
+}
+
+// ── Tornado audio alert ──
+const _torAudioIds=new Set();
+function playTornadoAlert(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const playDing=(time,freq)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.setValueAtTime(freq,time);
+      gain.gain.setValueAtTime(0,time);
+      gain.gain.linearRampToValueAtTime(0.5,time+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001,time+0.9);
+      osc.start(time);osc.stop(time+0.9);
+    };
+    playDing(ctx.currentTime,880);
+    playDing(ctx.currentTime+0.4,1046);
+    playDing(ctx.currentTime+0.8,1318);
+  }catch{}
 }
 
 
@@ -2034,7 +1954,7 @@ function shouldPulse(feat) {
 
   // 1. Tornado Warnings
   if (event.includes('TORNADO WARNING')) {
-    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || event.includes('EMERGENCY')) return 'emerg';
+    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || event.includes('EMERGENCY')) return 'emerg';
     return null;
   }
 
@@ -2067,7 +1987,7 @@ function isLifeThreatening(feat) {
   const ev = (p.event || '').toUpperCase();
   const desc = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
   if (ev.includes('TORNADO EMERGENCY') || ev.includes('EMERGENCY')) return true;
-  if (ev.includes('TORNADO WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('OBSERVED'))) return true;
+  if (ev.includes('TORNADO WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('OBSERVED') || desc.includes('CONFIRMED'))) return true;
   if (ev.includes('SEVERE THUNDERSTORM WARNING') && desc.includes('DESTRUCTIVE')) return true;
   if (ev.includes('FLASH FLOOD WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('EMERGENCY'))) return true;
   return false;
@@ -2078,7 +1998,7 @@ function renderWatchesMap(features) {
     style: feat => {
       const ev = feat.properties?.event || '';
       const lifeThreat = isLifeThreatening(feat);
-      const color = lifeThreat ? '#FF1493' : (SEVERE_COLORS[ev] || '#8B5CF6');
+      const color = lifeThreat ? '#FF2DD4' : (SEVERE_COLORS[ev] || '#8B5CF6');
       const isWatch = /watch/i.test(ev);
       const isTorWarn = /tornado warning/i.test(ev) && !lifeThreat;
       return {
@@ -2118,17 +2038,17 @@ function renderWatchesMap(features) {
   };
   requestAnimationFrame(applyPulse);
 
-  // Check for high-impact tornado warnings and show banner (once per unique alert)
+  // Ding for newly-seen life-threatening tornado warnings
   features.forEach(feat=>{
-    const p=feat.properties||{};
-    if(shouldPulse(feat)==='emerg' && /tornado warning/i.test(p.event||'')){
-      const id=p.id||p.cap_id||p.url||JSON.stringify({ev:p.event,exp:p.expires});
-      if(!_shownTorAlertIds.has(id)){
-        _shownTorAlertIds.add(id);
-        showTorBanner(feat);
+    if(isLifeThreatening(feat)&&/tornado/i.test(feat.properties?.event||'')){
+      const id=feat.properties?.id||feat.properties?.cap_id||feat.properties?.url||JSON.stringify({ev:feat.properties?.event,exp:feat.properties?.expires});
+      if(!_torAudioIds.has(id)){
+        _torAudioIds.add(id);
+        playTornadoAlert();
       }
     }
   });
+
 }
 
 
@@ -2145,7 +2065,7 @@ function updateWatchLegend(features){
     const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;
     else if(pulse==='warn')hasWarnPulse=true;
-    const{color,label}=isLifeThreatening(f)?{color:'#FF1493',label:getWatchStyle(ev).label}:getWatchStyle(ev);
+    const{color,label}=isLifeThreatening(f)?{color:'#FF2DD4',label:getWatchStyle(ev).label}:getWatchStyle(ev);
     if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
     else{if(!seenWarn.has(ev))seenWarn.set(ev,{color,label});}
   });
@@ -2165,7 +2085,7 @@ function updateWatchLegend(features){
   // Pulse key — shown in warnings legend if any pulsing alerts are active
   if((hasEmergPulse||hasWarnPulse)&&legWarn.style.display!=='none'){
     if(hasEmergPulse){
-      legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF1493;border:1px solid rgba(255,20,147,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:#FF1493;font-weight:700;">Flashing = Life-Threatening</span></div>`;
+      legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
     } else {
       legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-warn" style="background:#FFA500;border:1px solid rgba(255,165,0,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:var(--text3);font-weight:600;">Flashing = High Impact Storm</span></div>`;
     }
@@ -2245,16 +2165,7 @@ async function openAlertOverlay(feat){
   // ── 1. Event title & style ──
   const{label,color,iconSym}=getWatchStyle(p.event||'');
   const isEmerg=/emergency/i.test(p.event||'');
-  const isWarn=/warning/i.test(p.event||'');
-  const isTor=/tornado/i.test(p.event||'');
-  const isFlood=/flood/i.test(p.event||'');
-  const isHurr=/hurricane|tropical/i.test(p.event||'');
-
-  // Pick a contrasting bg tint based on alert type
-  const alpha=isEmerg?0.18:0.10;
-  const borderAlpha=isEmerg?0.35:0.2;
-  const bg=hexToRgba(color,alpha);
-  const border=hexToRgba(color,borderAlpha);
+  const isWatch=/watch/i.test(p.event||'');
 
   // ── 2. Expiry ──
   const expDate=parseAlertDate(p.expires||p.expiration||p.end||null);
@@ -2262,29 +2173,12 @@ async function openAlertOverlay(feat){
     ? expDate.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})
     : '—';
 
-  const isWatch=/watch/i.test(p.event||'');
+  // ── 3. Issued By ──
+  const sender=(p.senderName||p.sender||'NWS').replace(/^NWS\s*/i,'NWS ').trim();
 
-  // ── 4. Issued By ──
-  const sender=(p.senderName||p.sender||'NWS Storm Prediction Center').replace(/^NWS\s*/i,'NWS ').trim();
-
-  // ── 5. Threat type label — include IBW tag if present ──
-  const descForTag=(p.description||p.headline||'').toUpperCase();
-  let tagSuffix='';
-  if(descForTag.includes('DESTRUCTIVE')) tagSuffix=' (Destructive)';
-  else if(descForTag.includes('CONSIDERABLE')) tagSuffix=' (Considerable)';
-  const threatType=isEmerg?'Emergency':isWarn?'Warning'+tagSuffix:isWatch?'Watch':'Advisory';
-
-  // ── 6. Description (used for AI input) ──
-  let rawDesc=(p.description||'').trim();
-  const rawHeadline=(p.headline||'').trim();
-
-  // Show overlay immediately with spinner
-  const aiContent=document.getElementById('ao-ai-content');
-  const aiSpinner=document.getElementById('ao-ai-spinner');
+  // ── 4. Apply header theming ──
   const box=document.querySelector('.ao-box');
-
-  // ── 8. Apply color theming ──
-  box.style.borderColor=hexToRgba(color,0.3);
+  box.style.borderColor=hexToRgba(color,0.35);
   document.getElementById('ao-stripe').style.background=color;
   const iconEl=document.getElementById('ao-icon');
   iconEl.style.background=color;
@@ -2292,136 +2186,143 @@ async function openAlertOverlay(feat){
   const titleEl=document.getElementById('ao-title');
   titleEl.textContent=label;
   titleEl.style.color=color;
-
-  // AI block theming — tinted to alert color
-  const aiBlock=document.getElementById('ao-ai-block');
-  aiBlock.style.background=bg;
-  aiBlock.style.borderColor=border;
-  const aiHeader=aiBlock.querySelector('.ao-ai-header');
-  aiHeader.style.borderBottomColor=hexToRgba(color,0.15);
-  aiHeader.querySelector('.msr').style.color=color;
-  aiHeader.querySelector('span').style.color=color;
-
-  // ── 9. Populate meta fields ──
-  // Apply watch vs warning box sizing
-  if(isWatch){
-    box.classList.add('ao-box--watch');
-  }else{
-    box.classList.remove('ao-box--watch');
-  }
-
-  // Show/hide meta items based on watch vs warning
-  document.getElementById('ao-primary-threat').closest('.ao-meta-item').style.display=isWatch?'none':'';
-  document.getElementById('ao-threat-type').closest('.ao-meta-item').style.display=isWatch?'none':'';
-  // Make expires span full width on watches
-  document.querySelector('.ao-meta').style.gridTemplateColumns=isWatch?'1fr':'repeat(3,1fr)';
-
   document.getElementById('ao-issued').textContent=sender;
-  const threatEl=document.getElementById('ao-primary-threat');
-  threatEl.innerHTML='—';
-  threatEl.style.color='';
-
-  // Check for Tornado Possible tag immediately from description
-  const descUpper=(rawDesc||rawHeadline||'').toUpperCase();
-  const hasTorPoss=descUpper.includes('TORNADO...POSSIBLE')||descUpper.includes('TORNADO POSSIBLE');
-  if(!isWatch && hasTorPoss){
-    threatEl.innerHTML=`<span style="color:#FFFF00;font-weight:900;animation:blink-warn 0.8s step-start infinite;">⚠ TORNADO POSSIBLE!</span>`;
-  }
   document.getElementById('ao-expires').textContent=exp;
-  document.getElementById('ao-threat-type').textContent=threatType;
 
-  aiContent.innerHTML='';
-  aiSpinner.style.display='none';
+  // ── 5. Show overlay with spinner ──
+  const spinner=document.getElementById('ao-ai-spinner');
+  spinner.classList.add('show');
+  // Hide all sections while loading
+  ['ao-sec-counties','ao-sec-cities','ao-sec-desc','ao-sec-cta'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
   document.getElementById('alert-overlay').classList.add('open');
 
-  // ── 10. Watches: no detail text needed ──
-  if(isWatch){
-    aiBlock.style.display='none';
-    return;
-  }
-  aiBlock.style.display='';
-
-  // ── 11. Fetch description if missing ──
-  aiSpinner.style.display='block';
+  // ── 6. Fetch description if missing ──
+  let rawDesc=(p.description||'').trim();
+  const rawHeadline=(p.headline||'').trim();
   if(!rawDesc){
-    // Try 1: fetch the specific alert from NWS API using the url/cap_id field
-    const rawUrl = p.url || p.cap_id || '';
+    const rawUrl=p.url||p.cap_id||'';
     if(rawUrl){
       try{
-        const alertPath = rawUrl.replace('https://api.weather.gov', `${WORKER}/nws`);
-        const r = await fetch(alertPath, {cache:'no-store'});
-        if(r.ok){
-          const d = await r.json();
-          rawDesc = (d.properties?.description || d.properties?.instruction || '').trim();
-        }
+        const r=await fetch(rawUrl.replace('https://api.weather.gov',`${WORKER}/nws`),{cache:'no-store'});
+        if(r.ok){const d=await r.json();rawDesc=(d.properties?.description||d.properties?.instruction||'').trim();}
       }catch{}
     }
-    // Try 2: search NWS active alerts by event type
     if(!rawDesc){
       try{
-        const ev = encodeURIComponent(p.event || '');
-        const r = await fetch(`${WORKER}/nws/alerts/active?event=${ev}&status=actual`, {cache:'no-store'});
+        const ev=encodeURIComponent(p.event||'');
+        const r=await fetch(`${WORKER}/nws/alerts/active?event=${ev}&status=actual`,{cache:'no-store'});
         if(r.ok){
-          const gj = await r.json();
-          const match = (gj.features||[])
-            .filter(f => (f.properties?.description||'').length > 80)
-            .sort((a,b) => (b.properties?.description||'').length - (a.properties?.description||'').length)[0];
-          if(match) rawDesc = (match.properties.description || '').trim();
+          const gj=await r.json();
+          const match=(gj.features||[])
+            .filter(f=>(f.properties?.description||'').length>80)
+            .sort((a,b)=>(b.properties?.description||'').length-(a.properties?.description||'').length)[0];
+          if(match)rawDesc=(match.properties.description||'').trim();
         }
       }catch{}
     }
   }
+  spinner.classList.remove('show');
 
-  // ── 11. AI Summary ──
-  const textForAI=(rawDesc||rawHeadline||'').slice(0,3000);
-  if(!textForAI||textForAI.length<20){
-    aiSpinner.style.display='none';
-    aiContent.innerHTML=`<div class="ao-ai-err">No alert text available.</div>`;
+  // ── 7. Parse NWS text into structured sections ──
+  const nwsText=(rawDesc||rawHeadline||'').trim();
+
+  // ── 7a. Counties — from areaDesc property ──
+  const{counties}=normalizeAreaDesc(p);
+  if(counties.length){
+    const wrap=document.getElementById('ao-counties');
+    wrap.innerHTML=counties.map(c=>`<span class="ao-county-chip">${c}</span>`).join('');
+    document.getElementById('ao-sec-counties').style.display='';
+  }
+
+  if(!nwsText||nwsText.length<20){
     return;
   }
-  try{
-    const aiRes=await fetch(`${WORKER}/ai`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        max_tokens:450,
-        system:`You are a severe weather analyst summarizing an NWS alert for a weather app. Be concise and direct.\nReply with ONLY these 4 labeled sections (no preamble, no extra text):\n\nTHREAT:\n[Primary hazard in brief — e.g. "60 mph winds · 1" hail". If the alert mentions a tornado is possible, append "· Tornado Possible". Max 10 words.]\n\nIMMEDIATE RISK:\n[What is happening and why it is dangerous — 1-2 sentences]\n\nTIMING:\n[When it starts, peaks, and ends — 1 sentence]\n\nACTIONS:\n[The single most important safety action — 1 sentence]`,
-        messages:[{role:'user',content:textForAI}]
-      })
-    });
-    if(!aiRes.ok)throw new Error(`AI ${aiRes.status}`);
-    const aiData=await aiRes.json();
-    const summary=(aiData.content?.[0]?.text||'').trim();
-    if(!summary)throw new Error('empty');
-    const sectionIcons={'THREAT':'thunderstorm','IMMEDIATE RISK':'crisis_alert','TIMING':'schedule','ACTIONS':'shield'};
-    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
-    let html='';let i=0;
-    while(i<lines.length){
-      const match=lines[i].match(/^([A-Z][A-Z\s]+):$/);
-      if(match){
-        const lbl=match[1];const body=lines[i+1]||'';const icon=sectionIcons[lbl]||'info';
-        if(lbl==='THREAT'){
-          const hasTorPossible=/tornado possible/i.test(body);
-          if(hasTorPossible){
-            const baseThreat=body.replace(/[·\-,]?\s*tornado possible\s*[·\-,]?/i,'').replace(/\s{2,}/g,' ').trim();
-            threatEl.innerHTML=(baseThreat?`<span>${baseThreat} · </span>`:'')
-              +`<span style="color:#FFFF00;animation:blink-warn 0.8s step-start infinite;font-weight:800;">⚠ TORNADO POSSIBLE!</span>`;
-          }else{
-            threatEl.innerHTML=`<span>${body}</span>`;
-            threatEl.style.color='';
-          }
-          i+=2;continue;
-        }
-        html+=`<div class="ao-ai-section"><div class="ao-ai-section-label"><span class="msr">${icon}</span>${lbl}</div><div class="ao-ai-section-text">${body}</div></div>`;
-        i+=2;
-      }else{html+=`<div class="ao-ai-section-text" style="margin-bottom:8px">${lines[i]}</div>`;i++;}
+
+  // Join NWS wrapped lines into logical blocks
+  const rawLines=nwsText.replace(/\r\n/g,'\n').split('\n');
+  const blocks=[];
+  let cur=null;
+  for(const line of rawLines){
+    const l=line.trim();
+    if(!l){if(cur){blocks.push(cur);cur=null;}continue;}
+    const isHeader=l===l.toUpperCase()&&/^[A-Z][A-Z\s\/]{2,}$/.test(l)&&l.length<=60;
+    const isBullet=l.startsWith('*');
+    const isKeyVal=/^[A-Z]{2,}\.{2,3}/.test(l);
+    if(isHeader||isBullet||isKeyVal){
+      if(cur)blocks.push(cur);
+      cur={type:isHeader?'header':isBullet?'bullet':'keyval',text:isBullet?l.slice(1).trim():l};
+    }else{
+      if(cur){cur.text+=' '+l;}else{cur={type:'para',text:l};}
     }
-    aiContent.innerHTML=html||`<div class="ao-ai-err">Summary unavailable.</div>`;
-  }catch(e){
-    aiContent.innerHTML=`<div class="ao-ai-err">Could not generate summary.</div>`;
-  }finally{
-    aiSpinner.style.display='none';
+  }
+  if(cur)blocks.push(cur);
+
+  // Helper: patterns that are already shown in other rows
+  const isRedundant=t=>
+    /^(TORNADO WARNING FOR|SEVERE THUNDERSTORM WARNING FOR|FLASH FLOOD WARNING FOR|FLOOD WARNING FOR|THE NATIONAL WEATHER SERVICE)/i.test(t)
+    || /COUNTY IN |COUNTIES IN |COUNTY,|COUNTIES,/i.test(t)
+    || /LOCATIONS IMPACTED|CITIES INCLUDE|CITIES OF /i.test(t)
+    || /^UNTIL \d|^UNTIL [A-Z]/i.test(t)
+    || (counties.length>0&&counties.some(c=>t.includes(c)));
+
+  // ── 7b. Cities — from LOCATIONS IMPACTED / cities bullet ──
+  const fullText=blocks.map(b=>b.text).join(' ');
+  const cities=extractCitiesFromDesc(fullText);
+  if(cities.length){
+    const wrap=document.getElementById('ao-cities-chips');
+    wrap.innerHTML=cities.map(c=>`<span class="ao-city-chip" style="background:${hexToRgba(color,0.12)};border:1px solid ${hexToRgba(color,0.25)}">${c}</span>`).join('');
+    document.getElementById('ao-sec-cities').style.display='';
+  }
+
+  // ── 7c. Description — only HAZARD/SOURCE/IMPACT key-vals + the event location/movement sentence ──
+  const descKeys=['HAZARD','SOURCE','IMPACT','WHAT','WHERE','WHEN','ADDITIONAL'];
+  const descParts=[];
+  for(const b of blocks){
+    if(b.type==='keyval'){
+      const m=b.text.match(/^([A-Z]+)\.{2,3}\s*(.*)/s);
+      if(m&&descKeys.includes(m[1])){
+        descParts.push(`<p><strong style="color:var(--text4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em">${m[1]}</strong> ${m[2].trim()}</p>`);
+      }
+    }
+  }
+  // Event location/movement sentence
+  for(const b of blocks){
+    const t=b.text.trim();
+    if(/was located|moving (east|west|north|south)|at \d+ mph|confirmed tornado|radar indicated/i.test(t)&&!isRedundant(t)){
+      descParts.unshift(`<p>${t}</p>`);
+      break;
+    }
+  }
+  const descEl=document.getElementById('ao-desc');
+  if(descParts.length){
+    descEl.innerHTML=descParts.join('');
+    document.getElementById('ao-sec-desc').style.display='';
+  }
+
+  // ── 7d. Call to Action — PRECAUTIONARY ACTIONS section or instruction field ──
+  let ctaText='';
+  let inCta=false;
+  for(const b of blocks){
+    if(b.type==='header'&&/PRECAUTIONARY|WHAT TO DO|INSTRUCTIONS|SAFETY/i.test(b.text)){inCta=true;continue;}
+    if(inCta){
+      if(b.type==='header')break;
+      ctaText+=(ctaText?' ':'')+b.text.trim();
+    }
+  }
+  if(!ctaText){
+    const instrBlock=blocks.find(b=>b.type==='keyval'&&/^INSTRUCTIONS?\.\.\./i.test(b.text));
+    if(instrBlock){const m=instrBlock.text.match(/^[A-Z]+\.{2,3}\s*(.*)/s);if(m)ctaText=m[1].trim();}
+  }
+  if(!ctaText&&p.instruction){ctaText=p.instruction.trim();}
+  if(ctaText){
+    document.getElementById('ao-cta').textContent=ctaText;
+    document.getElementById('ao-sec-cta').style.display='';
+    document.getElementById('ao-sec-cta').style.background=hexToRgba(color,0.08);
+    document.getElementById('ao-sec-cta').style.borderColor=hexToRgba(color,0.2);
+    document.getElementById('ao-sec-cta').querySelector('.ao-sec-label').style.color=color;
+    document.getElementById('ao-sec-cta').querySelector('.msr').style.color=color;
   }
 }
 function closeAlertOverlay(){document.getElementById('alert-overlay').classList.remove('open');}
@@ -2564,6 +2465,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('clock-loc-name').textContent=loc.label;
   tickClock();
   loadWeather(loc);updateRadar(loc.lat,loc.lng);
+
+  // Deep-link via hash: desktop.html#alerts, #radar, #outlook, #meso, #hourly
+  const hashPage=window.location.hash.replace('#','').toLowerCase();
+  const validPages=['home','hourly','radar','outlook','watches','alerts','meso'];
+  if(hashPage==='alerts'){navigate('watches');}else if(hashPage&&validPages.includes(hashPage)){navigate(hashPage);}
 });
 </script>
 </body>

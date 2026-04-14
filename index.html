@@ -653,7 +653,7 @@
   <div id="page-watches" class="page">
     <div class="map-wrap" style="flex:1;position:relative;">
       <div id="watches-map"></div>
-      <div class="map-context-pill">Watches &amp; Warnings</div>
+      <div class="map-context-pill">Alerts</div>
       <div class="watches-legend" id="ww-legend"></div>
     </div>
     <div class="watches-controls">
@@ -777,7 +777,7 @@
     </button>
     <button class="sheet-item" id="ssi-watches" onclick="navigate('watches');closeSevereSheet()">
       <div class="sheet-item-icon"><span class="msr">emergency_home</span></div>
-      <div class="sheet-item-body"><div class="sheet-item-label">Watches &amp; Warnings</div><div class="sheet-item-sub">Active watches and warnings</div></div>
+      <div class="sheet-item-body"><div class="sheet-item-label">Alerts</div><div class="sheet-item-sub">Active watches and warnings</div></div>
       <div class="sheet-item-chevron"><span class="msr">chevron_right</span></div>
     </button>
     <button class="sheet-item" id="ssi-meso" onclick="navigate('meso');closeSevereSheet()">
@@ -2821,9 +2821,14 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // Redirect desktop users immediately
   if(window.innerWidth>=768){
-    window.location.replace('desktop.html');
+    window.location.replace('desktop.html'+(window.location.hash||''));
     return;
   }
+
+  // Deep-link via hash: index.html#alerts, #radar, #outlook, #meso, #hourly
+  const hashPage=window.location.hash.replace('#','').toLowerCase();
+  const validPages=['home','radar','outlook','watches','alerts','meso','hourly','more'];
+  if(hashPage==='alerts'){navigate('watches');}else if(hashPage&&validPages.includes(hashPage)){navigate(hashPage);}
 });
 </script>
 </body>
