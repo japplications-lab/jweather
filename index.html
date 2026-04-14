@@ -2275,7 +2275,7 @@ function isLifeThreatening(feat){
   if(ev.includes('TORNADO EMERGENCY'))return true;
   if(ev.includes('TORNADO WARNING')&&(desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')))return true;
   if(ev.includes('SEVERE THUNDERSTORM WARNING')&&desc.includes('DESTRUCTIVE'))return true;
-  if(ev.includes('FLASH FLOOD WARNING')&&(desc.includes('CATASTROPHIC')||desc.includes('EMERGENCY')))return true;
+  if(ev.includes('FLASH FLOOD WARNING')&&desc.includes('CATASTROPHIC'))return true;
   return false;
 }
 
