@@ -2197,7 +2197,7 @@ function isLifeThreatening(feat) {
   const desc = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
   if (ev.includes('TORNADO EMERGENCY')) return true;
   if (ev.includes('TORNADO WARNING') && (desc.includes('OBSERVED') || desc.includes('CONFIRMED') || desc.includes('CONSIDERABLE') || desc.includes('CATASTROPHIC'))) return true;
-  if (ev.includes('SEVERE THUNDERSTORM WARNING') && (desc.includes('DESTRUCTIVE') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE'))) return true;
+  if (ev.includes('SEVERE THUNDERSTORM WARNING') && (desc.includes('DESTRUCTIVE') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('TORNADO...POSSIBLE') || desc.includes('TORNADO POSSIBLE'))) return true;
   if (ev.includes('FLASH FLOOD WARNING') && desc.includes('CATASTROPHIC')) return true;
   return false;
 }
@@ -2298,7 +2298,7 @@ function updateWatchLegend(features){
     // DESTRUCTIVE THUNDERSTORM: SVR warning only (never tornado) with any significant tag
     if(/severe thunderstorm warning/i.test(ev)){
       const desc=(f.properties?.description||f.properties?.headline||f.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
-      if(desc.includes('DESTRUCTIVE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE'))hasDestructiveSvr=true;
+      if(desc.includes('DESTRUCTIVE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||desc.includes('TORNADO...POSSIBLE')||desc.includes('TORNADO POSSIBLE'))hasDestructiveSvr=true;
     }
     // Always use base color for legend — fuchsia is only for map polygons
     const{color,label}=getWatchStyle(ev);
