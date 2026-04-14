@@ -2182,7 +2182,9 @@ function isLifeThreatening(feat) {
 }
 
 function renderWatchesMap(features) {
-  const newLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+  // Render lowest priority first so highest priority polygons sit on top and receive clicks
+  const renderFeatures = [...features].reverse();
+  const newLayer = L.geoJSON({ type: 'FeatureCollection', features: renderFeatures }, {
     style: feat => {
       const ev = feat.properties?.event || '';
       const lifeThreat = isLifeThreatening(feat);
@@ -2227,9 +2229,13 @@ function renderWatchesMap(features) {
   };
   requestAnimationFrame(applyPulse);
 
-  // Ding for newly-seen life-threatening tornado warnings
+  // Ding for newly-seen observed/life-threatening tornado warnings
   features.forEach(feat=>{
-    if(isLifeThreatening(feat)&&/tornado/i.test(feat.properties?.event||'')){
+    const ev=(feat.properties?.event||'').toUpperCase();
+    const desc=(feat.properties?.description||feat.properties?.headline||feat.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+    const isTorEvent=ev.includes('TORNADO');
+    const isObserved=desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||ev.includes('TORNADO EMERGENCY');
+    if(isTorEvent&&(isLifeThreatening(feat)||isObserved)){
       const id=feat.properties?.id||feat.properties?.cap_id||feat.properties?.url||JSON.stringify({ev:feat.properties?.event,exp:feat.properties?.expires});
       if(!_torAudioIds.has(id)){
         _torAudioIds.add(id);
