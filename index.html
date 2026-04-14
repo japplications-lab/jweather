@@ -2311,25 +2311,32 @@ function shouldPulse(feat){
 
 // Tornado audio alert
 const _torAudioIds=new Set();
-let audioUnlocked=false;
-function unlockAudio(){if(audioUnlocked)return;try{const ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended'){ctx.resume().then(()=>{audioUnlocked=true;});}else{audioUnlocked=true;}}catch{}}
-document.addEventListener('click',unlockAudio,{once:true});
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(_audioCtx.state==='suspended')_audioCtx.resume();
+  return _audioCtx;
+}
+function unlockAudio(){try{getAudioCtx();}catch{}}
+document.addEventListener('click',unlockAudio,{capture:true});
+document.addEventListener('touchstart',unlockAudio,{capture:true,passive:true});
 function playTornadoAlert(){
-  if(!audioUnlocked)return;
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const playDing=(time,freq)=>{
-      const osc=ctx.createOscillator();const gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.type='sine';osc.frequency.setValueAtTime(freq,time);
-      gain.gain.setValueAtTime(0,time);
-      gain.gain.linearRampToValueAtTime(0.5,time+0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001,time+0.9);
-      osc.start(time);osc.stop(time+0.9);
-    };
-    playDing(ctx.currentTime,880);
-    playDing(ctx.currentTime+0.4,1046);
-    playDing(ctx.currentTime+0.8,1318);
+    const ctx=getAudioCtx();
+    const resume=ctx.state==='suspended'?ctx.resume():Promise.resolve();
+    resume.then(()=>{
+      const playDing=(time,freq)=>{
+        const osc=ctx.createOscillator();const gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.type='sine';osc.frequency.setValueAtTime(freq,time);
+        gain.gain.setValueAtTime(0,time);
+        gain.gain.linearRampToValueAtTime(0.5,time+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001,time+0.9);
+        osc.start(time);osc.stop(time+0.9);
+      };
+      const t=ctx.currentTime;
+      playDing(t,880);playDing(t+0.4,1046);playDing(t+0.8,1318);
+    });
   }catch(e){console.error('Audio error:',e);}
 }
 
