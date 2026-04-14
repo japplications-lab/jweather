@@ -1978,7 +1978,21 @@ function manualRefreshWarnings(){
 
 // ── Tornado audio alert ──
 const _torAudioIds=new Set();
+let audioUnlocked=false;
+
+function unlockAudio(){
+  if(audioUnlocked)return;
+  const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  if(ctx.state==='suspended'){
+    ctx.resume().then(()=>{audioUnlocked=true;});
+  }else{
+    audioUnlocked=true;
+  }
+}
+document.addEventListener('click',unlockAudio,{once:true});
+
 function playTornadoAlert(){
+  if(!audioUnlocked)return;
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     const playDing=(time,freq)=>{
@@ -1994,7 +2008,7 @@ function playTornadoAlert(){
     playDing(ctx.currentTime,880);
     playDing(ctx.currentTime+0.4,1046);
     playDing(ctx.currentTime+0.8,1318);
-  }catch{}
+  }catch(e){console.error('Audio error:',e);}
 }
 
 
@@ -2182,7 +2196,6 @@ function isLifeThreatening(feat) {
 }
 
 function renderWatchesMap(features) {
-  // Sort ascending by priority (watches first = bottom, tornado emergencies last = top of SVG stack)
   const renderFeatures = [...features].sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
   const newLayer = L.geoJSON({ type: 'FeatureCollection', features: renderFeatures }, {
     style: feat => {
@@ -2198,23 +2211,28 @@ function renderWatchesMap(features) {
         weight: lifeThreat ? 3.5 : (isWatch ? 1.5 : 2),
         opacity: 1
       };
-    },
-    onEachFeature: (feat, lyr) => {
-      lyr.on('click', e => {
-        L.DomEvent.stopPropagation(e);
-
-        openAlertOverlay(feat);
-      });
     }
   });
 
-  // Atomic swap — only replace if we got real data or there are genuinely no alerts
-  // This prevents a failed/empty refresh from wiping a valid existing layer
   newLayer.addTo(watchesMap);
   if (watchLayer) watchesMap.removeLayer(watchLayer);
   watchLayer = newLayer;
 
-  // Apply pulse classes — retry until all _path elements exist (Leaflet creates them async)
+  // Map-level click: collect all features whose bounds contain the point, open highest-priority
+  if (watchesMap._watchClickHandler) watchesMap.off('click', watchesMap._watchClickHandler);
+  watchesMap._watchClickHandler = function(e) {
+    const pt = e.latlng;
+    const hits = [];
+    newLayer.eachLayer(lyr => {
+      try { if (lyr.getBounds().contains(pt)) hits.push(lyr.feature); } catch {}
+    });
+    if (!hits.length) return;
+    hits.sort((a,b) => getAlertPriority(a.properties?.event) - getAlertPriority(b.properties?.event));
+    openAlertOverlay(hits[0]);
+  };
+  watchesMap.on('click', watchesMap._watchClickHandler);
+
+  // Apply pulse classes
   let attempts = 0;
   const applyPulse = () => {
     let allReady = true;
@@ -2222,14 +2240,13 @@ function renderWatchesMap(features) {
       const pulse = shouldPulse(lyr.feature);
       if (!pulse) return;
       if (!lyr._path) { allReady = false; return; }
-      const cls = pulse === 'emerg' ? 'svg-pulse-emerg' : 'svg-pulse-warn';
-      lyr._path.classList.add(cls);
+      lyr._path.classList.add(pulse === 'emerg' ? 'svg-pulse-emerg' : 'svg-pulse-warn');
     });
     if (!allReady && attempts++ < 20) requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
 
-  // Ding for newly-seen observed/life-threatening tornado warnings
+  // Audio ding for newly-seen observed/life-threatening tornado warnings
   features.forEach(feat=>{
     const ev=(feat.properties?.event||'').toUpperCase();
     const desc=(feat.properties?.description||feat.properties?.headline||feat.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
@@ -2237,15 +2254,10 @@ function renderWatchesMap(features) {
     const isObserved=desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||ev.includes('TORNADO EMERGENCY');
     if(isTorEvent&&(isLifeThreatening(feat)||isObserved)){
       const id=feat.properties?.id||feat.properties?.cap_id||feat.properties?.url||JSON.stringify({ev:feat.properties?.event,exp:feat.properties?.expires});
-      if(!_torAudioIds.has(id)){
-        _torAudioIds.add(id);
-        playTornadoAlert();
-      }
+      if(!_torAudioIds.has(id)){_torAudioIds.add(id);playTornadoAlert();}
     }
   });
-
 }
-
 
 function updateWatchLegend(features){
   const legWarn=document.getElementById('ww-legend-warnings');

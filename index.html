@@ -2311,7 +2311,11 @@ function shouldPulse(feat){
 
 // Tornado audio alert
 const _torAudioIds=new Set();
+let audioUnlocked=false;
+function unlockAudio(){if(audioUnlocked)return;try{const ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended'){ctx.resume().then(()=>{audioUnlocked=true;});}else{audioUnlocked=true;}}catch{}}
+document.addEventListener('click',unlockAudio,{once:true});
 function playTornadoAlert(){
+  if(!audioUnlocked)return;
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     const playDing=(time,freq)=>{
@@ -2326,11 +2330,10 @@ function playTornadoAlert(){
     playDing(ctx.currentTime,880);
     playDing(ctx.currentTime+0.4,1046);
     playDing(ctx.currentTime+0.8,1318);
-  }catch{}
+  }catch(e){console.error('Audio error:',e);}
 }
 
 function renderWatchesMap(features){
-  // Sort ascending: watches/low-priority first (SVG bottom), emergencies last (SVG top = receives clicks)
   const renderFeatures=[...features].sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
   const newLayer=L.geoJSON({type:'FeatureCollection',features:renderFeatures},{
     style:feat=>{
@@ -2340,12 +2343,26 @@ function renderWatchesMap(features){
       const isWatch=/watch/i.test(ev);
       const isTorWarn=/tornado warning/i.test(ev)&&!lifeThreat;
       return{fillColor:color,fillOpacity:lifeThreat?0.6:isTorWarn?0.85:(isWatch?0.18:0.25),color,weight:lifeThreat?3.5:(isWatch?1.5:2),opacity:1};
-    },
-    onEachFeature:(feat,lyr)=>{lyr.on('click',e=>{L.DomEvent.stopPropagation(e);showWatchDetail(feat);});}
+    }
   });
   newLayer.addTo(watchesMap);
   if(watchLayer)watchesMap.removeLayer(watchLayer);
   watchLayer=newLayer;
+
+  // Map-level click: find all features containing point, open highest-priority
+  if(watchesMap._watchClickHandler)watchesMap.off('click',watchesMap._watchClickHandler);
+  watchesMap._watchClickHandler=function(e){
+    const pt=e.latlng;
+    const hits=[];
+    newLayer.eachLayer(lyr=>{
+      try{if(lyr.getBounds().contains(pt))hits.push(lyr.feature);}catch{}
+    });
+    if(!hits.length)return;
+    hits.sort((a,b)=>getAlertPriority(a.properties?.event)-getAlertPriority(b.properties?.event));
+    showWatchDetail(hits[0]);
+  };
+  watchesMap.on('click',watchesMap._watchClickHandler);
+
   // Apply pulse classes
   let attempts=0;
   const applyPulse=()=>{
@@ -2359,7 +2376,8 @@ function renderWatchesMap(features){
     if(!allReady&&attempts++<20)requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
-  // Audio ding for observed/life-threatening tornado warnings
+
+  // Audio ding for newly-seen observed/life-threatening tornado warnings
   features.forEach(feat=>{
     const ev=(feat.properties?.event||'').toUpperCase();
     const desc=(feat.properties?.description||feat.properties?.headline||feat.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
