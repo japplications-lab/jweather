@@ -2349,14 +2349,24 @@ function renderWatchesMap(features){
   if(watchLayer)watchesMap.removeLayer(watchLayer);
   watchLayer=newLayer;
 
-  // Map-level click: find all features containing point, open highest-priority
+  // Map-level click: precise point-in-polygon, open highest-priority hit
+  function pointInPolygon(pt,ring){
+    const x=pt.lng,y=pt.lat;let inside=false;
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+      const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+      if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;
+    }
+    return inside;
+  }
+  function featContainsPoint(feat,pt){
+    const g=feat.geometry;if(!g)return false;
+    const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
+    return polys.some(poly=>pointInPolygon(pt,poly[0]));
+  }
   if(watchesMap._watchClickHandler)watchesMap.off('click',watchesMap._watchClickHandler);
   watchesMap._watchClickHandler=function(e){
-    const pt=e.latlng;
     const hits=[];
-    newLayer.eachLayer(lyr=>{
-      try{if(lyr.getBounds().contains(pt))hits.push(lyr.feature);}catch{}
-    });
+    newLayer.eachLayer(lyr=>{if(featContainsPoint(lyr.feature,e.latlng))hits.push(lyr.feature);});
     if(!hits.length)return;
     hits.sort((a,b)=>getAlertPriority(a.properties?.event)-getAlertPriority(b.properties?.event));
     showWatchDetail(hits[0]);
