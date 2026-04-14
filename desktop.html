@@ -2131,7 +2131,7 @@ function shouldPulse(feat) {
 
   // 1. Tornado Warnings
   if (event.includes('TORNADO WARNING')) {
-    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || event.includes('EMERGENCY')) return 'emerg';
+    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || event.includes('TORNADO EMERGENCY')) return 'emerg';
     return null;
   }
 
@@ -2152,7 +2152,7 @@ function shouldPulse(feat) {
 
   // 3. Flash Flood Warnings
   if (event.includes('FLASH FLOOD WARNING')) {
-    if (desc.includes('CATASTROPHIC') || event.includes('EMERGENCY')) return 'emerg';
+    if (desc.includes('CATASTROPHIC') || event.includes('TORNADO EMERGENCY')) return 'emerg';
     if (desc.includes('CONSIDERABLE')) return 'warn';
   }
 
@@ -2163,7 +2163,7 @@ function isLifeThreatening(feat) {
   const p = feat.properties || {};
   const ev = (p.event || '').toUpperCase();
   const desc = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
-  if (ev.includes('TORNADO EMERGENCY') || ev.includes('EMERGENCY')) return true;
+  if (ev.includes('TORNADO EMERGENCY')) return true;
   if (ev.includes('TORNADO WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('OBSERVED') || desc.includes('CONFIRMED'))) return true;
   if (ev.includes('SEVERE THUNDERSTORM WARNING') && desc.includes('DESTRUCTIVE')) return true;
   if (ev.includes('FLASH FLOOD WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('EMERGENCY'))) return true;
