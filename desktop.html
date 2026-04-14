@@ -2020,14 +2020,11 @@ async function fetchWarnings() {
     if (radarLayer) radarLayer.setParams({ _refresh: Date.now() }, false);
 
     // Fetch NWS API + NOAA WWA layer 0 (warnings) + layer 1 (watches) all in parallel
-    const [nwsRes, wwa0Res, wwa1Res] = await Promise.allSettled([
+    const [nwsRes, wwa0Res] = await Promise.allSettled([
       fetch(`${WORKER}/nws/alerts/active?status=actual`, { cache: 'no-store' }),
-      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' }),
-      fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
+      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
     ]);
-    // If every single fetch failed, bail out silently — keep existing layer intact
-    const succeeded = [nwsRes,wwa0Res,wwa1Res].filter(r=>r.status==='fulfilled'&&r.value?.ok).length;
-    if(succeeded === 0) return; // all failed — keep existing layer
+    if(!nwsRes.value?.ok && !wwa0Res.value?.ok) return; // all failed — keep existing layer
 
     let combinedFeatures = [];
 
@@ -2095,21 +2092,8 @@ async function fetchWarnings() {
       const gj = await wwa0Res.value.json();
       (gj.features || []).forEach(pushWWA);
     }
-    // Layer 1: SPC convective watches (tornado, SVR) with polygons
-    let wwa1Features = [];
-    if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
-      const gj = await wwa1Res.value.json();
-      wwa1Features = gj.features || [];
-      if (wwa1Features.length > 0) {
-        window._lastWatchFeatures = wwa1Features; // cache last known good
-      }
-      wwa1Features.forEach(pushWWA);
-    }
-    // If WWA1 failed or returned empty, restore cached watch polygons
-    if (wwa1Features.length === 0 && window._lastWatchFeatures?.length) {
-      console.log('jWeather: WWA1 empty/failed, restoring', window._lastWatchFeatures.length, 'cached watch features');
-      window._lastWatchFeatures.forEach(pushWWA);
-    }
+    // Layer 1 (WWA watches) intentionally removed — unreliable, returns full county dataset
+    // Watches come from the NWS API above which has accurate geometry
 
     // Upgrade emergencies
     combinedFeatures.forEach(f => {
