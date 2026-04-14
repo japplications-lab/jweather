@@ -2119,6 +2119,9 @@ async function fetchWarnings() {
     );
     const deduped = combinedFeatures.filter(f => {
       const ev = f.properties?.event || '';
+      // Always keep watches — NWS watch features often lack polygon geometry,
+      // so we need the WWA polygon versions regardless of description
+      if (/watch/i.test(ev)) return true;
       // Keep if it has a real description, OR if NWS didn't provide this event type
       if ((f.properties?.description||'').length > 20) return true;
       if (!nwsWithDesc.has(ev)) return true;

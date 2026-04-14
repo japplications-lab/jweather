@@ -2208,6 +2208,8 @@ async function fetchWarnings(){
     const nwsWithDesc=new Set(combinedFeatures.filter(f=>f.geometry&&(f.properties?.description||'').length>20).map(f=>f.properties?.event||'').filter(Boolean));
     const deduped=combinedFeatures.filter(f=>{
       const ev=f.properties?.event||'';
+      // Always keep watches — NWS watch features often lack polygon geometry
+      if(/watch/i.test(ev))return true;
       if((f.properties?.description||'').length>20)return true;
       if(!nwsWithDesc.has(ev))return true;
       return false;
