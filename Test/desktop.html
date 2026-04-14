@@ -2065,7 +2065,8 @@ function updateWatchLegend(features){
     const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;
     else if(pulse==='warn')hasWarnPulse=true;
-    const{color,label}=isLifeThreatening(f)?{color:'#FF2DD4',label:getWatchStyle(ev).label}:getWatchStyle(ev);
+    // Always use base color for legend — fuchsia is only for map polygons
+    const{color,label}=getWatchStyle(ev);
     if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
     else{if(!seenWarn.has(ev))seenWarn.set(ev,{color,label});}
   });
@@ -2085,9 +2086,7 @@ function updateWatchLegend(features){
   // Pulse key — shown in warnings legend if any pulsing alerts are active
   if((hasEmergPulse||hasWarnPulse)&&legWarn.style.display!=='none'){
     if(hasEmergPulse){
-      legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
-    } else {
-      legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-warn" style="background:#FFA500;border:1px solid rgba(255,165,0,0.5);border-radius:2px;"></div><span style="font-size:.6rem;color:var(--text3);font-weight:600;">Flashing = High Impact Storm</span></div>`;
+      legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;">volume_up</span><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
     }
   }
 }

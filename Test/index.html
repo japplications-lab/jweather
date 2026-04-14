@@ -2594,12 +2594,14 @@ function closeWatchDetail(){ closeWatchModal(); }
 function updateWatchLegend(features){
   const leg=document.getElementById('ww-legend'); leg.innerHTML='';
   const seen=new Map();
-  let hasEmergPulse=false;
+  let hasEmergPulse=false;let hasWarnPulse=false;
   features.forEach(f=>{
     const ev=(f.properties?.event||'').trim();
     if(!ev)return;
     if(shouldPulse(f)==='emerg')hasEmergPulse=true;
-    const color=isLifeThreatening(f)?'#FF2DD4':(SEVERE_COLORS[ev]||'#8B5CF6');
+    else if(shouldPulse(f)==='warn')hasWarnPulse=true;
+    // Always use base color for legend — fuchsia is only for map polygons
+    const color=SEVERE_COLORS[ev]||'#8B5CF6';
     if(!seen.has(ev))seen.set(ev,{color,label:getWatchStyle(ev).label});
   });
   [...seen.entries()]
@@ -2608,7 +2610,7 @@ function updateWatchLegend(features){
       leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
     });
   if(hasEmergPulse){
-    leg.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
+    leg.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;">volume_up</span><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
   }
 }
 
