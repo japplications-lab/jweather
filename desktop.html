@@ -271,7 +271,7 @@
     ══════════════════════════════════════ */
     #page-outlook{flex-direction:row;}
     #outlook-map-wrap{flex:1;position:relative;overflow:hidden;}
-    #outlook-map{width:100%;height:100%;}
+    #outlook-map{width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden;}
     #outlook-panel{width:320px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
     #outlook-panel-head{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;}
     #outlook-panel-head h3{font-size:0.95rem;font-weight:700;letter-spacing:-0.02em;}
@@ -309,7 +309,7 @@
     ══════════════════════════════════════ */
     #page-watches{flex-direction:row;}
     #watches-map-wrap{flex:1;position:relative;overflow:hidden;}
-    #watches-map{width:100%;height:100%;}
+    #watches-map{width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden;}
     .watches-legends{position:absolute;bottom:12px;left:12px;z-index:500;display:flex;flex-direction:column;gap:8px;}
     .watches-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;}
     .watches-legend-title{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:5px;}
@@ -381,7 +381,7 @@
     ══════════════════════════════════════ */
     #page-meso{flex-direction:row;}
     #meso-map-wrap{flex:1;position:relative;overflow:hidden;}
-    #meso-map{width:100%;height:100%;}
+    #meso-map{width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden;}
     #meso-panel{width:340px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
     #meso-panel-head{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;}
     #meso-panel-head h3{font-size:0.95rem;font-weight:700;letter-spacing:-0.02em;}
@@ -504,6 +504,9 @@
     /* Leaflet overrides */
     .leaflet-container{background:#111318!important;}
     .leaflet-tile-pane{will-change:transform;}
+    .leaflet-zoom-animated{will-change:transform;}
+    .leaflet-pan-anim .leaflet-tile{will-change:transform;}
+    .leaflet-container{outline:none;}
     .leaflet-control-zoom{border:1px solid var(--border2)!important;border-radius:var(--r-sm)!important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.4)!important;}
     .leaflet-control-zoom-in,.leaflet-control-zoom-out{background:var(--surface)!important;color:var(--text2)!important;border-bottom:1px solid var(--border2)!important;width:34px!important;height:34px!important;line-height:34px!important;font-size:16px!important;}
     .leaflet-control-zoom-in:hover,.leaflet-control-zoom-out:hover{background:var(--surface2)!important;}
@@ -1338,13 +1341,13 @@ function outlookDayDate(dayNum){
 }
 
 function initOutlookMap(){
-  outlookMap=L.map('outlook-map',{zoomControl:false,attributionControl:false,minZoom:3}).setView([38.5,-96],4);
+  outlookMap=L.map('outlook-map',{zoomControl:false,attributionControl:false,minZoom:3,preferCanvas:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(outlookMap);
   outlookMap.getPane('popupPane').style.zIndex=600;
   outlookMap.createPane('outlookPane');outlookMap.getPane('outlookPane').style.zIndex=310;
   outlookMap._outlookRenderer=L.svg({pane:'outlookPane'}).addTo(outlookMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,opacity:0.55}).addTo(outlookMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,opacity:0.55,updateWhenIdle:false,keepBuffer:4}).addTo(outlookMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(outlookMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane',opacity:0.7}).addTo(outlookMap);
   // Hatch pattern for significant threat (CIG) areas
@@ -1895,7 +1898,7 @@ function getWatchStyle(event){
 }
 
 function initWatchesMap(){
-  watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
+  watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
 
   // Radar pane sits below warning polygons (default overlay pane is 400)
   watchesMap.createPane('radarPane');
@@ -1903,7 +1906,7 @@ function initWatchesMap(){
 
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(watchesMap);
 
   // Static NEXRAD radar overlay
   radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
@@ -2551,10 +2554,10 @@ function classifyConcern(raw){
 }
 
 function initMesoMap(){
-  mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
+  mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(mesoMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(mesoMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
