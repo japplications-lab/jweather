@@ -2096,9 +2096,19 @@ async function fetchWarnings() {
       (gj.features || []).forEach(pushWWA);
     }
     // Layer 1: SPC convective watches (tornado, SVR) with polygons
+    let wwa1Features = [];
     if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
       const gj = await wwa1Res.value.json();
-      (gj.features || []).forEach(pushWWA);
+      wwa1Features = gj.features || [];
+      if (wwa1Features.length > 0) {
+        window._lastWatchFeatures = wwa1Features; // cache last known good
+      }
+      wwa1Features.forEach(pushWWA);
+    }
+    // If WWA1 failed or returned empty, restore cached watch polygons
+    if (wwa1Features.length === 0 && window._lastWatchFeatures?.length) {
+      console.log('jWeather: WWA1 empty/failed, restoring', window._lastWatchFeatures.length, 'cached watch features');
+      window._lastWatchFeatures.forEach(pushWWA);
     }
 
     // Upgrade emergencies
