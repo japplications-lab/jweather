@@ -1927,27 +1927,26 @@ async function loadOutlookDay48(dayNum) {
   }
 }
 
-async function preloadAndStartDay48Loop() {
-  stopDay48Loop(); activeOutlookDay = '4-8'; activeDay48 = 4;
-  if (activeOutlookLayer) { outlookMap.removeLayer(activeOutlookLayer); activeOutlookLayer = null; }
-  if (activeOutlookSigLayer) { outlookMap.removeLayer(activeOutlookSigLayer); activeOutlookSigLayer = null; }
-  if (activeCigLayer) { outlookMap.removeLayer(activeCigLayer); activeCigLayer = null; }
-  const loading = document.getElementById('ol-loading');
-  const legendEl = document.getElementById('ol-legend');
-  loading.classList.remove('hidden'); legendEl.innerHTML = ''; hideOutlookEmpty();
-  document.getElementById('ol-pill').innerHTML = `Severe Outlook — Day 4–8 — <span>Loading…</span>`;
-  await Promise.allSettled([4, 5, 6, 7, 8].map(async d => {
-    if (day48GeoJSON[d]) return;
-    try {
-      const layerId = OUTLOOK_LAYER_IDS[`${d}-prob`];
-      const res = await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
-      const gj = await res.json();
-      if (!gj.error) day48GeoJSON[d] = gj;
-    } catch {}
+async function preloadDay48AndShow(startDay=4){
+  stopDay48Loop();activeOutlookDay='4-8';activeDay48=startDay;
+  if(activeOutlookLayer){outlookMap.removeLayer(activeOutlookLayer);activeOutlookLayer=null;}
+  if(activeOutlookSigLayer){outlookMap.removeLayer(activeOutlookSigLayer);activeOutlookSigLayer=null;}
+  if(activeCigLayer){outlookMap.removeLayer(activeCigLayer);activeCigLayer=null;}
+  const loading=document.getElementById('ol-loading');
+  const legendEl=document.getElementById('ol-legend');
+  loading.classList.remove('hidden');legendEl.innerHTML='';hideOutlookEmpty();
+  document.getElementById('ol-pill').innerHTML=`Severe Outlook — Day 4–8 — <span>Loading…</span>`;
+  await Promise.allSettled([4,5,6,7,8].map(async d=>{
+    if(day48GeoJSON[d])return;
+    try{
+      const layerId=OUTLOOK_LAYER_IDS[`${d}-prob`];
+      const res=await fetch(`${NOAA_BASE}/${layerId}/query?where=1%3D1&outFields=*&f=geojson&geometryPrecision=4&outSR=4326`);
+      const gj=await res.json();
+      if(!gj.error)day48GeoJSON[d]=gj;
+    }catch{}
   }));
   loading.classList.add('hidden');
-  await loadOutlookDay48(4);
-  startDay48Loop();
+  await loadOutlookDay48(startDay);
 }
 
 function stopDay48Loop() { if (day48LoopTimer) { clearInterval(day48LoopTimer); day48LoopTimer = null; } day48LoopActive = false; }
