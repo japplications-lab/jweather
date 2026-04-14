@@ -2282,7 +2282,7 @@ function isLifeThreatening(feat){
   const desc=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
   if(ev.includes('TORNADO EMERGENCY'))return true;
   if(ev.includes('TORNADO WARNING')&&(desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CONSIDERABLE')||desc.includes('CATASTROPHIC')))return true;
-  if(ev.includes('SEVERE THUNDERSTORM WARNING')&&desc.includes('DESTRUCTIVE'))return true;
+  if(ev.includes('SEVERE THUNDERSTORM WARNING')&&(desc.includes('DESTRUCTIVE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')))return true;
   if(ev.includes('FLASH FLOOD WARNING')&&desc.includes('CATASTROPHIC'))return true;
   return false;
 }
@@ -2296,7 +2296,7 @@ function shouldPulse(feat){
     return null;
   }
   if(event.includes('SEVERE THUNDERSTORM WARNING')){
-    const isDestructive=desc.includes('DESTRUCTIVE')||desc.includes('MAX HAIL SIZE...2.75')||desc.includes('MAX HAIL SIZE...3.')||desc.includes('WIND...80 MPH');
+    const isDestructive=desc.includes('DESTRUCTIVE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||desc.includes('MAX HAIL SIZE...2.75')||desc.includes('MAX HAIL SIZE...3.')||desc.includes('WIND...80 MPH');
     if(isDestructive)return'emerg';
     const isConsiderable=desc.includes('CONSIDERABLE')||desc.includes('MAX HAIL SIZE...1.75')||desc.includes('WIND...70 MPH');
     const hasTorPoss=desc.includes('TORNADO...POSSIBLE')||desc.includes('TORNADO POSSIBLE');
@@ -2529,17 +2529,22 @@ function closeWatchDetail(){ closeWatchModal(); }
 function updateWatchLegend(features){
   const leg=document.getElementById('ww-legend'); leg.innerHTML='';
   const seen=new Map();
-  let hasEmergPulse=false;let hasWarnPulse=false;let hasObservedTornado=false;
+  let hasEmergPulse=false;let hasWarnPulse=false;let hasObservedTornado=false;let hasDestructiveSvr=false;
   features.forEach(f=>{
     const ev=(f.properties?.event||'').trim();
     if(!ev)return;
     const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;
     else if(pulse==='warn')hasWarnPulse=true;
-    // Only show OBSERVED TORNADO legend entry for actual tornado warnings with observed/confirmed
+    // OBSERVED TORNADO: tornado warning with observed/confirmed/catastrophic/considerable tags
     if(pulse==='emerg'&&/tornado/i.test(ev)){
       const desc=(f.properties?.description||f.properties?.headline||f.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
-      if(desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||/tornado emergency/i.test(ev))hasObservedTornado=true;
+      if(desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||/tornado emergency/i.test(ev))hasObservedTornado=true;
+    }
+    // DESTRUCTIVE THUNDERSTORM: SVR warning only (never tornado) with any significant tag
+    if(/severe thunderstorm warning/i.test(ev)){
+      const desc=(f.properties?.description||f.properties?.headline||f.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+      if(desc.includes('DESTRUCTIVE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE'))hasDestructiveSvr=true;
     }
     // Always use base color for legend — fuchsia is only for map polygons
     const color=SEVERE_COLORS[ev]||'#8B5CF6';
@@ -2550,8 +2555,16 @@ function updateWatchLegend(features){
     .forEach(([,{color,label}])=>{
       leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
     });
-  if(hasObservedTornado){
-    leg.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;margin-left:4px;">volume_up</span></div>`;
+  if(hasObservedTornado||hasDestructiveSvr){
+    const sep='<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)">';
+    const nosep='<div class="wl-item" style="margin-top:3px">';
+    if(hasObservedTornado){
+      leg.innerHTML+=`${sep}<div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;margin-left:4px;">volume_up</span></div>`;
+    }
+    if(hasDestructiveSvr){
+      const div=hasObservedTornado?nosep:sep;
+      leg.innerHTML+=`${div}<div class="wl-swatch svg-pulse-emerg" style="background:#FFA500;border:1px solid rgba(255,165,0,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FFA500;font-weight:800;letter-spacing:0.04em;">DESTRUCTIVE THUNDERSTORM</span><span class="msr" style="font-size:10px;color:#FFA500;animation:tor-text-pulse 0.8s ease-in-out infinite;margin-left:4px;">volume_up</span></div>`;
+    }
   }
 }
 
