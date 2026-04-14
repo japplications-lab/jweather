@@ -520,6 +520,8 @@
     .leaflet-control-zoom a:hover{color:var(--red)!important;}
     .leaflet-control-zoom-in{border-bottom:1px solid var(--border)!important;}
     .leaflet-control-attribution{display:none!important;}
+    /* Keep Leaflet controls below modals */
+    .leaflet-top,.leaflet-bottom{z-index:500!important;}
     .leaflet-popup-content-wrapper{background:var(--surface);border:1px solid var(--border2);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);font-family:var(--font);padding:0;min-width:200px;max-width:250px;}
     .leaflet-popup-content{margin:0;font-size:0.78rem;}
     .leaflet-popup-tip{background:var(--surface);}
@@ -869,7 +871,7 @@
 
 <!-- WATCH MODAL -->
 <div id="watch-modal-backdrop" onclick="closeWatchModal()" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.55);"></div>
-<div id="watch-modal" style="display:none;position:fixed;inset:0;z-index:701;align-items:flex-end;justify-content:center;pointer-events:none;">
+<div id="watch-modal" style="display:none;position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + 28px + env(safe-area-inset-bottom));z-index:701;align-items:flex-end;justify-content:center;pointer-events:none;top:0;">
   <div id="watch-modal-box" style="background:var(--surface);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:560px;max-height:calc(100vh - var(--header-h) - var(--nav-h) - 28px - env(safe-area-inset-bottom));display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:slideUp .2s cubic-bezier(.32,.72,0,1);">
     <div id="watch-modal-bar" style="height:4px;flex-shrink:0;"></div>
     <div style="display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
