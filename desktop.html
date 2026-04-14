@@ -122,32 +122,32 @@
     ══════════════════════════════════════ */
     #page-home{overflow:hidden;flex-direction:column;}
     .home-grid{
-      padding:20px;
+      padding:14px;
       display:grid;
-      grid-template-columns:440px 1fr;
+      grid-template-columns:380px 1fr;
       grid-template-rows:auto auto 1fr;
-      gap:16px;
+      gap:12px;
       height:100%;
       min-height:0;
       overflow:hidden;
     }
 
     /* Hero card */
-    .hero-card{background:var(--red);border-radius:var(--r);padding:28px 32px;position:relative;overflow:hidden;}
+    .hero-card{background:var(--red);border-radius:var(--r);padding:18px 22px;position:relative;overflow:hidden;}
     .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;}
     .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
     .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
-    .hero-loc{font-size:1.35rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
-    .hero-date{font-size:0.78rem;color:rgba(255,255,255,0.72);margin-top:4px;}
-    .hero-icon{width:90px;height:90px;flex-shrink:0;}
+    .hero-loc{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
+    .hero-date{font-size:0.7rem;color:rgba(255,255,255,0.72);margin-top:4px;}
+    .hero-icon{width:64px;height:64px;flex-shrink:0;}
     .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:1;}
-    .hero-temp{font-size:6.5rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
-    .hero-temp sup{font-size:2rem;font-weight:500;opacity:.8;vertical-align:super;}
-    .hero-desc{font-size:1rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
+    .hero-temp{font-size:4.2rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
+    .hero-temp sup{font-size:1.3rem;font-weight:500;opacity:.8;vertical-align:super;}
+    .hero-desc{font-size:0.82rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
     .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:1;}
     .hero-stat{background:rgba(0,0,0,0.2);border-radius:var(--r-sm);padding:13px 16px;}
     .hero-stat-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.55);}
-    .hero-stat-val{font-size:1.05rem;font-weight:700;color:#fff;margin-top:5px;}
+    .hero-stat-val{font-size:0.88rem;font-weight:700;color:#fff;margin-top:5px;}
 
     /* Alerts card */
     .alerts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
@@ -188,14 +188,14 @@
     /* Forecast card — fills full right column height */
     .forecast-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;grid-column:2;grid-row:1/4;display:flex;flex-direction:column;min-height:0;}
     .forecast-list{flex:1;overflow-y:auto;min-height:0;}
-    .forecast-row{display:grid;grid-template-columns:130px 40px 1fr auto;align-items:center;gap:0 16px;padding:0 22px;height:70px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .forecast-row{display:grid;grid-template-columns:110px 36px 1fr auto;align-items:center;gap:0 12px;padding:0 16px;height:52px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
     .forecast-row:last-of-type{border-bottom:none;}
     .forecast-row:hover{background:rgba(255,255,255,0.03);}
     .forecast-period{font-size:0.88rem;font-weight:500;color:var(--text3);}
     .forecast-period.day{color:var(--text);font-weight:700;}
-    .forecast-icon{width:40px;height:40px;}
-    .forecast-desc{font-size:0.82rem;color:var(--text3);}
-    .forecast-temp{font-size:1.3rem;font-weight:700;color:var(--text);}
+    .forecast-icon{width:32px;height:32px;}
+    .forecast-desc{font-size:0.78rem;color:var(--text3);}
+    .forecast-temp{font-size:1.05rem;font-weight:700;color:var(--text);}
     .forecast-detail{display:none;padding:14px 22px 18px;font-size:0.8rem;color:var(--text3);line-height:1.75;background:var(--surface2);border-bottom:1px solid var(--border);}
     .forecast-row.open+.forecast-detail{display:block;animation:fadeIn .15s ease;}
 
@@ -318,7 +318,7 @@
     #watches-refresh-pill{position:absolute;bottom:12px;right:52px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-size:0.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;overflow:hidden;cursor:pointer;transition:border-color .15s,color .15s;}
     #watches-refresh-pill:hover{border-color:var(--red);color:var(--text2);}
     #watches-refresh-txt{display:inline-block;min-width:10.5ch;text-align:left;}
-    #watches-refresh-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,0.08);width:0%;transition:width 30s linear;border-radius:20px;}
+    #watches-refresh-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,0.08);width:0%;border-radius:20px;}
     #watches-refresh-label{position:relative;z-index:1;display:flex;align-items:center;gap:5px;}
     #watches-refresh-label .msr{font-size:11px;color:var(--red);}
     @keyframes init-fade-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -594,7 +594,7 @@
               <div class="hero-loc" id="ch-loc">—</div>
               <div class="hero-date" id="ch-date"></div>
             </div>
-            <img class="hero-icon" id="ch-icon" alt="" width="90" height="90" style="opacity:0;transition:opacity .3s"/>
+            <img class="hero-icon" id="ch-icon" alt="" width="64" height="64" style="opacity:0;transition:opacity .3s"/>
           </div>
           <div class="hero-bottom">
             <div class="hero-temp"><span id="ch-temp">--</span><sup>°F</sup></div>
@@ -1191,7 +1191,7 @@ function renderForecast(periods){
   if(!periods?.length){wrap.innerHTML='<div style="padding:20px;color:var(--text4);font-size:.8rem;">No data</div>';return;}
   periods.forEach(p=>{
     const row=document.createElement('div');row.className='forecast-row';
-    row.innerHTML=`<div class="forecast-period${p.isDaytime?' day':''}">${abbrDay(p.name)}</div><img class="forecast-icon" alt="" width="36" height="36" style="opacity:0;transition:opacity .25s"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
+    row.innerHTML=`<div class="forecast-period${p.isDaytime?' day':''}">${abbrDay(p.name)}</div><img class="forecast-icon" alt="" width="32" height="32" style="opacity:0;transition:opacity .25s"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
     const img=row.querySelector('.forecast-icon');img.onload=()=>img.style.opacity='1';img.src=getIcon(p.shortForecast,p.isDaytime);
     const det=document.createElement('div');det.className='forecast-detail';det.textContent=p.detailedForecast;
     row.addEventListener('click',()=>{
@@ -1936,7 +1936,7 @@ function startWatchPollPill(){
   bar.style.transition='none';bar.style.width='0%';
   txt.textContent='Next update in 30s';
   if(icon)icon.textContent='refresh';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 30s linear';bar.style.width='100%';}));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 8s linear';bar.style.width='30%';setTimeout(()=>{if(bar.style.width==='30%'){bar.style.transition='width 6s ease-in-out';bar.style.width='65%';}},8500);setTimeout(()=>{if(bar.style.width==='65%'){bar.style.transition='width 8s ease-in-out';bar.style.width='92%';}},16000);}));
   let remaining=30;
   window._watchesPctInterval=setInterval(()=>{
     remaining--;
@@ -2642,18 +2642,22 @@ async function showMesoDetail(feat,i){
     const pre=div.querySelector('pre');
     let raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
     document.getElementById('disc-body').innerHTML=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div><div class="disc-loading"><div class="spin-ring"></div>Summarizing with AI…</div>`;
-    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,system:`You are a severe weather analyst. Summarize this SPC mesoscale discussion in plain English in exactly 4 sections:\n\nWHAT'S HAPPENING:\n[Current weather setup]\n\nPRIMARY THREAT:\n[Most critical hazard]\n\nAFFECTED AREA:\n[Where exactly]\n\nTIMING:\n[When]`,messages:[{role:'user',content:raw}]})});
+    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,system:`You are a severe weather analyst. Summarize this SPC mesoscale discussion in plain English in exactly 4 sections. Use NO markdown, NO ## headers, NO bold, NO asterisks. Reply ONLY with these exact headers followed by the text:\n\nWHAT'S HAPPENING:\n[Current weather setup in 1-2 sentences]\n\nPRIMARY THREAT:\n[Most critical hazard in 1-2 sentences]\n\nAFFECTED AREA:\n[Where exactly in 1-2 sentences]\n\nTIMING:\n[When in 1-2 sentences]`,messages:[{role:'user',content:raw}]})});
     if(!aiRes.ok)throw new Error('AI unavailable');
     const aiData=await aiRes.json();const summary=(aiData.content?.[0]?.text||'').trim();
     if(!summary)throw new Error('Empty response');
     const sectionIcons={"WHAT'S HAPPENING":'wb_cloudy','PRIMARY THREAT':'warning','AFFECTED AREA':'location_on','TIMING':'schedule'};
-    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
-    let html2=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div>`;
-    let j=0;
+    const metaRow=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div>`;
+    const lines=summary.split('\n').map(l=>l.trim().replace(/^#+\s*/,'')).filter(Boolean);
+    let html2=metaRow;let j=0;
     while(j<lines.length){
-      const line=lines[j];const sectionMatch=line.match(/^([A-Z'S ]+):$/);
-      if(sectionMatch){const lbl=sectionMatch[1];const body=lines[j+1]||'';const icon=sectionIcons[lbl]||'info';html2+=`<div class="disc-section"><div class="disc-section-label"><span class="msr">${icon}</span>${lbl}</div><div class="disc-section-text">${body}</div></div>`;j+=2;}
-      else{html2+=`<div class="disc-section-text" style="margin-bottom:10px">${line}</div>`;j++;}
+      const line=lines[j];const sectionMatch=line.match(/^([A-Z][A-Z'S ]+):$/);
+      if(sectionMatch){
+        const lbl=sectionMatch[1];const icon=sectionIcons[lbl]||'info';
+        const bodyLines=[];j++;
+        while(j<lines.length&&!lines[j].match(/^([A-Z][A-Z'S ]+):$/)){bodyLines.push(lines[j]);j++;}
+        html2+=`<div class="disc-section"><div class="disc-section-label"><span class="msr">${icon}</span>${lbl}</div><div class="disc-section-text">${bodyLines.join(' ').trim()}</div></div>`;
+      }else{j++;}
     }
     document.getElementById('disc-body').innerHTML=html2;
   }catch(e){document.getElementById('disc-body').innerHTML=`<div class="disc-err">Could not load discussion (${e.message}).</div>`;}

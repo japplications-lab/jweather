@@ -2113,8 +2113,10 @@ function initWatchesMap(){
     fill.style.width='0%';
     if(pct) pct.textContent='Next update in 30s';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      fill.style.transition='width 30s linear';
-      fill.style.width='100%';
+      fill.style.transition='width 6s cubic-bezier(0.4,0,0.6,1)';
+      fill.style.width='35%';
+      setTimeout(()=>{fill.style.transition='width 10s ease-in-out';fill.style.width='70%';},6500);
+      setTimeout(()=>{fill.style.transition='width 10s ease-in-out';fill.style.width='92%';},18000);
     }));
     const POLL_SEC=30;
     let remaining=POLL_SEC;
@@ -2610,21 +2612,7 @@ async function showMesoDetail(feat,i){
     const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       model:'llama-3.3-70b-versatile',
       max_tokens:400,
-      system:`You are a severe weather analyst writing for a mobile weather app. Summarize the SPC mesoscale discussion in plain English for the general public. Structure your response in exactly these 4 sections, each 1-2 sentences:
-
-WHAT'S HAPPENING:
-[Describe the current weather setup in simple terms]
-
-PRIMARY THREAT:
-[The most critical hazard — be specific about type and intensity]
-
-AFFECTED AREA:
-[Where exactly, described plainly]
-
-TIMING:
-[When this is expected to occur or peak]
-
-Be direct and specific. Avoid meteorological jargon. No extra text outside the 4 sections.`,
+      system:`You are a severe weather analyst writing for a mobile weather app. Summarize the SPC mesoscale discussion in plain English. Use NO markdown, NO ## headers, NO asterisks, NO bold. Reply ONLY with these exact section headers followed by 1-2 sentences each:\n\nWHAT'S HAPPENING:\n[Current weather setup in plain English]\n\nPRIMARY THREAT:\n[Most critical hazard — specific type and intensity]\n\nAFFECTED AREA:\n[Where exactly]\n\nTIMING:\n[When this peaks or occurs]`,
       messages:[{role:'user',content:raw}]
     })});
 
@@ -2640,18 +2628,18 @@ Be direct and specific. Avoid meteorological jargon. No extra text outside the 4
       'AFFECTED AREA':'location_on',
       'TIMING':'schedule',
     };
-    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
+    // Strip ## markdown and parse sections, collecting multi-line bodies
+    const lines=summary.split('\n').map(l=>l.trim().replace(/^#+\s*/,'')).filter(Boolean);
     let html2=''; let j=0;
     while(j<lines.length){
       const line=lines[j];
-      const sectionMatch=line.match(/^([A-Z'S ]+):$/);
+      const sectionMatch=line.match(/^([A-Z][A-Z'S ]+):$/);
       if(sectionMatch){
-        const lbl=sectionMatch[1];
-        const body=lines[j+1]||'';
-        const icon=sectionIcons[lbl]||'info';
-        html2+=`<div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">${icon}</span>${lbl}</div><div class="meso-sum-text">${body}</div></div>`;
-        j+=2;
-      } else { html2+=`<div class="meso-sum-text" style="margin-bottom:12px">${line}</div>`; j++; }
+        const lbl=sectionMatch[1]; const icon=sectionIcons[lbl]||'info';
+        const bodyLines=[]; j++;
+        while(j<lines.length&&!lines[j].match(/^([A-Z][A-Z'S ]+):$/)){bodyLines.push(lines[j]);j++;}
+        html2+=`<div class="meso-sum-section"><div class="meso-sum-label"><span class="msr">${icon}</span>${lbl}</div><div class="meso-sum-text">${bodyLines.join(' ').trim()}</div></div>`;
+      } else { j++; }
     }
     document.getElementById('meso-modal-body').innerHTML=html2;
 
