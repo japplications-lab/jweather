@@ -2162,9 +2162,26 @@ async function openAlertOverlay(feat){
   const p=feat.properties||{};
 
   // ── 1. Event title & style ──
-  const{label,color,iconSym}=getWatchStyle(p.event||'');
+  let{label,color,iconSym}=getWatchStyle(p.event||'');
   const isEmerg=/emergency/i.test(p.event||'');
   const isWatch=/watch/i.test(p.event||'');
+  const isTorWarn=/tornado warning/i.test(p.event||'');
+
+  // Helper: apply observed/confirmed override to header
+  function applyObservedOverride(desc){
+    if(!isTorWarn)return;
+    const d=(desc||'').toUpperCase();
+    if(d.includes('OBSERVED')||d.includes('CONFIRMED')||/tornado emergency/i.test(p.event||'')){
+      color='#FF2DD4';
+      label='Observed Tornado';
+      document.getElementById('ao-stripe').style.background=color;
+      document.getElementById('ao-icon').style.background=color;
+      const titleEl=document.getElementById('ao-title');
+      titleEl.textContent=label;
+      titleEl.style.color=color;
+      document.querySelector('.ao-box').style.borderColor=hexToRgba(color,0.35);
+    }
+  }
 
   // ── 2. Expiry ──
   const expDate=parseAlertDate(p.expires||p.expiration||p.end||null);
@@ -2187,6 +2204,9 @@ async function openAlertOverlay(feat){
   titleEl.style.color=color;
   document.getElementById('ao-issued').textContent=sender;
   document.getElementById('ao-expires').textContent=exp;
+
+  // Apply observed override immediately if description already available
+  applyObservedOverride(p.description||p.headline||'');
 
   // ── 5. Show overlay with spinner ──
   const spinner=document.getElementById('ao-ai-spinner');
@@ -2223,6 +2243,9 @@ async function openAlertOverlay(feat){
     }
   }
   spinner.classList.remove('show');
+
+  // Re-check observed override now that we have the full description
+  applyObservedOverride(rawDesc||rawHeadline||'');
 
   // ── 7. Parse NWS text into structured sections ──
   const nwsText=(rawDesc||rawHeadline||'').trim();

@@ -987,6 +987,7 @@ let currentPage = 'home';
 let outlookMapInit=false, watchesMapInit=false, mesoMapInit=false;
 let outlookMap=null;
 let watchesMap, watchLayer=null, watchesList=[], watchFilter='all';
+let radarLayer=null;
 let activeWatches=[], activeWarnings=[];
 let mesoMap, mesoLayers={}, mesoData=[];
 
@@ -2245,10 +2246,28 @@ document.querySelector('.outlook-controls').addEventListener('click', e => {
 // ══════════════════════════════════════════════════════
 function initWatchesMap(){
   watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
+
+  // Radar pane sits below warning polygons
+  watchesMap.createPane('radarPane');
+  watchesMap.getPane('radarPane').style.zIndex=350;
+
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
-  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(watchesMap)).catch(()=>{});
+
+  // NEXRAD radar overlay
+  radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
+    layers:'nexrad-n0q-900913',
+    format:'image/png',
+    transparent:true,
+    opacity:0.45,
+    pane:'radarPane',
+  }).addTo(watchesMap);
+
+  // County boundaries
+  fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#374151',weight:0.5,fill:false,opacity:.8},interactive:false}).addTo(watchesMap)).catch(()=>{});
+  // State boundaries
+  fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(watchesMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
 
   // Clear any existing timers
@@ -2287,6 +2306,7 @@ function initWatchesMap(){
 
 async function fetchWarnings(){
   try{
+    if(radarLayer)radarLayer.setParams({_refresh:Date.now()},false);
     const [nwsRes,wwa0Res,wwa1Res]=await Promise.allSettled([
       fetch(`${WORKER}/nws/alerts/active?status=actual`,{cache:'no-store'}),
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'}),
@@ -2528,7 +2548,23 @@ function extractCitiesFromDesc(desc){
 
 async function showWatchDetail(feat){
   const a=feat.properties||{};
-  const{label,color,iconSym}=getWatchStyle(a.event);
+  let{label,color,iconSym}=getWatchStyle(a.event);
+  const isTorWarn=/tornado warning/i.test(a.event||'');
+
+  function applyObservedOverride(desc){
+    if(!isTorWarn)return;
+    const d=(desc||'').toUpperCase();
+    if(d.includes('OBSERVED')||d.includes('CONFIRMED')||/tornado emergency/i.test(a.event||'')){
+      color='#FF2DD4';
+      label='Observed Tornado';
+      document.getElementById('watch-modal-bar').style.background=color;
+      document.getElementById('watch-modal-icon').style.cssText=`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${color}22;`;
+      document.getElementById('watch-modal-icon-sym').style.color=color;
+      document.getElementById('watch-modal-title').textContent=label;
+      document.getElementById('watch-modal-title').style.color=color;
+    }
+  }
+
   document.getElementById('watch-modal-bar').style.background=color;
   const iconEl=document.getElementById('watch-modal-icon');
   iconEl.style.cssText=`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${color}22;`;
@@ -2537,6 +2573,9 @@ async function showWatchDetail(feat){
   document.getElementById('watch-modal-title').textContent=label;
   document.getElementById('watch-modal-meta').textContent='';
   document.getElementById('watch-modal-badges').innerHTML='';
+
+  // Apply override immediately if description already in properties
+  applyObservedOverride(a.description||a.headline||'');
   document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:10px 0;"><div class="spin-ring"></div>Loading…</div>`;
   document.getElementById('watch-modal-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
@@ -2549,6 +2588,8 @@ async function showWatchDetail(feat){
     if(rawUrl){try{const r=await fetch(rawUrl.replace('https://api.weather.gov',`${WORKER}/nws`),{cache:'no-store'});if(r.ok){const d=await r.json();rawDesc=(d.properties?.description||d.properties?.instruction||'').trim();}}catch{}}
     if(!rawDesc){try{const ev=encodeURIComponent(a.event||'');const r=await fetch(`${WORKER}/nws/alerts/active?event=${ev}&status=actual`,{cache:'no-store'});if(r.ok){const gj=await r.json();const match=(gj.features||[]).filter(f=>(f.properties?.description||'').length>80).sort((a,b)=>(b.properties?.description||'').length-(a.properties?.description||'').length)[0];if(match)rawDesc=(match.properties.description||'').trim();}}catch{}}
   }
+  // Re-check override now that we have full description
+  applyObservedOverride(rawDesc||'');
   const{counties}=normalizeAreaDesc(a);
   const expDate=parseAlertDate(a.expires||a.expiration||a.end||null);
   const exp=expDate?expDate.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
