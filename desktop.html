@@ -2008,6 +2008,9 @@ async function fetchWarnings() {
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' }),
       fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
     ]);
+    // If every single fetch failed, bail out silently — keep existing layer intact
+    const anySucceeded = [nwsRes,wwa0Res,wwa1Res].some(r=>r.status==='fulfilled'&&r.value?.ok);
+    if(!anySucceeded) return;
 
     let combinedFeatures = [];
 
@@ -2105,12 +2108,16 @@ async function fetchWarnings() {
       return false; // drop empty-description duplicate when NWS version exists
     });
 
-    activeWarnings = deduped.filter(f => f.geometry && f.properties && SEVERE_COLORS.hasOwnProperty(f.properties?.event || ''));
-    activeWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
-    activeWatches = [];
-
-    renderWatchesMap(activeWarnings);
-    updateWatchLegend(activeWarnings);
+    const newWarnings = deduped.filter(f => f.geometry && f.properties && SEVERE_COLORS.hasOwnProperty(f.properties?.event || ''));
+    newWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
+    // Only update the map if we got real data; if fetch returned empty but we had warnings before,
+    // keep the existing layer to avoid a blank map from a transient empty response
+    if(newWarnings.length > 0 || !watchLayer || watchLayer.getLayers().length === 0){
+      activeWarnings = newWarnings;
+      activeWatches = [];
+      renderWatchesMap(activeWarnings);
+      updateWatchLegend(activeWarnings);
+    }
     if(window._watchesFirstLoad){
       window._watchesFirstLoad=false;
       const ov=document.getElementById('watches-init-overlay');
@@ -2199,7 +2206,8 @@ function renderWatchesMap(features) {
     }
   });
 
-  // Atomic swap — add new before removing old, no blank flash
+  // Atomic swap — only replace if we got real data or there are genuinely no alerts
+  // This prevents a failed/empty refresh from wiping a valid existing layer
   newLayer.addTo(watchesMap);
   if (watchLayer) watchesMap.removeLayer(watchLayer);
   watchLayer = newLayer;
