@@ -2202,8 +2202,12 @@ async function fetchWarnings(){
         const gj=await wwa1Res.value.json();
         watchFeats=(gj.features||[]).filter(f=>(f.properties?.prod_type||'').toUpperCase().includes('WATCH'));
       }
-      if(watchFeats.length>0){window._cachedWatchFeats=watchFeats;}
-      else if(window._cachedWatchFeats?.length){watchFeats=window._cachedWatchFeats;}
+      if(watchFeats.length>0){window._cachedWatchFeats=watchFeats;window._cachedWatchTime=Date.now();}
+      else if(window._cachedWatchFeats?.length){
+        const cacheAge=(Date.now()-(window._cachedWatchTime||0))/1000;
+        if(cacheAge<120)watchFeats=window._cachedWatchFeats;
+        else window._cachedWatchFeats=null;
+      }
       watchFeats.forEach(pushWWA);
     }
     // Upgrade emergencies
@@ -2223,7 +2227,13 @@ async function fetchWarnings(){
       if(!nwsWithDesc.has(ev))return true;
       return false;
     });
-    const newWarnings=deduped.filter(f=>f.geometry&&f.properties&&SEVERE_COLORS.hasOwnProperty(f.properties?.event||''));
+    const now=Date.now();
+    const newWarnings=deduped.filter(f=>{
+      if(!f.geometry||!f.properties||!SEVERE_COLORS.hasOwnProperty(f.properties?.event||''))return false;
+      const exp=f.properties?.expires||f.properties?.expiration||f.properties?.end||null;
+      if(exp&&new Date(exp).getTime()<now)return false;
+      return true;
+    });
     newWarnings.sort((a,b)=>getAlertPriority(b.properties.event)-getAlertPriority(a.properties.event));
     activeWarnings=newWarnings;
     activeWatches=[];

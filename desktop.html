@@ -2102,9 +2102,13 @@ async function fetchWarnings() {
         watchFeats = (gj.features || []).filter(f => (f.properties?.prod_type || '').toUpperCase().includes('WATCH'));
       }
       if (watchFeats.length > 0) {
-        window._cachedWatchFeats = watchFeats; // save last known good
+        window._cachedWatchFeats = watchFeats;
+        window._cachedWatchTime = Date.now();
       } else if (window._cachedWatchFeats?.length) {
-        watchFeats = window._cachedWatchFeats; // restore from cache
+        // Only restore cache if less than 2 minutes old — prevents stale expired watches persisting
+        const cacheAge = (Date.now() - (window._cachedWatchTime || 0)) / 1000;
+        if (cacheAge < 120) watchFeats = window._cachedWatchFeats;
+        else window._cachedWatchFeats = null;
       }
       watchFeats.forEach(pushWWA);
     }
@@ -2136,7 +2140,13 @@ async function fetchWarnings() {
       return false; // drop empty-description duplicate when NWS version exists
     });
 
-    const newWarnings = deduped.filter(f => f.geometry && f.properties && SEVERE_COLORS.hasOwnProperty(f.properties?.event || ''));
+    const now = Date.now();
+    const newWarnings = deduped.filter(f => {
+      if (!f.geometry || !f.properties || !SEVERE_COLORS.hasOwnProperty(f.properties?.event || '')) return false;
+      const exp = f.properties?.expires || f.properties?.expiration || f.properties?.end || null;
+      if (exp && new Date(exp).getTime() < now) return false; // expired — discard
+      return true;
+    });
     newWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
     // Only update the map if we got real data; if fetch returned empty but we had warnings before,
     // keep the existing layer to avoid a blank map from a transient empty response
