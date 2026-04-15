@@ -2143,26 +2143,20 @@ async function fetchWarnings(){
       fetch(`${NOAA_WWA}/1/query?where=${wwa1Where}&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'})
     ]);
     if(!nwsRes.value?.ok&&!wwa0Res.value?.ok&&!wwa1Res.value?.ok)return;
-    let combinedFeatures=[];
+    const now=Date.now();
+    let nwsFeatures=[];
     if(nwsRes.status==='fulfilled'&&nwsRes.value.ok){
       const gj=await nwsRes.value.json();
-      const norm=f=>{
+      nwsFeatures=(gj.features||[]).map(f=>{
         const p=f.properties||{};
-        const areaDesc=(p.areaDesc||p.area_desc||'').trim();
-        const expires=p.expires||p.ends||p.expiration||null;
-        const senderName=(p.senderName||p.sender||'NWS').trim();
         const nwsHeadline=(p.parameters?.NWSheadline?.[0]||p.parameters?.headline?.[0]||'').trim();
-        const description=(p.description||p.instruction||'').trim();
-        const headline=nwsHeadline||p.headline||p.event||'';
-        return{...f,properties:{...p,areaDesc,expires,senderName,description,headline,event:p.event||''}};
-      };
-      combinedFeatures=(gj.features||[]).map(norm);
+        return{...f,properties:{...p,event:p.event||'',areaDesc:(p.areaDesc||p.area_desc||'').trim(),expires:p.expires||p.ends||p.expiration||null,senderName:(p.senderName||p.sender||'NWS').trim(),description:(p.description||p.instruction||'').trim(),headline:nwsHeadline||p.headline||p.event||''}};
+      });
     }
-    const pushWWA=(f)=>{
+    const pushWWA=(f,into)=>{
       const p=f.properties||{};
       if(!f.geometry)return;
-      const pt=(p.prod_type||'').trim();
-      const raw=pt.toUpperCase();
+      const pt=(p.prod_type||'').trim();const raw=pt.toUpperCase();
       let eventName=SEVERE_COLORS[pt]?pt:'';
       if(!eventName){
         if(raw.includes('TORNADO')&&raw.includes('EMERGENCY'))eventName='Tornado Emergency';
@@ -2186,76 +2180,51 @@ async function fetchWarnings(){
         else if(raw.includes('STORM SURGE')&&raw.includes('WATCH'))eventName='Storm Surge Watch';
       }
       if(!eventName||!SEVERE_COLORS[eventName])return;
-      const areaDesc=(p.area_desc||p.areaDesc||p.states||'').trim();
       const rawExp=p.expiration||p.ends||p.end||null;
       let expires=rawExp;
       if(typeof rawExp==='number'&&rawExp>9999999999)expires=new Date(rawExp).toISOString();
       else if(typeof rawExp==='number'&&rawExp>0)expires=new Date(rawExp*1000).toISOString();
       else if(typeof rawExp==='string')expires=rawExp;
-      combinedFeatures.push({...f,properties:{...p,event:eventName,areaDesc,expires,senderName:p.wfo||'NWS',description:'',headline:eventName,url:p.url||p.cap_id||''}});
+      into.push({...f,properties:{...p,event:eventName,areaDesc:(p.area_desc||p.areaDesc||p.states||'').trim(),expires,senderName:p.wfo||'NWS',description:'',headline:eventName,url:p.url||p.cap_id||''}});
     };
-    if(wwa0Res.status==='fulfilled'&&wwa0Res.value.ok){const gj=await wwa0Res.value.json();(gj.features||[]).forEach(pushWWA);}
-    // Layer 1: SPC convective watches (tornado, SVR) — filtered by prod_type
-    {
-      let watchFeats=[];
-      if(wwa1Res.status==='fulfilled'&&wwa1Res.value.ok){
-        const gj=await wwa1Res.value.json();
-        watchFeats=(gj.features||[]).filter(f=>(f.properties?.prod_type||'').toUpperCase().includes('WATCH'));
-      }
-      if(watchFeats.length>0){window._cachedWatchFeats=watchFeats;}
-      else if(window._cachedWatchFeats?.length){
-        const now=Date.now();
-        const stillValid=window._cachedWatchFeats.filter(f=>{
-          const exp=f.properties?.expiration||f.properties?.ends||f.properties?.end||null;
-          if(!exp)return true;
-          return new Date(typeof exp==='number'&&exp<9999999999?exp*1000:exp).getTime()>now;
-        });
-        if(stillValid.length>0)watchFeats=stillValid;
-        else window._cachedWatchFeats=null;
-      }
-      watchFeats.forEach(pushWWA);
+    let wwa0Features=[];
+    if(wwa0Res.status==='fulfilled'&&wwa0Res.value.ok){const gj=await wwa0Res.value.json();(gj.features||[]).forEach(f=>pushWWA(f,wwa0Features));}
+    let wwa1Features=[];
+    if(wwa1Res.status==='fulfilled'&&wwa1Res.value.ok){const gj=await wwa1Res.value.json();(gj.features||[]).forEach(f=>pushWWA(f,wwa1Features));}
+    if(wwa1Features.length>0){window._cachedWatchFeats=wwa1Features;}
+    else if(window._cachedWatchFeats?.length){
+      const stillValid=window._cachedWatchFeats.filter(f=>{const exp=f.properties?.expires||null;return!exp||new Date(exp).getTime()>now;});
+      wwa1Features=stillValid.length>0?stillValid:[];
+      if(!stillValid.length)window._cachedWatchFeats=null;
     }
-    // Upgrade emergencies
+    const nwsWarnings=nwsFeatures.filter(f=>f.geometry&&!/watch/i.test(f.properties?.event||''));
+    const nwsWatchMeta=nwsFeatures.filter(f=>/watch/i.test(f.properties?.event||''));
+    const mergedWatches=wwa1Features.map(wf=>{
+      const match=nwsWatchMeta.find(n=>n.properties?.event===wf.properties?.event);
+      if(match)return{...wf,properties:{...wf.properties,description:match.properties?.description||'',headline:match.properties?.headline||wf.properties?.headline,areaDesc:match.properties?.areaDesc||wf.properties?.areaDesc,senderName:match.properties?.senderName||wf.properties?.senderName}};
+      return wf;
+    });
+    const nwsWarnEvents=new Set(nwsWarnings.map(f=>f.properties?.event).filter(Boolean));
+    const wwa0Fill=wwa0Features.filter(f=>!nwsWarnEvents.has(f.properties?.event));
+    let combinedFeatures=[...nwsWarnings,...wwa0Fill,...mergedWatches];
     combinedFeatures.forEach(f=>{
-      const p=f.properties||{};
-      const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
+      const p=f.properties||{};const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
       if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
       else if(p.event==='Flash Flood Warning'&&text.includes('FLASH FLOOD EMERGENCY'))p.event='Flash Flood Emergency';
     });
-    // Deduplicate: prefer NWS features with real descriptions over WWA shell features
-    const nwsWithDesc=new Set(combinedFeatures.filter(f=>f.geometry&&(f.properties?.description||'').length>20).map(f=>f.properties?.event||'').filter(Boolean));
-    const deduped=combinedFeatures.filter(f=>{
-      const ev=f.properties?.event||'';
-      // Always keep watches — NWS watch features often lack polygon geometry
-      if(/watch/i.test(ev))return true;
-      if((f.properties?.description||'').length>20)return true;
-      if(!nwsWithDesc.has(ev))return true;
-      return false;
-    });
-    const now=Date.now();
-    const newWarnings=deduped.filter(f=>{
+    const newWarnings=combinedFeatures.filter(f=>{
       if(!f.geometry||!f.properties||!SEVERE_COLORS.hasOwnProperty(f.properties?.event||''))return false;
       const exp=f.properties?.expires||f.properties?.expiration||f.properties?.end||null;
       if(exp&&new Date(exp).getTime()<now)return false;
       return true;
     });
     newWarnings.sort((a,b)=>getAlertPriority(b.properties.event)-getAlertPriority(a.properties.event));
-    activeWarnings=newWarnings;
-    activeWatches=[];
-    renderWatchesMap(activeWarnings);
-    updateWatchLegend(activeWarnings);
-    if(window._watchesFirstLoad){
-      window._watchesFirstLoad=false;
-      const ov=document.getElementById('watches-init-overlay');
-      if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}
-    }
+    activeWarnings=newWarnings;activeWatches=[];
+    renderWatchesMap(activeWarnings);updateWatchLegend(activeWarnings);
+    if(window._watchesFirstLoad){window._watchesFirstLoad=false;const ov=document.getElementById('watches-init-overlay');if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}}
   }catch(e){
     console.error('fetchWarnings:',e);
-    if(window._watchesFirstLoad){
-      window._watchesFirstLoad=false;
-      const ov=document.getElementById('watches-init-overlay');
-      if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}
-    }
+    if(window._watchesFirstLoad){window._watchesFirstLoad=false;const ov=document.getElementById('watches-init-overlay');if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}}
   }
 }
 

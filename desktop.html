@@ -2019,42 +2019,42 @@ async function fetchWarnings() {
   try {
     if (radarLayer) radarLayer.setParams({ _refresh: Date.now() }, false);
 
-    // Fetch NWS API + NOAA WWA layer 0 (warnings) + layer 1 (watches) all in parallel
     const wwa1Where = encodeURIComponent("prod_type IN ('Tornado Watch','Severe Thunderstorm Watch')");
     const [nwsRes, wwa0Res, wwa1Res] = await Promise.allSettled([
       fetch(`${WORKER}/nws/alerts/active?status=actual&area=AL,AK,AZ,AR,CA,CO,CT,DE,FL,GA,HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY,DC`, { cache: 'no-store' }),
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&geometry=-180,18,-66,72&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&_=${Date.now()}`, { cache: 'no-store' }),
       fetch(`${NOAA_WWA}/1/query?where=${wwa1Where}&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
     ]);
-    if(!nwsRes.value?.ok && !wwa0Res.value?.ok && !wwa1Res.value?.ok) return;
+    if (!nwsRes.value?.ok && !wwa0Res.value?.ok && !wwa1Res.value?.ok) return;
 
-    let combinedFeatures = [];
+    const now = Date.now();
 
-    // NWS API — rich metadata, descriptions, county names
+    // ── 1. NWS API — warnings with geometry + all metadata ──
+    let nwsFeatures = [];
     if (nwsRes.status === 'fulfilled' && nwsRes.value.ok) {
       const gj = await nwsRes.value.json();
-      const norm = f => {
+      nwsFeatures = (gj.features || []).map(f => {
         const p = f.properties || {};
-        const areaDesc = (p.areaDesc || p.area_desc || '').trim();
-        const expires = p.expires || p.ends || p.expiration || null;
-        const senderName = (p.senderName || p.sender || 'NWS').trim();
         const nwsHeadline = (p.parameters?.NWSheadline?.[0] || p.parameters?.headline?.[0] || '').trim();
-        const description = (p.description || p.instruction || '').trim();
-        const headline = nwsHeadline || p.headline || p.event || '';
-        return { ...f, properties: { ...p, areaDesc, expires, senderName, description, headline, event: p.event || '' } };
-      };
-      combinedFeatures = (gj.features || []).map(norm);
+        return { ...f, properties: {
+          ...p,
+          event: p.event || '',
+          areaDesc: (p.areaDesc || p.area_desc || '').trim(),
+          expires: p.expires || p.ends || p.expiration || null,
+          senderName: (p.senderName || p.sender || 'NWS').trim(),
+          description: (p.description || p.instruction || '').trim(),
+          headline: nwsHeadline || p.headline || p.event || '',
+        }};
+      });
     }
 
-    // Helper: normalize a WWA feature's prod_type → NWS event name and push if valid
-    const pushWWA = (f) => {
+    // ── 2. WWA layer 0 — warning polygons (geometry source for warnings) ──
+    const pushWWA = (f, into) => {
       const p = f.properties || {};
       if (!f.geometry) return;
-      // prod_type is already title-case (e.g. "Severe Thunderstorm Watch")
-      // but may also be abbreviated — normalize both cases
       const pt = (p.prod_type || '').trim();
       const raw = pt.toUpperCase();
-      let eventName = SEVERE_COLORS[pt] ? pt : ''; // direct match first
+      let eventName = SEVERE_COLORS[pt] ? pt : '';
       if (!eventName) {
         if (raw.includes('TORNADO') && raw.includes('EMERGENCY')) eventName = 'Tornado Emergency';
         else if (raw.includes('TORNADO') && raw.includes('WARNING')) eventName = 'Tornado Warning';
@@ -2077,53 +2077,62 @@ async function fetchWarnings() {
         else if (raw.includes('STORM SURGE') && raw.includes('WATCH')) eventName = 'Storm Surge Watch';
       }
       if (!eventName || !SEVERE_COLORS[eventName]) return;
-      const areaDesc = (p.area_desc || p.areaDesc || p.states || '').trim();
       const rawExp = p.expiration || p.ends || p.end || null;
       let expires = rawExp;
       if (typeof rawExp === 'number' && rawExp > 9999999999) expires = new Date(rawExp).toISOString();
       else if (typeof rawExp === 'number' && rawExp > 0) expires = new Date(rawExp * 1000).toISOString();
       else if (typeof rawExp === 'string') expires = rawExp;
-      combinedFeatures.push({
-        ...f,
-        properties: { ...p, event: eventName, areaDesc, expires, senderName: p.wfo || 'NWS', description: '', headline: eventName, url: p.url || p.cap_id || '' }
-      });
+      into.push({ ...f, properties: { ...p, event: eventName, areaDesc: (p.area_desc || p.areaDesc || p.states || '').trim(), expires, senderName: p.wfo || 'NWS', description: '', headline: eventName, url: p.url || p.cap_id || '' }});
     };
 
-    // Layer 0: all NWS warnings with polygons
+    let wwa0Features = [];
     if (wwa0Res.status === 'fulfilled' && wwa0Res.value.ok) {
       const gj = await wwa0Res.value.json();
-      (gj.features || []).forEach(pushWWA);
-    }
-    // Layer 1: SPC convective watches (tornado, SVR) — filtered by prod_type
-    {
-      let watchFeats = [];
-      if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
-        const gj = await wwa1Res.value.json();
-        const all = gj.features || [];
-        watchFeats = all.filter(f => (f.properties?.prod_type || '').toUpperCase().includes('WATCH'));
-        console.log(`[jW] WWA1: status=ok total=${all.length} watches=${watchFeats.length}`, watchFeats.map(f=>f.properties?.prod_type));
-      } else {
-        console.log(`[jW] WWA1: status=${wwa1Res.status} ok=${wwa1Res.value?.ok}`);
-      }
-      if (watchFeats.length > 0) {
-        window._cachedWatchFeats = watchFeats;
-      } else if (window._cachedWatchFeats?.length) {
-        // Restore cache but only keep features that haven't expired yet
-        const now = Date.now();
-        const stillValid = window._cachedWatchFeats.filter(f => {
-          const exp = f.properties?.expiration || f.properties?.ends || f.properties?.end || null;
-          if (!exp) return true; // no expiry = keep
-          return new Date(typeof exp === 'number' && exp < 9999999999 ? exp * 1000 : exp).getTime() > now;
-        });
-        console.log(`[jW] WWA1 empty — cache has ${window._cachedWatchFeats.length}, stillValid=${stillValid.length}`);
-        if (stillValid.length > 0) watchFeats = stillValid;
-        else window._cachedWatchFeats = null; // all expired
-      }
-      console.log(`[jW] WWA1 final watchFeats pushing: ${watchFeats.length}`);
-      watchFeats.forEach(pushWWA);
+      (gj.features || []).forEach(f => pushWWA(f, wwa0Features));
     }
 
-    // Upgrade emergencies
+    // ── 3. WWA layer 1 — watch polygons (authoritative geometry for watches) ──
+    let wwa1Features = [];
+    if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
+      const gj = await wwa1Res.value.json();
+      (gj.features || []).forEach(f => pushWWA(f, wwa1Features));
+    }
+    // Cache watch polygons — restore if WWA1 returns empty but watches haven't expired
+    if (wwa1Features.length > 0) {
+      window._cachedWatchFeats = wwa1Features;
+    } else if (window._cachedWatchFeats?.length) {
+      const stillValid = window._cachedWatchFeats.filter(f => {
+        const exp = f.properties?.expires || null;
+        if (!exp) return true;
+        return new Date(exp).getTime() > now;
+      });
+      wwa1Features = stillValid.length > 0 ? stillValid : [];
+      if (!stillValid.length) window._cachedWatchFeats = null;
+    }
+
+    // ── 4. Merge: NWS warnings (geometry only) + WWA0 warnings + WWA1 watches ──
+    // NWS warnings that have geometry are kept as-is (rich metadata)
+    // WWA0 fills in polygon geometry for warnings NWS returned without geometry
+    // WWA1 is the sole source for watch polygons
+    const nwsWarnings = nwsFeatures.filter(f => f.geometry && !/watch/i.test(f.properties?.event || ''));
+    const nwsWatchMeta = nwsFeatures.filter(f => /watch/i.test(f.properties?.event || ''));
+
+    // Merge NWS watch metadata into WWA1 watch polygons
+    const mergedWatches = wwa1Features.map(wf => {
+      const match = nwsWatchMeta.find(n => n.properties?.event === wf.properties?.event);
+      if (match) {
+        return { ...wf, properties: { ...wf.properties, description: match.properties?.description || '', headline: match.properties?.headline || wf.properties?.headline, areaDesc: match.properties?.areaDesc || wf.properties?.areaDesc, senderName: match.properties?.senderName || wf.properties?.senderName }};
+      }
+      return wf;
+    });
+
+    // WWA0: only keep events not already covered by NWS with geometry
+    const nwsWarnEvents = new Set(nwsWarnings.map(f => f.properties?.event).filter(Boolean));
+    const wwa0Fill = wwa0Features.filter(f => !nwsWarnEvents.has(f.properties?.event));
+
+    let combinedFeatures = [...nwsWarnings, ...wwa0Fill, ...mergedWatches];
+
+    // ── 5. Upgrade emergencies ──
     combinedFeatures.forEach(f => {
       const p = f.properties || {};
       const text = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
@@ -2131,54 +2140,30 @@ async function fetchWarnings() {
       else if (p.event === 'Flash Flood Warning' && text.includes('FLASH FLOOD EMERGENCY')) p.event = 'Flash Flood Emergency';
     });
 
-    // Deduplicate: for each event type, if we have NWS features with real description AND
-    // WWA features with empty description, drop the WWA ones (NWS has better data for pulse/display)
-    const nwsWithDesc = new Set(
-      combinedFeatures
-        .filter(f => f.geometry && (f.properties?.description||'').length > 20)
-        .map(f => f.properties?.event || '')
-        .filter(Boolean)
-    );
-    const deduped = combinedFeatures.filter(f => {
-      const ev = f.properties?.event || '';
-      // Always keep watches — NWS watch features often lack polygon geometry,
-      // so we need the WWA polygon versions regardless of description
-      if (/watch/i.test(ev)) return true;
-      // Keep if it has a real description, OR if NWS didn't provide this event type
-      if ((f.properties?.description||'').length > 20) return true;
-      if (!nwsWithDesc.has(ev)) return true;
-      return false; // drop empty-description duplicate when NWS version exists
-    });
-
-    const now = Date.now();
-    const newWarnings = deduped.filter(f => {
+    // ── 6. Filter: must have geometry, valid event, not expired ──
+    const newWarnings = combinedFeatures.filter(f => {
       if (!f.geometry || !f.properties || !SEVERE_COLORS.hasOwnProperty(f.properties?.event || '')) return false;
       const exp = f.properties?.expires || f.properties?.expiration || f.properties?.end || null;
-      if (exp && new Date(exp).getTime() < now) return false; // expired — discard
+      if (exp && new Date(exp).getTime() < now) return false;
       return true;
     });
     newWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
-    console.log(`[jW] newWarnings (${newWarnings.length}):`, newWarnings.map(f=>f.properties?.event));
-    console.log(`[jW] combinedFeatures (${combinedFeatures.length}):`, [...new Set(combinedFeatures.map(f=>f.properties?.event))]);
-    console.log(`[jW] deduped (${deduped.length}):`, [...new Set(deduped.map(f=>f.properties?.event))]);
-    // Only update the map if we got real data; if fetch returned empty but we had warnings before,
-    // keep the existing layer to avoid a blank map from a transient empty response
-    // Always render when we have data from at least one source
+
     activeWarnings = newWarnings;
     activeWatches = [];
     renderWatchesMap(activeWarnings);
     updateWatchLegend(activeWarnings);
-    if(window._watchesFirstLoad){
-      window._watchesFirstLoad=false;
-      const ov=document.getElementById('watches-init-overlay');
-      if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}
+    if (window._watchesFirstLoad) {
+      window._watchesFirstLoad = false;
+      const ov = document.getElementById('watches-init-overlay');
+      if (ov) { ov.classList.add('hidden'); setTimeout(() => ov.style.display = 'none', 400); }
     }
   } catch (e) {
     console.error('fetchWarnings Error:', e);
-    if(window._watchesFirstLoad){
-      window._watchesFirstLoad=false;
-      const ov=document.getElementById('watches-init-overlay');
-      if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}
+    if (window._watchesFirstLoad) {
+      window._watchesFirstLoad = false;
+      const ov = document.getElementById('watches-init-overlay');
+      if (ov) { ov.classList.add('hidden'); setTimeout(() => ov.style.display = 'none', 400); }
     }
   }
 }
