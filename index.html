@@ -2196,9 +2196,15 @@ async function fetchWarnings(){
     };
     if(wwa0Res.status==='fulfilled'&&wwa0Res.value.ok){const gj=await wwa0Res.value.json();(gj.features||[]).forEach(pushWWA);}
     // Layer 1: SPC convective watches (tornado, SVR) — filtered by prod_type
-    if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
-      const gj = await wwa1Res.value.json();
-      (gj.features || []).forEach(pushWWA);
+    {
+      let watchFeats=[];
+      if(wwa1Res.status==='fulfilled'&&wwa1Res.value.ok){
+        const gj=await wwa1Res.value.json();
+        watchFeats=(gj.features||[]).filter(f=>(f.properties?.prod_type||'').toUpperCase().includes('WATCH'));
+      }
+      if(watchFeats.length>0){window._cachedWatchFeats=watchFeats;}
+      else if(window._cachedWatchFeats?.length){watchFeats=window._cachedWatchFeats;}
+      watchFeats.forEach(pushWWA);
     }
     // Upgrade emergencies
     combinedFeatures.forEach(f=>{
