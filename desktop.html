@@ -2112,28 +2112,25 @@ async function fetchWarnings() {
 
     // ── 4. Merge: NWS warnings (geometry only) + WWA0 warnings + WWA1 watches ──
     // NWS warnings that have geometry are kept as-is (rich metadata)
-    // NWS: keep all features that have geometry (warnings AND non-SPC watches like flood watch)
-    const nwsWithGeom = nwsFeatures.filter(f => f.geometry);
+    // Separate NWS warnings (reliable geometry) from watches (geometry often null)
+    const nwsWarningsWithGeom = nwsFeatures.filter(f => f.geometry && !/watch/i.test(f.properties?.event || ''));
     const nwsWatchMeta = nwsFeatures.filter(f => /watch/i.test(f.properties?.event || ''));
 
-    // WWA1 covers tornado/SVR watch polygons — merge NWS metadata onto them
+    // All watch polygons come from WWA layers — WWA1 for SPC watches, WWA0 for WFO watches
     const wwa1EventTypes = new Set(wwa1Features.map(f => f.properties?.event).filter(Boolean));
+    // Merge NWS watch metadata onto WWA1 polygons
     const mergedWatches = wwa1Features.map(wf => {
       const match = nwsWatchMeta.find(n => n.properties?.event === wf.properties?.event);
-      if (match) {
-        return { ...wf, properties: { ...wf.properties, description: match.properties?.description || '', headline: match.properties?.headline || wf.properties?.headline, areaDesc: match.properties?.areaDesc || wf.properties?.areaDesc, senderName: match.properties?.senderName || wf.properties?.senderName }};
-      }
+      if (match) return { ...wf, properties: { ...wf.properties, description: match.properties?.description || '', headline: match.properties?.headline || wf.properties?.headline, areaDesc: match.properties?.areaDesc || wf.properties?.areaDesc, senderName: match.properties?.senderName || wf.properties?.senderName }};
       return wf;
     });
+    // WWA0 watch polygons (flash flood watch, flood watch, high wind watch, etc.)
+    const wwa0Watches = wwa0Features.filter(f => /watch/i.test(f.properties?.event || '') && !wwa1EventTypes.has(f.properties?.event));
+    // WWA0 warning fill: events not already in NWS with geometry
+    const nwsWarnEvents = new Set(nwsWarningsWithGeom.map(f => f.properties?.event).filter(Boolean));
+    const wwa0WarnFill = wwa0Features.filter(f => !/watch/i.test(f.properties?.event || '') && !nwsWarnEvents.has(f.properties?.event));
 
-    // WWA0: fill in for events NWS didn't return with geometry
-    const nwsGeomEvents = new Set(nwsWithGeom.map(f => f.properties?.event).filter(Boolean));
-    const wwa0Fill = wwa0Features.filter(f => !nwsGeomEvents.has(f.properties?.event));
-
-    // NWS features not covered by WWA1 (flood watch, flash flood watch, etc. keep their NWS geometry)
-    const nwsNonWwa1 = nwsWithGeom.filter(f => !wwa1EventTypes.has(f.properties?.event));
-
-    let combinedFeatures = [...nwsNonWwa1, ...wwa0Fill, ...mergedWatches];
+    let combinedFeatures = [...nwsWarningsWithGeom, ...wwa0WarnFill, ...wwa0Watches, ...mergedWatches];
 
     // ── 5. Upgrade emergencies ──
     combinedFeatures.forEach(f => {
