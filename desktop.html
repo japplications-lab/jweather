@@ -281,8 +281,8 @@
     .ol-day-tab:hover{border-color:var(--red);color:var(--text2);}
     .ol-day-tab.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .ol-day-tab .threat-bar{display:block;height:3px;border-radius:2px;margin-top:4px;}
-    #outlook-mode-row{display:flex;gap:4px;padding:10px 12px;flex-shrink:0;flex-wrap:wrap;}
-    .ol-mode-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);transition:all .15s;}
+    #outlook-mode-row{display:flex;gap:4px;padding:10px 12px;flex-shrink:0;flex-wrap:nowrap;overflow-x:auto;}
+    .ol-mode-btn{display:flex;align-items:center;gap:4px;padding:5px 9px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);transition:all .15s;white-space:nowrap;flex-shrink:0;}
     .ol-mode-btn:hover{border-color:var(--red);color:var(--text2);}
     .ol-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .ol-mode-btn .msr{font-size:13px;}
