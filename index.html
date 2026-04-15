@@ -2202,10 +2202,15 @@ async function fetchWarnings(){
         const gj=await wwa1Res.value.json();
         watchFeats=(gj.features||[]).filter(f=>(f.properties?.prod_type||'').toUpperCase().includes('WATCH'));
       }
-      if(watchFeats.length>0){window._cachedWatchFeats=watchFeats;window._cachedWatchTime=Date.now();}
+      if(watchFeats.length>0){window._cachedWatchFeats=watchFeats;}
       else if(window._cachedWatchFeats?.length){
-        const cacheAge=(Date.now()-(window._cachedWatchTime||0))/1000;
-        if(cacheAge<120)watchFeats=window._cachedWatchFeats;
+        const now=Date.now();
+        const stillValid=window._cachedWatchFeats.filter(f=>{
+          const exp=f.properties?.expiration||f.properties?.ends||f.properties?.end||null;
+          if(!exp)return true;
+          return new Date(typeof exp==='number'&&exp<9999999999?exp*1000:exp).getTime()>now;
+        });
+        if(stillValid.length>0)watchFeats=stillValid;
         else window._cachedWatchFeats=null;
       }
       watchFeats.forEach(pushWWA);

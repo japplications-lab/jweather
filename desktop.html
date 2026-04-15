@@ -2103,12 +2103,16 @@ async function fetchWarnings() {
       }
       if (watchFeats.length > 0) {
         window._cachedWatchFeats = watchFeats;
-        window._cachedWatchTime = Date.now();
       } else if (window._cachedWatchFeats?.length) {
-        // Only restore cache if less than 2 minutes old — prevents stale expired watches persisting
-        const cacheAge = (Date.now() - (window._cachedWatchTime || 0)) / 1000;
-        if (cacheAge < 120) watchFeats = window._cachedWatchFeats;
-        else window._cachedWatchFeats = null;
+        // Restore cache but only keep features that haven't expired yet
+        const now = Date.now();
+        const stillValid = window._cachedWatchFeats.filter(f => {
+          const exp = f.properties?.expiration || f.properties?.ends || f.properties?.end || null;
+          if (!exp) return true; // no expiry = keep
+          return new Date(typeof exp === 'number' && exp < 9999999999 ? exp * 1000 : exp).getTime() > now;
+        });
+        if (stillValid.length > 0) watchFeats = stillValid;
+        else window._cachedWatchFeats = null; // all expired
       }
       watchFeats.forEach(pushWWA);
     }
