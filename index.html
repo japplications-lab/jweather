@@ -2140,7 +2140,7 @@ async function fetchWarnings(){
     const [nwsRes,wwa0Res,wwa1Res]=await Promise.allSettled([
       fetch(`${WORKER}/nws/alerts/active?status=actual&area=AL,AK,AZ,AR,CA,CO,CT,DE,FL,GA,HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY,DC`,{cache:'no-store'}),
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&geometry=-180,18,-66,72&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&_=${Date.now()}`,{cache:'no-store'}),
-      fetch(`${NOAA_WWA}/1/query?where=${wwa1Where}&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&geometry=-180,18,-66,72&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&_=${Date.now()}`,{cache:'no-store'})
+      fetch(`${NOAA_WWA}/1/query?where=${wwa1Where}&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'})
     ]);
     if(!nwsRes.value?.ok&&!wwa0Res.value?.ok&&!wwa1Res.value?.ok)return;
     let combinedFeatures=[];
