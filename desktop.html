@@ -2112,12 +2112,12 @@ async function fetchWarnings() {
 
     // ── 4. Merge: NWS warnings (geometry only) + WWA0 warnings + WWA1 watches ──
     // NWS warnings that have geometry are kept as-is (rich metadata)
-    // WWA0 fills in polygon geometry for warnings NWS returned without geometry
-    // WWA1 is the sole source for watch polygons
-    const nwsWarnings = nwsFeatures.filter(f => f.geometry && !/watch/i.test(f.properties?.event || ''));
+    // NWS: keep all features that have geometry (warnings AND non-SPC watches like flood watch)
+    const nwsWithGeom = nwsFeatures.filter(f => f.geometry);
     const nwsWatchMeta = nwsFeatures.filter(f => /watch/i.test(f.properties?.event || ''));
 
-    // Merge NWS watch metadata into WWA1 watch polygons
+    // WWA1 covers tornado/SVR watch polygons — merge NWS metadata onto them
+    const wwa1EventTypes = new Set(wwa1Features.map(f => f.properties?.event).filter(Boolean));
     const mergedWatches = wwa1Features.map(wf => {
       const match = nwsWatchMeta.find(n => n.properties?.event === wf.properties?.event);
       if (match) {
@@ -2126,11 +2126,14 @@ async function fetchWarnings() {
       return wf;
     });
 
-    // WWA0: only keep events not already covered by NWS with geometry
-    const nwsWarnEvents = new Set(nwsWarnings.map(f => f.properties?.event).filter(Boolean));
-    const wwa0Fill = wwa0Features.filter(f => !nwsWarnEvents.has(f.properties?.event));
+    // WWA0: fill in for events NWS didn't return with geometry
+    const nwsGeomEvents = new Set(nwsWithGeom.map(f => f.properties?.event).filter(Boolean));
+    const wwa0Fill = wwa0Features.filter(f => !nwsGeomEvents.has(f.properties?.event));
 
-    let combinedFeatures = [...nwsWarnings, ...wwa0Fill, ...mergedWatches];
+    // NWS features not covered by WWA1 (flood watch, flash flood watch, etc. keep their NWS geometry)
+    const nwsNonWwa1 = nwsWithGeom.filter(f => !wwa1EventTypes.has(f.properties?.event));
+
+    let combinedFeatures = [...nwsNonWwa1, ...wwa0Fill, ...mergedWatches];
 
     // ── 5. Upgrade emergencies ──
     combinedFeatures.forEach(f => {

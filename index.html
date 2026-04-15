@@ -2197,16 +2197,18 @@ async function fetchWarnings(){
       wwa1Features=stillValid.length>0?stillValid:[];
       if(!stillValid.length)window._cachedWatchFeats=null;
     }
-    const nwsWarnings=nwsFeatures.filter(f=>f.geometry&&!/watch/i.test(f.properties?.event||''));
+    const nwsWithGeom=nwsFeatures.filter(f=>f.geometry);
     const nwsWatchMeta=nwsFeatures.filter(f=>/watch/i.test(f.properties?.event||''));
+    const wwa1EventTypes=new Set(wwa1Features.map(f=>f.properties?.event).filter(Boolean));
     const mergedWatches=wwa1Features.map(wf=>{
       const match=nwsWatchMeta.find(n=>n.properties?.event===wf.properties?.event);
       if(match)return{...wf,properties:{...wf.properties,description:match.properties?.description||'',headline:match.properties?.headline||wf.properties?.headline,areaDesc:match.properties?.areaDesc||wf.properties?.areaDesc,senderName:match.properties?.senderName||wf.properties?.senderName}};
       return wf;
     });
-    const nwsWarnEvents=new Set(nwsWarnings.map(f=>f.properties?.event).filter(Boolean));
-    const wwa0Fill=wwa0Features.filter(f=>!nwsWarnEvents.has(f.properties?.event));
-    let combinedFeatures=[...nwsWarnings,...wwa0Fill,...mergedWatches];
+    const nwsGeomEvents=new Set(nwsWithGeom.map(f=>f.properties?.event).filter(Boolean));
+    const wwa0Fill=wwa0Features.filter(f=>!nwsGeomEvents.has(f.properties?.event));
+    const nwsNonWwa1=nwsWithGeom.filter(f=>!wwa1EventTypes.has(f.properties?.event));
+    let combinedFeatures=[...nwsNonWwa1,...wwa0Fill,...mergedWatches];
     combinedFeatures.forEach(f=>{
       const p=f.properties||{};const text=(p.description||p.headline||p.parameters?.NWSheadline?.[0]||'').toUpperCase();
       if(p.event==='Tornado Warning'&&text.includes('TORNADO EMERGENCY'))p.event='Tornado Emergency';
