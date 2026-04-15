@@ -2414,7 +2414,8 @@ function extractCitiesFromDesc(desc){
 function normalizeAreaDesc(p){
   const raw=(p.areaDesc||p.area_desc||p.states||p.location||'').trim();
   if(!raw)return{counties:[],display:'—'};
-  const counties=raw.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  // NWS areaDesc: semicolon-separated "County, ST" entries — split on ; only to keep state with county
+  const counties=raw.split(/;/).map(s=>s.trim()).filter(Boolean);
   const display=counties.length
     ? counties.slice(0,5).join(', ')+(counties.length>5?` +${counties.length-5} more`:'')
     : '—';
