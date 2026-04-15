@@ -2521,8 +2521,9 @@ async function showWatchDetail(feat){
   const chip=(txt,bg,border)=>`<span style="display:inline-flex;padding:3px 9px;background:${bg};border:1px solid ${border};border-radius:20px;font-size:0.68rem;font-weight:500;color:var(--text2);margin:2px;">${txt}</span>`;
   const section=(icon,title,body,tint)=>`<div style="background:${tint||'var(--surface2)'};border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:5px;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:7px;"><span class="msr" style="font-size:12px">${icon}</span>${title}</div>${body}</div>`;
   let html=`<div style="display:flex;align-items:center;gap:6px;padding:7px 0 12px;"><span class="msr" style="font-size:13px;color:var(--text4)">schedule</span><span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4)">Expires</span><span style="font-size:0.78rem;font-weight:600;color:var(--text2);margin-left:4px">${exp}</span></div>`;
-  if(counties.length)html+=section('map','Counties Impacted',counties.map(c=>chip(c,'var(--surface3)','var(--border2)')).join(''));
-  if(cities.length)html+=section('location_city','Cities Impacted',cities.map(c=>chip(c,hexToRgba(color,0.12),hexToRgba(color,0.25))).join(''));
+  const isWatch=/watch/i.test(a.event||'');
+  if(counties.length&&!isWatch)html+=section('map','Counties Impacted',counties.map(c=>chip(c,'var(--surface3)','var(--border2)')).join(''));
+  if(cities.length&&!isWatch)html+=section('location_city','Cities Impacted',cities.map(c=>chip(c,hexToRgba(color,0.12),hexToRgba(color,0.25))).join(''));
   const descKeys=['HAZARD','SOURCE','IMPACT','WHAT','WHERE','WHEN'];
   const descParts=[];
   // Tornado possible banner for SVR warnings

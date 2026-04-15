@@ -2514,9 +2514,9 @@ async function openAlertOverlay(feat){
   // ── 7. Parse NWS text into structured sections ──
   const nwsText=(rawDesc||rawHeadline||'').trim();
 
-  // ── 7a. Counties — from areaDesc property ──
+  // ── 7a. Counties — from areaDesc property (not shown for watches) ──
   const{counties}=normalizeAreaDesc(p);
-  if(counties.length){
+  if(counties.length && !isWatch){
     const wrap=document.getElementById('ao-counties');
     wrap.innerHTML=counties.map(c=>`<span class="ao-county-chip">${c}</span>`).join('');
     document.getElementById('ao-sec-counties').style.display='';
@@ -2553,10 +2553,10 @@ async function openAlertOverlay(feat){
     || /^UNTIL \d|^UNTIL [A-Z]/i.test(t)
     || (counties.length>0&&counties.some(c=>t.includes(c)));
 
-  // ── 7b. Cities — from LOCATIONS IMPACTED / cities bullet ──
+  // ── 7b. Cities — from LOCATIONS IMPACTED / cities bullet (not shown for watches) ──
   const fullText=blocks.map(b=>b.text).join(' ');
   const cities=extractCitiesFromDesc(fullText);
-  if(cities.length){
+  if(cities.length && !isWatch){
     const wrap=document.getElementById('ao-cities-chips');
     wrap.innerHTML=cities.map(c=>`<span class="ao-city-chip" style="background:${hexToRgba(color,0.12)};border:1px solid ${hexToRgba(color,0.25)}">${c}</span>`).join('');
     document.getElementById('ao-sec-cities').style.display='';
