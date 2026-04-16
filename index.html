@@ -776,8 +776,8 @@
   <button class="nav-tab" id="tab-hourly" onclick="navigate('hourly')">
     <span class="msr">schedule</span>Hourly
   </button>
-  <button class="nav-tab" id="tab-radar" onclick="navigate('radar')">
-    <span class="msr">radar</span>Radar
+  <button class="nav-tab" id="tab-watches" onclick="navigate('watches')">
+    <span class="msr">warning</span>Alerts
   </button>
   <button class="nav-tab" id="tab-severe">
     <span class="msr">thunderstorm</span>Severe
@@ -799,11 +799,7 @@
       <div class="sheet-item-body"><div class="sheet-item-label">Severe Outlook</div><div class="sheet-item-sub">SPC convective outlooks by day</div></div>
       <div class="sheet-item-chevron"><span class="msr">chevron_right</span></div>
     </button>
-    <button class="sheet-item" id="ssi-watches" onclick="navigate('watches');closeSevereSheet()">
-      <div class="sheet-item-icon"><span class="msr">emergency_home</span></div>
-      <div class="sheet-item-body"><div class="sheet-item-label">Alerts</div><div class="sheet-item-sub">Active watches and warnings</div></div>
-      <div class="sheet-item-chevron"><span class="msr">chevron_right</span></div>
-    </button>
+
     <button class="sheet-item" id="ssi-meso" onclick="navigate('meso');closeSevereSheet()">
       <div class="sheet-item-icon"><span class="msr">crisis_alert</span></div>
       <div class="sheet-item-body"><div class="sheet-item-label">Mesoscale Discussions</div><div class="sheet-item-sub">SPC forecaster discussions</div></div>
@@ -1027,7 +1023,7 @@ let mesoMap, mesoLayers={}, mesoData=[];
 //  NAVIGATION
 // ══════════════════════════════════════════════════════
 const PAGES = ['home','radar','outlook','watches','meso','hourly','severe101'];
-const TAB_MAP = {home:'tab-home',hourly:'tab-hourly',radar:'tab-radar',outlook:'tab-severe',watches:'tab-severe',meso:'tab-severe',severe101:'tab-severe'};
+const TAB_MAP = {home:'tab-home',hourly:'tab-hourly',watches:'tab-watches',outlook:'tab-severe',meso:'tab-severe',severe101:'tab-severe'};
 
 function navigate(page) {
   closeAlertModal();
