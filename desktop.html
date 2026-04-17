@@ -2662,9 +2662,13 @@ async function loadMeso(){
     const now=Date.now();const allFeatures=data.features||[];
     mesoData=allFeatures.filter(f=>{
       const p=f.properties||{};
-      if(p.name==='NoArea'||(!p.name&&!p.concerning&&!p.discussion_type&&!f.geometry))return false;
-      const exp=p.expiration||p.end||p.expire;
-      if(exp&&new Date(exp).getTime()<=now)return false;
+      // Drop known sentinel/empty records; preserve anything with a valid MD number or geometry
+      if(p.name==='NoArea')return false;
+      if(!p.name&&!p.num&&!p.concerning&&!p.discussion_type&&!f.geometry)return false;
+      // Only filter by expiration if a valid future-or-past timestamp is present
+      const exp=p.expiration||p.valid_until||p.expire||p.end||null;
+      const expireTime=exp?new Date(exp).getTime():null;
+      if(expireTime&&!isNaN(expireTime)&&expireTime<=now)return false;
       return true;
     });
     setEmpty(mesoData.length===0);
