@@ -2646,7 +2646,7 @@ function initMesoMap(){
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval)clearInterval(window._mesoInterval);
-  window._mesoInterval=setInterval(loadMeso,30000);
+  window._mesoInterval=setInterval(loadMeso,120000);
 }
 
 async function loadMeso(){
@@ -2662,7 +2662,7 @@ async function loadMeso(){
     const now=Date.now();const allFeatures=data.features||[];
     mesoData=allFeatures.filter(f=>{
       const p=f.properties||{};
-      if(p.name==='NoArea'||p.folderpath===null&&p.popupinfo===null&&(p['st_area(shape)']||0)<0.001)return false;
+      if(p.name==='NoArea'||(!p.name&&!p.concerning&&!p.discussion_type&&!f.geometry))return false;
       const exp=p.expiration||p.end||p.expire;
       if(exp&&new Date(exp).getTime()<=now)return false;
       return true;
