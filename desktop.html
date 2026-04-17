@@ -2022,7 +2022,7 @@ async function fetchWarnings() {
   try {
     if (radarLayer) radarLayer.setParams({ _refresh: Date.now() }, false);
 
-    const wwa1Where = encodeURIComponent("prod_type IN ('Tornado Watch','Severe Thunderstorm Watch')");
+    const wwa1Where = encodeURIComponent("prod_type IN ('Tornado Watch','Severe Thunderstorm Watch','Flash Flood Watch','Flood Watch','Areal Flood Watch')");
     const [nwsRes, wwa0Res, wwa1Res] = await Promise.allSettled([
       fetch(`${WORKER}/nws/alerts/active?status=actual&area=AL,AK,AZ,AR,CA,CO,CT,DE,FL,GA,HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY,DC`, { cache: 'no-store' }),
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&geometry=-180,18,-66,72&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&_=${Date.now()}`, { cache: 'no-store' }),
@@ -2133,7 +2133,18 @@ async function fetchWarnings() {
     const nwsWarnEvents = new Set(nwsWarningsWithGeom.map(f => f.properties?.event).filter(Boolean));
     const wwa0WarnFill = wwa0Features.filter(f => !/watch/i.test(f.properties?.event || '') && !nwsWarnEvents.has(f.properties?.event));
 
-    let combinedFeatures = [...nwsWarningsWithGeom, ...wwa0WarnFill, ...wwa0Watches, ...mergedWatches];
+    // NWS flood/flash flood watches that carry geometry (WFO-issued, county-based polygons)
+    // These are excluded from nwsWarningsWithGeom (which strips all watches), so include them explicitly.
+    // Deduplicate against wwa0Watches to avoid double-rendering.
+    const wwa0WatchEventTypes = new Set(wwa0Watches.map(f => f.properties?.event).filter(Boolean));
+    const floodWatchTypes = /flash flood watch|flood watch|areal flood watch/i;
+    const nwsFloodWatches = nwsWatchMeta.filter(f =>
+      f.geometry &&
+      floodWatchTypes.test(f.properties?.event || '') &&
+      !wwa0WatchEventTypes.has(f.properties?.event)
+    );
+
+    let combinedFeatures = [...nwsWarningsWithGeom, ...wwa0WarnFill, ...wwa0Watches, ...nwsFloodWatches, ...mergedWatches];
 
     // ── 5. Upgrade emergencies ──
     combinedFeatures.forEach(f => {
