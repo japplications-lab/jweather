@@ -887,8 +887,15 @@ const PROB_HAIL=PROB_WIND;
 function getOutlookProbScale(m){if(m==='wind')return PROB_WIND;if(m==='hail')return PROB_HAIL;return PROB_TORN;}
 const ENHANCED_PLUS=new Set(['ENH','MDT','HIGH']);
 const WARN_TRIANGLE_SVG=`<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,14 1,14" fill="#e53e3e" stroke="#c53030" stroke-width="0.5" stroke-linejoin="round"/><text x="8" y="12.5" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="8" fill="white">!</text></svg>`;
+const WARN_TRIANGLE_SVG2=`<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,14 1,14" fill="#e53e3e" stroke="#c53030" stroke-width="0.5" stroke-linejoin="round"/><text x="8" y="12.5" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="6.5" fill="white">!!</text></svg>`;
+const WARN_TRIANGLE_SVG3=`<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,14 1,14" fill="#e53e3e" stroke="#c53030" stroke-width="0.5" stroke-linejoin="round"/><text x="8" y="12.5" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="5.5" fill="white">!!!</text></svg>`;
 const WARN_TRIANGLE=`<span class="ol-warn-triangle" title="Significant severe weather expected">${WARN_TRIANGLE_SVG}</span>`;
-function warnTriangleHTML(cat){return ENHANCED_PLUS.has(cat)?WARN_TRIANGLE:'';}
+function warnTriangleHTML(cat){
+  if(cat==='HIGH')return`<span class="ol-warn-triangle" title="High risk — widespread violent severe weather">${WARN_TRIANGLE_SVG3}</span>`;
+  if(cat==='MDT')return`<span class="ol-warn-triangle" title="Moderate risk — significant severe weather likely">${WARN_TRIANGLE_SVG2}</span>`;
+  if(cat==='ENH')return WARN_TRIANGLE;
+  return '';
+}
 
 const SEVERE_COLORS={
   // Emergencies
@@ -2022,7 +2029,7 @@ async function fetchWarnings() {
   try {
     if (radarLayer) radarLayer.setParams({ _refresh: Date.now() }, false);
 
-    const wwa1Where = encodeURIComponent("prod_type IN ('Tornado Watch','Severe Thunderstorm Watch','Flash Flood Watch','Flood Watch','Areal Flood Watch')");
+    const wwa1Where = encodeURIComponent("prod_type IN ('Tornado Watch','Severe Thunderstorm Watch')");
     const [nwsRes, wwa0Res, wwa1Res] = await Promise.allSettled([
       fetch(`${WORKER}/nws/alerts/active?status=actual&area=AL,AK,AZ,AR,CA,CO,CT,DE,FL,GA,HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY,DC`, { cache: 'no-store' }),
       fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&geometry=-180,18,-66,72&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&_=${Date.now()}`, { cache: 'no-store' }),
@@ -2133,18 +2140,7 @@ async function fetchWarnings() {
     const nwsWarnEvents = new Set(nwsWarningsWithGeom.map(f => f.properties?.event).filter(Boolean));
     const wwa0WarnFill = wwa0Features.filter(f => !/watch/i.test(f.properties?.event || '') && !nwsWarnEvents.has(f.properties?.event));
 
-    // NWS flood/flash flood watches that carry geometry (WFO-issued, county-based polygons)
-    // These are excluded from nwsWarningsWithGeom (which strips all watches), so include them explicitly.
-    // Deduplicate against wwa0Watches to avoid double-rendering.
-    const wwa0WatchEventTypes = new Set(wwa0Watches.map(f => f.properties?.event).filter(Boolean));
-    const floodWatchTypes = /flash flood watch|flood watch|areal flood watch/i;
-    const nwsFloodWatches = nwsWatchMeta.filter(f =>
-      f.geometry &&
-      floodWatchTypes.test(f.properties?.event || '') &&
-      !wwa0WatchEventTypes.has(f.properties?.event)
-    );
-
-    let combinedFeatures = [...nwsWarningsWithGeom, ...wwa0WarnFill, ...wwa0Watches, ...nwsFloodWatches, ...mergedWatches];
+    let combinedFeatures = [...nwsWarningsWithGeom, ...wwa0WarnFill, ...wwa0Watches, ...mergedWatches];
 
     // ── 5. Upgrade emergencies ──
     combinedFeatures.forEach(f => {
