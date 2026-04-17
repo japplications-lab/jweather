@@ -2600,21 +2600,19 @@ async function loadMeso(){
     if(el) el.style.display=show?'flex':'none';
   };
   try{
-    const r=await fetch(`https://mesonet.agron.iastate.edu/geojson/mcd.geojson?_=${Date.now()}`,{cache:'no-store'});
-    if(!r.ok) throw new Error(`IEM ${r.status}`);
+    const r=await fetch(`${WORKER}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'});
+    if(!r.ok) throw new Error(`NOAA ${r.status}`);
     const text=await r.text();
     let data;
-    try{ data=JSON.parse(text); }catch(e){ throw new Error('Invalid JSON from IEM'); }
+    try{ data=JSON.parse(text); }catch(e){ throw new Error('Invalid JSON from NOAA'); }
     const now=Date.now();
     const allFeatures=data.features||[];
-    // Filter out features with no geometry or no identifying fields; relax expiration
+    // Filter out NOAA "NoArea" sentinel records and expired features
     mesoData=allFeatures.filter(f=>{
       const p=f.properties||{};
-      if(!f.geometry) return false;
-      if(!p.product_id&&!p.concerning) return false;
-      const exp=p.expire||p.expiration||p.valid_until||null;
-      const expireTime=exp?new Date(exp).getTime():null;
-      if(expireTime&&!isNaN(expireTime)&&expireTime<=now) return false;
+      if(p.name==='NoArea'||p.folderpath===null&&p.popupinfo===null&&(p['st_area(shape)']||0)<0.001) return false;
+      const exp=p.expiration||p.end||p.expire;
+      if(exp&&new Date(exp).getTime()<=now) return false;
       return true;
     });
     setEmpty(mesoData.length===0);
@@ -2630,15 +2628,15 @@ function refreshMeso(){ closeMesoSheet(); loadMeso(); }
 
 async function showMesoDetail(feat,i){
   const p=feat.properties;
-  const num=p.product_id||p.name||p.num||i+1;
+  const num=p.name||p.num||i+1;
   const concern=classifyConcern(p.concerning||p.discussion_type||'');
-  const area=p.states||p.affected||p.area||p.affected_area||'';
-  const exp=p.expire||p.expiration;
+  const area=p.affected||p.area||p.affected_area||'';
+  const exp=p.expire||p.expireTime;
   const expStr=exp?new Date(exp).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
   // Extract just the 4-digit number regardless of format (e.g. "MD 0285" → "0285")
   const numStr=String(num).replace(/[^0-9]/g,'').padStart(4,'0');
   const displayNum=numStr; // always show as plain number
-  const year=p.year||new Date().getFullYear();
+  const year=new Date().getFullYear();
 
   // Populate header
   document.getElementById('meso-modal-num').textContent=`Mesoscale Discussion #${displayNum}`;
@@ -2663,16 +2661,12 @@ async function showMesoDetail(feat,i){
   }
 
   try{
-    // IEM provides raw text in `utterance` — use it directly, otherwise fetch from SPC proxy
-    let raw=p.utterance?p.utterance.trim().slice(0,3500):null;
-    if(!raw){
-      const r=await fetch(`${WORKER}/proxy/products/md/${year}/md${numStr}.html`);
-      if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      const html=await r.text();
-      const div=document.createElement('div'); div.innerHTML=html;
-      const pre=div.querySelector('pre');
-      raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
-    }
+    const r=await fetch(`${WORKER}/proxy/products/md/${year}/md${numStr}.html`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const html=await r.text();
+    const div=document.createElement('div'); div.innerHTML=html;
+    const pre=div.querySelector('pre');
+    let raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
 
     document.getElementById('meso-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:16px 0;"><div class="spin-ring"></div>Summarizing with AI…</div>`;
 
