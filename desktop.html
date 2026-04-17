@@ -2655,18 +2655,18 @@ async function loadMeso(){
     const panel=document.getElementById('meso-empty-panel');if(panel)panel.style.display=show?'block':'none';
   };
   try{
-    const r=await fetch(`${WORKER}/noaa/vector/rest/services/outlooks/spc_mesoscale_discussion/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`,{cache:'no-store'});
-    if(!r.ok)throw new Error(`NOAA ${r.status}`);
+    const r=await fetch(`https://mesonet.agron.iastate.edu/geojson/mcd.geojson?_=${Date.now()}`,{cache:'no-store'});
+    if(!r.ok)throw new Error(`IEM ${r.status}`);
     const text=await r.text();let data;
     try{data=JSON.parse(text);}catch(e){throw new Error('Invalid JSON');}
     const now=Date.now();const allFeatures=data.features||[];
     mesoData=allFeatures.filter(f=>{
       const p=f.properties||{};
-      // Drop known sentinel/empty records; preserve anything with a valid MD number or geometry
-      if(p.name==='NoArea')return false;
-      if(!p.name&&!p.num&&!p.concerning&&!p.discussion_type&&!f.geometry)return false;
-      // Only filter by expiration if a valid future-or-past timestamp is present
-      const exp=p.expiration||p.valid_until||p.expire||p.end||null;
+      if(!f.geometry)return false;
+      // IEM uses product_id like "MCD0456" — drop anything with no ID and no geometry
+      if(!p.product_id&&!p.concerning)return false;
+      // Only filter by expiration if a valid timestamp is present and clearly in the past
+      const exp=p.expire||p.expiration||p.valid_until||null;
       const expireTime=exp?new Date(exp).getTime():null;
       if(expireTime&&!isNaN(expireTime)&&expireTime<=now)return false;
       return true;
@@ -2700,9 +2700,9 @@ function renderMesoPanel(features){
   document.getElementById('meso-empty-panel').style.display=features.length?'none':'block';
   features.forEach((feat,idx)=>{
     const p=feat.properties||{};
-    const num=String(p.name||p.num||idx+1).replace(/[^0-9]/g,'').padStart(4,'0');
+    const num=String(p.product_id||p.name||p.num||idx+1).replace(/[^0-9]/g,'').padStart(4,'0');
     const concern=classifyConcern(p.concerning||p.discussion_type||'');
-    const states=p.affecting||p.states||p.area_desc||'';
+    const states=p.states||p.affecting||p.area_desc||'';
     const item=document.createElement('div');item.className='meso-item';
     item.innerHTML=`<div class="meso-item-num">MD #${num}</div><div class="meso-item-title">${concern}</div><div class="meso-item-meta">${states}</div>`;
     item.addEventListener('click',()=>{
@@ -2716,22 +2716,26 @@ function renderMesoPanel(features){
 
 async function showMesoDetail(feat,i){
   const p=feat.properties||{};
-  const numStr=String(p.name||p.num||i+1).replace(/[^0-9]/g,'').padStart(4,'0');
+  const numStr=String(p.product_id||p.name||p.num||i+1).replace(/[^0-9]/g,'').padStart(4,'0');
   const concern=classifyConcern(p.concerning||p.discussion_type||'');
-  const states=p.affecting||p.states||p.area_desc||'';
+  const states=p.states||p.affecting||p.area_desc||'';
   const exp=p.expire||p.expiration;
   const expStr=exp?new Date(exp).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
-  const year=new Date().getFullYear();
+  const year=p.year||new Date().getFullYear();
   document.getElementById('disc-title').textContent=`Mesoscale Discussion #${numStr}`;
   document.getElementById('disc-body').innerHTML=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div><div class="disc-loading"><div class="spin-ring"></div>Fetching discussion…</div>`;
   document.getElementById('disc-modal').classList.add('open');
   try{
-    const r=await fetch(`${WORKER}/proxy/products/md/${year}/md${numStr}.html`);
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
-    const html=await r.text();
-    const div=document.createElement('div');div.innerHTML=html;
-    const pre=div.querySelector('pre');
-    let raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
+    // IEM provides the raw text in `utterance` — use it directly, otherwise fetch from SPC proxy
+    let raw=p.utterance?p.utterance.trim().slice(0,3500):null;
+    if(!raw){
+      const r=await fetch(`${WORKER}/proxy/products/md/${year}/md${numStr}.html`);
+      if(!r.ok)throw new Error(`HTTP ${r.status}`);
+      const html=await r.text();
+      const div=document.createElement('div');div.innerHTML=html;
+      const pre=div.querySelector('pre');
+      raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
+    }
     document.getElementById('disc-body').innerHTML=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div><div class="disc-loading"><div class="spin-ring"></div>Summarizing with AI…</div>`;
     const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,system:`You are a severe weather analyst. Summarize this SPC mesoscale discussion in plain English in exactly 4 sections. Use NO markdown, NO ## headers, NO bold, NO asterisks. Reply ONLY with these exact headers followed by the text:\n\nWHAT'S HAPPENING:\n[Current weather setup in 1-2 sentences]\n\nPRIMARY THREAT:\n[Most critical hazard in 1-2 sentences]\n\nAFFECTED AREA:\n[Where exactly in 1-2 sentences]\n\nTIMING:\n[When in 1-2 sentences]`,messages:[{role:'user',content:raw}]})});
     if(!aiRes.ok)throw new Error('AI unavailable');
