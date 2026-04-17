@@ -888,12 +888,7 @@ function getOutlookProbScale(m){if(m==='wind')return PROB_WIND;if(m==='hail')ret
 const ENHANCED_PLUS=new Set(['ENH','MDT','HIGH']);
 const WARN_TRIANGLE_SVG=`<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,1 15,14 1,14" fill="#e53e3e" stroke="#c53030" stroke-width="0.5" stroke-linejoin="round"/><text x="8" y="12.5" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="8" fill="white">!</text></svg>`;
 const WARN_TRIANGLE=`<span class="ol-warn-triangle" title="Significant severe weather expected">${WARN_TRIANGLE_SVG}</span>`;
-function warnTriangleHTML(cat){
-  if(cat==='HIGH')return`<span class="ol-warn-triangle" title="High risk — widespread violent severe weather" style="width:auto;gap:1px;display:inline-flex;">${WARN_TRIANGLE_SVG}${WARN_TRIANGLE_SVG}${WARN_TRIANGLE_SVG}</span>`;
-  if(cat==='MDT')return`<span class="ol-warn-triangle" title="Moderate risk — significant severe weather likely" style="width:auto;gap:1px;display:inline-flex;">${WARN_TRIANGLE_SVG}${WARN_TRIANGLE_SVG}</span>`;
-  if(cat==='ENH')return WARN_TRIANGLE;
-  return '';
-}
+function warnTriangleHTML(cat){return ENHANCED_PLUS.has(cat)?WARN_TRIANGLE:'';}
 
 const SEVERE_COLORS={
   // Emergencies
@@ -2651,7 +2646,7 @@ function initMesoMap(){
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval)clearInterval(window._mesoInterval);
-  window._mesoInterval=setInterval(loadMeso,120000);
+  window._mesoInterval=setInterval(loadMeso,30000);
 }
 
 async function loadMeso(){

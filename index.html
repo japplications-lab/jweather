@@ -1703,12 +1703,8 @@ function outlookPopupContent(f, mode, day) {
 }
 
 const ENHANCED_PLUS=new Set(['ENH','MDT','HIGH']);
-function warnTriangleHTML(cat){
-  if(cat==='HIGH')return`<span class="ol-warn-triangle" title="High risk — widespread violent severe weather" style="width:auto;gap:1px;display:inline-flex;">${WARN_TRIANGLE_SVG}${WARN_TRIANGLE_SVG}${WARN_TRIANGLE_SVG}</span>`;
-  if(cat==='MDT')return`<span class="ol-warn-triangle" title="Moderate risk — significant severe weather likely" style="width:auto;gap:1px;display:inline-flex;">${WARN_TRIANGLE_SVG}${WARN_TRIANGLE_SVG}</span>`;
-  if(cat==='ENH')return`<span class="ol-warn-triangle" title="Significant severe weather expected">${WARN_TRIANGLE_SVG}</span>`;
-  return '';
-}
+function warnTriangleHTML(cat){return ENHANCED_PLUS.has(cat)?`<span class="ol-warn-triangle" title="Significant severe weather expected">${WARN_TRIANGLE_SVG}</span>`:'';}
+
 function updateOutlookLegend(gj, mode) {
   const items = document.getElementById('ol-legend'); items.innerHTML = '';
   if (mode === 'cat') {
@@ -2584,7 +2580,7 @@ function initMesoMap(){
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval) clearInterval(window._mesoInterval);
-  window._mesoInterval=setInterval(loadMeso,120000);
+  window._mesoInterval=setInterval(loadMeso,30000);
 }
 
 function classifyConcern(raw){
