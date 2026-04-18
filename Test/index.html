@@ -2076,7 +2076,7 @@ function initWatchesMap(){
 
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
 
   // NEXRAD radar overlay
   radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
@@ -2091,7 +2091,7 @@ function initWatchesMap(){
   fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#374151',weight:0.5,fill:false,opacity:.8},interactive:false}).addTo(watchesMap)).catch(()=>{});
   // State boundaries
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(watchesMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
 
   // Clear any existing timers
   if(window._watchesWatchTimer)  clearInterval(window._watchesWatchTimer);
@@ -2576,9 +2576,9 @@ function initMesoMap(){
   mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#6b7280',weight:1.5,fill:false,opacity:.7},interactive:false}).addTo(mesoMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval) clearInterval(window._mesoInterval);
   window._mesoInterval=setInterval(loadMeso,120000);

@@ -114,11 +114,11 @@
     #main{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;overflow:hidden;}
 
     /* Topbar */
-    #topbar{height:56px;flex-shrink:0;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;box-shadow:0 1px 8px rgba(2,100,180,0.07);}
-    #topbar-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
-    #topbar-sub{font-size:0.72rem;color:var(--text4);margin-left:4px;}
+    #topbar{height:56px;flex-shrink:0;background:var(--sky-grad);display:flex;align-items:center;padding:0 24px;gap:12px;box-shadow:0 2px 12px rgba(2,50,100,0.2);}
+    #topbar-title{font-size:1.05rem;font-weight:700;color:#fff;letter-spacing:-0.02em;}
+    #topbar-sub{font-size:0.72rem;color:rgba(255,255,255,0.55);margin-left:4px;}
     #topbar-spacer{flex:1;}
-    #topbar-date{font-size:0.75rem;color:var(--text4);font-weight:500;}
+    #topbar-date{font-size:0.75rem;color:rgba(255,255,255,0.6);font-weight:500;}
 
     /* Pages */
     #pages{flex:1;min-height:0;position:relative;overflow:hidden;}
@@ -555,7 +555,7 @@
   <nav id="sidebar-nav">
     <div class="nav-group-label">Weather</div>
     <button class="nav-item active" data-page="home" onclick="navigate('home')">
-      <span class="msr">home</span>Home
+      <span class="msr">wb_sunny</span>Forecast
     </button>
     <button class="nav-item" data-page="hourly" onclick="navigate('hourly')">
       <span class="msr">schedule</span>Hourly
@@ -587,7 +587,7 @@
 <!-- ══ MAIN ══ -->
 <div id="main">
   <div id="topbar">
-    <span id="topbar-title">Home</span>
+    <span id="topbar-title">Forecast</span>
     <span id="topbar-sub"></span>
     <div id="topbar-spacer"></div>
     <span id="topbar-date"></span>
@@ -1022,7 +1022,7 @@ function navigate(page){
   currentPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  const labels={home:'Home',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Alerts',meso:'Mesoscale Discussions'};
+  const labels={home:'Forecast',hourly:'Hourly Forecast',radar:'Radar',outlook:'SPC Outlook',watches:'Alerts',meso:'Mesoscale Discussions'};
   document.getElementById('topbar-title').textContent=labels[page]||page;
   if(page==='outlook'&&!outlookMapInit){initOutlookMap();outlookMapInit=true;}
   if(page==='watches'&&!watchesMapInit){initWatchesMap();watchesMapInit=true;}
@@ -1917,7 +1917,7 @@ function initWatchesMap(){
 
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(watchesMap);
 
   // Static NEXRAD radar overlay
   radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
@@ -1932,7 +1932,7 @@ function initWatchesMap(){
   fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#374151',weight:0.5,fill:false,opacity:.8},interactive:false}).addTo(watchesMap)).catch(()=>{});
   // State boundaries
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(watchesMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(watchesMap);
 
   if(window._watchesWarnTimer)clearInterval(window._watchesWarnTimer);
   if(window._watchesPctInterval)clearInterval(window._watchesPctInterval);
@@ -2649,9 +2649,9 @@ function initMesoMap(){
   mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(mesoMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(mesoMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
   if(window._mesoInterval)clearInterval(window._mesoInterval);
   window._mesoInterval=setInterval(loadMeso,120000);
