@@ -351,8 +351,6 @@
     .ao-head-icon .msr{font-size:18px;color:#fff;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
     .ao-head-text{flex:1;min-width:0;}
     .ao-head-title{font-size:1.05rem;font-weight:800;letter-spacing:-0.02em;line-height:1.2;}
-    .ao-supertitle{font-size:0.6rem;font-weight:900;letter-spacing:0.13em;text-transform:uppercase;margin-bottom:3px;animation:supertitle-pulse 1.2s ease-in-out infinite;}
-    @keyframes supertitle-pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
     .ao-head-sub{font-size:0.68rem;color:var(--text4);margin-top:2px;font-weight:500;}
     .ao-close{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;transition:background .15s;}
     .ao-close:hover{background:rgba(255,255,255,.13);}
@@ -797,7 +795,6 @@
       <div class="ao-head-stripe" id="ao-stripe"></div>
       <div class="ao-head-icon" id="ao-icon"><span class="msr" id="ao-icon-sym">warning</span></div>
       <div class="ao-head-text">
-        <div class="ao-supertitle" id="ao-supertitle" style="display:none"></div>
         <div class="ao-head-title" id="ao-title"></div>
         <div class="ao-head-sub" id="ao-issued"></div>
       </div>
@@ -1347,7 +1344,7 @@ function outlookDayDate(dayNum){
 }
 
 function initOutlookMap(){
-  outlookMap=L.map('outlook-map',{zoomControl:false,attributionControl:false,minZoom:3,preferCanvas:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
+  outlookMap=L.map('outlook-map',{zoomControl:false,attributionControl:false,minZoom:3,preferCanvas:false,zoomSnap:0.5,zoomDelta:0.5,wheelDebounceTime:60,wheelPxPerZoomLevel:200,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(outlookMap);
   outlookMap.getPane('popupPane').style.zIndex=600;
   outlookMap.createPane('outlookPane');outlookMap.getPane('outlookPane').style.zIndex=310;
@@ -1904,7 +1901,7 @@ function getWatchStyle(event){
 }
 
 function initWatchesMap(){
-  watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
+  watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false,zoomSnap:0.5,zoomDelta:0.5,wheelDebounceTime:60,wheelPxPerZoomLevel:200,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
 
   // Radar pane sits below warning polygons (default overlay pane is 400)
   watchesMap.createPane('radarPane');
@@ -2435,23 +2432,6 @@ async function openAlertOverlay(feat){
   const isWatch=/watch/i.test(p.event||'');
   const isTorWarn=/tornado warning/i.test(p.event||'');
 
-  const isSvrWarn=/severe thunderstorm warning/i.test(p.event||'');
-
-  // Helper: show/hide the DESTRUCTIVE THUNDERSTORM supertitle
-  function applyDestructiveLabel(desc){
-    const supertitleEl=document.getElementById('ao-supertitle');
-    if(!supertitleEl)return;
-    const d=(desc||'').toUpperCase();
-    const isDestructive=isSvrWarn&&(d.includes('DESTRUCTIVE')||d.includes('OBSERVED')||d.includes('CONFIRMED')||d.includes('CATASTROPHIC')||d.includes('CONSIDERABLE'));
-    if(isDestructive){
-      supertitleEl.textContent='⚠ Destructive Thunderstorm';
-      supertitleEl.style.color=color;
-      supertitleEl.style.display='';
-    }else{
-      supertitleEl.style.display='none';
-    }
-  }
-
   // Helper: apply observed/confirmed override to header
   function applyObservedOverride(desc){
     if(!isTorWarn)return;
@@ -2487,13 +2467,11 @@ async function openAlertOverlay(feat){
   const titleEl=document.getElementById('ao-title');
   titleEl.textContent=label;
   titleEl.style.color=color;
-  document.getElementById('ao-supertitle').style.display='none';
   document.getElementById('ao-issued').textContent=sender;
   document.getElementById('ao-expires').textContent=exp;
 
   // Apply observed override immediately if description already available
   applyObservedOverride(p.description||p.headline||'');
-  applyDestructiveLabel(p.description||p.headline||'');
 
   // ── 5. Show overlay with spinner ──
   const spinner=document.getElementById('ao-ai-spinner');
@@ -2533,7 +2511,6 @@ async function openAlertOverlay(feat){
 
   // Re-check observed override now that we have the full description
   applyObservedOverride(rawDesc||rawHeadline||'');
-  applyDestructiveLabel(rawDesc||rawHeadline||'');
 
   // ── 7. Parse NWS text into structured sections ──
   const nwsText=(rawDesc||rawHeadline||'').trim();
@@ -2661,7 +2638,7 @@ function classifyConcern(raw){
 }
 
 function initMesoMap(){
-  mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
+  mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false,zoomSnap:0.5,zoomDelta:0.5,wheelDebounceTime:60,wheelPxPerZoomLevel:200,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(mesoMap);
