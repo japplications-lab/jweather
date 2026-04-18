@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>jWeather — Desktop</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f97316'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff' stroke='none'/%3E%3Cline x1='16' y1='5' x2='16' y2='8'/%3E%3Cline x1='16' y1='24' x2='16' y2='27'/%3E%3Cline x1='5' y1='16' x2='8' y2='16'/%3E%3Cline x1='24' y1='16' x2='27' y2='16'/%3E%3Cline x1='8.5' y1='8.5' x2='10.6' y2='10.6'/%3E%3Cline x1='21.4' y1='21.4' x2='23.5' y2='23.5'/%3E%3Cline x1='23.5' y1='8.5' x2='21.4' y2='10.6'/%3E%3Cline x1='10.6' y1='21.4' x2='8.5' y2='23.5'/%3E%3C/g%3E%3C/svg%3E"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230284c7'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff' stroke='none'/%3E%3Cline x1='16' y1='5' x2='16' y2='8'/%3E%3Cline x1='16' y1='24' x2='16' y2='27'/%3E%3Cline x1='5' y1='16' x2='8' y2='16'/%3E%3Cline x1='24' y1='16' x2='27' y2='16'/%3E%3Cline x1='8.5' y1='8.5' x2='10.6' y2='10.6'/%3E%3Cline x1='21.4' y1='21.4' x2='23.5' y2='23.5'/%3E%3Cline x1='23.5' y1='8.5' x2='21.4' y2='10.6'/%3E%3Cline x1='10.6' y1='21.4' x2='8.5' y2='23.5'/%3E%3C/g%3E%3C/svg%3E"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -13,16 +13,23 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --red:#f97316; --red-dim:rgba(249,115,22,0.12); --red-border:rgba(249,115,22,0.25);
-      --bg:#13151a; --surface:#1c1f27; --surface2:#22262f; --surface3:#272b36;
-      --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
-      --text:#ffffff; --text2:#e2e6ed; --text3:#b0b7c3; --text4:#6e7585;
-      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
-      --blue:#60a5fa; --blue-dim:rgba(96,165,250,0.12);
-      --amber:#f59e0b;
+      /* Brand — sky blue replaces orange */
+      --red:#0284c7; --red-dim:rgba(2,132,199,0.1); --red-border:rgba(2,132,199,0.28);
+      /* Surfaces — light mode */
+      --bg:#e8f4fd; --surface:#ffffff; --surface2:#f0f7fc; --surface3:#dbeafe;
+      /* Borders */
+      --border:rgba(2,132,199,0.12); --border2:rgba(2,132,199,0.22);
+      /* Text */
+      --text:#0c2340; --text2:#1e3a5f; --text3:#4a7fa5; --text4:#7aaccf;
+      /* Semantic */
+      --green:#059669; --green-dim:rgba(5,150,105,0.1);
+      --blue:#0ea5e9; --blue-dim:rgba(14,165,233,0.12);
+      --amber:#d97706;
       --sidebar-w:240px;
       --r:14px; --r-sm:10px; --r-xs:7px;
       --font:'Geist',system-ui,sans-serif;
+      /* Sky gradient for sidebar */
+      --sky-grad:linear-gradient(180deg,#0c2340 0%,#0f3460 40%,#1565a8 100%);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;overflow:hidden;background:var(--bg);}
@@ -43,61 +50,62 @@
     .wl-swatch.svg-pulse-emerg{animation:div-pulse-emerg 0.8s ease-in-out infinite !important;}
     .wl-swatch.svg-pulse-warn{animation:div-pulse-warn 1.4s ease-in-out infinite !important;}
     .wl-tor-ground{animation:tor-text-pulse 0.8s ease-in-out infinite;}
-    .skel{border-radius:6px;background:linear-gradient(90deg,var(--surface) 25%,var(--border2) 50%,var(--surface) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear;}
+    .skel{border-radius:6px;background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear;}
 
     /* ══════════════════════════════════════
        SIDEBAR
     ══════════════════════════════════════ */
     #sidebar{
       width:var(--sidebar-w);flex-shrink:0;
-      background:var(--surface);
-      border-right:1px solid var(--border);
+      background:var(--sky-grad);
+      border-right:none;
       display:flex;flex-direction:column;
       height:100%;
       z-index:10;
+      box-shadow:4px 0 24px rgba(2,50,100,0.18);
     }
     #sidebar-logo{
       padding:20px 18px 16px;
       display:flex;align-items:center;gap:10px;
-      border-bottom:1px solid var(--border);
+      border-bottom:1px solid rgba(255,255,255,0.1);
     }
-    .logo-mark{width:30px;height:30px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .logo-mark{width:30px;height:30px;background:#0ea5e9;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(14,165,233,0.5);}
     .logo-mark .msr{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
-    .logo-name{font-size:1rem;font-weight:800;letter-spacing:-0.03em;}
+    .logo-name{font-size:1rem;font-weight:800;letter-spacing:-0.03em;color:#fff;}
 
     /* Search */
     #sidebar-search{padding:12px 12px 8px;}
-    .search-box{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);padding:0 8px 0 10px;transition:border-color .15s;}
-    .search-box:focus-within{border-color:var(--red);}
-    .search-box .msr{font-size:15px;color:var(--text4);flex-shrink:0;}
-    #search-input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.8rem;color:var(--text);padding:8px 6px;min-width:0;}
+    .search-box{display:flex;align-items:center;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:var(--r-sm);padding:0 8px 0 10px;transition:border-color .15s;}
+    .search-box:focus-within{border-color:rgba(14,165,233,0.8);background:rgba(255,255,255,0.15);}
+    .search-box .msr{font-size:15px;color:rgba(255,255,255,0.5);flex-shrink:0;}
+    #search-input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:0.8rem;color:#fff;padding:8px 6px;min-width:0;}
     #search-input::-webkit-search-cancel-button,#search-input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none;}
-    #search-input::placeholder{color:var(--text4);}
-    #search-clear{background:none;border:none;cursor:pointer;color:var(--text4);padding:3px;display:none;align-items:center;}
+    #search-input::placeholder{color:rgba(255,255,255,0.4);}
+    #search-clear{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:3px;display:none;align-items:center;}
     #search-clear .msr{font-size:16px;}
-    #suggestions{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);overflow:hidden;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5);margin:0 12px;position:relative;z-index:100;}
-    .sug-item{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-size:0.8rem;color:var(--text2);border-bottom:1px solid var(--border);transition:background .1s;}
+    #suggestions{background:#1e3a5f;border:1px solid rgba(14,165,233,0.3);border-radius:var(--r-sm);overflow:hidden;display:none;box-shadow:0 8px 30px rgba(0,0,0,.3);margin:0 12px;position:relative;z-index:100;}
+    .sug-item{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-size:0.8rem;color:rgba(255,255,255,0.85);border-bottom:1px solid rgba(255,255,255,0.08);transition:background .1s;}
     .sug-item:last-child{border-bottom:none;}
-    .sug-item:hover{background:var(--red-dim);}
-    .sug-item .msr{font-size:13px;color:var(--red);flex-shrink:0;}
-    .sug-section{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);padding:7px 12px 3px;}
-    .sug-remove{font-size:10px;color:var(--text4);background:none;border:none;cursor:pointer;padding:3px 5px;border-radius:3px;font-family:var(--font);margin-left:auto;flex-shrink:0;}
+    .sug-item:hover{background:rgba(14,165,233,0.2);}
+    .sug-item .msr{font-size:13px;color:#38bdf8;flex-shrink:0;}
+    .sug-section{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.35);padding:7px 12px 3px;}
+    .sug-remove{font-size:10px;color:rgba(255,255,255,0.3);background:none;border:none;cursor:pointer;padding:3px 5px;border-radius:3px;font-family:var(--font);margin-left:auto;flex-shrink:0;}
 
     /* Nav items */
     #sidebar-nav{flex:1;padding:8px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
-    .nav-group-label{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);padding:10px 10px 4px;}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;border:none;background:none;font-family:var(--font);font-size:0.82rem;font-weight:500;color:var(--text3);width:100%;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent;}
-    .nav-item:hover{background:rgba(255,255,255,0.05);color:var(--text2);}
-    .nav-item.active{background:var(--red-dim);color:var(--red);font-weight:600;}
+    .nav-group-label{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.35);padding:10px 10px 4px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;border:none;background:none;font-family:var(--font);font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.6);width:100%;text-align:left;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+    .nav-item:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.9);}
+    .nav-item.active{background:rgba(14,165,233,0.25);color:#7dd3fc;font-weight:600;border:1px solid rgba(14,165,233,0.3);}
     .nav-item .msr{font-size:18px;flex-shrink:0;transition:color .12s;}
-    .nav-item.active .msr{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;color:var(--red);}
-    .nav-divider{height:1px;background:var(--border);margin:6px 8px;}
+    .nav-item.active .msr{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;color:#38bdf8;}
+    .nav-divider{height:1px;background:rgba(255,255,255,0.08);margin:6px 8px;}
 
     /* Sidebar footer */
-    #sidebar-footer{padding:12px 12px;border-top:1px solid var(--border);}
-    #cur-loc-chip{display:flex;align-items:center;gap:7px;padding:8px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);}
-    #cur-loc-chip .msr{font-size:14px;color:var(--red);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    #cur-loc-name{font-size:0.75rem;font-weight:600;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #sidebar-footer{padding:12px 12px;border-top:1px solid rgba(255,255,255,0.08);}
+    #cur-loc-chip{display:flex;align-items:center;gap:7px;padding:8px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:var(--r-sm);}
+    #cur-loc-chip .msr{font-size:14px;color:#38bdf8;flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #cur-loc-name{font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     #mobile-link{display:none;}
 
     /* ══════════════════════════════════════
@@ -106,7 +114,7 @@
     #main{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;overflow:hidden;}
 
     /* Topbar */
-    #topbar{height:56px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;}
+    #topbar{height:56px;flex-shrink:0;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;box-shadow:0 1px 8px rgba(2,100,180,0.07);}
     #topbar-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
     #topbar-sub{font-size:0.72rem;color:var(--text4);margin-left:4px;}
     #topbar-spacer{flex:1;}
@@ -122,36 +130,36 @@
     ══════════════════════════════════════ */
     #page-home{overflow:hidden;flex-direction:column;}
     .home-grid{
-      padding:20px;
+      padding:14px;
       display:grid;
-      grid-template-columns:440px 1fr;
+      grid-template-columns:380px 1fr;
       grid-template-rows:auto auto 1fr;
-      gap:16px;
+      gap:12px;
       height:100%;
       min-height:0;
       overflow:hidden;
     }
 
     /* Hero card */
-    .hero-card{background:var(--red);border-radius:var(--r);padding:28px 32px;position:relative;overflow:hidden;}
-    .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;}
-    .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
+    .hero-card{background:linear-gradient(135deg,#0c2340 0%,#0369a1 60%,#0ea5e9 100%);border-radius:var(--r);padding:18px 22px;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(3,105,161,0.3);}
+    .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.06);border-radius:50%;}
+    .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.04);border-radius:50%;}
     .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
-    .hero-loc{font-size:1.35rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
-    .hero-date{font-size:0.78rem;color:rgba(255,255,255,0.72);margin-top:4px;}
-    .hero-icon{width:90px;height:90px;flex-shrink:0;}
+    .hero-loc{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
+    .hero-date{font-size:0.7rem;color:rgba(255,255,255,0.72);margin-top:4px;}
+    .hero-icon{width:64px;height:64px;flex-shrink:0;}
     .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:1;}
-    .hero-temp{font-size:6.5rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
-    .hero-temp sup{font-size:2rem;font-weight:500;opacity:.8;vertical-align:super;}
-    .hero-desc{font-size:1rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
+    .hero-temp{font-size:4.2rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
+    .hero-temp sup{font-size:1.3rem;font-weight:500;opacity:.8;vertical-align:super;}
+    .hero-desc{font-size:0.82rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
     .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:1;}
     .hero-stat{background:rgba(0,0,0,0.2);border-radius:var(--r-sm);padding:13px 16px;}
     .hero-stat-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.55);}
-    .hero-stat-val{font-size:1.05rem;font-weight:700;color:#fff;margin-top:5px;}
+    .hero-stat-val{font-size:0.88rem;font-weight:700;color:#fff;margin-top:5px;}
 
     /* Alerts card */
-    .alerts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
-    .card-head{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+    .alerts-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 12px rgba(2,100,180,0.06);}
+    .card-head{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface2);}
     .card-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);}
     .alert-row{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
     .alert-row:last-child{border-bottom:none;}
@@ -186,36 +194,39 @@
     .alert-row-flood .alert-pip{display:none;}
 
     /* Forecast card — fills full right column height */
-    .forecast-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;grid-column:2;grid-row:1/4;display:flex;flex-direction:column;min-height:0;}
+    .forecast-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;grid-column:2;grid-row:1/4;display:flex;flex-direction:column;min-height:0;box-shadow:0 2px 12px rgba(2,100,180,0.06);}
     .forecast-list{flex:1;overflow-y:auto;min-height:0;}
-    .forecast-row{display:grid;grid-template-columns:130px 40px 1fr auto;align-items:center;gap:0 16px;padding:0 22px;height:70px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .forecast-row{display:grid;grid-template-columns:110px 36px 1fr auto;align-items:center;gap:0 12px;padding:0 16px;height:52px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
     .forecast-row:last-of-type{border-bottom:none;}
-    .forecast-row:hover{background:rgba(255,255,255,0.03);}
+    .forecast-row:hover{background:var(--surface2);}
     .forecast-period{font-size:0.88rem;font-weight:500;color:var(--text3);}
     .forecast-period.day{color:var(--text);font-weight:700;}
-    .forecast-icon{width:40px;height:40px;}
-    .forecast-desc{font-size:0.82rem;color:var(--text3);}
-    .forecast-temp{font-size:1.3rem;font-weight:700;color:var(--text);}
+    .forecast-icon{width:32px;height:32px;}
+    .forecast-desc{font-size:0.78rem;color:var(--text3);}
+    .forecast-temp{font-size:1.05rem;font-weight:700;color:var(--text);}
     .forecast-detail{display:none;padding:14px 22px 18px;font-size:0.8rem;color:var(--text3);line-height:1.75;background:var(--surface2);border-bottom:1px solid var(--border);}
     .forecast-row.open+.forecast-detail{display:block;animation:fadeIn .15s ease;}
 
-    /* Radar card — fills remaining left column space */
-    .radar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+    /* Radar card */
+    .radar-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-height:0;box-shadow:0 2px 12px rgba(2,100,180,0.06);}
     .radar-card-body{flex:1;min-height:200px;}
     .radar-card-body iframe{width:100%;height:100%;border:none;display:block;}
+    .radar-card-link{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:0.76rem;font-weight:600;color:var(--text3);background:var(--surface2);border:none;border-top:1px solid var(--border);width:100%;cursor:pointer;font-family:var(--font);transition:color .15s;}
+    .radar-card-link:hover{color:var(--red);}
+    .radar-card-link .msr{font-size:14px;}
 
     /* ══════════════════════════════════════
        PAGE: HOURLY
     ══════════════════════════════════════ */
     #page-hourly{flex-direction:row;overflow:hidden;}
-    #hourly-scroll{flex:1;overflow-y:auto;min-width:0;}
+    #hourly-scroll{flex:1;overflow-y:auto;min-width:0;background:var(--bg);}
     .hourly-wrap{padding:20px;}
     .hourly-header{margin-bottom:16px;}
     .hourly-header h2{font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;}
     .hourly-header p{font-size:0.78rem;color:var(--text4);margin-top:4px;}
-    .day-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;}
+    .day-section{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;box-shadow:0 2px 8px rgba(2,100,180,0.05);}
     .day-label{padding:10px 16px;font-size:0.85rem;font-weight:700;color:var(--text);background:var(--surface2);border-bottom:1px solid var(--border);}
-    .hour-row{display:grid;grid-template-columns:80px 36px 70px 70px 1fr 36px;align-items:center;gap:0 14px;padding:0 16px;height:52px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;background:var(--surface);}
+    .hour-row{display:grid;grid-template-columns:80px 36px 70px 70px 1fr 36px;align-items:center;gap:0 14px;padding:0 16px;height:52px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;background:#fff;}
     .hour-row:last-child{border-bottom:none;}
     .hour-row:hover{background:var(--surface2);}
     .hr-time{font-size:0.82rem;font-weight:500;color:var(--text3);}
@@ -223,8 +234,8 @@
     .hr-icon img{width:32px;height:32px;display:block;}
     .hr-precip{font-size:0.75rem;font-weight:500;color:var(--text4);display:flex;align-items:center;gap:2px;}
     .hr-precip .msr{font-size:11px;}
-    .hr-precip.mid{color:var(--blue);}
-    .hr-precip.high{color:#38bdf8;}
+    .hr-precip.mid{color:#0284c7;}
+    .hr-precip.high{color:#0369a1;}
     .hr-temp{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;}
     .hr-wind{font-size:0.72rem;color:var(--text3);}
     .hr-wind-speed{font-weight:600;color:var(--text2);}
@@ -239,20 +250,20 @@
     .hd-val{font-size:0.82rem;font-weight:600;color:var(--text2);margin-top:1px;}
 
     /* Clock panel */
-    #clock-panel{width:300px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:40px 24px;}
-    #clock-time{font-size:5rem;font-weight:800;letter-spacing:-0.05em;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
-    #clock-ampm{font-size:1.4rem;font-weight:600;color:var(--text3);margin-top:4px;letter-spacing:0.05em;}
-    #clock-date-full{font-size:0.85rem;font-weight:500;color:var(--text4);margin-top:14px;text-align:center;line-height:1.5;}
-    #clock-divider{width:40px;height:2px;background:var(--border2);border-radius:1px;margin:20px 0;}
-    #clock-loc{display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;color:var(--text3);}
-    #clock-loc .msr{font-size:15px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #clock-panel{width:300px;flex-shrink:0;border-left:1px solid var(--border);background:linear-gradient(180deg,#0c2340,#0369a1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:40px 24px;}
+    #clock-time{font-size:5rem;font-weight:800;letter-spacing:-0.05em;color:#fff;line-height:1;font-variant-numeric:tabular-nums;}
+    #clock-ampm{font-size:1.4rem;font-weight:600;color:rgba(255,255,255,0.6);margin-top:4px;letter-spacing:0.05em;}
+    #clock-date-full{font-size:0.85rem;font-weight:500;color:rgba(255,255,255,0.55);margin-top:14px;text-align:center;line-height:1.5;}
+    #clock-divider{width:40px;height:2px;background:rgba(255,255,255,0.15);border-radius:1px;margin:20px 0;}
+    #clock-loc{display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.7);}
+    #clock-loc .msr{font-size:15px;color:#38bdf8;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
     #clock-seconds-ring{position:relative;width:120px;height:120px;margin-bottom:24px;}
     #clock-seconds-ring svg{width:120px;height:120px;transform:rotate(-90deg);}
-    #clock-seconds-track{fill:none;stroke:var(--border2);stroke-width:3;}
-    #clock-seconds-progress{fill:none;stroke:var(--red);stroke-width:3;stroke-linecap:round;stroke-dasharray:339.3;stroke-dashoffset:339.3;transition:stroke-dashoffset .95s linear;}
+    #clock-seconds-track{fill:none;stroke:rgba(255,255,255,0.15);stroke-width:3;}
+    #clock-seconds-progress{fill:none;stroke:#38bdf8;stroke-width:3;stroke-linecap:round;stroke-dasharray:339.3;stroke-dashoffset:339.3;transition:stroke-dashoffset .95s linear;}
     #clock-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
-    #clock-inner-time{font-size:1.5rem;font-weight:800;letter-spacing:-0.04em;color:var(--text);font-variant-numeric:tabular-nums;}
-    #clock-inner-ampm{font-size:0.65rem;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.1em;}
+    #clock-inner-time{font-size:1.5rem;font-weight:800;letter-spacing:-0.04em;color:#fff;font-variant-numeric:tabular-nums;}
+    #clock-inner-ampm{font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;}
 
     /* ══════════════════════════════════════
        PAGE: RADAR (full map)
@@ -260,37 +271,37 @@
     #page-radar{flex-direction:column;}
     #page-radar .map-wrap{flex:1;position:relative;}
     #windy-frame{width:100%;height:100%;border:none;display:block;}
-    .radar-gps-btn{position:absolute;bottom:20px;right:14px;z-index:10;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .15s;}
+    .radar-gps-btn{position:absolute;bottom:20px;right:14px;z-index:10;width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .15s;}
     .radar-gps-btn .msr{font-size:20px;}
     .radar-gps-btn.located{color:var(--red);}
     .radar-gps-btn.loading .msr{animation:spin .8s linear infinite;color:var(--red);}
-    #radar-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #radar-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
     /* ══════════════════════════════════════
        PAGE: OUTLOOK (split — map + panel)
     ══════════════════════════════════════ */
     #page-outlook{flex-direction:row;}
     #outlook-map-wrap{flex:1;position:relative;overflow:hidden;}
-    #outlook-map{width:100%;height:100%;}
-    #outlook-panel{width:320px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-    #outlook-panel-head{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    #outlook-map{width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden;}
+    #outlook-panel{width:320px;flex-shrink:0;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+    #outlook-panel-head{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2);}
     #outlook-panel-head h3{font-size:0.95rem;font-weight:700;letter-spacing:-0.02em;}
     #outlook-panel-head p{font-size:0.72rem;color:var(--text4);margin-top:3px;}
     #outlook-day-tabs{display:flex;gap:4px;padding:12px 12px 0;flex-shrink:0;}
-    .ol-day-tab{flex:1;padding:7px 4px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);text-align:center;transition:all .15s;}
+    .ol-day-tab{flex:1;padding:7px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);text-align:center;transition:all .15s;}
     .ol-day-tab:hover{border-color:var(--red);color:var(--text2);}
     .ol-day-tab.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .ol-day-tab .threat-bar{display:block;height:3px;border-radius:2px;margin-top:4px;}
-    #outlook-mode-row{display:flex;gap:4px;padding:10px 12px;flex-shrink:0;flex-wrap:wrap;}
-    .ol-mode-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);transition:all .15s;}
+    #outlook-mode-row{display:flex;gap:4px;padding:10px 12px;flex-shrink:0;flex-wrap:nowrap;overflow-x:auto;}
+    .ol-mode-btn{display:flex;align-items:center;gap:4px;padding:5px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);transition:all .15s;white-space:nowrap;flex-shrink:0;}
     .ol-mode-btn:hover{border-color:var(--red);color:var(--text2);}
     .ol-mode-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     .ol-mode-btn .msr{font-size:13px;}
     #outlook-loop-row{display:flex;gap:4px;padding:10px 12px;flex-shrink:0;flex-wrap:wrap;}
-    .ol-loop-btn{flex:1;padding:5px 4px;background:var(--bg);border:1px solid var(--border2);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);text-align:center;transition:all .15s;}
+    .ol-loop-btn{flex:1;padding:5px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-family:var(--font);font-size:0.7rem;font-weight:600;color:var(--text3);text-align:center;transition:all .15s;}
     .ol-loop-btn.active{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
     #outlook-legend-wrap{flex:1;overflow-y:auto;padding:12px;}
-    .ol-legend{background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 12px;}
+    .ol-legend{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;}
     .ol-legend:empty{display:none;}
     .ol-legend-item{display:flex;align-items:center;gap:8px;font-size:0.75rem;font-weight:500;color:var(--text2);padding:3px 0;white-space:nowrap;}
     .ol-legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
@@ -299,9 +310,9 @@
     #outlook-disc-btn{margin:12px;padding:11px;background:var(--red);border:none;border-radius:var(--r-sm);color:#fff;font-family:var(--font);font-size:0.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;transition:opacity .15s;}
     #outlook-disc-btn:hover{opacity:0.9;}
     #outlook-disc-btn .msr{font-size:16px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
-    .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
+    .map-loading{position:absolute;inset:0;z-index:490;background:rgba(240,247,252,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
-    .map-context-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .map-context-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(2,100,180,0.15);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .map-context-pill span{color:var(--red);}
 
     /* ══════════════════════════════════════
@@ -309,28 +320,39 @@
     ══════════════════════════════════════ */
     #page-watches{flex-direction:row;}
     #watches-map-wrap{flex:1;position:relative;overflow:hidden;}
-    #watches-map{width:100%;height:100%;}
+    #watches-map{width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden;}
     .watches-legends{position:absolute;bottom:12px;left:12px;z-index:500;display:flex;flex-direction:column;gap:8px;}
-    .watches-legend{background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;}
+    .watches-legend{background:rgba(255,255,255,0.94);box-shadow:0 2px 12px rgba(2,100,180,0.12);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;}
     .watches-legend-title{font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:5px;}
     .wl-item{display:flex;align-items:center;gap:6px;padding:2px 0;white-space:nowrap;}
     .wl-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-    #watches-refresh-pill{position:absolute;bottom:12px;right:52px;z-index:500;background:rgba(19,21,26,0.92);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-size:0.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;overflow:hidden;cursor:pointer;transition:border-color .15s,color .15s;}
+    #watches-refresh-pill{position:absolute;bottom:12px;right:52px;z-index:500;background:rgba(255,255,255,0.94);box-shadow:0 2px 8px rgba(2,100,180,0.1);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-size:0.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;overflow:hidden;cursor:pointer;transition:border-color .15s,color .15s;}
     #watches-refresh-pill:hover{border-color:var(--red);color:var(--text2);}
     #watches-refresh-txt{display:inline-block;min-width:10.5ch;text-align:left;}
-    #watches-refresh-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,0.08);width:0%;transition:width 30s linear;border-radius:20px;}
+    #watches-refresh-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(2,132,199,0.08);width:0%;border-radius:20px;}
     #watches-refresh-label{position:relative;z-index:1;display:flex;align-items:center;gap:5px;}
     #watches-refresh-label .msr{font-size:11px;color:var(--red);}
-    #watches-init-overlay{display:flex;position:absolute;inset:0;z-index:490;background:rgba(13,15,20,0.82);backdrop-filter:blur(3px);align-items:center;justify-content:center;gap:12px;font-size:0.85rem;font-weight:600;color:var(--text3);pointer-events:none;transition:opacity .4s;}
+    @keyframes init-fade-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes init-bar{0%{left:-40%;width:40%;}50%{left:100%;width:40%;}50.001%{left:100%;width:0;}50.002%{left:100%;width:40%;}100%{left:-40%;width:40%;}}
+    @keyframes init-bar-rtl{0%{right:-40%;width:40%;}50%{right:100%;width:40%;}50.001%{right:100%;width:0;}50.002%{right:100%;width:40%;}100%{right:-40%;width:40%;}}
+    @keyframes init-bounce{0%,100%{transform:translateX(0);}49.9%{transform:translateX(120px);}50%{transform:translateX(120px);}50.1%{transform:translateX(120px);}100%{transform:translateX(0);}}
+    #watches-init-overlay{display:flex;position:absolute;inset:0;z-index:490;background:rgba(232,244,253,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;pointer-events:none;transition:opacity .5s ease;}
     #watches-init-overlay.hidden{opacity:0;}
+    #watches-init-inner{display:flex;flex-direction:column;align-items:center;gap:20px;animation:init-fade-in .4s ease both;}
+    #watches-init-icon{width:44px;height:44px;border-radius:12px;background:var(--red-dim);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;}
+    #watches-init-icon .msr{font-size:22px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    #watches-init-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text4);}
+    #watches-init-bar-track{width:160px;height:3px;background:var(--border2);border-radius:2px;position:relative;overflow:hidden;}
+    #watches-init-bar-fill{position:absolute;top:0;height:100%;width:50px;border-radius:2px;background:var(--red);animation:watches-bar-slide 1.4s ease-in-out infinite alternate;}
+    @keyframes watches-bar-slide{from{left:0;}to{left:calc(160px - 50px);}}
 
     /* ══════════════════════════════════════
        ALERT OVERLAY
     ══════════════════════════════════════ */
-    #alert-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:40px;}
+    #alert-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(2,36,80,0.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:40px;}
     #alert-overlay.open{display:flex;}
     @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-    .ao-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:560px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
+    .ao-box{background:#fff;border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:560px;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(2,36,80,0.2);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
     .ao-head{padding:0 20px;height:58px;display:flex;align-items:center;gap:12px;flex-shrink:0;position:relative;}
     .ao-head-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px 0 0 2px;}
     .ao-head-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -338,8 +360,8 @@
     .ao-head-text{flex:1;min-width:0;}
     .ao-head-title{font-size:1.05rem;font-weight:800;letter-spacing:-0.02em;line-height:1.2;}
     .ao-head-sub{font-size:0.68rem;color:var(--text4);margin-top:2px;font-weight:500;}
-    .ao-close{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;transition:background .15s;}
-    .ao-close:hover{background:rgba(255,255,255,.13);}
+    .ao-close{background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;transition:background .15s;}
+    .ao-close:hover{background:rgba(2,132,199,0.15);}
     .ao-close .msr{font-size:16px;}
     .ao-expiry-bar{display:flex;align-items:center;gap:6px;padding:7px 20px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;}
     .ao-expiry-bar .msr{font-size:13px;color:var(--text4);}
@@ -354,7 +376,7 @@
     .ao-sec-label{display:flex;align-items:center;gap:5px;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:8px;}
     .ao-sec-label .msr{font-size:12px;}
     .ao-counties-wrap{display:flex;flex-wrap:wrap;gap:4px;}
-    .ao-county-chip{font-size:0.68rem;font-weight:500;padding:3px 9px;border-radius:20px;background:var(--surface3);border:1px solid var(--border2);color:var(--text2);}
+    .ao-county-chip{font-size:0.68rem;font-weight:500;padding:3px 9px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
     .ao-cities-wrap{display:flex;flex-wrap:wrap;gap:4px;}
     .ao-city-chip{font-size:0.68rem;font-weight:500;padding:3px 9px;border-radius:20px;color:var(--text2);}
     .ao-desc-text{font-size:0.82rem;color:var(--text2);line-height:1.7;}
@@ -370,9 +392,9 @@
     ══════════════════════════════════════ */
     #page-meso{flex-direction:row;}
     #meso-map-wrap{flex:1;position:relative;overflow:hidden;}
-    #meso-map{width:100%;height:100%;}
-    #meso-panel{width:340px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-    #meso-panel-head{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    #meso-map{width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden;}
+    #meso-panel{width:340px;flex-shrink:0;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+    #meso-panel-head{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2);}
     #meso-panel-head h3{font-size:0.95rem;font-weight:700;letter-spacing:-0.02em;}
     #meso-panel-head p{font-size:0.72rem;color:var(--text4);margin-top:3px;}
     #meso-list{flex:1;overflow-y:auto;}
@@ -386,7 +408,7 @@
     #meso-empty-panel p{font-size:0.8rem;color:var(--text4);}
     #meso-map-empty{display:none;position:absolute;inset:0;z-index:500;align-items:center;justify-content:center;pointer-events:none;}
     #meso-map-empty.show{display:flex;}
-    .map-empty-card{background:rgba(19,21,26,0.92);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:var(--r);padding:24px 28px;text-align:center;max-width:280px;}
+    .map-empty-card{background:rgba(255,255,255,0.94);backdrop-filter:blur(10px);border:1px solid var(--border2);border-radius:var(--r);padding:24px 28px;text-align:center;max-width:280px;}
     .map-empty-card .msr{font-size:36px;color:var(--green);display:block;margin-bottom:10px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 48;}
     .map-empty-card h3{font-size:0.88rem;font-weight:700;color:var(--text2);margin-bottom:6px;}
     .map-empty-card p{font-size:0.75rem;color:var(--text4);line-height:1.55;}
@@ -394,16 +416,16 @@
     /* ══════════════════════════════════════
        DISC MODAL
     ══════════════════════════════════════ */
-    #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:40px;}
+    #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(2,36,80,0.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:40px;}
     #disc-modal.open{display:flex;}
-    .disc-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:700px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
-    .disc-head{padding:0 20px;height:58px;background:linear-gradient(135deg,rgba(249,115,22,0.12),rgba(249,115,22,0.04));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;justify-content:space-between;flex-shrink:0;}
+    .disc-box{background:#fff;border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:700px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(2,36,80,0.2);overflow:hidden;animation:slideUp .2s cubic-bezier(.16,1,.3,1);}
+    .disc-head{padding:0 20px;height:58px;background:linear-gradient(135deg,rgba(2,132,199,0.08),rgba(2,132,199,0.02));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;justify-content:space-between;flex-shrink:0;}
     .disc-head-left{display:flex;align-items:center;gap:10px;}
     .disc-head-icon{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .disc-head-icon .msr{font-size:16px;color:#fff;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
     .disc-head h3{font-size:0.95rem;font-weight:800;letter-spacing:-0.02em;}
-    .disc-close{background:rgba(255,255,255,.07);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:background .15s;}
-    .disc-close:hover{background:rgba(255,255,255,.13);}
+    .disc-close{background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:background .15s;}
+    .disc-close:hover{background:rgba(2,132,199,0.15);}
     .disc-close .msr{font-size:16px;}
     .disc-body{flex:1;overflow-y:auto;padding:18px 20px;font-size:0.82rem;color:var(--text3);line-height:1.75;font-family:var(--font);}
     .disc-meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
@@ -414,15 +436,15 @@
     .disc-section-text{font-size:0.82rem;color:var(--text2);line-height:1.65;}
     .disc-loading{display:flex;align-items:center;gap:10px;color:var(--text4);font-family:var(--font);}
     .disc-err{font-size:0.78rem;color:var(--text4);font-style:italic;}
-    .spin-ring{width:20px;height:20px;border:2.5px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;}
+    .spin-ring{width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;}
 
     /* Alert modal */
-    #alert-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:40px;}
+    #alert-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(2,36,80,0.55);align-items:center;justify-content:center;padding:40px;}
     #alert-modal.open{display:flex;}
-    .am-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:fadeIn .15s ease;}
+    .am-box{background:#fff;border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(2,36,80,0.2);overflow:hidden;animation:fadeIn .15s ease;}
     .am-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
     .am-title{font-size:1rem;font-weight:700;}
-    .am-close{background:rgba(255,255,255,.06);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);}
+    .am-close{background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);}
     .am-close .msr{font-size:15px;}
     .am-meta{display:flex;gap:16px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
     .am-meta-item{display:flex;flex-direction:column;gap:2px;}
@@ -444,7 +466,7 @@
     .disc-body,
     .am-body {
       scrollbar-width: thin;
-      scrollbar-color: var(--surface3) transparent;
+      scrollbar-color: var(--border2) transparent;
     }
     #sidebar-nav::-webkit-scrollbar,
     .forecast-list::-webkit-scrollbar,
@@ -487,19 +509,22 @@
 
 
     /* Toast */
-    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--surface2);color:var(--text2);font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#0c2340;color:#fff;font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
     /* Leaflet overrides */
-    .leaflet-container{background:#111318!important;}
+    .leaflet-container{background:#cce8f8!important;}
     .leaflet-tile-pane{will-change:transform;}
+    .leaflet-zoom-animated{will-change:transform;}
+    .leaflet-pan-anim .leaflet-tile{will-change:transform;}
+    .leaflet-container{outline:none;}
     .leaflet-control-zoom{border:1px solid var(--border2)!important;border-radius:var(--r-sm)!important;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.4)!important;}
-    .leaflet-control-zoom-in,.leaflet-control-zoom-out{background:var(--surface)!important;color:var(--text2)!important;border-bottom:1px solid var(--border2)!important;width:34px!important;height:34px!important;line-height:34px!important;font-size:16px!important;}
+    .leaflet-control-zoom-in,.leaflet-control-zoom-out{background:#fff!important;color:var(--text)!important;border-bottom:1px solid var(--border2)!important;width:34px!important;height:34px!important;line-height:34px!important;font-size:16px!important;}
     .leaflet-control-zoom-in:hover,.leaflet-control-zoom-out:hover{background:var(--surface2)!important;}
     .leaflet-control-attribution{display:none!important;}
-    .leaflet-popup-content-wrapper{background:var(--surface);border:1px solid var(--border2);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);font-family:var(--font);padding:0;}
+    .leaflet-popup-content-wrapper{background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);font-family:var(--font);padding:0;}
     .leaflet-popup-content{margin:0;font-size:0.78rem;}
-    .leaflet-popup-tip{background:var(--surface);}
+    .leaflet-popup-tip{background:#fff;}
     .popup-inner{padding:12px 14px;}
     .popup-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
     .popup-swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0;}
@@ -535,16 +560,13 @@
     <button class="nav-item" data-page="hourly" onclick="navigate('hourly')">
       <span class="msr">schedule</span>Hourly
     </button>
-    <button class="nav-item" data-page="radar" onclick="navigate('radar')">
-      <span class="msr">radar</span>Radar
+    <button class="nav-item" data-page="watches" onclick="navigate('watches')">
+      <span class="msr">warning</span>Alerts
     </button>
     <div class="nav-divider"></div>
     <div class="nav-group-label">Severe</div>
     <button class="nav-item" data-page="outlook" onclick="navigate('outlook')">
       <span class="msr">thunderstorm</span>SPC Outlook
-    </button>
-    <button class="nav-item" data-page="watches" onclick="navigate('watches')">
-      <span class="msr">warning</span>Alerts
     </button>
     <button class="nav-item" data-page="meso" onclick="navigate('meso')">
       <span class="msr">cyclone</span>Mesoscale Discussions
@@ -583,7 +605,7 @@
               <div class="hero-loc" id="ch-loc">—</div>
               <div class="hero-date" id="ch-date"></div>
             </div>
-            <img class="hero-icon" id="ch-icon" alt="" width="90" height="90" style="opacity:0;transition:opacity .3s"/>
+            <img class="hero-icon" id="ch-icon" alt="" width="64" height="64" style="opacity:0;transition:opacity .3s"/>
           </div>
           <div class="hero-bottom">
             <div class="hero-temp"><span id="ch-temp">--</span><sup>°F</sup></div>
@@ -625,6 +647,9 @@
           <div class="radar-card-body">
             <iframe id="radar-iframe" src="" allowfullscreen loading="lazy"></iframe>
           </div>
+          <button class="radar-card-link" onclick="navigate('radar')">
+            <span class="msr" style="font-size:14px;">open_in_full</span>Open Full Radar
+          </button>
         </div>
       </div>
     </div>
@@ -702,8 +727,11 @@
           <div id="watches-refresh-label"><span class="msr" id="watches-refresh-icon">refresh</span><span id="watches-refresh-txt">Updating…</span></div>
         </div>
         <div id="watches-init-overlay">
-          <div class="spin-ring"></div>
-          <span>Loading alerts…</span>
+          <div id="watches-init-inner">
+            <div id="watches-init-icon"><span class="msr">cell_tower</span></div>
+            <div id="watches-init-label">Fetching live alerts</div>
+            <div id="watches-init-bar-track"><div id="watches-init-bar-fill"></div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1177,7 +1205,7 @@ function renderForecast(periods){
   if(!periods?.length){wrap.innerHTML='<div style="padding:20px;color:var(--text4);font-size:.8rem;">No data</div>';return;}
   periods.forEach(p=>{
     const row=document.createElement('div');row.className='forecast-row';
-    row.innerHTML=`<div class="forecast-period${p.isDaytime?' day':''}">${abbrDay(p.name)}</div><img class="forecast-icon" alt="" width="36" height="36" style="opacity:0;transition:opacity .25s"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
+    row.innerHTML=`<div class="forecast-period${p.isDaytime?' day':''}">${abbrDay(p.name)}</div><img class="forecast-icon" alt="" width="32" height="32" style="opacity:0;transition:opacity .25s"><div class="forecast-desc">${p.shortForecast}</div><div class="forecast-temp">${p.temperature}°</div>`;
     const img=row.querySelector('.forecast-icon');img.onload=()=>img.style.opacity='1';img.src=getIcon(p.shortForecast,p.isDaytime);
     const det=document.createElement('div');det.className='forecast-detail';det.textContent=p.detailedForecast;
     row.addEventListener('click',()=>{
@@ -1324,15 +1352,15 @@ function outlookDayDate(dayNum){
 }
 
 function initOutlookMap(){
-  outlookMap=L.map('outlook-map',{zoomControl:false,attributionControl:false,minZoom:3}).setView([38.5,-96],4);
+  outlookMap=L.map('outlook-map',{zoomControl:false,attributionControl:false,minZoom:3,preferCanvas:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(outlookMap);
   outlookMap.getPane('popupPane').style.zIndex=600;
   outlookMap.createPane('outlookPane');outlookMap.getPane('outlookPane').style.zIndex=310;
   outlookMap._outlookRenderer=L.svg({pane:'outlookPane'}).addTo(outlookMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(outlookMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,opacity:0.55,updateWhenIdle:false,keepBuffer:4}).addTo(outlookMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(outlookMap)).catch(()=>{});
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(outlookMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane',opacity:0.7}).addTo(outlookMap);
   // Hatch pattern for significant threat (CIG) areas
   const svgNS='http://www.w3.org/2000/svg';
   const cigDefs=document.createElementNS(svgNS,'defs');
@@ -1881,7 +1909,7 @@ function getWatchStyle(event){
 }
 
 function initWatchesMap(){
-  watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
+  watchesMap=L.map('watches-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
 
   // Radar pane sits below warning polygons (default overlay pane is 400)
   watchesMap.createPane('radarPane');
@@ -1889,7 +1917,7 @@ function initWatchesMap(){
 
   L.control.zoom({position:'topright'}).addTo(watchesMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(watchesMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(watchesMap);
 
   // Static NEXRAD radar overlay
   radarLayer=L.tileLayer.wms('https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi',{
@@ -1922,7 +1950,7 @@ function startWatchPollPill(){
   bar.style.transition='none';bar.style.width='0%';
   txt.textContent='Next update in 30s';
   if(icon)icon.textContent='refresh';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 30s linear';bar.style.width='100%';}));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 8s linear';bar.style.width='30%';setTimeout(()=>{if(bar.style.width==='30%'){bar.style.transition='width 6s ease-in-out';bar.style.width='65%';}},8500);setTimeout(()=>{if(bar.style.width==='65%'){bar.style.transition='width 8s ease-in-out';bar.style.width='92%';}},16000);}));
   let remaining=30;
   window._watchesPctInterval=setInterval(()=>{
     remaining--;
@@ -1961,23 +1989,40 @@ function manualRefreshWarnings(){
 
 // ── Tornado audio alert ──
 const _torAudioIds=new Set();
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(_audioCtx.state==='suspended')_audioCtx.resume();
+  return _audioCtx;
+}
+// Unlock on any user interaction
+function unlockAudio(){
+  try{getAudioCtx();}catch{}
+}
+document.addEventListener('click',unlockAudio,{capture:true});
+document.addEventListener('touchstart',unlockAudio,{capture:true,passive:true});
+
 function playTornadoAlert(){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const playDing=(time,freq)=>{
-      const osc=ctx.createOscillator();
-      const gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.type='sine';osc.frequency.setValueAtTime(freq,time);
-      gain.gain.setValueAtTime(0,time);
-      gain.gain.linearRampToValueAtTime(0.5,time+0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001,time+0.9);
-      osc.start(time);osc.stop(time+0.9);
-    };
-    playDing(ctx.currentTime,880);
-    playDing(ctx.currentTime+0.4,1046);
-    playDing(ctx.currentTime+0.8,1318);
-  }catch{}
+    const ctx=getAudioCtx();
+    const resume=ctx.state==='suspended'?ctx.resume():Promise.resolve();
+    resume.then(()=>{
+      const playDing=(time,freq)=>{
+        const osc=ctx.createOscillator();
+        const gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.type='sine';osc.frequency.setValueAtTime(freq,time);
+        gain.gain.setValueAtTime(0,time);
+        gain.gain.linearRampToValueAtTime(0.5,time+0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001,time+0.9);
+        osc.start(time);osc.stop(time+0.9);
+      };
+      const t=ctx.currentTime;
+      playDing(t,880);
+      playDing(t+0.4,1046);
+      playDing(t+0.8,1318);
+    });
+  }catch(e){console.error('Audio error:',e);}
 }
 
 
@@ -1985,40 +2030,42 @@ async function fetchWarnings() {
   try {
     if (radarLayer) radarLayer.setParams({ _refresh: Date.now() }, false);
 
-    // Fetch NWS API + NOAA WWA layer 0 (warnings) + layer 1 (watches) all in parallel
+    const wwa1Where = encodeURIComponent("prod_type IN ('Tornado Watch','Severe Thunderstorm Watch')");
     const [nwsRes, wwa0Res, wwa1Res] = await Promise.allSettled([
-      fetch(`${WORKER}/nws/alerts/active?status=actual`, { cache: 'no-store' }),
-      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' }),
-      fetch(`${NOAA_WWA}/1/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
+      fetch(`${WORKER}/nws/alerts/active?status=actual&area=AL,AK,AZ,AR,CA,CO,CT,DE,FL,GA,HI,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY,DC`, { cache: 'no-store' }),
+      fetch(`${NOAA_WWA}/0/query?where=1%3D1&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&geometry=-180,18,-66,72&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&_=${Date.now()}`, { cache: 'no-store' }),
+      fetch(`${NOAA_WWA}/1/query?where=${wwa1Where}&outFields=*&f=geojson&outSR=4326&geometryPrecision=4&_=${Date.now()}`, { cache: 'no-store' })
     ]);
+    if (!nwsRes.value?.ok && !wwa0Res.value?.ok && !wwa1Res.value?.ok) return;
 
-    let combinedFeatures = [];
+    const now = Date.now();
 
-    // NWS API — rich metadata, descriptions, county names
+    // ── 1. NWS API — warnings with geometry + all metadata ──
+    let nwsFeatures = [];
     if (nwsRes.status === 'fulfilled' && nwsRes.value.ok) {
       const gj = await nwsRes.value.json();
-      const norm = f => {
+      nwsFeatures = (gj.features || []).map(f => {
         const p = f.properties || {};
-        const areaDesc = (p.areaDesc || p.area_desc || '').trim();
-        const expires = p.expires || p.ends || p.expiration || null;
-        const senderName = (p.senderName || p.sender || 'NWS').trim();
         const nwsHeadline = (p.parameters?.NWSheadline?.[0] || p.parameters?.headline?.[0] || '').trim();
-        const description = (p.description || p.instruction || '').trim();
-        const headline = nwsHeadline || p.headline || p.event || '';
-        return { ...f, properties: { ...p, areaDesc, expires, senderName, description, headline, event: p.event || '' } };
-      };
-      combinedFeatures = (gj.features || []).map(norm);
+        return { ...f, properties: {
+          ...p,
+          event: p.event || '',
+          areaDesc: (p.areaDesc || p.area_desc || '').trim(),
+          expires: p.expires || p.ends || p.expiration || null,
+          senderName: (p.senderName || p.sender || 'NWS').trim(),
+          description: (p.description || p.instruction || '').trim(),
+          headline: nwsHeadline || p.headline || p.event || '',
+        }};
+      });
     }
 
-    // Helper: normalize a WWA feature's prod_type → NWS event name and push if valid
-    const pushWWA = (f) => {
+    // ── 2. WWA layer 0 — warning polygons (geometry source for warnings) ──
+    const pushWWA = (f, into) => {
       const p = f.properties || {};
       if (!f.geometry) return;
-      // prod_type is already title-case (e.g. "Severe Thunderstorm Watch")
-      // but may also be abbreviated — normalize both cases
       const pt = (p.prod_type || '').trim();
       const raw = pt.toUpperCase();
-      let eventName = SEVERE_COLORS[pt] ? pt : ''; // direct match first
+      let eventName = SEVERE_COLORS[pt] ? pt : '';
       if (!eventName) {
         if (raw.includes('TORNADO') && raw.includes('EMERGENCY')) eventName = 'Tornado Emergency';
         else if (raw.includes('TORNADO') && raw.includes('WARNING')) eventName = 'Tornado Warning';
@@ -2041,30 +2088,62 @@ async function fetchWarnings() {
         else if (raw.includes('STORM SURGE') && raw.includes('WATCH')) eventName = 'Storm Surge Watch';
       }
       if (!eventName || !SEVERE_COLORS[eventName]) return;
-      const areaDesc = (p.area_desc || p.areaDesc || p.states || '').trim();
       const rawExp = p.expiration || p.ends || p.end || null;
       let expires = rawExp;
       if (typeof rawExp === 'number' && rawExp > 9999999999) expires = new Date(rawExp).toISOString();
       else if (typeof rawExp === 'number' && rawExp > 0) expires = new Date(rawExp * 1000).toISOString();
       else if (typeof rawExp === 'string') expires = rawExp;
-      combinedFeatures.push({
-        ...f,
-        properties: { ...p, event: eventName, areaDesc, expires, senderName: p.wfo || 'NWS', description: '', headline: eventName, url: p.url || p.cap_id || '' }
-      });
+      into.push({ ...f, properties: { ...p, event: eventName, areaDesc: (p.area_desc || p.areaDesc || p.states || '').trim(), expires, senderName: p.wfo || 'NWS', description: '', headline: eventName, url: p.url || p.cap_id || '' }});
     };
 
-    // Layer 0: all NWS warnings with polygons
+    let wwa0Features = [];
     if (wwa0Res.status === 'fulfilled' && wwa0Res.value.ok) {
       const gj = await wwa0Res.value.json();
-      (gj.features || []).forEach(pushWWA);
-    }
-    // Layer 1: SPC convective watches (tornado, SVR) with polygons
-    if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
-      const gj = await wwa1Res.value.json();
-      (gj.features || []).forEach(pushWWA);
+      (gj.features || []).forEach(f => pushWWA(f, wwa0Features));
     }
 
-    // Upgrade emergencies
+    // ── 3. WWA layer 1 — watch polygons (authoritative geometry for watches) ──
+    let wwa1Features = [];
+    if (wwa1Res.status === 'fulfilled' && wwa1Res.value.ok) {
+      const gj = await wwa1Res.value.json();
+      (gj.features || []).forEach(f => pushWWA(f, wwa1Features));
+    }
+    // Cache watch polygons — restore if WWA1 returns empty but watches haven't expired
+    if (wwa1Features.length > 0) {
+      window._cachedWatchFeats = wwa1Features;
+    } else if (window._cachedWatchFeats?.length) {
+      const stillValid = window._cachedWatchFeats.filter(f => {
+        const exp = f.properties?.expires || null;
+        if (!exp) return true;
+        return new Date(exp).getTime() > now;
+      });
+      wwa1Features = stillValid.length > 0 ? stillValid : [];
+      if (!stillValid.length) window._cachedWatchFeats = null;
+    }
+
+    // ── 4. Merge: NWS warnings (geometry only) + WWA0 warnings + WWA1 watches ──
+    // NWS warnings that have geometry are kept as-is (rich metadata)
+    // Separate NWS warnings (reliable geometry) from watches (geometry often null)
+    const nwsWarningsWithGeom = nwsFeatures.filter(f => f.geometry && !/watch/i.test(f.properties?.event || ''));
+    const nwsWatchMeta = nwsFeatures.filter(f => /watch/i.test(f.properties?.event || ''));
+
+    // All watch polygons come from WWA layers — WWA1 for SPC watches, WWA0 for WFO watches
+    const wwa1EventTypes = new Set(wwa1Features.map(f => f.properties?.event).filter(Boolean));
+    // Merge NWS watch metadata onto WWA1 polygons
+    const mergedWatches = wwa1Features.map(wf => {
+      const match = nwsWatchMeta.find(n => n.properties?.event === wf.properties?.event);
+      if (match) return { ...wf, properties: { ...wf.properties, description: match.properties?.description || '', headline: match.properties?.headline || wf.properties?.headline, areaDesc: match.properties?.areaDesc || wf.properties?.areaDesc, senderName: match.properties?.senderName || wf.properties?.senderName }};
+      return wf;
+    });
+    // WWA0 watch polygons (flash flood watch, flood watch, high wind watch, etc.)
+    const wwa0Watches = wwa0Features.filter(f => /watch/i.test(f.properties?.event || '') && !wwa1EventTypes.has(f.properties?.event));
+    // WWA0 warning fill: events not already in NWS with geometry
+    const nwsWarnEvents = new Set(nwsWarningsWithGeom.map(f => f.properties?.event).filter(Boolean));
+    const wwa0WarnFill = wwa0Features.filter(f => !/watch/i.test(f.properties?.event || '') && !nwsWarnEvents.has(f.properties?.event));
+
+    let combinedFeatures = [...nwsWarningsWithGeom, ...wwa0WarnFill, ...wwa0Watches, ...mergedWatches];
+
+    // ── 5. Upgrade emergencies ──
     combinedFeatures.forEach(f => {
       const p = f.properties || {};
       const text = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
@@ -2072,39 +2151,30 @@ async function fetchWarnings() {
       else if (p.event === 'Flash Flood Warning' && text.includes('FLASH FLOOD EMERGENCY')) p.event = 'Flash Flood Emergency';
     });
 
-    // Deduplicate: for each event type, if we have NWS features with real description AND
-    // WWA features with empty description, drop the WWA ones (NWS has better data for pulse/display)
-    const nwsWithDesc = new Set(
-      combinedFeatures
-        .filter(f => f.geometry && (f.properties?.description||'').length > 20)
-        .map(f => f.properties?.event || '')
-        .filter(Boolean)
-    );
-    const deduped = combinedFeatures.filter(f => {
-      const ev = f.properties?.event || '';
-      // Keep if it has a real description, OR if NWS didn't provide this event type
-      if ((f.properties?.description||'').length > 20) return true;
-      if (!nwsWithDesc.has(ev)) return true;
-      return false; // drop empty-description duplicate when NWS version exists
+    // ── 6. Filter: must have geometry, valid event, not expired ──
+    const newWarnings = combinedFeatures.filter(f => {
+      if (!f.geometry || !f.properties || !SEVERE_COLORS.hasOwnProperty(f.properties?.event || '')) return false;
+      const exp = f.properties?.expires || f.properties?.expiration || f.properties?.end || null;
+      if (exp && new Date(exp).getTime() < now) return false;
+      return true;
     });
+    newWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
 
-    activeWarnings = deduped.filter(f => f.geometry && f.properties && SEVERE_COLORS.hasOwnProperty(f.properties?.event || ''));
-    activeWarnings.sort((a, b) => getAlertPriority(b.properties.event) - getAlertPriority(a.properties.event));
+    activeWarnings = newWarnings;
     activeWatches = [];
-
     renderWatchesMap(activeWarnings);
     updateWatchLegend(activeWarnings);
-    if(window._watchesFirstLoad){
-      window._watchesFirstLoad=false;
-      const ov=document.getElementById('watches-init-overlay');
-      if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}
+    if (window._watchesFirstLoad) {
+      window._watchesFirstLoad = false;
+      const ov = document.getElementById('watches-init-overlay');
+      if (ov) { ov.classList.add('hidden'); setTimeout(() => ov.style.display = 'none', 400); }
     }
   } catch (e) {
     console.error('fetchWarnings Error:', e);
-    if(window._watchesFirstLoad){
-      window._watchesFirstLoad=false;
-      const ov=document.getElementById('watches-init-overlay');
-      if(ov){ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',400);}
+    if (window._watchesFirstLoad) {
+      window._watchesFirstLoad = false;
+      const ov = document.getElementById('watches-init-overlay');
+      if (ov) { ov.classList.add('hidden'); setTimeout(() => ov.style.display = 'none', 400); }
     }
   }
 }
@@ -2114,17 +2184,21 @@ let _watchPulseIntervals = [];
 function shouldPulse(feat) {
   const p = feat.properties || {};
   const event = (p.event || '').toUpperCase();
-  const desc = (p.description || p.headline || '').toUpperCase();
+  const desc = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
 
   // 1. Tornado Warnings
   if (event.includes('TORNADO WARNING')) {
-    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || event.includes('EMERGENCY')) return 'emerg';
+    if (desc.includes('CATASTROPHIC') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || event.includes('TORNADO EMERGENCY')) return 'emerg';
     return null;
   }
 
   // 2. Severe Thunderstorm Warnings
   if (event.includes('SEVERE THUNDERSTORM WARNING')) {
     const isDestructive = desc.includes('DESTRUCTIVE') ||
+                          desc.includes('OBSERVED') ||
+                          desc.includes('CONFIRMED') ||
+                          desc.includes('CATASTROPHIC') ||
+                          desc.includes('CONSIDERABLE') ||
                           desc.includes('MAX HAIL SIZE...2.75') ||
                           desc.includes('MAX HAIL SIZE...3.') ||
                           desc.includes('WIND...80 MPH');
@@ -2139,7 +2213,7 @@ function shouldPulse(feat) {
 
   // 3. Flash Flood Warnings
   if (event.includes('FLASH FLOOD WARNING')) {
-    if (desc.includes('CATASTROPHIC') || event.includes('EMERGENCY')) return 'emerg';
+    if (desc.includes('CATASTROPHIC') || event.includes('TORNADO EMERGENCY')) return 'emerg';
     if (desc.includes('CONSIDERABLE')) return 'warn';
   }
 
@@ -2150,44 +2224,62 @@ function isLifeThreatening(feat) {
   const p = feat.properties || {};
   const ev = (p.event || '').toUpperCase();
   const desc = (p.description || p.headline || p.parameters?.NWSheadline?.[0] || '').toUpperCase();
-  if (ev.includes('TORNADO EMERGENCY') || ev.includes('EMERGENCY')) return true;
-  if (ev.includes('TORNADO WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('OBSERVED') || desc.includes('CONFIRMED'))) return true;
-  if (ev.includes('SEVERE THUNDERSTORM WARNING') && desc.includes('DESTRUCTIVE')) return true;
-  if (ev.includes('FLASH FLOOD WARNING') && (desc.includes('CATASTROPHIC') || desc.includes('EMERGENCY'))) return true;
+  if (ev.includes('TORNADO EMERGENCY')) return true;
+  if (ev.includes('TORNADO WARNING') && (desc.includes('OBSERVED') || desc.includes('CONFIRMED') || desc.includes('CONSIDERABLE') || desc.includes('CATASTROPHIC'))) return true;
+  if (ev.includes('SEVERE THUNDERSTORM WARNING') && (desc.includes('DESTRUCTIVE') || desc.includes('OBSERVED') || desc.includes('CONFIRMED') || desc.includes('CATASTROPHIC') || desc.includes('CONSIDERABLE') || desc.includes('TORNADO...POSSIBLE') || desc.includes('TORNADO POSSIBLE'))) return true;
+  if (ev.includes('FLASH FLOOD WARNING') && desc.includes('CATASTROPHIC')) return true;
   return false;
 }
 
 function renderWatchesMap(features) {
-  const newLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+  const renderFeatures = [...features].sort((a,b)=>getAlertPriority(b.properties?.event)-getAlertPriority(a.properties?.event));
+  const newLayer = L.geoJSON({ type: 'FeatureCollection', features: renderFeatures }, {
     style: feat => {
       const ev = feat.properties?.event || '';
       const lifeThreat = isLifeThreatening(feat);
-      const color = lifeThreat ? '#FF2DD4' : (SEVERE_COLORS[ev] || '#8B5CF6');
+      const isTorLifeThreat = lifeThreat && /tornado/i.test(ev);
+      const color = isTorLifeThreat ? '#FF2DD4' : (SEVERE_COLORS[ev] || '#8B5CF6');
       const isWatch = /watch/i.test(ev);
-      const isTorWarn = /tornado warning/i.test(ev) && !lifeThreat;
+      const isTorWarn = /tornado warning/i.test(ev) && !isTorLifeThreat;
       return {
         fillColor: color,
-        fillOpacity: lifeThreat ? 0.6 : isTorWarn ? 0.85 : (isWatch ? 0.18 : 0.25),
+        fillOpacity: isTorLifeThreat ? 0.6 : isTorWarn ? 0.85 : (isWatch ? 0.18 : 0.25),
         color,
-        weight: lifeThreat ? 3.5 : (isWatch ? 1.5 : 2),
+        weight: isTorLifeThreat ? 3.5 : (isWatch ? 1.5 : 2),
         opacity: 1
       };
-    },
-    onEachFeature: (feat, lyr) => {
-      lyr.on('click', e => {
-        L.DomEvent.stopPropagation(e);
-        try { const b = lyr.getBounds(); if (b.isValid()) watchesMap.fitBounds(b, { padding: [60, 60] }); } catch {}
-        openAlertOverlay(feat);
-      });
     }
   });
 
-  // Atomic swap — add new before removing old, no blank flash
   newLayer.addTo(watchesMap);
   if (watchLayer) watchesMap.removeLayer(watchLayer);
   watchLayer = newLayer;
 
-  // Apply pulse classes — retry until all _path elements exist (Leaflet creates them async)
+  // Map-level click: precise point-in-polygon test, open highest-priority hit
+  function pointInPolygon(pt, ring) {
+    const x=pt.lng, y=pt.lat; let inside=false;
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+      const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+      if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;
+    }
+    return inside;
+  }
+  function featContainsPoint(feat,pt){
+    const g=feat.geometry;if(!g)return false;
+    const polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
+    return polys.some(poly=>pointInPolygon(pt,poly[0]));
+  }
+  if (watchesMap._watchClickHandler) watchesMap.off('click', watchesMap._watchClickHandler);
+  watchesMap._watchClickHandler = function(e) {
+    const hits = [];
+    newLayer.eachLayer(lyr => { if (featContainsPoint(lyr.feature, e.latlng)) hits.push(lyr.feature); });
+    if (!hits.length) return;
+    hits.sort((a,b) => getAlertPriority(a.properties?.event) - getAlertPriority(b.properties?.event));
+    openAlertOverlay(hits[0]);
+  };
+  watchesMap.on('click', watchesMap._watchClickHandler);
+
+  // Apply pulse classes
   let attempts = 0;
   const applyPulse = () => {
     let allReady = true;
@@ -2195,26 +2287,24 @@ function renderWatchesMap(features) {
       const pulse = shouldPulse(lyr.feature);
       if (!pulse) return;
       if (!lyr._path) { allReady = false; return; }
-      const cls = pulse === 'emerg' ? 'svg-pulse-emerg' : 'svg-pulse-warn';
-      lyr._path.classList.add(cls);
+      lyr._path.classList.add(pulse === 'emerg' ? 'svg-pulse-emerg' : 'svg-pulse-warn');
     });
     if (!allReady && attempts++ < 20) requestAnimationFrame(applyPulse);
   };
   requestAnimationFrame(applyPulse);
 
-  // Ding for newly-seen life-threatening tornado warnings
+  // Audio ding for newly-seen observed/life-threatening tornado warnings
   features.forEach(feat=>{
-    if(isLifeThreatening(feat)&&/tornado/i.test(feat.properties?.event||'')){
+    const ev=(feat.properties?.event||'').toUpperCase();
+    const desc=(feat.properties?.description||feat.properties?.headline||feat.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+    // Only ding for features that actually render pink (tornado + life-threatening)
+    const isTorLifeThreat=isLifeThreatening(feat)&&/tornado/i.test(feat.properties?.event||'');
+    if(isTorLifeThreat){
       const id=feat.properties?.id||feat.properties?.cap_id||feat.properties?.url||JSON.stringify({ev:feat.properties?.event,exp:feat.properties?.expires});
-      if(!_torAudioIds.has(id)){
-        _torAudioIds.add(id);
-        playTornadoAlert();
-      }
+      if(!_torAudioIds.has(id)){_torAudioIds.add(id);playTornadoAlert();}
     }
   });
-
 }
-
 
 function updateWatchLegend(features){
   const legWarn=document.getElementById('ww-legend-warnings');
@@ -2222,13 +2312,23 @@ function updateWatchLegend(features){
   legWarn.innerHTML='';legWatch.innerHTML='';
 
   const seenWarn=new Map();const seenWatch=new Map();
-  let hasEmergPulse=false;let hasWarnPulse=false;
+  let hasEmergPulse=false;let hasWarnPulse=false;let hasObservedTornado=false;let hasDestructiveSvr=false;
   features.forEach(f=>{
     const ev=(f.properties?.event||'').trim();
     if(!ev)return;
     const pulse=shouldPulse(f);
     if(pulse==='emerg')hasEmergPulse=true;
     else if(pulse==='warn')hasWarnPulse=true;
+    // OBSERVED TORNADO: tornado warning with observed/confirmed/catastrophic/considerable tags
+    if(pulse==='emerg'&&/tornado/i.test(ev)){
+      const desc=(f.properties?.description||f.properties?.headline||f.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+      if(desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||/tornado emergency/i.test(ev))hasObservedTornado=true;
+    }
+    // DESTRUCTIVE THUNDERSTORM: SVR warning only (never tornado) with any significant tag
+    if(/severe thunderstorm warning/i.test(ev)){
+      const desc=(f.properties?.description||f.properties?.headline||f.properties?.parameters?.NWSheadline?.[0]||'').toUpperCase();
+      if(desc.includes('DESTRUCTIVE')||desc.includes('OBSERVED')||desc.includes('CONFIRMED')||desc.includes('CATASTROPHIC')||desc.includes('CONSIDERABLE')||desc.includes('TORNADO...POSSIBLE')||desc.includes('TORNADO POSSIBLE'))hasDestructiveSvr=true;
+    }
     // Always use base color for legend — fuchsia is only for map polygons
     const{color,label}=getWatchStyle(ev);
     if(/watch/i.test(ev)){if(!seenWatch.has(ev))seenWatch.set(ev,{color,label});}
@@ -2249,8 +2349,16 @@ function updateWatchLegend(features){
 
   // Pulse key — shown in warnings legend if any pulsing alerts are active
   if((hasEmergPulse||hasWarnPulse)&&legWarn.style.display!=='none'){
-    if(hasEmergPulse){
-      legWarn.innerHTML+=`<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)"><div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;">volume_up</span><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span></div>`;
+    if(hasObservedTornado||hasDestructiveSvr){
+      const sep='<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)">';
+      const nosep='<div class="wl-item" style="margin-top:3px">';
+      if(hasObservedTornado){
+        legWarn.innerHTML+=`${sep}<div class="wl-swatch svg-pulse-emerg" style="background:#FF2DD4;border:1px solid rgba(255,45,212,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FF2DD4;font-weight:800;letter-spacing:0.04em;">OBSERVED TORNADO</span><span class="msr" style="font-size:10px;color:#FF2DD4;animation:tor-text-pulse 0.8s ease-in-out infinite;margin-left:4px;">volume_up</span></div>`;
+      }
+      if(hasDestructiveSvr){
+        const div=hasObservedTornado?nosep:sep;
+        legWarn.innerHTML+=`${div}<div class="wl-swatch svg-pulse-emerg" style="background:#FFA500;border:1px solid rgba(255,165,0,0.7);border-radius:2px;"></div><span class="wl-tor-ground" style="font-size:.6rem;color:#FFA500;font-weight:800;letter-spacing:0.04em;">DESTRUCTIVE THUNDERSTORM</span></div>`;
+      }
     }
   }
 }
@@ -2315,7 +2423,8 @@ function extractCitiesFromDesc(desc){
 function normalizeAreaDesc(p){
   const raw=(p.areaDesc||p.area_desc||p.states||p.location||'').trim();
   if(!raw)return{counties:[],display:'—'};
-  const counties=raw.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  // NWS areaDesc: semicolon-separated "County, ST" entries — split on ; only to keep state with county
+  const counties=raw.split(/;/).map(s=>s.trim()).filter(Boolean);
   const display=counties.length
     ? counties.slice(0,5).join(', ')+(counties.length>5?` +${counties.length-5} more`:'')
     : '—';
@@ -2414,9 +2523,9 @@ async function openAlertOverlay(feat){
   // ── 7. Parse NWS text into structured sections ──
   const nwsText=(rawDesc||rawHeadline||'').trim();
 
-  // ── 7a. Counties — from areaDesc property ──
+  // ── 7a. Counties — from areaDesc property (not shown for watches) ──
   const{counties}=normalizeAreaDesc(p);
-  if(counties.length){
+  if(counties.length && !isWatch){
     const wrap=document.getElementById('ao-counties');
     wrap.innerHTML=counties.map(c=>`<span class="ao-county-chip">${c}</span>`).join('');
     document.getElementById('ao-sec-counties').style.display='';
@@ -2453,10 +2562,10 @@ async function openAlertOverlay(feat){
     || /^UNTIL \d|^UNTIL [A-Z]/i.test(t)
     || (counties.length>0&&counties.some(c=>t.includes(c)));
 
-  // ── 7b. Cities — from LOCATIONS IMPACTED / cities bullet ──
+  // ── 7b. Cities — from LOCATIONS IMPACTED / cities bullet (not shown for watches) ──
   const fullText=blocks.map(b=>b.text).join(' ');
   const cities=extractCitiesFromDesc(fullText);
-  if(cities.length){
+  if(cities.length && !isWatch){
     const wrap=document.getElementById('ao-cities-chips');
     wrap.innerHTML=cities.map(c=>`<span class="ao-city-chip" style="background:${hexToRgba(color,0.12)};border:1px solid ${hexToRgba(color,0.25)}">${c}</span>`).join('');
     document.getElementById('ao-sec-cities').style.display='';
@@ -2537,10 +2646,10 @@ function classifyConcern(raw){
 }
 
 function initMesoMap(){
-  mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false}).setView([38.5,-96],4);
+  mesoMap=L.map('meso-map',{zoomControl:false,attributionControl:false,zoomSnap:0.25,zoomDelta:0.5,wheelDebounceTime:40,wheelPxPerZoomLevel:80,fadeAnimation:true,markerZoomAnimation:true,tap:false}).setView([38.5,-96],4);
   L.control.zoom({position:'topright'}).addTo(mesoMap);
   const r=window.devicePixelRatio>1?'@2x':'';
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19}).addTo(mesoMap);
+  L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,updateWhenIdle:false,keepBuffer:4}).addTo(mesoMap);
   fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json').then(r=>r.json()).then(gj=>L.geoJSON(gj,{style:{color:'#4b5563',weight:1.5,fill:false,opacity:.9},interactive:false}).addTo(mesoMap)).catch(()=>{});
   L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}${r}.png`,{subdomains:'abcd',maxZoom:19,pane:'shadowPane'}).addTo(mesoMap);
   loadMeso();
@@ -2581,7 +2690,7 @@ function renderMesoMap(features){
       lyr.on('click',()=>{
         const idx=mesoData.findIndex(f=>f===feat);
         if(idx>=0){
-          try{const bounds=lyr.getBounds();if(bounds.isValid())mesoMap.fitBounds(bounds,{padding:[60,60]});}catch{}
+
           showMesoDetail(feat,idx);
         }
       });
@@ -2602,7 +2711,7 @@ function renderMesoPanel(features){
     item.innerHTML=`<div class="meso-item-num">MD #${num}</div><div class="meso-item-title">${concern}</div><div class="meso-item-meta">${states}</div>`;
     item.addEventListener('click',()=>{
       list.querySelectorAll('.meso-item').forEach(el=>el.style.background='');item.style.background='var(--surface2)';
-      try{const layers=Object.values(mesoLayers.all?._layers||{});if(layers[idx]?.getBounds){const b=layers[idx].getBounds();if(b.isValid())mesoMap.fitBounds(b,{padding:[40,40]});}}catch{}
+
       showMesoDetail(feat,idx);
     });
     list.appendChild(item);
@@ -2628,18 +2737,22 @@ async function showMesoDetail(feat,i){
     const pre=div.querySelector('pre');
     let raw=(pre?pre.textContent:div.textContent).trim().slice(0,3500);
     document.getElementById('disc-body').innerHTML=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div><div class="disc-loading"><div class="spin-ring"></div>Summarizing with AI…</div>`;
-    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,system:`You are a severe weather analyst. Summarize this SPC mesoscale discussion in plain English in exactly 4 sections:\n\nWHAT'S HAPPENING:\n[Current weather setup]\n\nPRIMARY THREAT:\n[Most critical hazard]\n\nAFFECTED AREA:\n[Where exactly]\n\nTIMING:\n[When]`,messages:[{role:'user',content:raw}]})});
+    const aiRes=await fetch(`${WORKER}/ai`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,system:`You are a severe weather analyst. Summarize this SPC mesoscale discussion in plain English in exactly 4 sections. Use NO markdown, NO ## headers, NO bold, NO asterisks. Reply ONLY with these exact headers followed by the text:\n\nWHAT'S HAPPENING:\n[Current weather setup in 1-2 sentences]\n\nPRIMARY THREAT:\n[Most critical hazard in 1-2 sentences]\n\nAFFECTED AREA:\n[Where exactly in 1-2 sentences]\n\nTIMING:\n[When in 1-2 sentences]`,messages:[{role:'user',content:raw}]})});
     if(!aiRes.ok)throw new Error('AI unavailable');
     const aiData=await aiRes.json();const summary=(aiData.content?.[0]?.text||'').trim();
     if(!summary)throw new Error('Empty response');
     const sectionIcons={"WHAT'S HAPPENING":'wb_cloudy','PRIMARY THREAT':'warning','AFFECTED AREA':'location_on','TIMING':'schedule'};
-    const lines=summary.split('\n').map(l=>l.trim()).filter(Boolean);
-    let html2=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div>`;
-    let j=0;
+    const metaRow=`<div class="disc-meta-row"><span class="disc-meta-chip">${concern}</span>${states?`<span class="disc-meta-chip">${states}</span>`:''}<span class="disc-meta-chip">Exp: ${expStr}</span></div>`;
+    const lines=summary.split('\n').map(l=>l.trim().replace(/^#+\s*/,'')).filter(Boolean);
+    let html2=metaRow;let j=0;
     while(j<lines.length){
-      const line=lines[j];const sectionMatch=line.match(/^([A-Z'S ]+):$/);
-      if(sectionMatch){const lbl=sectionMatch[1];const body=lines[j+1]||'';const icon=sectionIcons[lbl]||'info';html2+=`<div class="disc-section"><div class="disc-section-label"><span class="msr">${icon}</span>${lbl}</div><div class="disc-section-text">${body}</div></div>`;j+=2;}
-      else{html2+=`<div class="disc-section-text" style="margin-bottom:10px">${line}</div>`;j++;}
+      const line=lines[j];const sectionMatch=line.match(/^([A-Z][A-Z'S ]+):$/);
+      if(sectionMatch){
+        const lbl=sectionMatch[1];const icon=sectionIcons[lbl]||'info';
+        const bodyLines=[];j++;
+        while(j<lines.length&&!lines[j].match(/^([A-Z][A-Z'S ]+):$/)){bodyLines.push(lines[j]);j++;}
+        html2+=`<div class="disc-section"><div class="disc-section-label"><span class="msr">${icon}</span>${lbl}</div><div class="disc-section-text">${bodyLines.join(' ').trim()}</div></div>`;
+      }else{j++;}
     }
     document.getElementById('disc-body').innerHTML=html2;
   }catch(e){document.getElementById('disc-body').innerHTML=`<div class="disc-err">Could not load discussion (${e.message}).</div>`;}
