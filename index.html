@@ -183,6 +183,7 @@
     @keyframes pulse-tor{0%,100%{background:#c8101f;}50%{background:#ff2233;box-shadow:0 0 14px rgba(229,24,42,0.6);}}
     @keyframes pulse-svr{0%,100%{background:#c06800;}50%{background:#ff8c00;box-shadow:0 0 12px rgba(255,140,0,0.6);}}
     @keyframes pulse-flood{0%,100%{background:#007a24;}50%{background:#00cc3e;box-shadow:0 0 12px rgba(0,200,80,0.6);}}
+    @keyframes supertitle-pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
     .alert-row-tor{animation:pulse-tor 1s ease-in-out infinite;border-radius:var(--r-xs);margin:4px 8px;padding-left:12px;border-bottom:none!important;}
     .alert-row-tor .alert-event,.alert-row-tor .alert-chevron .msr{color:#fff!important;}
     .alert-row-tor .alert-exp{color:rgba(255,255,255,.75)!important;}
@@ -897,6 +898,7 @@
         <span class="msr" id="watch-modal-icon-sym" style="font-size:16px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">emergency_home</span>
       </div>
       <div style="flex:1;min-width:0;">
+        <div style="font-size:0.6rem;font-weight:900;letter-spacing:0.13em;text-transform:uppercase;margin-bottom:3px;animation:supertitle-pulse 1.2s ease-in-out infinite;display:none;" id="watch-modal-supertitle"></div>
         <div style="font-size:0.9rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;" id="watch-modal-title">—</div>
         <div style="font-size:0.7rem;color:var(--text4);margin-top:1px;" id="watch-modal-meta">—</div>
       </div>
@@ -2432,6 +2434,7 @@ async function showWatchDetail(feat){
   const a=feat.properties||{};
   let{label,color,iconSym}=getWatchStyle(a.event);
   const isTorWarn=/tornado warning/i.test(a.event||'');
+  const isSvrWarn=/severe thunderstorm warning/i.test(a.event||'');
 
   function applyObservedOverride(desc){
     if(!isTorWarn)return;
@@ -2447,6 +2450,20 @@ async function showWatchDetail(feat){
     }
   }
 
+  function applyDestructiveLabel(desc){
+    const supertitleEl=document.getElementById('watch-modal-supertitle');
+    if(!supertitleEl)return;
+    const d=(desc||'').toUpperCase();
+    const isDestructive=isSvrWarn&&(d.includes('DESTRUCTIVE')||d.includes('OBSERVED')||d.includes('CONFIRMED')||d.includes('CATASTROPHIC')||d.includes('CONSIDERABLE'));
+    if(isDestructive){
+      supertitleEl.textContent='⚠ Destructive Thunderstorm';
+      supertitleEl.style.color=color;
+      supertitleEl.style.display='';
+    }else{
+      supertitleEl.style.display='none';
+    }
+  }
+
   document.getElementById('watch-modal-bar').style.background=color;
   const iconEl=document.getElementById('watch-modal-icon');
   iconEl.style.cssText=`width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${color}22;`;
@@ -2454,11 +2471,13 @@ async function showWatchDetail(feat){
   document.getElementById('watch-modal-icon-sym').textContent=iconSym;
   document.getElementById('watch-modal-title').textContent=label;
   document.getElementById('watch-modal-title').style.color=color;
+  document.getElementById('watch-modal-supertitle').style.display='none';
   document.getElementById('watch-modal-meta').textContent='';
   document.getElementById('watch-modal-badges').innerHTML='';
 
   // Apply override immediately if description already in properties
   applyObservedOverride(a.description||a.headline||'');
+  applyDestructiveLabel(a.description||a.headline||'');
   document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:10px 0;"><div class="spin-ring"></div>Loading…</div>`;
   document.getElementById('watch-modal-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
@@ -2473,6 +2492,7 @@ async function showWatchDetail(feat){
   }
   // Re-check override now that we have full description
   applyObservedOverride(rawDesc||'');
+  applyDestructiveLabel(rawDesc||'');
   const{counties}=normalizeAreaDesc(a);
   const expDate=parseAlertDate(a.expires||a.expiration||a.end||null);
   const exp=expDate?expDate.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'—';
