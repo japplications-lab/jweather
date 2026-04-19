@@ -368,7 +368,7 @@
     .wc-label{font-size:0.68rem;font-weight:700;color:var(--text2);}
     .wc-exp{font-size:0.6rem;color:var(--text4);}
     .watches-legend{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(12,35,64,0.92);backdrop-filter:blur(8px);border:1px solid rgba(14,165,233,0.25);border-radius:var(--r-sm);padding:8px 10px;}
-    .wl-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;color:var(--text2);padding:2px 0;}
+    .wl-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;color:rgba(255,255,255,0.85);padding:2px 0;}
     .wl-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
     /* ══════════════════════════
@@ -532,10 +532,12 @@
 
     /* Leaflet overrides */
     .leaflet-container{font-family:var(--font);}
-    .leaflet-control-zoom{border:1px solid var(--border2)!important;border-radius:10px!important;overflow:hidden;box-shadow:none!important;}
-    .leaflet-control-zoom a{font-family:var(--font)!important;color:var(--text2)!important;background:rgba(26,29,36,0.95)!important;backdrop-filter:blur(8px);width:34px!important;height:34px!important;line-height:34px!important;font-size:17px!important;display:flex!important;align-items:center;justify-content:center;}
-    .leaflet-control-zoom a:hover{color:var(--red)!important;}
-    .leaflet-control-zoom-in{border-bottom:1px solid var(--border)!important;}
+    .leaflet-tile-pane{filter:hue-rotate(195deg) saturate(0.55) brightness(0.97);}
+    .leaflet-overlay-pane,.leaflet-marker-pane,.leaflet-shadow-pane{filter:none;}
+    .leaflet-control-zoom{border:1px solid rgba(14,165,233,0.3)!important;border-radius:10px!important;overflow:hidden;box-shadow:0 2px 12px rgba(2,20,60,0.3)!important;}
+    .leaflet-control-zoom a{font-family:var(--font)!important;color:#fff!important;background:rgba(12,35,64,0.92)!important;backdrop-filter:blur(8px);width:34px!important;height:34px!important;line-height:34px!important;font-size:17px!important;display:flex!important;align-items:center;justify-content:center;}
+    .leaflet-control-zoom a:hover{color:#7dd3fc!important;background:rgba(12,50,100,0.95)!important;}
+    .leaflet-control-zoom-in{border-bottom:1px solid rgba(14,165,233,0.2)!important;}
     .leaflet-control-attribution{display:none!important;}
     /* Keep Leaflet controls below modals */
     .leaflet-top,.leaflet-bottom{z-index:500!important;}
@@ -2549,7 +2551,7 @@ function updateWatchLegend(features){
   [...seen.entries()]
     .sort((a,b)=>getAlertPriority(a[0])-getAlertPriority(b[0]))
     .forEach(([,{color,label}])=>{
-      leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:var(--text2)">${label}</span></div>`;
+      leg.innerHTML+=`<div class="wl-item"><div class="wl-swatch" style="background:${color};border:1px solid rgba(255,255,255,0.15)"></div><span style="font-size:.65rem;color:rgba(255,255,255,0.85)">${label}</span></div>`;
     });
   if(hasObservedTornado||hasDestructiveSvr){
     const sep='<div class="wl-item" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)">';
