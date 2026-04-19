@@ -548,8 +548,8 @@
     .popup-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
     .popup-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
     .popup-risk{font-size:0.85rem;font-weight:700;color:#fff;}
-    .popup-sub{font-size:0.65rem;color:var(--text4);}
-    .popup-desc{font-size:0.72rem;color:var(--text2);line-height:1.6;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;}
+    .popup-sub{font-size:0.65rem;color:rgba(255,255,255,0.5);}
+    .popup-desc{font-size:0.72rem;color:rgba(255,255,255,0.75);line-height:1.6;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;margin-top:6px;}
   </style>
 </head>
 <body>
@@ -1521,7 +1521,7 @@ function unlockOutlookMap(){if(!outlookMap)return;outlookMap.dragging.enable();o
 function showOutlookEmpty(title, sub, reqId) {
   if (reqId !== undefined && reqId !== currentOutlookReqId) return;
   const legendEl = document.getElementById('ol-legend');
-  if (legendEl) legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">${title || 'No severe weather'}</span></div>`;
+  if (legendEl) legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:#4ade80;flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:rgba(255,255,255,0.85);font-weight:600;">${title || 'No severe weather'}</span></div>`;
   lockOutlookMap();
 }
 function hideOutlookEmpty() { unlockOutlookMap(); }
@@ -1901,7 +1901,7 @@ async function loadOutlookDay48(dayNum) {
     });
     const hasData = sorted.some(f => getDay48DN(f) >= 15);
     if (!hasData) {
-      legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:var(--green);flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:var(--text2);font-weight:600;">No outlook for ${dayLabel}</span></div>`;
+      legendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;white-space:nowrap;"><span class="msr" style="font-size:13px;color:#4ade80;flex-shrink:0;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">check_circle</span><span style="font-size:0.65rem;color:rgba(255,255,255,0.85);font-weight:600;">No outlook for ${dayLabel}</span></div>`;
       return;
     }
     activeOutlookLayer = L.geoJSON({ type: 'FeatureCollection', features: sorted }, {
