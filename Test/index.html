@@ -321,8 +321,8 @@
     .disc-close .msr{font-size:15px;}
     .disc-body{padding:14px 16px 20px;overflow-y:scroll;flex:1;min-height:0;-webkit-overflow-scrolling:touch;}
     .disc-section{margin-bottom:16px;}
-    .disc-section-label{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:4px;}
-    .disc-section-text{font-size:0.82rem;line-height:1.7;color:var(--text2);}
+    .disc-section-label{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#7dd3fc;margin-bottom:4px;}
+    .disc-section-text{font-size:0.82rem;line-height:1.7;color:rgba(255,255,255,0.85);}
     .disc-err{font-size:0.8rem;color:var(--red);}
     .disc-loading{display:flex;align-items:center;gap:12px;padding:24px 0;color:var(--text4);font-size:0.82rem;}
 
@@ -515,8 +515,8 @@
     .meso-sum-text{font-size:0.84rem;line-height:1.7;color:var(--text2);}
     .meso-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;}
     .meso-badge-concern{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
-    .meso-badge-area{background:rgba(255,255,255,0.06);color:var(--text3);border:1px solid var(--border2);}
-    .meso-badge-expire{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+    .meso-badge-area{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);}
+    .meso-badge-expire{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.35);}
     .meso-err{font-size:0.8rem;color:var(--red);padding:8px 0;}
 
     /* State box */
@@ -880,8 +880,8 @@
         <span class="msr" style="font-size:15px;">close</span>
       </button>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;filter:brightness(1.1);" id="meso-modal-badges"></div>
-    <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;color:rgba(255,255,255,0.85);" id="meso-modal-body">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;" id="meso-modal-badges"></div>
+    <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;" id="meso-modal-body">
       <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
         <div class="spin-ring"></div>Loading summary…
       </div>
@@ -907,7 +907,7 @@
       </button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;" id="watch-modal-badges"></div>
-    <div style="padding:12px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;color:rgba(255,255,255,0.85);" id="watch-modal-body">
+    <div style="padding:12px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;" id="watch-modal-body">
       <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
         <div class="spin-ring"></div>Loading…
       </div>
@@ -2461,7 +2461,7 @@ async function showWatchDetail(feat){
 
   // Apply override immediately if description already in properties
   applyObservedOverride(a.description||a.headline||'');
-  document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:10px 0;"><div class="spin-ring"></div>Loading…</div>`;
+  document.getElementById('watch-modal-body').innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.45);font-size:0.8rem;padding:10px 0;"><div class="spin-ring"></div>Loading…</div>`;
   document.getElementById('watch-modal-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
   if(watchesMap&&feat.geometry){
@@ -2493,11 +2493,11 @@ async function showWatchDetail(feat){
   }
   const fullText=blocks.map(b=>b.text).join(' ');
   const cities=extractCitiesFromDesc(fullText);
-  const chip=(txt,bg,border)=>`<span style="display:inline-flex;padding:3px 9px;background:${bg};border:1px solid ${border};border-radius:20px;font-size:0.68rem;font-weight:500;color:var(--text2);margin:2px;">${txt}</span>`;
-  const section=(icon,title,body,tint)=>`<div style="background:${tint||'var(--surface2)'};border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:5px;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text4);margin-bottom:7px;"><span class="msr" style="font-size:12px">${icon}</span>${title}</div>${body}</div>`;
-  let html=`<div style="display:flex;align-items:center;gap:6px;padding:7px 0 12px;"><span class="msr" style="font-size:13px;color:var(--text4)">schedule</span><span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4)">Expires</span><span style="font-size:0.78rem;font-weight:600;color:var(--text2);margin-left:4px">${exp}</span></div>`;
+  const chip=(txt,bg,border)=>`<span style="display:inline-flex;padding:3px 9px;background:${bg};border:1px solid ${border};border-radius:20px;font-size:0.68rem;font-weight:500;color:rgba(255,255,255,0.9);margin:2px;">${txt}</span>`;
+  const section=(icon,title,body,tint)=>`<div style="background:${tint||'rgba(0,0,0,0.2)'};border:1px solid rgba(14,165,233,0.2);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:5px;font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.45);margin-bottom:7px;"><span class="msr" style="font-size:12px">${icon}</span>${title}</div>${body}</div>`;
+  let html=`<div style="display:flex;align-items:center;gap:6px;padding:7px 0 12px;"><span class="msr" style="font-size:13px;color:rgba(255,255,255,0.45)">schedule</span><span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.45)">Expires</span><span style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.85);margin-left:4px">${exp}</span></div>`;
   const isWatch=/watch/i.test(a.event||'');
-  if(counties.length&&!isWatch)html+=section('map','Counties Impacted',counties.map(c=>chip(c,'var(--surface3)','var(--border2)')).join(''));
+  if(counties.length&&!isWatch)html+=section('map','Counties Impacted',counties.map(c=>chip(c,'rgba(14,165,233,0.15)','rgba(14,165,233,0.3)')).join(''));
   if(cities.length&&!isWatch)html+=section('location_city','Cities Impacted',cities.map(c=>chip(c,hexToRgba(color,0.12),hexToRgba(color,0.25))).join(''));
   const descKeys=['HAZARD','SOURCE','IMPACT','WHAT','WHERE','WHEN'];
   const descParts=[];
@@ -2505,15 +2505,15 @@ async function showWatchDetail(feat){
   if(/severe thunderstorm warning/i.test(a.event||'')&&/TORNADO\.\.\.POSSIBLE|TORNADO POSSIBLE/i.test(rawDesc||'')){
     descParts.push(`<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,0,0.1);border:1px solid rgba(255,255,0,0.35);border-radius:var(--r-xs);padding:8px 12px;margin-bottom:4px;"><span class="msr" style="font-size:16px;color:#FFFF00;font-variation-settings:'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24;">tornado</span><span style="font-size:0.82rem;font-weight:800;color:#FFFF00;letter-spacing:0.02em;">TORNADO POSSIBLE</span></div>`);
   }
-  for(const b of blocks){if(b.type==='keyval'){const m=b.text.match(/^([A-Z]+)\.{2,3}\s*(.*)/s);if(m&&descKeys.includes(m[1]))descParts.push(`<p style="margin-bottom:5px"><strong style="color:var(--text4);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.04em">${m[1]}</strong> ${m[2].trim()}</p>`);}}
-  for(const b of blocks){const t=b.text.trim();if(/was located|moving (east|west|north|south)|at \d+ mph|confirmed tornado|radar indicated/i.test(t)&&!isRedundant(t)){descParts.unshift(`<p style="margin-bottom:7px;font-size:0.82rem;color:var(--text2);line-height:1.65">${t}</p>`);break;}}
-  if(descParts.length)html+=section('info',"What's Happening",`<div style="font-size:0.82rem;color:var(--text2);line-height:1.65">${descParts.join('')}</div>`);
+  for(const b of blocks){if(b.type==='keyval'){const m=b.text.match(/^([A-Z]+)\.{2,3}\s*(.*)/s);if(m&&descKeys.includes(m[1]))descParts.push(`<p style="margin-bottom:5px"><strong style="color:rgba(255,255,255,0.45);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.04em">${m[1]}</strong><span style="color:rgba(255,255,255,0.85)"> ${m[2].trim()}</span></p>`);}}
+  for(const b of blocks){const t=b.text.trim();if(/was located|moving (east|west|north|south)|at \d+ mph|confirmed tornado|radar indicated/i.test(t)&&!isRedundant(t)){descParts.unshift(`<p style="margin-bottom:7px;font-size:0.82rem;color:rgba(255,255,255,0.85);line-height:1.65">${t}</p>`);break;}}
+  if(descParts.length)html+=section('info',"What's Happening",`<div style="font-size:0.82rem;color:rgba(255,255,255,0.85);line-height:1.65">${descParts.join('')}</div>`);
   let ctaText='';let inCta=false;
   for(const b of blocks){if(b.type==='header'&&/PRECAUTIONARY|WHAT TO DO|INSTRUCTIONS|SAFETY/i.test(b.text)){inCta=true;continue;}if(inCta){if(b.type==='header')break;ctaText+=(ctaText?' ':'')+b.text.trim();}}
   if(!ctaText){const instrBlock=blocks.find(b=>b.type==='keyval'&&/^INSTRUCTIONS?\.\.\./i.test(b.text));if(instrBlock){const m=instrBlock.text.match(/^[A-Z]+\.{2,3}\s*(.*)/s);if(m)ctaText=m[1].trim();}}
   if(!ctaText&&a.instruction)ctaText=a.instruction.trim();
-  if(ctaText)html+=section('shield','What To Do',`<div style="font-size:0.84rem;font-weight:600;color:var(--text);line-height:1.65">${ctaText}</div>`,hexToRgba(color,0.08));
-  document.getElementById('watch-modal-body').innerHTML=html||`<div style="font-size:0.8rem;color:var(--text4);padding:10px 0">No details available.</div>`;
+  if(ctaText)html+=section('shield','What To Do',`<div style="font-size:0.84rem;font-weight:600;color:rgba(255,255,255,0.9);line-height:1.65">${ctaText}</div>`,hexToRgba(color,0.15));
+  document.getElementById('watch-modal-body').innerHTML=html||`<div style="font-size:0.8rem;color:rgba(255,255,255,0.45);padding:10px 0">No details available.</div>`;
 }
 
 function closeWatchModal(){
