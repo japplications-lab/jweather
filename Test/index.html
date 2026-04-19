@@ -106,28 +106,28 @@
     /* ── SHEETS ── */
     .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1100;}
     .sheet-backdrop.open{display:block;}
-    .sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);border-radius:22px 22px 0 0;z-index:1200;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding-bottom:calc(env(safe-area-inset-bottom) + var(--nav-h));}
+    .sheet{position:fixed;bottom:0;left:0;right:0;background:var(--sky-grad);border-top:none;border-radius:22px 22px 0 0;z-index:1200;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding-bottom:calc(env(safe-area-inset-bottom) + var(--nav-h));}
     .sheet.open{transform:translateY(0);}
-    .sheet-handle{width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,0.12);margin:10px auto 0;}
+    .sheet-handle{width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,0.3);margin:10px auto 0;}
     .sheet-head{display:flex;align-items:center;gap:10px;padding:14px 18px 10px;}
-    .sheet-head-icon{width:32px;height:32px;border-radius:9px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .sheet-head-icon .msr{font-size:16px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
-    .sheet-head-title{font-size:0.88rem;font-weight:700;color:var(--text);flex:1;}
-    .sheet-close{background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);}
+    .sheet-head-icon{width:32px;height:32px;border-radius:9px;background:rgba(14,165,233,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sheet-head-icon .msr{font-size:16px;color:#7dd3fc;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+    .sheet-head-title{font-size:0.88rem;font-weight:700;color:#fff;flex:1;}
+    .sheet-close{background:rgba(255,255,255,0.12);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.7);}
     .sheet-close .msr{font-size:14px;}
     .sheet-list{padding:2px 12px 12px;display:flex;flex-direction:column;gap:2px;}
     .sheet-item{display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:12px;background:none;border:none;cursor:pointer;font-family:var(--font);width:100%;text-align:left;-webkit-tap-highlight-color:transparent;transition:background .12s;}
-    .sheet-item:active{background:rgba(255,255,255,0.06);}
-    .sheet-item.active-page{background:var(--red-dim);}
-    .sheet-item-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .sheet-item-icon .msr{font-size:18px;color:var(--text3);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    .sheet-item.active-page .sheet-item-icon{background:var(--red-dim);}
-    .sheet-item.active-page .sheet-item-icon .msr{color:var(--red);}
+    .sheet-item:active{background:rgba(255,255,255,0.1);}
+    .sheet-item.active-page{background:rgba(14,165,233,0.25);}
+    .sheet-item-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sheet-item-icon .msr{font-size:18px;color:rgba(255,255,255,0.7);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+    .sheet-item.active-page .sheet-item-icon{background:rgba(14,165,233,0.3);}
+    .sheet-item.active-page .sheet-item-icon .msr{color:#7dd3fc;}
     .sheet-item-body{flex:1;}
-    .sheet-item-label{font-size:0.85rem;font-weight:600;color:var(--text);}
-    .sheet-item.active-page .sheet-item-label{color:var(--red);}
-    .sheet-item-sub{font-size:0.7rem;color:var(--text4);margin-top:1px;}
-    .sheet-item-chevron .msr{font-size:16px;color:var(--text4);}
+    .sheet-item-label{font-size:0.85rem;font-weight:600;color:#fff;}
+    .sheet-item.active-page .sheet-item-label{color:#7dd3fc;}
+    .sheet-item-sub{font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:1px;}
+    .sheet-item-chevron .msr{font-size:16px;color:rgba(255,255,255,0.4);}
     .sheet-divider{height:1px;background:var(--border);margin:4px 0;}
 
     /* ── CARDS ── */
@@ -287,8 +287,8 @@
     .ol-disc-row{padding:4px 10px 10px;}
     .ol-disc-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;background:var(--red);border:none;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font);font-size:0.76rem;font-weight:700;color:#fff;-webkit-tap-highlight-color:transparent;}
     .ol-disc-btn .msr{font-size:14px;}
-    .map-context-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(255,255,255,0.93);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:var(--text2);box-shadow:0 2px 12px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .map-context-pill span{color:var(--red);}
+    .map-context-pill{position:absolute;top:12px;left:12px;width:75%;z-index:500;background:rgba(12,35,64,0.88);backdrop-filter:blur(8px);border:1px solid rgba(14,165,233,0.3);border-radius:20px;padding:6px 14px;font-size:0.73rem;font-weight:600;color:rgba(255,255,255,0.9);box-shadow:0 2px 12px rgba(2,20,60,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .map-context-pill span{color:#7dd3fc;}
 
     .map-loading{position:absolute;inset:0;z-index:490;background:rgba(13,15,20,.7);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
     .map-loading.hidden{opacity:0;pointer-events:none;}
@@ -312,11 +312,11 @@
     /* Discussion modal */
     #disc-modal{display:none;position:fixed;inset:0;z-index:800;background:rgba(2,36,80,0.55);align-items:center;justify-content:center;padding:calc(var(--header-h) + 16px) 16px calc(var(--nav-h) + 120px);cursor:pointer;}
     #disc-modal.open{display:flex;}
-    .disc-box{background:#fff;border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:560px;height:auto;max-height:100%;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
+    .disc-box{background:#0f3460;border:1px solid rgba(14,165,233,0.25);border-radius:var(--r);width:100%;max-width:560px;height:auto;max-height:100%;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden;animation:fadeIn .15s ease;cursor:default;}
     .disc-handle{display:none;}
-    .disc-head{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2);}
+    .disc-head{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid rgba(14,165,233,0.2);flex-shrink:0;background:rgba(0,0,0,0.15);}
     .disc-pip{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
-    .disc-title{font-size:0.88rem;font-weight:700;color:var(--text);flex:1;}
+    .disc-title{font-size:0.88rem;font-weight:700;color:#fff;flex:1;}
     .disc-close{background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;}
     .disc-close .msr{font-size:15px;}
     .disc-body{padding:14px 16px 20px;overflow-y:scroll;flex:1;min-height:0;-webkit-overflow-scrolling:touch;}
@@ -344,12 +344,12 @@
     @keyframes init-bar{0%{left:-40%;width:40%;}50%{left:100%;width:40%;}50.001%{left:100%;width:0;}50.002%{left:100%;width:40%;}100%{left:-40%;width:40%;}}
     @keyframes init-bar-rtl{0%{right:-40%;width:40%;}50%{right:100%;width:40%;}50.001%{right:100%;width:0;}50.002%{right:100%;width:40%;}100%{right:-40%;width:40%;}}
     @keyframes init-bounce{0%,100%{transform:translateX(0);}49.9%{transform:translateX(120px);}50%{transform:translateX(120px);}50.1%{transform:translateX(120px);}100%{transform:translateX(0);}}
-    #watches-init-overlay{display:flex;position:absolute;inset:0;z-index:490;background:rgba(232,244,253,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;pointer-events:none;transition:opacity .5s ease;}
+    #watches-init-overlay{display:flex;position:absolute;inset:0;z-index:490;background:rgba(12,35,64,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;pointer-events:none;transition:opacity .5s ease;}
     #watches-init-overlay.hidden{opacity:0;}
     #watches-init-inner{display:flex;flex-direction:column;align-items:center;gap:20px;animation:init-fade-in .4s ease both;}
     #watches-init-icon{width:44px;height:44px;border-radius:12px;background:var(--red-dim);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;}
     #watches-init-icon .msr{font-size:22px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
-    #watches-init-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text4);}
+    #watches-init-label{font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);}
     #watches-init-bar-track{width:160px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;position:relative;overflow:hidden;}
     #watches-init-bar-fill{position:absolute;top:0;height:100%;width:50px;border-radius:2px;background:var(--red);animation:watches-bar-slide 1.4s ease-in-out infinite alternate;}
     @keyframes watches-bar-slide{from{left:0;}to{left:calc(160px - 50px);}}
@@ -367,7 +367,7 @@
     .wc-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
     .wc-label{font-size:0.68rem;font-weight:700;color:var(--text2);}
     .wc-exp{font-size:0.6rem;color:var(--text4);}
-    .watches-legend{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(255,255,255,0.94);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;}
+    .watches-legend{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(12,35,64,0.92);backdrop-filter:blur(8px);border:1px solid rgba(14,165,233,0.25);border-radius:var(--r-sm);padding:8px 10px;}
     .wl-item{display:flex;align-items:center;gap:6px;font-size:0.65rem;color:var(--text2);padding:2px 0;}
     .wl-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
@@ -474,7 +474,7 @@
     ══════════════════════════ */
     #alert-modal{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);align-items:flex-end;}
     #alert-modal.open{display:flex;}
-    .alert-modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:22px 22px 0 0;width:100%;max-height:82vh;display:flex;flex-direction:column;padding-bottom:calc(env(safe-area-inset-bottom) + 16px);}
+    .alert-modal-box{background:#0f3460;border:1px solid rgba(14,165,233,0.2);border-radius:22px 22px 0 0;width:100%;max-height:82vh;display:flex;flex-direction:column;padding-bottom:calc(env(safe-area-inset-bottom) + 16px);}
     .am-handle{width:32px;height:3px;border-radius:2px;background:rgba(255,255,255,0.12);margin:10px auto 0;}
     .am-head{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
     .am-pip{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
@@ -539,13 +539,13 @@
     .leaflet-control-attribution{display:none!important;}
     /* Keep Leaflet controls below modals */
     .leaflet-top,.leaflet-bottom{z-index:500!important;}
-    .leaflet-popup-content-wrapper{background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);font-family:var(--font);padding:0;min-width:200px;max-width:250px;}
+    .leaflet-popup-content-wrapper{background:#0f3460;border:1px solid rgba(14,165,233,0.3);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.4);font-family:var(--font);padding:0;min-width:200px;max-width:250px;}
     .leaflet-popup-content{margin:0;font-size:0.78rem;}
-    .leaflet-popup-tip{background:#fff;}
+    .leaflet-popup-tip{background:#0f3460;}
     .popup-inner{padding:10px 12px 12px;}
     .popup-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
     .popup-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
-    .popup-risk{font-size:0.85rem;font-weight:700;color:var(--text);}
+    .popup-risk{font-size:0.85rem;font-weight:700;color:#fff;}
     .popup-sub{font-size:0.65rem;color:var(--text4);}
     .popup-desc{font-size:0.72rem;color:var(--text2);line-height:1.6;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;}
   </style>
@@ -867,21 +867,21 @@
 <!-- MESO MODAL -->
 <div id="meso-modal-backdrop" onclick="closeMesoModal()" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(2,36,80,0.5);"></div>
 <div id="meso-modal" style="display:none;position:fixed;inset:0;z-index:701;align-items:center;justify-content:center;padding:20px;pointer-events:none;">
-  <div style="background:var(--surface);border:1px solid rgba(249,115,22,0.35);border-radius:var(--r);width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 0 40px rgba(249,115,22,0.12),0 24px 60px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:fadeIn .15s ease;">
+  <div style="background:#0f3460;border:1px solid rgba(14,165,233,0.3);border-radius:var(--r);width:100%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(2,20,60,0.5);pointer-events:all;overflow:hidden;animation:fadeIn .15s ease;">
     <div style="height:4px;background:var(--red);flex-shrink:0;"></div>
     <div style="display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
       <div style="width:32px;height:32px;border-radius:9px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <span class="msr" style="font-size:16px;color:var(--red);font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">crisis_alert</span>
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:0.9rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;" id="meso-modal-num">MCD #—</div>
+        <div style="font-size:0.9rem;font-weight:800;color:#fff;letter-spacing:-0.02em;" id="meso-modal-num">MCD #—</div>
       </div>
       <button onclick="closeMesoModal()" style="background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;">
         <span class="msr" style="font-size:15px;">close</span>
       </button>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;" id="meso-modal-badges"></div>
-    <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;" id="meso-modal-body">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;filter:brightness(1.1);" id="meso-modal-badges"></div>
+    <div style="padding:12px 16px 16px;overflow-y:auto;flex:1;color:rgba(255,255,255,0.85);" id="meso-modal-body">
       <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
         <div class="spin-ring"></div>Loading summary…
       </div>
@@ -892,22 +892,22 @@
 <!-- WATCH MODAL -->
 <div id="watch-modal-backdrop" onclick="closeWatchModal()" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(2,36,80,0.5);"></div>
 <div id="watch-modal" style="display:none;position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + 28px + env(safe-area-inset-bottom));z-index:701;align-items:flex-end;justify-content:center;pointer-events:none;top:0;">
-  <div id="watch-modal-box" style="background:#fff;border-radius:var(--r) var(--r) 0 0;width:100%;max-width:560px;max-height:calc(100vh - var(--header-h) - var(--nav-h) - 28px - env(safe-area-inset-bottom));display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:slideUp .2s cubic-bezier(.32,.72,0,1);">
+  <div id="watch-modal-box" style="background:#0f3460;border-radius:var(--r) var(--r) 0 0;width:100%;max-width:560px;max-height:calc(100vh - var(--header-h) - var(--nav-h) - 28px - env(safe-area-inset-bottom));display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.5);pointer-events:all;overflow:hidden;animation:slideUp .2s cubic-bezier(.32,.72,0,1);">
     <div id="watch-modal-bar" style="height:4px;flex-shrink:0;"></div>
     <div style="display:flex;align-items:center;gap:12px;padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
       <div id="watch-modal-icon" style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <span class="msr" id="watch-modal-icon-sym" style="font-size:16px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;">emergency_home</span>
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:0.9rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;" id="watch-modal-title">—</div>
-        <div style="font-size:0.7rem;color:var(--text4);margin-top:1px;" id="watch-modal-meta">—</div>
+        <div style="font-size:0.9rem;font-weight:800;color:#fff;letter-spacing:-0.02em;" id="watch-modal-title">—</div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:1px;" id="watch-modal-meta">—</div>
       </div>
       <button onclick="closeWatchModal()" style="background:rgba(2,132,199,0.08);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;">
         <span class="msr" style="font-size:15px;">close</span>
       </button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0;" id="watch-modal-badges"></div>
-    <div style="padding:12px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;" id="watch-modal-body">
+    <div style="padding:12px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;color:rgba(255,255,255,0.85);" id="watch-modal-body">
       <div style="display:flex;align-items:center;gap:10px;color:var(--text4);font-size:0.8rem;padding:12px 0;">
         <div class="spin-ring"></div>Loading…
       </div>
