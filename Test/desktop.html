@@ -160,7 +160,7 @@
     #hc-scene{position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:var(--r);animation:hc-scene-in .8s ease both;}
 
     /* Orange overlay — always present, tinted per condition */
-    #hc-overlay{position:absolute;inset:0;z-index:1;background:rgba(249,115,22,.58);pointer-events:none;}
+    #hc-overlay{position:absolute;inset:0;z-index:1;background:rgba(249,115,22,.93);pointer-events:none;}
 
     /* Particle layer */
     #hc-particles{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
@@ -1084,15 +1084,15 @@ function updateHeroScene(desc,isDaytime){
 
   // ── Overlay tint — always orange-based, slightly tuned per mood ──
   const overlayTints={
-    sunny:  'rgba(249,115,22,.62)',
-    partly: 'rgba(249,115,22,.60)',
-    cloudy: 'rgba(249,115,22,.64)',
-    rain:   'rgba(249,115,22,.62)',
-    storm:  'rgba(249,115,22,.64)',
-    snow:   'rgba(249,115,22,.58)',
-    fog:    'rgba(249,115,22,.62)',
-    wind:   'rgba(249,115,22,.60)',
-    night:  'rgba(249,115,22,.62)',
+    sunny:  'rgba(249,115,22,.93)',
+    partly: 'rgba(249,115,22,.91)',
+    cloudy: 'rgba(249,115,22,.88)',
+    rain:   'rgba(249,115,22,.90)',
+    storm:  'rgba(249,115,22,.88)',
+    snow:   'rgba(249,115,22,.86)',
+    fog:    'rgba(249,115,22,.88)',
+    wind:   'rgba(249,115,22,.91)',
+    night:  'rgba(249,115,22,.85)',
   };
   overlay.style.background=overlayTints[cond]||overlayTints.sunny;
   overlay.style.transition='background 1s ease';
@@ -1212,7 +1212,7 @@ function updateHeroScene(desc,isDaytime){
   }
 }
 // Run default scene immediately so card is never blank
-updateHeroScene('',true);
+// Hero scene initialized after weather data loads
 
 // ══════════════════════════════════════════════════════
 //  NAVIGATION
@@ -2980,7 +2980,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(hashPage==='alerts'){navigate('watches');}else if(hashPage&&validPages.includes(hashPage)){navigate(hashPage);}
 });
 
-// ── Condition key mapper (desktop cond names → icon scene keys) ───────────────
+// ── Condition key mapper ──────────────────────────────────────────────────────
 function getCondKey(desc,isDaytime){
   if(!desc)return isDaytime?'sun':'moon';
   const d=desc.toLowerCase();
