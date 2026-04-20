@@ -1084,8 +1084,8 @@ function updateHeroScene(desc,isDaytime){
 
   // ── Overlay tint — always orange-based, slightly tuned per mood ──
   const overlayTints={
-    sunny:  'rgba(249,115,22,.55)',
-    partly: 'rgba(249,115,22,.60)',
+    sunny:  'rgba(249,115,22,.93)',
+    partly: 'rgba(249,115,22,.91)',
     cloudy: 'rgba(249,115,22,.88)',
     rain:   'rgba(249,115,22,.90)',
     storm:  'rgba(249,115,22,.88)',
@@ -1167,26 +1167,26 @@ function updateHeroScene(desc,isDaytime){
   // ── Particle overlay (DOM elements on top of SVG) ──
   particles.innerHTML='';
 
-  // Sun above overlay for sunny/partly
+  // Sun rendered above the orange overlay so it's always clearly visible
   if(cond==='sunny'){
     particles.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <defs><radialGradient id="sunGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffe066" stop-opacity="0.7"/><stop offset="100%" stop-color="#ff9900" stop-opacity="0"/></radialGradient></defs>
-      <g transform="translate(320,54)">
-        <circle r="70" fill="url(#sunGlow)" opacity="1"/>
+      <defs><radialGradient id="sg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff7a0" stop-opacity="0.85"/><stop offset="100%" stop-color="#ffaa00" stop-opacity="0"/></radialGradient></defs>
+      <g transform="translate(315,52)">
+        <circle r="80" fill="url(#sg)"/>
         <g style="animation:hc-sun-rotate 18s linear infinite;transform-origin:0 0">
-          ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>`<line x1="46" y1="0" x2="66" y2="0" stroke="#FFE066" stroke-width="3.5" stroke-linecap="round" transform="rotate(${a})" opacity="0.95"/>`).join('')}
+          ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>`<line x1="50" y1="0" x2="72" y2="0" stroke="#FFE44D" stroke-width="4" stroke-linecap="round" transform="rotate(${a})"/>`).join('')}
         </g>
-        <circle r="38" fill="#FFD93D" opacity="1"/>
-        <circle r="38" fill="rgba(255,240,180,.3)" style="animation:hc-sun-pulse 4s ease-in-out infinite"/>
+        <circle r="40" fill="#FFD93D"/>
+        <circle r="40" fill="rgba(255,245,150,.4)" style="animation:hc-sun-pulse 4s ease-in-out infinite"/>
       </g>
     </svg>`;
   }
   else if(cond==='partly'){
     particles.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <defs><radialGradient id="sunGlow2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffe066" stop-opacity="0.6"/><stop offset="100%" stop-color="#ff9900" stop-opacity="0"/></radialGradient></defs>
-      <g transform="translate(300,44)">
-        <circle r="55" fill="url(#sunGlow2)" opacity="1"/>
-        <circle r="30" fill="#FFD93D" opacity="0.95"/>
+      <defs><radialGradient id="sg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff7a0" stop-opacity="0.7"/><stop offset="100%" stop-color="#ffaa00" stop-opacity="0"/></radialGradient></defs>
+      <g transform="translate(295,42)">
+        <circle r="60" fill="url(#sg2)"/>
+        <circle r="32" fill="#FFD93D"/>
       </g>
     </svg>`;
   }
