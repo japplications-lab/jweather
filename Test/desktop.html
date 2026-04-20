@@ -132,20 +132,59 @@
       overflow:hidden;
     }
 
+    /* ── Hero card video background animations ── */
+    @keyframes hero-overlay-breathe{0%,100%{opacity:0.62;}50%{opacity:0.52;}}
+    @keyframes hero-overlay-storm{0%,100%{opacity:0.68;}40%{opacity:0.55;}42%{opacity:0.75;}44%{opacity:0.55;}100%{opacity:0.68;}}
+    @keyframes hero-overlay-rain{0%,100%{opacity:0.60;}50%{opacity:0.50;}}
+    @keyframes hero-overlay-night{0%,100%{opacity:0.72;}50%{opacity:0.62;}}
+    @keyframes hero-rain-streak{0%{transform:translateY(-100%) scaleY(0.6);opacity:0;}10%{opacity:1;}80%{opacity:0.7;}100%{transform:translateY(200%) scaleY(1);opacity:0;}}
+    @keyframes hero-snow-fall{0%{transform:translateY(-10px) translateX(0) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:0.6;}100%{transform:translateY(220px) translateX(20px) rotate(360deg);opacity:0;}}
+    @keyframes hero-lightning{0%,92%,96%,100%{opacity:0;}93%,95%{opacity:0.9;}}
+    @keyframes hero-fog-drift{0%{transform:translateX(-8%) scaleX(1);}50%{transform:translateX(4%) scaleX(1.04);}100%{transform:translateX(-8%) scaleX(1);}}
+    @keyframes hero-sun-ray{0%,100%{opacity:0.12;transform:scale(1) rotate(0deg);}50%{opacity:0.22;transform:scale(1.06) rotate(4deg);}}
+    @keyframes hero-wind-streak{0%{transform:translateX(-120%) skewX(-8deg);opacity:0;}20%{opacity:0.5;}80%{opacity:0.3;}100%{transform:translateX(220%) skewX(-8deg);opacity:0;}}
+
     /* Hero card */
-    .hero-card{background:var(--red);border-radius:var(--r);padding:18px 22px;position:relative;overflow:hidden;}
-    .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;}
-    .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
-    .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
+    .hero-card{background:var(--surface);border-radius:var(--r);padding:18px 22px;position:relative;overflow:hidden;}
+    /* Video layer */
+    .hero-bg-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transition:opacity 1.2s ease;}
+    .hero-bg-video.fading{opacity:0;}
+    /* Orange overlay — always on, animates per condition */
+    .hero-overlay{position:absolute;inset:0;z-index:1;background:rgba(249,115,22,0.62);animation:hero-overlay-breathe 5s ease-in-out infinite;}
+    .hero-overlay.cond-storm{background:rgba(30,20,60,0.68);animation:hero-overlay-storm 6s ease-in-out infinite;}
+    .hero-overlay.cond-rain{background:rgba(20,50,100,0.60);animation:hero-overlay-rain 4s ease-in-out infinite;}
+    .hero-overlay.cond-snow{background:rgba(160,190,220,0.50);animation:hero-overlay-rain 5s ease-in-out infinite;}
+    .hero-overlay.cond-fog{background:rgba(100,110,120,0.58);animation:hero-overlay-night 8s ease-in-out infinite;}
+    .hero-overlay.cond-night{background:rgba(10,20,60,0.72);animation:hero-overlay-night 6s ease-in-out infinite;}
+    .hero-overlay.cond-wind{background:rgba(80,100,130,0.55);animation:hero-overlay-rain 4s ease-in-out infinite;}
+    /* Particle canvas sits above overlay */
+    .hero-particles{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+    /* Rain streaks */
+    .hero-rain-drop{position:absolute;top:0;width:1.5px;border-radius:2px;background:linear-gradient(to bottom,rgba(180,210,255,0),rgba(180,210,255,0.7));animation:hero-rain-streak linear infinite;}
+    /* Snow flakes */
+    .hero-snow-flake{position:absolute;top:0;border-radius:50%;background:rgba(220,235,255,0.85);animation:hero-snow-fall ease-in-out infinite;}
+    /* Lightning flash */
+    .hero-lightning{position:absolute;inset:0;background:rgba(255,255,230,0.5);animation:hero-lightning 8s ease-in-out infinite;pointer-events:none;}
+    /* Fog wisps */
+    .hero-fog-wisp{position:absolute;border-radius:50%;background:rgba(200,210,220,0.18);animation:hero-fog-drift ease-in-out infinite;filter:blur(14px);}
+    /* Sun rays */
+    .hero-sun-ray{position:absolute;top:-60px;right:-40px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,220,80,0.22) 0%,rgba(255,200,50,0) 70%);animation:hero-sun-ray 6s ease-in-out infinite;}
+    /* Wind streaks */
+    .hero-wind-streak{position:absolute;height:1px;border-radius:1px;background:linear-gradient(to right,transparent,rgba(200,215,230,0.5),transparent);animation:hero-wind-streak linear infinite;}
+    /* Decorative orbs — keep ::before/::after logic but via divs so z-index works */
+    .hero-orb1{position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;z-index:3;pointer-events:none;}
+    .hero-orb2{position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;z-index:3;pointer-events:none;}
+    /* Content layers above everything */
+    .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:4;}
     .hero-loc{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
     .hero-date{font-size:0.7rem;color:rgba(255,255,255,0.72);margin-top:4px;}
     .hero-icon{width:64px;height:64px;flex-shrink:0;}
-    .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:1;}
+    .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:4;}
     .hero-temp{font-size:4.2rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
     .hero-temp sup{font-size:1.3rem;font-weight:500;opacity:.8;vertical-align:super;}
     .hero-desc{font-size:0.82rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
-    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:1;}
-    .hero-stat{background:rgba(0,0,0,0.2);border-radius:var(--r-sm);padding:13px 16px;}
+    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:4;}
+    .hero-stat{background:rgba(0,0,0,0.2);border-radius:var(--r-sm);padding:13px 16px;backdrop-filter:blur(2px);}
     .hero-stat-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.55);}
     .hero-stat-val{font-size:0.88rem;font-weight:700;color:#fff;margin-top:5px;}
 
@@ -591,7 +630,12 @@
     <div class="page active" id="page-home">
       <div class="home-grid">
         <!-- Hero -->
-        <div class="hero-card">
+        <div class="hero-card" id="hero-card">
+          <video class="hero-bg-video" id="hero-bg-video" autoplay muted loop playsinline></video>
+          <div class="hero-overlay" id="hero-overlay"></div>
+          <div class="hero-particles" id="hero-particles"></div>
+          <div class="hero-orb1"></div>
+          <div class="hero-orb2"></div>
           <div class="hero-top">
             <div>
               <div class="hero-loc" id="ch-loc">—</div>
@@ -1006,6 +1050,105 @@ function getIcon(desc,day=true){
   return ICONS[day?'sun':'moon'];
 }
 
+// ── Hero background video + CSS particle system ──
+const HERO_VIDEOS={
+  storm:'https://videos.pexels.com/video-files/855965/855965-hd_1280_720_25fps.mp4',
+  rain:'https://videos.pexels.com/video-files/856012/856012-hd_1280_720_25fps.mp4',
+  snow:'https://videos.pexels.com/video-files/857195/857195-hd_1280_720_25fps.mp4',
+  fog:'https://videos.pexels.com/video-files/4107232/4107232-uhd_2560_1440_25fps.mp4',
+  wind:'https://videos.pexels.com/video-files/1437396/1437396-hd_1280_720_24fps.mp4',
+  sunny:'https://videos.pexels.com/video-files/856424/856424-hd_1280_720_25fps.mp4',
+  night:'https://videos.pexels.com/video-files/1536882/1536882-hd_1280_720_25fps.mp4',
+  cloudy:'https://videos.pexels.com/video-files/854429/854429-hd_1280_720_25fps.mp4',
+};
+function classifyCondition(desc,isDaytime){
+  if(!desc)return isDaytime?'sunny':'night';
+  const d=desc.toLowerCase();
+  if(d.includes('thunder')||d.includes('tstm'))return'storm';
+  if(d.includes('snow')||d.includes('blizzard')||d.includes('sleet')||d.includes('flurr'))return'snow';
+  if(d.includes('rain')||d.includes('shower')||d.includes('drizzle'))return'rain';
+  if(d.includes('fog')||d.includes('haze')||d.includes('mist'))return'fog';
+  if(d.includes('wind')||d.includes('breezy')||d.includes('gusty'))return'wind';
+  if(d.includes('cloud')||d.includes('overcast')||d.includes('mostly cloudy'))return'cloudy';
+  if(!isDaytime)return'night';
+  return'sunny';
+}
+let _heroCond=null;
+function updateHeroBg(desc,isDaytime){
+  const cond=classifyCondition(desc,isDaytime);
+  const overlay=document.getElementById('hero-overlay');
+  const video=document.getElementById('hero-bg-video');
+  const particles=document.getElementById('hero-particles');
+  // Update overlay class
+  overlay.className='hero-overlay cond-'+cond;
+  // Swap video only if condition changed
+  if(cond!==_heroCond){
+    _heroCond=cond;
+    video.classList.add('fading');
+    setTimeout(()=>{
+      video.src=HERO_VIDEOS[cond]||HERO_VIDEOS['sunny'];
+      video.load();
+      video.play().catch(()=>{});
+      video.classList.remove('fading');
+    },600);
+  }
+  // Rebuild particles
+  particles.innerHTML='';
+  if(cond==='rain'||cond==='storm'){
+    const count=cond==='storm'?40:28;
+    for(let i=0;i<count;i++){
+      const d=document.createElement('div');d.className='hero-rain-drop';
+      const left=Math.random()*100;
+      const dur=0.4+Math.random()*0.5;
+      const delay=-Math.random()*2;
+      const h=60+Math.random()*80;
+      const opacity=0.3+Math.random()*0.5;
+      d.style.cssText=`left:${left}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;opacity:${opacity};`;
+      particles.appendChild(d);
+    }
+    if(cond==='storm'){
+      const fl=document.createElement('div');fl.className='hero-lightning';particles.appendChild(fl);
+    }
+  } else if(cond==='snow'){
+    for(let i=0;i<30;i++){
+      const d=document.createElement('div');d.className='hero-snow-flake';
+      const sz=3+Math.random()*5;
+      const left=Math.random()*100;
+      const dur=3+Math.random()*4;
+      const delay=-Math.random()*6;
+      d.style.cssText=`left:${left}%;width:${sz}px;height:${sz}px;animation-duration:${dur}s;animation-delay:${delay}s;`;
+      particles.appendChild(d);
+    }
+  } else if(cond==='fog'){
+    for(let i=0;i<5;i++){
+      const d=document.createElement('div');d.className='hero-fog-wisp';
+      const w=120+Math.random()*140;
+      const h=60+Math.random()*60;
+      const top=10+Math.random()*80;
+      const left=-20+Math.random()*100;
+      const dur=10+Math.random()*8;
+      const delay=-Math.random()*8;
+      d.style.cssText=`width:${w}px;height:${h}px;top:${top}%;left:${left}%;animation-duration:${dur}s;animation-delay:${delay}s;`;
+      particles.appendChild(d);
+    }
+  } else if(cond==='sunny'){
+    const ray=document.createElement('div');ray.className='hero-sun-ray';
+    const dur=4+Math.random()*3;
+    ray.style.animationDuration=dur+'s';
+    particles.appendChild(ray);
+  } else if(cond==='wind'){
+    for(let i=0;i<8;i++){
+      const d=document.createElement('div');d.className='hero-wind-streak';
+      const top=10+Math.random()*80;
+      const w=60+Math.random()*100;
+      const dur=1.2+Math.random()*1.5;
+      const delay=-Math.random()*3;
+      d.style.cssText=`top:${top}%;width:${w}px;animation-duration:${dur}s;animation-delay:${delay}s;`;
+      particles.appendChild(d);
+    }
+  }
+}
+
 // ══════════════════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════════════════
@@ -1159,21 +1302,7 @@ async function loadWeather(loc){
           document.getElementById('st-wind').textContent=wind;
           const icon=document.getElementById('ch-icon');
           icon.style.opacity='0';icon.onload=()=>icon.style.opacity='1';icon.src=getIcon(desc,isDaytime);
-          // Animate hero card
-          (function(){
-            const d2=desc.toLowerCase();
-            let cond=isDaytime?'sun':'moon';
-            if(d2.includes('thunder')||d2.includes('tstm'))cond='storm';
-            else if(d2.includes('sleet')||d2.includes('freezing'))cond='sleet';
-            else if(d2.includes('snow')||d2.includes('blizzard'))cond='snow';
-            else if(d2.includes('rain')||d2.includes('shower')||d2.includes('drizzle'))cond='rain';
-            else if(d2.includes('fog')||d2.includes('haze')||d2.includes('mist'))cond='fog';
-            else if(d2.includes('partly')||d2.includes('mostly sunny'))cond='partly';
-            else if(d2.includes('cloud')||d2.includes('overcast'))cond='cloud';
-            else if(d2.includes('wind')||d2.includes('breezy'))cond='wind';
-            const cv=document.getElementById('hero-canvas');
-            if(cv&&window.startWeatherScene)window.startWeatherScene(cv,cond,isDaytime);
-          })();
+          updateHeroBg(desc,isDaytime);
         }
       }
     }
@@ -2785,418 +2914,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   const validPages=['home','hourly','radar','outlook','watches','alerts','meso'];
   if(hashPage==='alerts'){navigate('watches');}else if(hashPage&&validPages.includes(hashPage)){navigate(hashPage);}
 });
-</script>
-
-<script>
-// ═══════════════════════════════════════════════════
-//  WEATHER SCENE — Canvas animated background
-//  Call: startWeatherScene(canvas, conditionKey, isDaytime)
-//  conditionKey: 'storm'|'snow'|'rain'|'fog'|'cloud'|'partly'|'wind'|'sun'|'moon'|'sleet'
-// ═══════════════════════════════════════════════════
-(function(){
-
-// ── Palette per condition ──────────────────────────
-const PALETTES = {
-  sun:    { sky: ['#1a6bb0','#2a8fd4','#56b3f5'], gradient: ['#1565a8','#0ea5e9','#7dd3fc'] },
-  moon:   { sky: ['#0a1628','#0c2340','#0f3460'], gradient: ['#07101e','#0c2340','#1a3a6b'] },
-  partly: { sky: ['#1565a8','#2176c7','#4da3e8'], gradient: ['#0f3460','#1565a8','#60a5fa'] },
-  cloud:  { sky: ['#2c4a72','#3d5e8c','#5878a8'], gradient: ['#1e3a5f','#2c4a72','#4a6fa5'] },
-  rain:   { sky: ['#1a2e4a','#243d5e','#2e4d78'], gradient: ['#0f1e30','#1a2e4a','#243d5e'] },
-  storm:  { sky: ['#0d1a28','#111f30','#1a2c3d'], gradient: ['#080f18','#0d1a28','#162030'] },
-  snow:   { sky: ['#2a3f5a','#3a526e','#4f6e8e'], gradient: ['#1e2f44','#2a3f5a','#3d587a'] },
-  sleet:  { sky: ['#1f3348','#28415c','#324f6e'], gradient: ['#141f2e','#1f3348','#28415c'] },
-  fog:    { sky: ['#3a4e63','#4a6079','#5e778f'], gradient: ['#2a3a4a','#3a4e63','#506070'] },
-  wind:   { sky: ['#1565a8','#1e78c2','#3090d8'], gradient: ['#0f3460','#1565a8','#2a90e0'] },
-};
-
-function getGradient(ctx, w, h, colors) {
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  colors.forEach((c, i) => g.addColorStop(i / (colors.length - 1), c));
-  return g;
-}
-
-// ── Animation loop manager ─────────────────────────
-let _raf = null;
-function stopScene() {
-  if (_raf) { cancelAnimationFrame(_raf); _raf = null; }
-}
-
-function startWeatherScene(canvas, condition, isDaytime) {
-  stopScene();
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  // Resize canvas to match its CSS size
-  function resize() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-  }
-  resize();
-
-  const key = condition || (isDaytime ? 'sun' : 'moon');
-  const pal = PALETTES[key] || PALETTES['sun'];
-
-  let particles = [];
-  let clouds = [];
-  let lightning = { active: false, timer: 0, x: 0 };
-  let t = 0;
-
-  // ── Build particles ──────────────────────────────
-  function initParticles() {
-    const w = canvas.width, h = canvas.height;
-    particles = [];
-    clouds = [];
-
-    if (key === 'rain' || key === 'storm') {
-      for (let i = 0; i < 120; i++) {
-        particles.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          len: 12 + Math.random() * 12,
-          speed: 14 + Math.random() * 10,
-          opacity: 0.25 + Math.random() * 0.45,
-          width: 1 + Math.random() * 0.8,
-        });
-      }
-    }
-    if (key === 'snow') {
-      for (let i = 0; i < 90; i++) {
-        particles.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          r: 1.5 + Math.random() * 2.5,
-          speed: 0.6 + Math.random() * 1.2,
-          drift: (Math.random() - 0.5) * 0.4,
-          opacity: 0.5 + Math.random() * 0.5,
-          phase: Math.random() * Math.PI * 2,
-        });
-      }
-    }
-    if (key === 'sleet') {
-      for (let i = 0; i < 100; i++) {
-        const isIce = Math.random() > 0.5;
-        particles.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          r: isIce ? 2 + Math.random() * 2 : 1,
-          len: isIce ? 0 : 8 + Math.random() * 6,
-          speed: isIce ? 4 + Math.random() * 3 : 11 + Math.random() * 6,
-          isIce,
-          opacity: 0.4 + Math.random() * 0.4,
-        });
-      }
-    }
-    if (key === 'fog') {
-      for (let i = 0; i < 6; i++) {
-        particles.push({
-          x: Math.random() * w,
-          y: h * 0.2 + Math.random() * h * 0.6,
-          r: 80 + Math.random() * 120,
-          speed: 0.15 + Math.random() * 0.2,
-          opacity: 0.04 + Math.random() * 0.06,
-          phase: Math.random() * Math.PI * 2,
-        });
-      }
-    }
-    if (key === 'wind') {
-      for (let i = 0; i < 18; i++) {
-        particles.push({
-          x: -80 + Math.random() * w * 0.3,
-          y: Math.random() * h,
-          len: 40 + Math.random() * 80,
-          speed: 3 + Math.random() * 4,
-          opacity: 0.1 + Math.random() * 0.15,
-          width: 1 + Math.random() * 1.5,
-          phase: Math.random() * Math.PI * 2,
-        });
-      }
-    }
-
-    // Clouds for cloud/partly/storm/wind
-    if (['cloud','partly','storm','wind'].includes(key)) {
-      const count = key === 'partly' ? 3 : key === 'cloud' ? 5 : key === 'storm' ? 4 : 5;
-      for (let i = 0; i < count; i++) {
-        clouds.push({
-          x: Math.random() * (w + 200) - 100,
-          y: 20 + Math.random() * (h * 0.5),
-          rx: 60 + Math.random() * 80,
-          ry: 28 + Math.random() * 28,
-          speed: 0.12 + Math.random() * 0.18,
-          opacity: key === 'storm' ? 0.35 + Math.random() * 0.3 : 0.18 + Math.random() * 0.22,
-          dark: key === 'storm',
-        });
-      }
-    }
-  }
-
-  initParticles();
-
-  // ── Draw helpers ─────────────────────────────────
-  function drawCloud(ctx, cx, cy, rx, ry, opacity, dark) {
-    ctx.save();
-    ctx.globalAlpha = opacity;
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
-    const base = dark ? '#1a2c3d' : '#e8f4fd';
-    g.addColorStop(0, dark ? 'rgba(20,35,55,0.9)' : 'rgba(255,255,255,0.85)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Second lobe
-    ctx.beginPath();
-    ctx.ellipse(cx - rx * 0.38, cy + ry * 0.2, rx * 0.68, ry * 0.75, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(cx + rx * 0.42, cy + ry * 0.15, rx * 0.6, ry * 0.7, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawSun(ctx, w, h, t) {
-    const cx = w * 0.72, cy = h * 0.28;
-    const r = 32 + Math.sin(t * 0.4) * 2;
-    // Glow
-    const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 3.5);
-    glow.addColorStop(0, 'rgba(255,220,80,0.22)');
-    glow.addColorStop(1, 'rgba(255,200,50,0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    // Sun
-    const sunG = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
-    sunG.addColorStop(0, '#ffe566');
-    sunG.addColorStop(1, '#f59e0b');
-    ctx.fillStyle = sunG;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function drawMoon(ctx, w, h, t) {
-    const cx = w * 0.72, cy = h * 0.28;
-    const r = 26 + Math.sin(t * 0.3) * 1.5;
-    // Moon glow
-    const glow = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r * 3);
-    glow.addColorStop(0, 'rgba(180,210,255,0.15)');
-    glow.addColorStop(1, 'rgba(100,160,255,0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 3, 0, Math.PI * 2);
-    ctx.fill();
-    // Crescent
-    ctx.save();
-    ctx.fillStyle = '#c8dcf8';
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = PALETTES.moon.sky[1];
-    ctx.beginPath();
-    ctx.arc(cx + r * 0.35, cy - r * 0.1, r * 0.82, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    // Stars
-    [[0.15,0.15],[0.45,0.08],[0.25,0.55],[0.6,0.35],[0.08,0.4],[0.55,0.65]].forEach(([fx,fy],si) => {
-      const sx = fx * w, sy = fy * h;
-      const twinkle = 0.4 + 0.6 * Math.abs(Math.sin(t * 0.7 + si * 1.4));
-      ctx.globalAlpha = twinkle;
-      ctx.fillStyle = '#c8dcf8';
-      ctx.beginPath();
-      ctx.arc(sx, sy, 1.2 + Math.sin(t + si) * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    });
-  }
-
-  function drawLightning(ctx, w, h) {
-    if (!lightning.active) return;
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,200,0.9)';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = '#ffe';
-    ctx.shadowBlur = 20;
-    let lx = lightning.x, ly = 0;
-    ctx.beginPath();
-    ctx.moveTo(lx, ly);
-    while (ly < h * 0.65) {
-      lx += (Math.random() - 0.5) * 30;
-      ly += 20 + Math.random() * 20;
-      ctx.lineTo(lx, ly);
-    }
-    ctx.stroke();
-    // Flash overlay
-    ctx.fillStyle = 'rgba(255,255,220,0.06)';
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
-  }
-
-  // ── Main render loop ─────────────────────────────
-  function render() {
-    _raf = requestAnimationFrame(render);
-    const w = canvas.width, h = canvas.height;
-    if (w === 0 || h === 0) return;
-    t += 0.016;
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Sky gradient
-    ctx.fillStyle = getGradient(ctx, w, h, pal.gradient);
-    ctx.fillRect(0, 0, w, h);
-
-    // ── Condition-specific elements ────────────────
-
-    if (key === 'sun') {
-      drawSun(ctx, w, h, t);
-      // Horizon shimmer
-      const hg = ctx.createLinearGradient(0, h * 0.6, 0, h);
-      hg.addColorStop(0, 'rgba(255,200,80,0)');
-      hg.addColorStop(1, 'rgba(255,200,80,0.08)');
-      ctx.fillStyle = hg;
-      ctx.fillRect(0, h * 0.6, w, h * 0.4);
-    }
-
-    if (key === 'moon') {
-      drawMoon(ctx, w, h, t);
-    }
-
-    if (key === 'partly') {
-      drawSun(ctx, w, h, t);
-    }
-
-    if (key === 'wind') {
-      drawSun(ctx, w, h, t);
-    }
-
-    // Clouds
-    clouds.forEach(cl => {
-      cl.x += cl.speed;
-      if (cl.x - cl.rx > w + 100) cl.x = -cl.rx - 100;
-      drawCloud(ctx, cl.x, cl.y, cl.rx, cl.ry, cl.opacity, cl.dark);
-    });
-
-    // Lightning
-    if (key === 'storm') {
-      lightning.timer -= 1;
-      if (lightning.timer <= 0) {
-        lightning.active = Math.random() > 0.6;
-        lightning.timer = 40 + Math.random() * 180;
-        lightning.x = w * 0.2 + Math.random() * w * 0.6;
-      }
-      if (lightning.timer > 175) drawLightning(ctx, w, h);
-    }
-
-    // Rain
-    if (key === 'rain' || key === 'storm') {
-      ctx.save();
-      particles.forEach(p => {
-        p.y += p.speed;
-        p.x -= p.speed * 0.15;
-        if (p.y > h) { p.y = -p.len; p.x = Math.random() * w; }
-        ctx.globalAlpha = p.opacity;
-        ctx.strokeStyle = '#a8d4f8';
-        ctx.lineWidth = p.width;
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p.x - p.len * 0.15, p.y + p.len);
-        ctx.stroke();
-      });
-      ctx.restore();
-    }
-
-    // Snow
-    if (key === 'snow') {
-      ctx.save();
-      particles.forEach(p => {
-        p.y += p.speed;
-        p.x += p.drift + Math.sin(t + p.phase) * 0.3;
-        if (p.y > h) { p.y = -p.r; p.x = Math.random() * w; }
-        ctx.globalAlpha = p.opacity;
-        ctx.fillStyle = '#e8f4fd';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.restore();
-    }
-
-    // Sleet
-    if (key === 'sleet') {
-      ctx.save();
-      particles.forEach(p => {
-        p.y += p.speed;
-        if (p.y > h) { p.y = -10; p.x = Math.random() * w; }
-        ctx.globalAlpha = p.opacity;
-        if (p.isIce) {
-          ctx.fillStyle = '#b8d8f0';
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.strokeStyle = '#90bce0';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x - 2, p.y + p.len);
-          ctx.stroke();
-        }
-      });
-      ctx.restore();
-    }
-
-    // Fog
-    if (key === 'fog') {
-      ctx.save();
-      particles.forEach(p => {
-        p.x += p.speed;
-        if (p.x - p.r > w) p.x = -p.r;
-        const drift = Math.sin(t * 0.3 + p.phase) * 8;
-        const g = ctx.createRadialGradient(p.x, p.y + drift, 0, p.x, p.y + drift, p.r);
-        g.addColorStop(0, `rgba(180,200,220,${p.opacity})`);
-        g.addColorStop(1, 'rgba(180,200,220,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y + drift, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.restore();
-    }
-
-    // Wind streaks
-    if (key === 'wind') {
-      ctx.save();
-      particles.forEach(p => {
-        p.x += p.speed;
-        if (p.x > w + 100) { p.x = -p.len; p.y = Math.random() * h; }
-        const wave = Math.sin(t * 1.5 + p.phase) * 6;
-        ctx.globalAlpha = p.opacity * (0.5 + 0.5 * Math.sin(t + p.phase));
-        ctx.strokeStyle = '#a8d4f8';
-        ctx.lineWidth = p.width;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y + wave);
-        ctx.bezierCurveTo(p.x + p.len * 0.3, p.y + wave - 4, p.x + p.len * 0.7, p.y + wave + 4, p.x + p.len, p.y + wave);
-        ctx.stroke();
-      });
-      ctx.restore();
-    }
-
-    // Subtle vignette
-    const vig = ctx.createRadialGradient(w/2, h/2, h*0.1, w/2, h/2, h*0.85);
-    vig.addColorStop(0, 'rgba(0,0,0,0)');
-    vig.addColorStop(1, 'rgba(0,0,0,0.25)');
-    ctx.fillStyle = vig;
-    ctx.fillRect(0, 0, w, h);
-  }
-
-  render();
-}
-
-window.startWeatherScene = startWeatherScene;
-window.stopWeatherScene = stopScene;
-
-})();
-
 </script>
 </body>
 </html>
