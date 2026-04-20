@@ -1084,15 +1084,15 @@ function updateHeroScene(desc,isDaytime){
 
   // ── Overlay tint — always orange-based, slightly tuned per mood ──
   const overlayTints={
-    sunny:  'rgba(249,115,22,.55)',
-    partly: 'rgba(249,115,22,.52)',
-    cloudy: 'rgba(249,115,22,.60)',
-    rain:   'rgba(249,100,22,.58)',
-    storm:  'rgba(200,90,10,.65)',
-    snow:   'rgba(249,115,22,.50)',
-    fog:    'rgba(249,115,22,.56)',
-    wind:   'rgba(249,115,22,.54)',
-    night:  'rgba(180,70,10,.68)',
+    sunny:  'rgba(249,115,22,.62)',
+    partly: 'rgba(249,115,22,.60)',
+    cloudy: 'rgba(249,115,22,.64)',
+    rain:   'rgba(249,115,22,.62)',
+    storm:  'rgba(249,115,22,.64)',
+    snow:   'rgba(249,115,22,.58)',
+    fog:    'rgba(249,115,22,.62)',
+    wind:   'rgba(249,115,22,.60)',
+    night:  'rgba(249,115,22,.62)',
   };
   overlay.style.background=overlayTints[cond]||overlayTints.sunny;
   overlay.style.transition='background 1s ease';
@@ -1158,15 +1158,12 @@ function updateHeroScene(desc,isDaytime){
   }
   else if(cond==='night'){
     bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e1a"/><stop offset="100%" stop-color="#1a2035"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
-    // Moon
-    sceneSVG+=`<circle cx="330" cy="52" r="26" fill="#d4deff" style="animation:hc-moon-glow 5s ease-in-out infinite"/>`;
-    sceneSVG+=`<circle cx="342" cy="44" r="22" fill="#1a2035"/>`;// crescent cutout
-    // Stars
-    [[60,30],[110,18],[170,38],[230,12],[280,35],[350,15],[40,70],[150,65],[300,70],[380,45]].forEach(([x,y])=>{
-      const r=1+Math.random()*1.5;
-      const dur=2+Math.random()*3;
-      const del=-(Math.random()*3);
-      sceneSVG+=`<circle cx="${x}" cy="${y}" r="${r.toFixed(1)}" fill="white" opacity=".7" style="animation:hc-star-twinkle ${dur.toFixed(1)}s ease-in-out ${del.toFixed(1)}s infinite"/>`;
+    // Stars only — no moon, the weather icon already shows one
+    [[60,30],[110,18],[170,38],[230,12],[280,35],[350,15],[40,70],[150,65],[300,70],[380,45],[80,50],[200,55],[320,48],[140,25],[250,42]].forEach(([x,y])=>{
+      const r=(1+Math.random()*1.5).toFixed(1);
+      const dur=(2+Math.random()*3).toFixed(1);
+      const del=(-(Math.random()*3)).toFixed(1);
+      sceneSVG+=`<circle cx="${x}" cy="${y}" r="${r}" fill="white" opacity=".75" style="animation:hc-star-twinkle ${dur}s ease-in-out ${del}s infinite"/>`;
     });
     sceneSVG+=`<g style="animation:hc-cloud-drift2 16s ease-in-out infinite" transform="translate(30,110)">${mkCloud(130,55,'rgba(255,255,255,.12)')}</g>`;
   }
