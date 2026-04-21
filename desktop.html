@@ -132,20 +132,58 @@
       overflow:hidden;
     }
 
-    /* Hero card */
-    .hero-card{background:var(--red);border-radius:var(--r);padding:18px 22px;position:relative;overflow:hidden;}
-    .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;}
-    .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
-    .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
+    /* ═══════════════════════════════════════
+       HERO CARD — CSS ANIMATED WEATHER SCENES
+    ═══════════════════════════════════════ */
+
+    /* --- Keyframes --- */
+    @keyframes hc-rain-fall{0%{transform:translateY(-40px);opacity:0;}8%{opacity:1;}90%{opacity:.7;}100%{transform:translateY(260px);opacity:0;}}
+    @keyframes hc-snow-fall{0%{transform:translateY(-10px) translateX(0) rotate(0deg);opacity:0;}10%{opacity:.9;}85%{opacity:.6;}100%{transform:translateY(260px) translateX(22px) rotate(300deg);opacity:0;}}
+    @keyframes hc-cloud-drift{0%,100%{transform:translateX(0);}50%{transform:translateX(12px);}}
+    @keyframes hc-cloud-drift2{0%,100%{transform:translateX(0);}50%{transform:translateX(-10px);}}
+    @keyframes hc-sun-rotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    @keyframes hc-sun-pulse{0%,100%{opacity:.18;transform:scale(1);}50%{opacity:.28;transform:scale(1.08);}}
+    @keyframes hc-star-twinkle{0%,100%{opacity:.2;}50%{opacity:1;}}
+    @keyframes hc-moon-glow{0%,100%{box-shadow:0 0 14px 4px rgba(180,200,255,.2);}50%{box-shadow:0 0 28px 10px rgba(180,200,255,.4);}}
+    @keyframes hc-lightning{0%,84%,88%,92%,100%{opacity:0;}85%,89%{opacity:.85;}93%{opacity:.3;}}
+    @keyframes hc-fog-drift{0%,100%{transform:translateX(-8%) scaleX(1);}50%{transform:translateX(8%) scaleX(1.06);}}
+    @keyframes hc-wind-streak{0%{transform:translateX(-130%) skewX(-6deg);opacity:0;}18%{opacity:.45;}82%{opacity:.25;}100%{transform:translateX(260%) skewX(-6deg);opacity:0;}}
+    @keyframes hc-aurora{0%,100%{opacity:.12;transform:skewY(-2deg) scaleY(1);}50%{opacity:.22;transform:skewY(2deg) scaleY(1.06);}}
+    @keyframes hc-scene-in{from{opacity:0;}to{opacity:1;}}
+
+    /* Card shell */
+    .hero-card{border-radius:var(--r);padding:18px 22px;position:relative;overflow:hidden;background:#1c1008;}
+    .hero-card::before{content:'';position:absolute;right:-30px;top:-30px;width:220px;height:220px;background:rgba(255,255,255,.07);border-radius:50%;z-index:4;pointer-events:none;}
+    .hero-card::after{content:'';position:absolute;right:80px;bottom:-50px;width:160px;height:160px;background:rgba(255,255,255,.05);border-radius:50%;z-index:4;pointer-events:none;}
+
+    /* Scene canvas — fills card behind content */
+    #hc-scene{position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:var(--r);animation:hc-scene-in .8s ease both;}
+
+    /* Orange overlay — always present, tinted per condition */
+    #hc-overlay{position:absolute;inset:0;z-index:1;background:rgba(249,115,22,.93);pointer-events:none;}
+
+    /* Particle layer */
+    #hc-particles{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+
+    /* Shared particle primitives */
+    .hc-rain-drop{position:absolute;top:-40px;width:1.5px;border-radius:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.65));animation:hc-rain-fall linear infinite;}
+    .hc-snow-flake{position:absolute;top:-10px;border-radius:50%;background:rgba(255,255,255,.88);animation:hc-snow-fall ease-in-out infinite;}
+    .hc-wind-streak{position:absolute;height:1.5px;border-radius:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,.4),transparent);animation:hc-wind-streak linear infinite;}
+    .hc-fog-wisp{position:absolute;border-radius:50%;background:rgba(255,255,255,.13);filter:blur(16px);animation:hc-fog-drift ease-in-out infinite;}
+    .hc-lightning-flash{position:absolute;inset:0;background:rgba(255,255,240,.55);animation:hc-lightning 9s ease-in-out infinite;}
+    .hc-star{position:absolute;border-radius:50%;background:#fff;animation:hc-star-twinkle ease-in-out infinite;}
+
+    /* Content layers sit above scene */
+    .hero-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:5;}
     .hero-loc{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1.2;}
     .hero-date{font-size:0.7rem;color:rgba(255,255,255,0.72);margin-top:4px;}
     .hero-icon{width:64px;height:64px;flex-shrink:0;}
-    .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:1;}
+    .hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;position:relative;z-index:5;}
     .hero-temp{font-size:4.2rem;font-weight:800;color:#fff;letter-spacing:-0.05em;line-height:1;}
     .hero-temp sup{font-size:1.3rem;font-weight:500;opacity:.8;vertical-align:super;}
     .hero-desc{font-size:0.82rem;color:rgba(255,255,255,0.88);font-weight:600;text-align:right;max-width:150px;line-height:1.3;}
-    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:1;}
-    .hero-stat{background:rgba(0,0,0,0.2);border-radius:var(--r-sm);padding:13px 16px;}
+    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:5;}
+    .hero-stat{background:rgba(0,0,0,0.22);border-radius:var(--r-sm);padding:13px 16px;backdrop-filter:blur(4px);}
     .hero-stat-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.55);}
     .hero-stat-val{font-size:0.88rem;font-weight:700;color:#fff;margin-top:5px;}
 
@@ -592,12 +630,15 @@
       <div class="home-grid">
         <!-- Hero -->
         <div class="hero-card">
+          <div id="hc-scene"></div>
+          <div id="hc-overlay"></div>
+          <div id="hc-particles"></div>
           <div class="hero-top">
             <div>
               <div class="hero-loc" id="ch-loc">—</div>
               <div class="hero-date" id="ch-date"></div>
             </div>
-            <img class="hero-icon" id="ch-icon" alt="" width="64" height="64" style="opacity:0;transition:opacity .3s"/>
+
           </div>
           <div class="hero-bottom">
             <div class="hero-temp"><span id="ch-temp">--</span><sup>°F</sup></div>
@@ -1006,6 +1047,186 @@ function getIcon(desc,day=true){
   return ICONS[day?'sun':'moon'];
 }
 
+// ═══════════════════════════════════════════════
+//  HERO CARD — CSS animated weather scene engine
+// ═══════════════════════════════════════════════
+function classifyHeroCond(desc,isDaytime){
+  if(!desc)return isDaytime?'sunny':'night';
+  const d=desc.toLowerCase();
+  if(d.includes('thunder')||d.includes('tstm'))return 'storm';
+  if(d.includes('snow')||d.includes('blizzard')||d.includes('sleet')||d.includes('flurr'))return 'snow';
+  if(d.includes('rain')||d.includes('shower')||d.includes('drizzle'))return 'rain';
+  if(d.includes('fog')||d.includes('haze')||d.includes('mist'))return 'fog';
+  if(d.includes('wind')||d.includes('breezy')||d.includes('gusty'))return 'wind';
+  if(d.includes('cloud')||d.includes('overcast'))return isDaytime?'cloudy':'night';
+  if(d.includes('partly')||d.includes('mostly sunny'))return isDaytime?'partly':'night';
+  return isDaytime?'sunny':'night';
+}
+
+// Inline SVG cloud builder
+function mkCloud(w,h,col){
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="${w*.38}" cy="${h*.6}" rx="${w*.3}" ry="${h*.38}" fill="${col}"/>
+    <ellipse cx="${w*.62}" cy="${h*.65}" rx="${w*.28}" ry="${h*.32}" fill="${col}"/>
+    <ellipse cx="${w*.5}" cy="${h*.45}" rx="${w*.22}" ry="${h*.28}" fill="${col}"/>
+    <rect x="${w*.1}" y="${h*.6}" width="${w*.8}" height="${h*.42}" rx="${h*.2}" fill="${col}"/>
+  </svg>`;
+}
+
+let _lastHeroCond=null;
+function updateHeroScene(desc,isDaytime){
+  const cond=classifyHeroCond(desc,isDaytime);
+  const scene=document.getElementById('hc-scene');
+  const overlay=document.getElementById('hc-overlay');
+  const particles=document.getElementById('hc-particles');
+  if(cond===_lastHeroCond)return;
+  _lastHeroCond=cond;
+
+  // ── Overlay tint — always orange-based, slightly tuned per mood ──
+  const overlayTints={
+    sunny:  'rgba(249,115,22,.93)',
+    partly: 'rgba(249,115,22,.91)',
+    cloudy: 'rgba(249,115,22,.88)',
+    rain:   'rgba(249,115,22,.90)',
+    storm:  'rgba(249,115,22,.88)',
+    snow:   'rgba(249,115,22,.86)',
+    fog:    'rgba(249,115,22,.88)',
+    wind:   'rgba(249,115,22,.91)',
+    night:  'rgba(249,115,22,.85)',
+  };
+  overlay.style.background=overlayTints[cond]||overlayTints.sunny;
+  overlay.style.transition='background 1s ease';
+
+  // ── Build scene SVG background ──
+  const W=400,H=220;
+  let bgGrad,sceneSVG='';
+
+  if(cond==='sunny'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e6fb5"/><stop offset="100%" stop-color="#8ecfff"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 9s ease-in-out infinite" transform="translate(20,60)">${mkCloud(120,55,'rgba(255,255,255,.35)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 13s ease-in-out infinite" transform="translate(200,90)">${mkCloud(90,42,'rgba(255,255,255,.25)')}</g>`;
+  }
+  else if(cond==='partly'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1e6fb5"/><stop offset="100%" stop-color="#a0d4f5"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 8s ease-in-out infinite" transform="translate(240,30)">${mkCloud(140,65,'rgba(255,255,255,.7)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 11s ease-in-out infinite" transform="translate(30,70)">${mkCloud(100,48,'rgba(255,255,255,.4)')}</g>`;
+  }
+  else if(cond==='cloudy'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a5568"/><stop offset="100%" stop-color="#718096"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 10s ease-in-out infinite" transform="translate(-10,20)">${mkCloud(180,80,'rgba(255,255,255,.35)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 14s ease-in-out infinite" transform="translate(160,10)">${mkCloud(160,72,'rgba(255,255,255,.28)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 17s ease-in-out infinite" transform="translate(100,70)">${mkCloud(140,60,'rgba(255,255,255,.22)')}</g>`;
+  }
+  else if(cond==='rain'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2d3748"/><stop offset="100%" stop-color="#4a5568"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 9s ease-in-out infinite" transform="translate(-20,10)">${mkCloud(200,85,'rgba(160,170,190,.6)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 12s ease-in-out infinite" transform="translate(180,5)">${mkCloud(180,78,'rgba(140,155,175,.55)')}</g>`;
+  }
+  else if(cond==='storm'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#2d2d44"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 7s ease-in-out infinite" transform="translate(-30,0)">${mkCloud(230,95,'rgba(80,80,110,.8)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 10s ease-in-out infinite" transform="translate(190,-5)">${mkCloud(200,88,'rgba(60,60,90,.75)')}</g>`;
+    // Jagged lightning bolt
+    sceneSVG+=`<polyline points="210,80 198,118 208,118 193,155" stroke="#FDE047" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".9"/>`;
+  }
+  else if(cond==='snow'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#90a4c0"/><stop offset="100%" stop-color="#c8d8e8"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 12s ease-in-out infinite" transform="translate(-10,10)">${mkCloud(170,75,'rgba(255,255,255,.55)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 15s ease-in-out infinite" transform="translate(210,5)">${mkCloud(150,68,'rgba(255,255,255,.45)')}</g>`;
+  }
+  else if(cond==='fog'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6b7280"/><stop offset="100%" stop-color="#9ca3af"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    // Layered fog bands
+    [30,80,130,170].forEach((y,i)=>{
+      sceneSVG+=`<rect x="-20" y="${y}" width="440" height="28" rx="14" fill="rgba(255,255,255,${.06+i*.02})" style="animation:hc-fog-drift ${8+i*3}s ease-in-out infinite;animation-delay:${-i*2}s"/>`;
+    });
+  }
+  else if(cond==='wind'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#374151"/><stop offset="100%" stop-color="#6b7280"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift 6s ease-in-out infinite" transform="translate(-40,20)">${mkCloud(160,70,'rgba(255,255,255,.3)')}</g>`;
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 9s ease-in-out infinite" transform="translate(200,50)">${mkCloud(130,58,'rgba(255,255,255,.22)')}</g>`;
+  }
+  else if(cond==='night'){
+    bgGrad=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e1a"/><stop offset="100%" stop-color="#1a2035"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#g)"/>`;
+    // Stars only — no moon, the weather icon already shows one
+    [[60,30],[110,18],[170,38],[230,12],[280,35],[350,15],[40,70],[150,65],[300,70],[380,45],[80,50],[200,55],[320,48],[140,25],[250,42]].forEach(([x,y])=>{
+      const r=(1+Math.random()*1.5).toFixed(1);
+      const dur=(2+Math.random()*3).toFixed(1);
+      const del=(-(Math.random()*3)).toFixed(1);
+      sceneSVG+=`<circle cx="${x}" cy="${y}" r="${r}" fill="white" opacity=".75" style="animation:hc-star-twinkle ${dur}s ease-in-out ${del}s infinite"/>`;
+    });
+    sceneSVG+=`<g style="animation:hc-cloud-drift2 16s ease-in-out infinite" transform="translate(30,110)">${mkCloud(130,55,'rgba(255,255,255,.12)')}</g>`;
+  }
+
+  // Write scene
+  scene.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${bgGrad}${sceneSVG}</svg>`;
+  // Force re-animation
+  scene.style.animation='none';
+  requestAnimationFrame(()=>{ scene.style.animation='hc-scene-in .8s ease both'; });
+
+  // ── Particle overlay (DOM elements on top of SVG) ──
+  particles.innerHTML='';
+
+  // Sun rendered above the orange overlay so it's always clearly visible
+  if(cond==='sunny'){
+    particles.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="sg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff7a0" stop-opacity="0.85"/><stop offset="100%" stop-color="#ffaa00" stop-opacity="0"/></radialGradient></defs>
+      <g transform="translate(315,52)">
+        <circle r="80" fill="url(#sg)"/>
+        <g style="animation:hc-sun-rotate 18s linear infinite;transform-origin:0 0">
+          ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>`<line x1="50" y1="0" x2="72" y2="0" stroke="#FFE44D" stroke-width="4" stroke-linecap="round" transform="rotate(${a})"/>`).join('')}
+        </g>
+        <circle r="40" fill="#FFD93D"/>
+        <circle r="40" fill="rgba(255,245,150,.4)" style="animation:hc-sun-pulse 4s ease-in-out infinite"/>
+      </g>
+    </svg>`;
+  }
+  else if(cond==='partly'){
+    particles.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="sg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff7a0" stop-opacity="0.7"/><stop offset="100%" stop-color="#ffaa00" stop-opacity="0"/></radialGradient></defs>
+      <g transform="translate(295,42)">
+        <circle r="60" fill="url(#sg2)"/>
+        <circle r="32" fill="#FFD93D"/>
+      </g>
+    </svg>`;
+  }
+  else if(cond==='rain'||cond==='storm'){
+    const count=cond==='storm'?42:26;
+    for(let i=0;i<count;i++){
+      const el=document.createElement('div');el.className='hc-rain-drop';
+      el.style.cssText=`left:${Math.random()*100}%;height:${50+Math.random()*80}px;animation-duration:${.3+Math.random()*.4}s;animation-delay:${-(Math.random()*2)}s;opacity:${.3+Math.random()*.5};`;
+      particles.appendChild(el);
+    }
+    if(cond==='storm'){
+      const fl=document.createElement('div');fl.className='hc-lightning-flash';particles.appendChild(fl);
+    }
+  }
+  else if(cond==='snow'){
+    for(let i=0;i<32;i++){
+      const el=document.createElement('div');el.className='hc-snow-flake';
+      const sz=2+Math.random()*5;
+      el.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-duration:${3+Math.random()*4}s;animation-delay:${-(Math.random()*6)}s;`;
+      particles.appendChild(el);
+    }
+  }
+  else if(cond==='fog'){
+    for(let i=0;i<5;i++){
+      const el=document.createElement('div');el.className='hc-fog-wisp';
+      el.style.cssText=`width:${120+Math.random()*140}px;height:${55+Math.random()*55}px;top:${10+Math.random()*75}%;left:${-15+Math.random()*95}%;animation-duration:${9+Math.random()*9}s;animation-delay:${-(Math.random()*8)}s;`;
+      particles.appendChild(el);
+    }
+  }
+  else if(cond==='wind'){
+    for(let i=0;i<12;i++){
+      const el=document.createElement('div');el.className='hc-wind-streak';
+      el.style.cssText=`top:${8+Math.random()*84}%;width:${45+Math.random()*120}px;animation-duration:${.9+Math.random()*1.3}s;animation-delay:${-(Math.random()*2.5)}s;`;
+      particles.appendChild(el);
+    }
+  }
+}
+// Run default scene immediately so card is never blank
+// Hero scene initialized after weather data loads
+
 // ══════════════════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════════════════
@@ -1157,8 +1378,7 @@ async function loadWeather(loc){
           document.getElementById('st-feels').textContent=feels;
           document.getElementById('st-humid').textContent=humid;
           document.getElementById('st-wind').textContent=wind;
-          const icon=document.getElementById('ch-icon');
-          icon.style.opacity='0';icon.onload=()=>icon.style.opacity='1';icon.src=getIcon(desc,isDaytime);
+          updateHeroScene(desc,isDaytime);
         }
       }
     }
